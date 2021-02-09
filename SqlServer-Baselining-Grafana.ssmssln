@@ -11,6 +11,8 @@ Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Server-Objects", "Server-Ob
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Temp-Scripts", "Temp-Scripts\Temp-Scripts.ssmssqlproj", "{7ED3B209-76A3-48A5-8C31-4760BBDAA192}"
 EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "XEvent", "XEvent\XEvent.ssmssqlproj", "{346471F8-E161-47CB-AE5D-A766BE2B21E5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Default|Default = Default|Default
@@ -19,8 +21,9 @@ Global
 		{50666399-6019-48FC-8F2D-D374C87F9A57}.Default|Default.ActiveCfg = Default
 		{45B8BCE2-C6A0-4A90-9760-ADA6F90BCB76}.Default|Default.ActiveCfg = Default
 		{C409215F-4A65-49D1-B747-538F195C5781}.Default|Default.ActiveCfg = Default
-		{3A567F30-A8F5-473D-B0F1-70B4DA67093C}.Default|Default.ActiveCfg = Default
 		{7ED3B209-76A3-48A5-8C31-4760BBDAA192}.Default|Default.ActiveCfg = Default
+		{73ED28CD-E86D-4BE7-B954-FF899AB49CE9}.Default|Default.ActiveCfg = Default
+		{346471F8-E161-47CB-AE5D-A766BE2B21E5}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
