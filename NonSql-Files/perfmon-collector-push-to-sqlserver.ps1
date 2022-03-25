@@ -1,53 +1,64 @@
-﻿Import-Module dbatools;
-$collector_root_directory = 'E:\Perfmon';
-$data_collector_set_name = 'DBA';
-$dsn = 'LocalSqlServer';
-$DBAInventory = $env:COMPUTERNAME;
-$DBA_database = 'DBA';
+﻿# Set SQL Server where data should be saved
+$localServer = 'localhost'
+$localDb = 'DBA'
+$collectorSetName = 'DBA'
+$ErrorActionPreference = 'Stop'
 
-$data_collector_template_path = “$collector_root_directory\DBA_PerfMon_NonSQL_Collector_Template.xml”;
-$log_file_path = "$collector_root_directory\$($env:COMPUTERNAME)__"
+# Fetch Collector details
+$startTime = Get-Date
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetch details of [$collectorSetName] data collector.."
+$pfCollector = Get-DbaPfDataCollector -CollectorSet $collectorSetName
+$pfCollectorSet = Get-DbaPfDataCollectorSet -CollectorSet $collectorSetName
+$computerName = $pfCollector.ComputerName
+$lastFile = $pfCollector.LatestOutputLocation
+$pfCollectorFolder = Split-Path $lastFile -Parent
+$lastImportedFile = $null
 
-$tsql_last_log_file_imported = @"
-if OBJECT_ID('DBA.dbo.DisplayToID') is null
-	select CAST(NULL AS varchar(1024)) AS DisplayString;
-else
-	select a.DisplayString
-	from (
-			select ROW_NUMBER()over(order by DisplayString desc) row_id, DisplayString
-			from dbo.DisplayToID
-			where DisplayString like '$collector_root_directory%'
-		 ) as a
-	full outer join (select CAST(NULL AS varchar(1024)) AS DisplayString) as d on 1 = 1
-	where row_id = 1;
-"@
-$last_log_file_imported = Invoke-DbaQuery -SqlInstance $DBAInventory -Database $DBA_database -Query $tsql_last_log_file_imported | Select-Object -ExpandProperty DisplayString;
+# Get latest imported file
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetch details of last imported file from [$localServer].[$localDb].[dbo].[perfmon_files].."
+$lastImportedFile = Invoke-DbaQuery -SqlInstance $localServer -Database $localDb -Query "select top 1 file_name from dbo.perfmon_files where server_name = '$($env:COMPUTERNAME)' order by file_name desc" | Select-Object -ExpandProperty file_name;
 
-$current_collector_state = logman -n $data_collector_set_name;
-$location_line = $current_collector_state | Where-Object {$_ -like 'Output Location:*'}
-$status_line = $current_collector_state | Where-Object {$_ -like 'Status:*'}
-$current_log_file = $location_line.Replace("Output Location:",'').trim();
-$current_log_file_status = $status_line.Replace("Status:",'').trim();
-
-$perfmonfiles = Get-ChildItem -Path $collector_root_directory  -Filter *.blg |
-                    Where-Object {$_.FullName -gt $last_log_file_imported -or $last_log_file_imported -eq $null -or [String]::IsNullOrEmpty($last_log_file_imported)}
-
-if($current_log_file_status -eq 'Running') {
-    logman stop -name “$data_collector_set_name”
-    logman start -name “$data_collector_set_name”
-} else {
-    logman start -name “$data_collector_set_name”
+# Stop collector set
+if($pfCollectorSet.State -eq 'Running') {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Stop data collector.."
+    $pfCollectorSet | Stop-DbaPfDataCollectorSet | Out-Null
 }
 
+# Note existing files
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Scan existing perfmon files generated.."
+$pfCollectorFiles = @()
+$pfCollectorFiles += Get-ChildItem $pfCollectorFolder -Recurse -File -Name *.blg | Where-Object {[String]::IsNullOrEmpty($lastImportedFile) -or ($_ -gt $lastImportedFile)} | Sort-Object
 
-foreach($perfmonfile in $perfmonfiles)
+# Start collector set
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Start data collector.."
+Start-DbaPfDataCollectorSet -CollectorSet $collectorSetName | Out-Null
+
+foreach($file in $pfCollectorFiles)
 {
-    $sourceBlg = $perfmonfile.FullName;
-    $sqlDSNconection = "SQL:$dsn!$sourceBlg"
+    #Import-Counter -Path "$pfCollectorFolder\21L-LTPABL-1187_DBA_20220325_134853_001.blg" -ListSet * | ogv
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Processing file '$file'.."
+    $pfDataFormatted = @()
+    Import-Counter -Path "$pfCollectorFolder\$file" -EA silentlycontinue | Select-Object -ExpandProperty CounterSamples | 
+            Select-Object Timestamp, @{l='ComputerName';e={$computerName}}, Path, `
+                          @{l='Object';e={$path = $_.Path; $splitPath = $path.Split('\\')|Where-Object{-not [String]::IsNullOrEmpty($_)}; $object = $splitPath[1]; $object.replace("($($_.InstanceName))",'') }}, `
+                          @{l='Counter';e={$path = $_.Path; $splitPath = $path.Split('\\')|Where-Object{-not [String]::IsNullOrEmpty($_)}; $splitPath[2] }}, `
+                          @{l='Value';e={$_.CookedValue}}, InstanceName |
+            Write-DbaDbTableData -SqlInstance $localServer -Database $localDb -Table 'stg.performance_counters' -AutoCreateTable -EnableException
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "File import complete.."
 
-    $AllArgs = @($sourceBlg, '-f', 'SQL', '-o', $sqlDSNconection)
-    $relog_result = relog $AllArgs
-    Write-Output "Importing -> $sourceBlg"
+    
+    # If blg file is read successfully, then add file entry into database
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Make entry of file in [$localServer].[$localDb].[dbo].[perfmon_files].."
+    $sqlInsertFile = @"
+    insert dbo.perfmon_files (server_name, file_name, file_path)
+    select @server_name, @file_name, @file_path;
+"@
+    Invoke-DbaQuery -SqlInstance $localServer -Database $localDb -Query $sqlInsertFile -SqlParameter @{server_name = $env:COMPUTERNAME; file_name = $file; file_path = "$pfCollectorFolder\$file"}
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Entry made.."
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove file.."
+    Remove-Item "$pfCollectorFolder\$file"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "File removed.."
 }
+"`n`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'END:', "All files processed.."
 
-#Add-OdbcDsn -Name "LocalSqlServer" -DriverName "SQL Server" -DsnType "System" -SetPropertyValue @("Server=localhost", "Trusted_Connection=Yes", "Database=DBA")

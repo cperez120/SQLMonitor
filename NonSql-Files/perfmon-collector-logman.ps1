@@ -8,8 +8,8 @@ $data_collector_set_name = 'DBA';
 # find Perfmon data collection logs folder path
 $collector_root_directory = Split-Path $data_collector_template_path -Parent
 $log_file_path = "$collector_root_directory\$data_collector_set_name"
-$file_rotation_time = '04:00:00'
-$sample_interval = '00:00:05'
+$file_rotation_time = '00:30:00'
+$sample_interval = '00:00:10'
 
 logman import -name “$data_collector_set_name” -xml “$data_collector_template_path”
 logman update -name “$data_collector_set_name” -f bin -cnf "$file_rotation_time" -o "$log_file_path" -si "$sample_interval"
