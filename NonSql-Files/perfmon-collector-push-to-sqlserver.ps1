@@ -3,6 +3,7 @@ $localServer = 'localhost'
 $localDb = 'DBA'
 $collectorSetName = 'DBA'
 $ErrorActionPreference = 'Stop'
+$CleanupFiles = $true
 
 # Fetch Collector details
 $startTime = Get-Date
@@ -37,28 +38,37 @@ foreach($file in $pfCollectorFiles)
 {
     #Import-Counter -Path "$pfCollectorFolder\21L-LTPABL-1187_DBA_20220325_134853_001.blg" -ListSet * | ogv
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Processing file '$file'.."
-    $pfDataFormatted = @()
-    Import-Counter -Path "$pfCollectorFolder\$file" -EA silentlycontinue | Select-Object -ExpandProperty CounterSamples | 
-            Select-Object Timestamp, @{l='ComputerName';e={$computerName}}, Path, `
-                          @{l='Object';e={$path = $_.Path; $splitPath = $path.Split('\\')|Where-Object{-not [String]::IsNullOrEmpty($_)}; $object = $splitPath[1]; $object.replace("($($_.InstanceName))",'') }}, `
-                          @{l='Counter';e={$path = $_.Path; $splitPath = $path.Split('\\')|Where-Object{-not [String]::IsNullOrEmpty($_)}; $splitPath[2] }}, `
-                          @{l='Value';e={$_.CookedValue}}, InstanceName |
-            Write-DbaDbTableData -SqlInstance $localServer -Database $localDb -Table 'stg.performance_counters' -AutoCreateTable -EnableException
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "File import complete.."
+    try
+    {
+        Import-Counter -Path "$pfCollectorFolder\$file" -EA silentlycontinue | Select-Object -ExpandProperty CounterSamples | 
+                Select-Object @{l='collection_time_utc';e={($_.TimeStamp).ToUniversalTime()}}, @{l='computer_name';e={$computerName}}, @{l='path';e={$_.Path}}, `
+                              @{l='object';e={$path = $_.Path; $splitPath = $path.Split('\\')|Where-Object{-not [String]::IsNullOrEmpty($_)}; $object = $splitPath[1]; $object.replace("($($_.InstanceName))",'') }}, `
+                              @{l='counter';e={$path = $_.Path; $splitPath = $path.Split('\\')|Where-Object{-not [String]::IsNullOrEmpty($_)}; $splitPath[2] }}, `
+                              @{l='value';e={$_.CookedValue}}, @{l='instance';e={$_.InstanceName}} |
+                Write-DbaDbTableData -SqlInstance $localServer -Database $localDb -Table 'dbo.performance_counters' -EnableException
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "File import complete.."
 
     
-    # If blg file is read successfully, then add file entry into database
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Make entry of file in [$localServer].[$localDb].[dbo].[perfmon_files].."
-    $sqlInsertFile = @"
-    insert dbo.perfmon_files (server_name, file_name, file_path)
-    select @server_name, @file_name, @file_path;
+        # If blg file is read successfully, then add file entry into database
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Make entry of file in [$localServer].[$localDb].[dbo].[perfmon_files].."
+        $sqlInsertFile = @"
+        insert dbo.perfmon_files (server_name, file_name, file_path)
+        select @server_name, @file_name, @file_path;
 "@
-    Invoke-DbaQuery -SqlInstance $localServer -Database $localDb -Query $sqlInsertFile -SqlParameter @{server_name = $env:COMPUTERNAME; file_name = $file; file_path = "$pfCollectorFolder\$file"}
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Entry made.."
+        Invoke-DbaQuery -SqlInstance $localServer -Database $localDb -Query $sqlInsertFile -SqlParameter @{server_name = $env:COMPUTERNAME; file_name = $file; file_path = "$pfCollectorFolder\$file"}
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Entry made.."
 
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove file.."
-    Remove-Item "$pfCollectorFolder\$file"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "File removed.."
+        if($CleanupFiles) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove file.."
+            Remove-Item "$pfCollectorFolder\$file"
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "File removed.."
+        }
+    }
+    catch {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove file as its generating error.."
+        Remove-Item "$pfCollectorFolder\$file"
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "File removed.."
+    }
 }
 "`n`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'END:', "All files processed.."
 
