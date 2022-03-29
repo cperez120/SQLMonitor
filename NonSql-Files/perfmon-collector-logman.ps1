@@ -18,4 +18,7 @@ logman start -name “$data_collector_set_name”
 <#
 logman stop -name “$data_collector_set_name”
 logman delete -name “$data_collector_set_name”
+
+Get-Counter -ListSet * | Select-Object -ExpandProperty Counter | ogv
 #>
+
