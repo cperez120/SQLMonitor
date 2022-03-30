@@ -1,6 +1,14 @@
 USE [DBA]
 GO
 
+/*
+	1) Create Partition Function
+	2) Create Partition Scheme
+	3) Create table [dbo].[performance_counters] using Partition scheme
+	4) Add/Remove Partition Boundaries
+	5) Create table [dbo].[os_task_list] using Partition scheme
+
+*/
 create partition function pf_dba (datetime2)
 as range right for values ('2022-03-25 00:00:00.0000000')
 go
@@ -102,3 +110,32 @@ begin
 	alter partition function pf_dba() split range (@current_boundary_value);	
 end
 go
+
+-- drop table [dbo].[os_task_list]
+CREATE TABLE [dbo].[os_task_list]
+(	
+	[collection_time_utc] [datetime2](7) NOT NULL,
+	[task_name] [nvarchar](100) not null,
+	[pid] bigint not null,
+	[session_name] [varchar](20) not null,
+	[memory_kb] bigint NOT NULL,
+	[status] [varchar](30) NULL,
+	[user_name] [varchar](200) NOT NULL,
+	[cpu_time] [char](10) NOT NULL,
+	[cpu_time_seconds] bigint NOT NULL,
+	[window_title] [nvarchar](2000) NULL
+) on ps_dba ([collection_time_utc])
+go
+
+create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [task_name])
+go
+create nonclustered index nci_user_name on [dbo].[os_task_list] ([collection_time_utc], [user_name])
+go
+create nonclustered index nci_window_title on [dbo].[os_task_list] ([collection_time_utc], [window_title])
+go
+create nonclustered index nci_cpu_time_seconds on [dbo].[os_task_list] ([collection_time_utc], [cpu_time_seconds])
+go
+create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_time_utc], [memory_kb])
+go
+
+select * from [dbo].[os_task_list]

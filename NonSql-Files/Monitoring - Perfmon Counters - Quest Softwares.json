@@ -25,7 +25,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 2,
-  "iteration": 1648483481717,
+  "iteration": 1648608999255,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -47,7 +47,7 @@
           "description": "Unused physical memory (not page file).\nShould be greater than 2 GB",
           "fieldConfig": {
             "defaults": {
-              "unit": "decmbytes"
+              "unit": "mbytes"
             },
             "overrides": []
           },
@@ -114,7 +114,7 @@
           "yaxes": [
             {
               "$$hashKey": "object:574",
-              "format": "decmbytes",
+              "format": "mbytes",
               "logBase": 1,
               "show": true
             },
@@ -170,7 +170,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -263,7 +264,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -372,7 +374,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent"
+                    "color": "transparent",
+                    "value": null
                   },
                   {
                     "color": "orange",
@@ -420,7 +423,7 @@
                 "uid": "ygPVA4snk"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect pc.collection_time_utc as time, \n\t\tcase when (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total') then '% Processor Time (os)'\n\t\t\twhen (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr') then '% Processor Time (sqlservr)'\n\t\t\telse null\n\t\t\tend as metric,\n\t--object, counter as metric, instance\n\tpc.value\nfrom dbo.performance_counters pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and\n\t ((pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total')\n\tor (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr')\n\t)\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect pc.collection_time_utc as time, \n\t\tcase when (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total') then '% Processor Time (os)'\n\t\t\twhen (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr') then '% Processor Time (sqlservr)'\n\t\t\telse null\n\t\t\tend as metric,\n\t--object, counter as metric, instance\n\tcase when pc.object = 'processor' then pc.value else pc.value/(select count(*) from sys.dm_os_schedulers dos where status = 'VISIBLE ONLINE') end as value\nfrom dbo.performance_counters pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and\n\t ((pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total')\n\tor (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr')\n\t)\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
               "refId": "A"
             }
           ],
@@ -468,7 +471,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -568,7 +572,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -659,7 +664,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1656,7 +1662,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1699,7 +1706,7 @@
                 "uid": "ygPVA4snk"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\n\nselect pc.collection_time_utc as time\n\t,instance + (case when counter = 'Log File(s) Size (KB)' then ' (total)' else ' (used)' end) as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom dbo.performance_counters pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and\n\t  pc.object = (@object_name+':Databases') and pc.counter in ('Log File(s) Size (KB)','Log File(s) Used Size (KB)')\n\t and pc.instance not in ('_Total','master','model','mssqlsystemresource')\norder by time, metric\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @database varchar (200);\n\nif(ltrim(rtrim('$database')) <> '') \n  set @database = '$database'\ndeclare @object_name varchar(255);\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\n\nselect pc.collection_time_utc as time\n\t,instance + (case when counter = 'Log File(s) Size (KB)' then ' (total)' else ' (used)' end) as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom dbo.performance_counters pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and\n\t  pc.object = (@object_name+':Databases') and pc.counter in ('Log File(s) Size (KB)','Log File(s) Used Size (KB)')\n\t and (\n\t      (@database is null and pc.instance not in ('_Total','master','model','mssqlsystemresource'))\n\t      or\n\t      (pc.instance = @database)\n\t     )\norder by time, metric\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
               "refId": "A"
             }
           ],
@@ -1753,7 +1760,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1796,7 +1804,7 @@
                 "uid": "ygPVA4snk"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\n\nselect pc.collection_time_utc as time\n\t,instance + (case when counter = 'Data File(s) Size (KB)' then ' (total)' else ' (used)' end) as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom dbo.performance_counters pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and\n\t  pc.object = (@object_name+':Databases') and pc.counter in ('Data File(s) Size (KB)','Data File(s) Used Size (KB)')\n\t and pc.instance not in ('_Total','master','model','mssqlsystemresource')\norder by time, metric\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @database varchar (200);\n\nif(ltrim(rtrim('$database')) <> '') \n  set @database = '$database'\n  \ndeclare @object_name varchar(255);\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\n\nselect pc.collection_time_utc as time\n\t,instance + (case when counter = 'Data File(s) Size (KB)' then ' (total)' else ' (used)' end) as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom dbo.performance_counters pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and\n\t  pc.object = (@object_name+':Databases') and pc.counter in ('Data File(s) Size (KB)','Data File(s) Used Size (KB)')\n\t and (\n\t      (@database is null and pc.instance not in ('_Total','master','model','mssqlsystemresource'))\n\t      or\n\t      (pc.instance = @database)\n\t     )\norder by time, metric\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
               "refId": "A"
             }
           ],
@@ -2269,7 +2277,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2359,7 +2368,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2451,7 +2461,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2558,7 +2569,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2585,7 +2597,9 @@
                 "max"
               ],
               "displayMode": "table",
-              "placement": "bottom"
+              "placement": "bottom",
+              "sortBy": "Max",
+              "sortDesc": true
             },
             "tooltip": {
               "mode": "multi",
@@ -2649,7 +2663,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3134,7 +3149,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3150,7 +3166,7 @@
             "h": 5,
             "w": 24,
             "x": 0,
-            "y": 14
+            "y": 35
           },
           "id": 134,
           "options": {
@@ -3226,7 +3242,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3242,7 +3259,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 19
+            "y": 40
           },
           "id": 137,
           "options": {
@@ -3318,7 +3335,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3334,7 +3352,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 25
+            "y": 46
           },
           "id": 135,
           "options": {
@@ -3410,7 +3428,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3426,7 +3445,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 31
+            "y": 52
           },
           "id": 136,
           "options": {
@@ -3874,7 +3893,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3890,7 +3910,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 30
+            "y": 16
           },
           "id": 16,
           "options": {
@@ -4737,7 +4757,7 @@
       "type": "row"
     }
   ],
-  "refresh": "1m",
+  "refresh": "",
   "schemaVersion": 35,
   "style": "dark",
   "tags": [
@@ -4766,6 +4786,27 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "DBA",
+          "value": "DBA"
+        },
+        "description": "Database Name",
+        "hide": 0,
+        "label": "Database",
+        "name": "database",
+        "options": [
+          {
+            "selected": true,
+            "text": "DBA",
+            "value": "DBA"
+          }
+        ],
+        "query": "DBA",
+        "skipUrlSync": false,
+        "type": "textbox"
       }
     ]
   },
@@ -4790,6 +4831,6 @@
   "timezone": "",
   "title": "Monitoring - Perfmon Counters - Quest Softwares",
   "uid": "_dioLINMk",
-  "version": 124,
+  "version": 133,
   "weekStart": ""
 }
