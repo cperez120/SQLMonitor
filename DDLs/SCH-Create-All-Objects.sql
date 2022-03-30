@@ -6,7 +6,8 @@ GO
 	2) Create Partition Scheme
 	3) Create table [dbo].[performance_counters] using Partition scheme
 	4) Add/Remove Partition Boundaries
-	5) Create table [dbo].[os_task_list] using Partition scheme
+	5) Create dbo.perfmon_files table
+	6) Create table [dbo].[os_task_list] using Partition scheme
 
 */
 create partition function pf_dba (datetime2)
@@ -110,6 +111,25 @@ begin
 	alter partition function pf_dba() split range (@current_boundary_value);	
 end
 go
+
+
+CREATE TABLE [dbo].[perfmon_files](
+	[server_name] [varchar](100) NOT NULL,
+	[file_name] [varchar](255) NOT NULL,
+	[file_path] [varchar](255) NOT NULL,
+	[collection_time_utc] [datetime2](7) NOT NULL,
+ CONSTRAINT [pk_perfmon_files] PRIMARY KEY CLUSTERED 
+(
+	[file_name] ASC,
+	[collection_time_utc] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[perfmon_files] ADD  DEFAULT (sysutcdatetime()) FOR [collection_time_utc]
+GO
+
+
 
 -- drop table [dbo].[os_task_list]
 CREATE TABLE [dbo].[os_task_list]
