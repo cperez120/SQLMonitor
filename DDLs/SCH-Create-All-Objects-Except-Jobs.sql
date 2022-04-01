@@ -5,23 +5,18 @@ GO
 	1) Create Partition Function
 	2) Create Partition Scheme
 	3) Create table [dbo].[performance_counters] using Partition scheme
-	4) Create dbo.perfmon_files table using Partition scheme
-	5) Create table [dbo].[os_task_list] using Partition scheme
-	5) Add/Remove Partition Boundaries
-	6) 
+	4) Add/Remove Partition Boundaries
+	5) Create dbo.perfmon_files table
+	6) Create table [dbo].[os_task_list] using Partition scheme
 
 */
-
-/* ***** 1) Create Partition Function ***************** */
 create partition function pf_dba (datetime2)
 as range right for values ('2022-03-25 00:00:00.0000000')
 go
 
-/* ***** 2) Create Partition Scheme ***************** */
 create partition scheme ps_dba as partition pf_dba all to ([primary])
 go
 
-/* ***** 3) Create table [dbo].[performance_counters] using Partition scheme ***************** */
 -- drop table [dbo].[performance_counters]
 create table [dbo].[performance_counters]
 (
@@ -35,50 +30,7 @@ create table [dbo].[performance_counters]
 ) on ps_dba ([collection_time_utc])
 go
 
-create clustered index ci_performance_counters on [dbo].[performance_counters] 
-	([collection_time_utc], object, counter, [instance], [value]) on ps_dba ([collection_time_utc])
-go
-
-/* ***** 4) Create dbo.perfmon_files table using Partition scheme ***************** */
-CREATE TABLE [dbo].[perfmon_files](
-	[server_name] [varchar](100) NOT NULL,
-	[file_name] [varchar](255) NOT NULL,
-	[file_path] [varchar](255) NOT NULL,
-	[collection_time_utc] [datetime2](7) NOT NULL default sysutcdatetime(),
-	CONSTRAINT [pk_perfmon_files] PRIMARY KEY CLUSTERED 
-	(
-		[file_name] ASC,
-		[collection_time_utc] ASC
-	) on ps_dba ([collection_time_utc])
-) on ps_dba ([collection_time_utc])
-GO
-
-/* ***** 5) Create table [dbo].[os_task_list] using Partition scheme ***************** */
--- drop table [dbo].[os_task_list]
-CREATE TABLE [dbo].[os_task_list]
-(	
-	[collection_time_utc] [datetime2](7) NOT NULL,
-	[task_name] [nvarchar](100) not null,
-	[pid] bigint not null,
-	[session_name] [varchar](20) not null,
-	[memory_kb] bigint NOT NULL,
-	[status] [varchar](30) NULL,
-	[user_name] [varchar](200) NOT NULL,
-	[cpu_time] [char](10) NOT NULL,
-	[cpu_time_seconds] bigint NOT NULL,
-	[window_title] [nvarchar](2000) NULL
-) on ps_dba ([collection_time_utc])
-go
-
-create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [task_name]) on ps_dba ([collection_time_utc])
-go
-create nonclustered index nci_user_name on [dbo].[os_task_list] ([collection_time_utc], [user_name]) on ps_dba ([collection_time_utc])
-go
-create nonclustered index nci_window_title on [dbo].[os_task_list] ([collection_time_utc], [window_title]) on ps_dba ([collection_time_utc])
-go
-create nonclustered index nci_cpu_time_seconds on [dbo].[os_task_list] ([collection_time_utc], [cpu_time_seconds]) on ps_dba ([collection_time_utc])
-go
-create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_time_utc], [memory_kb]) on ps_dba ([collection_time_utc])
+create clustered index ci_performance_counters on [dbo].[performance_counters] ([collection_time_utc], object, counter, [instance], [value])
 go
 
 
@@ -160,5 +112,50 @@ begin
 end
 go
 
-select * from [dbo].[os_task_list]
+
+CREATE TABLE [dbo].[perfmon_files](
+	[server_name] [varchar](100) NOT NULL,
+	[file_name] [varchar](255) NOT NULL,
+	[file_path] [varchar](255) NOT NULL,
+	[collection_time_utc] [datetime2](7) NOT NULL,
+ CONSTRAINT [pk_perfmon_files] PRIMARY KEY CLUSTERED 
+(
+	[file_name] ASC,
+	[collection_time_utc] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[perfmon_files] ADD  DEFAULT (sysutcdatetime()) FOR [collection_time_utc]
+GO
+
+
+
+-- drop table [dbo].[os_task_list]
+CREATE TABLE [dbo].[os_task_list]
+(	
+	[collection_time_utc] [datetime2](7) NOT NULL,
+	[task_name] [nvarchar](100) not null,
+	[pid] bigint not null,
+	[session_name] [varchar](20) not null,
+	[memory_kb] bigint NOT NULL,
+	[status] [varchar](30) NULL,
+	[user_name] [varchar](200) NOT NULL,
+	[cpu_time] [char](10) NOT NULL,
+	[cpu_time_seconds] bigint NOT NULL,
+	[window_title] [nvarchar](2000) NULL
+) on ps_dba ([collection_time_utc])
 go
+
+create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [task_name])
+go
+create nonclustered index nci_user_name on [dbo].[os_task_list] ([collection_time_utc], [user_name])
+go
+create nonclustered index nci_window_title on [dbo].[os_task_list] ([collection_time_utc], [window_title])
+go
+create nonclustered index nci_cpu_time_seconds on [dbo].[os_task_list] ([collection_time_utc], [cpu_time_seconds])
+go
+create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_time_utc], [memory_kb])
+go
+
+select * from [dbo].[os_task_list]
