@@ -67,7 +67,7 @@ CREATE TABLE [dbo].[os_task_list]
 	[collection_time_utc] [datetime2](7) NOT NULL,
 	[task_name] [nvarchar](100) not null,
 	[pid] bigint not null,
-	[session_name] [varchar](20) not null,
+	[session_name] [varchar](20) null,
 	[memory_kb] bigint NOT NULL,
 	[status] [varchar](30) NULL,
 	[user_name] [varchar](200) NOT NULL,
