@@ -89,6 +89,16 @@ create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_tim
 go
 
 
+CREATE SCHEMA [bkp]
+GO
+CREATE SCHEMA [poc]
+GO
+CREATE SCHEMA [stg]
+GO
+CREATE SCHEMA [tst]
+GO
+
+
 /* Validate Partition Data */
 SELECT SCHEMA_NAME(o.schema_id)+'.'+ o.name as TableName,
 	pf.name as PartitionFunction,
