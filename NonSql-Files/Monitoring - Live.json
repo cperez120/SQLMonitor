@@ -1,4 +1,59 @@
 {
+  "__inputs": [
+    {
+      "name": "DS_SQLSERVER",
+      "label": "SqlServer",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "mssql",
+      "pluginName": "Microsoft SQL Server"
+    }
+  ],
+  "__elements": [],
+  "__requires": [
+    {
+      "type": "panel",
+      "id": "gauge",
+      "name": "Gauge",
+      "version": ""
+    },
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "8.4.4"
+    },
+    {
+      "type": "datasource",
+      "id": "mssql",
+      "name": "Microsoft SQL Server",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "piechart",
+      "name": "Pie chart",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    }
+  ],
   "annotations": {
     "list": [
       {
@@ -22,8 +77,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 3,
-  "iteration": 1648523811843,
+  "id": null,
+  "iteration": 1650263253418,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -48,8 +103,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "dark-orange",
@@ -92,7 +146,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect count(*) as counts from sys.dm_exec_requests r where r.blocking_session_id <> 0\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
@@ -159,7 +213,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "time_series",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\ndeclare @object_name varchar(255);\r\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\r\n\r\n;with cte_os as (\r\n\tSELECT top 1 'OS' as metric, pc.value\r\n\t\t\t,collection_time_utc\r\n\tFROM dbo.performance_counters pc\r\n\tWHERE $__timeFilter(collection_time_utc) and\r\n\t\t pc.object = 'Processor' and pc.counter = '% processor time' and pc.instance = '_total'\r\n\tORDER BY collection_time_utc desc\r\n)\r\n,cte_sql as (\r\n\tSELECT top 1 'SqlServer' as metric, (pc.value/(select count(*) from sys.dm_os_schedulers dos where status = 'VISIBLE ONLINE')) as value\r\n\t\t\t,collection_time_utc\r\n\t\t\t,row_number()over(partition by pc.object order by collection_time_utc desc) as row_id\r\n\tFROM dbo.performance_counters pc\r\n\tWHERE $__timeFilter(collection_time_utc) and\r\n\t\t pc.object = 'process' and pc.counter = '% processor time' and pc.instance = 'sqlservr'\r\n\tORDER BY collection_time_utc desc\r\n)\r\n--select collection_time_utc as time, metric, value from cte_os\r\n--union all\r\nselect collection_time_utc as time, metric, value from cte_sql\r\nunion all\r\nselect cte_os.collection_time_utc as time, 'Other' as metric, cte_os.value-cte_sql.value as value  from cte_os, cte_sql\r\nunion all\r\nselect collection_time_utc as time, 'Unused' as metric, 100-value from cte_os\r\n\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
@@ -179,8 +233,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -215,7 +268,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nSELECT [server_ram_gb] = ceiling(osi.physical_memory_kb/1024.0/1024.0)\r\nFROM sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
@@ -235,8 +288,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -275,7 +327,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect os_uptime = Concat\r\n        (\r\n            RIGHT('00'+CAST(ISNULL((datediff(second,dateadd(MS,-osi.ms_ticks,GETDATE()),GETDATE()) / 3600 / 24), 0) AS VARCHAR(2)),2)\r\n            ,' '\r\n            ,RIGHT('00'+CAST(ISNULL(datediff(second,dateadd(MS,-osi.ms_ticks,GETDATE()),GETDATE()) / 3600  % 24, 0) AS VARCHAR(2)),2)\r\n            ,':'\r\n            ,RIGHT('00'+CAST(ISNULL(datediff(second,dateadd(MS,-osi.ms_ticks,GETDATE()),GETDATE()) / 60 % 60, 0) AS VARCHAR(2)),2)\r\n            ,':'\r\n            ,RIGHT('00'+CAST(ISNULL(datediff(second,dateadd(MS,-osi.ms_ticks,GETDATE()),GETDATE()) % 3600 % 60, 0) AS VARCHAR(2)),2)\r\n        )\r\nfrom sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
@@ -295,8 +347,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -335,7 +386,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nDECLARE @cpu_info nvarchar(1000);\r\nEXEC xp_instance_regread 'HKEY_LOCAL_MACHINE', 'HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0', 'ProcessorNameString', @value = @cpu_info OUTPUT;\r\n\r\nSELECT @cpu_info\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
@@ -354,8 +405,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "dark-red",
-                    "value": null
+                    "color": "dark-red"
                   },
                   {
                     "color": "#EAB839",
@@ -398,7 +448,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "time_series",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\ndeclare @object_name varchar(255);\r\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\r\n\r\nSELECT top 1 collection_time_utc as time, value as [Available Memory]\r\nFROM dbo.performance_counters pc with (nolock)\r\nWHERE $__timeFilter(collection_time_utc) and\r\n\t  pc.object = 'memory' and pc.counter = 'available mbytes'\r\nORDER BY collection_time_utc desc;\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
@@ -418,8 +468,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -458,7 +507,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect virtual_machine_type_desc\r\nfrom sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
@@ -478,8 +527,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -518,7 +566,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect CONVERT(varchar,SERVERPROPERTY('ProductVersion')) + ' (' + CONVERT(varchar,SERVERPROPERTY('Edition'))+')'\r\nfrom sys.dm_os_host_info\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
@@ -537,8 +585,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "dark-blue",
-                    "value": null
+                    "color": "dark-blue"
                   }
                 ]
               }
@@ -588,8 +635,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -628,7 +674,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect convert(varchar,osi.cpu_count)+' / '+convert(varchar,osi.scheduler_count)\r\nfrom sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
@@ -648,8 +694,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -688,7 +733,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect os_uptime = Concat\r\n        (\r\n            RIGHT('00'+CAST(ISNULL((datediff(second,sqlserver_start_time,GETDATE()) / 3600 / 24), 0) AS VARCHAR(2)),2)\r\n            ,' '\r\n            ,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time,GETDATE()) / 3600  % 24, 0) AS VARCHAR(2)),2)\r\n            ,':'\r\n            ,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time,GETDATE()) / 60 % 60, 0) AS VARCHAR(2)),2)\r\n            ,':'\r\n            ,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time,GETDATE()) % 3600 % 60, 0) AS VARCHAR(2)),2)\r\n        )\r\nfrom sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
@@ -708,8 +753,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "dark-red",
-                    "value": null
+                    "color": "dark-red"
                   },
                   {
                     "color": "dark-red",
@@ -768,7 +812,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect sqlserver_start_time\r\nfrom sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
@@ -789,8 +833,7 @@
                 "mode": "percentage",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "#EAB839",
@@ -831,7 +874,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "time_series",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\n\nSELECT top 1 ttl.collection_time_utc as time, (ttl.value*100)/tgt.value as [SQLServer Max M/r Usage]\nFROM dbo.performance_counters as ttl\nJOIN dbo.performance_counters as tgt\nON ttl.object = tgt.object \nAND ttl.object = (@object_name+':Memory Manager')\nAND ttl.counter = 'Total Server Memory (KB)'\nAND tgt.counter = 'Target Server Memory (KB)'\nORDER BY time desc;\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
@@ -863,8 +906,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -903,7 +945,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect sql_memory_model_desc\r\nfrom sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
@@ -923,8 +965,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -963,7 +1004,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect CONVERT(varchar,SERVERPROPERTY('IsClustered'))+' / '+CONVERT(varchar,SERVERPROPERTY('IsHadrEnabled'))\r\nfrom sys.dm_os_host_info\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
@@ -983,8 +1024,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -1023,7 +1063,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect host_distribution + ' ('+host_architecture+')'\r\nfrom sys.dm_os_host_info\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
@@ -1043,8 +1083,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "dark-red",
-                    "value": null
+                    "color": "dark-red"
                   },
                   {
                     "color": "dark-red",
@@ -1099,7 +1138,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\ndeclare @object_name varchar(255);\r\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\r\n\r\nSELECT /* Grafana => PLE */ top 1 collection_time_utc as time, value as page_life_expectancy\r\nFROM dbo.performance_counters pc with (nolock)\r\nWHERE $__timeFilter(collection_time_utc) and\r\n\t  pc.object = (@object_name+':Buffer Manager')\r\n\t and pc.counter in ('Page Life Expectancy')\r\nORDER BY collection_time_utc desc;\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
@@ -1117,8 +1156,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "light-yellow",
@@ -1168,7 +1206,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\ndeclare @object_name varchar(255);\r\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\r\n\r\nSELECT top 1 collection_time_utc as time, value as [Memory Grants Pending]\r\nFROM dbo.performance_counters pc with (nolock)\r\nWHERE $__timeFilter(collection_time_utc) and\r\n\t  pc.object = (@object_name+':Memory Manager') and pc.counter = 'Memory Grants Pending'\r\nORDER BY collection_time_utc desc;\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
@@ -1189,8 +1227,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -1225,7 +1262,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\ndeclare @object_name varchar(255);\r\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\r\n\r\nselect top 1 collection_time_utc as time, \r\n       value as SqlServer_Memory\r\nfrom [dbo].[performance_counters] as pc\r\nwhere --$__timeFilter(collection_time_utc) and\r\n\t  pc.object = (@object_name+':Memory Manager')\r\n\t\tand pc.counter in ('Total Server Memory (KB)')\r\norder by collection_time_utc desc;\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
@@ -1245,8 +1282,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent",
-                    "value": null
+                    "color": "transparent"
                   }
                 ]
               },
@@ -1279,7 +1315,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect count(*) as counts\nfrom [dbo].[os_task_list] otl\nwhere collection_time_utc = (select max(i.collection_time_utc) from [dbo].[os_task_list] i)\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
@@ -1345,8 +1381,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent",
-                    "value": null
+                    "color": "transparent"
                   },
                   {
                     "color": "orange",
@@ -1360,32 +1395,7 @@
               },
               "unit": "percent"
             },
-            "overrides": [
-              {
-                "__systemRef": "hideSeriesFrom",
-                "matcher": {
-                  "id": "byNames",
-                  "options": {
-                    "mode": "exclude",
-                    "names": [
-                      "Sql Server"
-                    ],
-                    "prefix": "All except:",
-                    "readOnly": true
-                  }
-                },
-                "properties": [
-                  {
-                    "id": "custom.hideFrom",
-                    "value": {
-                      "legend": false,
-                      "tooltip": false,
-                      "viz": true
-                    }
-                  }
-                ]
-              }
-            ]
+            "overrides": []
           },
           "gridPos": {
             "h": 8,
@@ -1415,7 +1425,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "time_series",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect pc.collection_time_utc as time, \n\t\tcase when (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total') then 'OS'\n\t\t\twhen (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr') then 'Sql Server'\n\t\t\telse null\n\t\t\tend as metric,\n\t--object, counter as metric, instance\n\tcase when pc.object = 'processor' then pc.value else pc.value/(select count(*) from sys.dm_os_schedulers dos where status = 'VISIBLE ONLINE') end as value\nfrom dbo.performance_counters pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and\n\t ((pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total')\n\tor (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr')\n\t)\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
@@ -1479,8 +1489,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent",
-                    "value": null
+                    "color": "transparent"
                   },
                   {
                     "color": "orange",
@@ -1500,7 +1509,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 14
+            "y": 3
           },
           "id": 57,
           "options": {
@@ -1524,7 +1533,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "time_series",
               "hide": false,
@@ -1589,8 +1598,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "red",
-                    "value": null
+                    "color": "red"
                   },
                   {
                     "color": "transparent",
@@ -1630,7 +1638,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "time_series",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom dbo.performance_counters pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and\n\t  pc.object = (@object_name+':Buffer Manager')\n\t and pc.counter in ('Page Life Expectancy')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
@@ -1695,8 +1703,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1736,7 +1743,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "time_series",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom dbo.performance_counters pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and\n\t  pc.object = (@object_name+':sql statistics') and pc.counter in ('Batch Requests/sec')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
@@ -1773,8 +1780,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               }
@@ -1998,8 +2004,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "red",
-                    "value": null
+                    "color": "red"
                   },
                   {
                     "color": "transparent",
@@ -2040,7 +2045,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 7
+            "y": 18
           },
           "id": 77,
           "options": {
@@ -2058,7 +2063,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "ygPVA4snk"
+                "uid": "${DS_SQLSERVER}"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n;with cte_aggregated as (\n\tselect collection_time_utc, task_name, count(*) as counts, memory_kb = sum(memory_kb), cpu_time_seconds = sum(cpu_time_seconds)\n\t\t\t,cpu_rank = DENSE_RANK()over(partition by otl.collection_time_utc order by sum(cpu_time_seconds) desc)\n\t\t\t--,memory_row_id = DENSE_RANK()over(partition by otl.collection_time_utc order by sum(memory_kb) desc)\n\tfrom [dbo].[os_task_list] otl\n\twhere $__timeFilter(collection_time_utc)\n\t\t--collection_time_utc > dateadd(minute,-2,getutcdate())\n\tgroup by collection_time_utc, task_name\n)\nselect collection_time_utc as time, cpu_rank, task_name, \n\t\t--cpu_time_seconds, \n\t\t[cpu_time (dd hh:mm:ss)] = Concat\n\t\t\t\t\t\t\t\t(\n\t\t\t\t\t\t\t\t\tRIGHT('00'+CAST(ISNULL((cpu_time_seconds / 3600 / 24), 0) AS VARCHAR(2)),2)\n\t\t\t\t\t\t\t\t\t,' '\n\t\t\t\t\t\t\t\t\t,RIGHT('00'+CAST(ISNULL(cpu_time_seconds / 3600  % 24, 0) AS VARCHAR(2)),2)\n\t\t\t\t\t\t\t\t\t,':'\n\t\t\t\t\t\t\t\t\t,RIGHT('00'+CAST(ISNULL(cpu_time_seconds / 60 % 60, 0) AS VARCHAR(2)),2)\n\t\t\t\t\t\t\t\t\t,':'\n\t\t\t\t\t\t\t\t\t,RIGHT('00'+CAST(ISNULL(cpu_time_seconds % 3600 % 60, 0) AS VARCHAR(2)),2)\n\t\t\t\t\t\t\t\t),\n\t\tcounts, memory_kb\nfrom cte_aggregated\nwhere cpu_rank <= $row_limit\norder by time, cpu_rank\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
@@ -2073,7 +2078,7 @@
       "type": "row"
     },
     {
-      "collapsed": true,
+      "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -2081,112 +2086,107 @@
         "y": 7
       },
       "id": 82,
-      "panels": [
-        {
-          "description": "All the process running at the moment of time",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "custom": {
-                "align": "auto",
-                "displayMode": "auto",
-                "filterable": true
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "red",
-                    "value": null
-                  },
-                  {
-                    "color": "transparent",
-                    "value": 600
-                  }
-                ]
-              },
-              "unit": "none"
-            },
-            "overrides": [
+      "panels": [],
+      "title": "OS Tasks (Processes) - Memory Utilization",
+      "type": "row"
+    },
+    {
+      "description": "All the process running at the moment of time",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
               {
-                "matcher": {
-                  "id": "byName",
-                  "options": "time"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 180
-                  }
-                ]
+                "color": "red",
+                "value": null
               },
               {
-                "matcher": {
-                  "id": "byName",
-                  "options": "memory_rank"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 139
-                  }
-                ]
+                "color": "transparent",
+                "value": 600
               }
             ]
           },
-          "gridPos": {
-            "h": 10,
-            "w": 24,
-            "x": 0,
-            "y": 8
-          },
-          "id": 80,
-          "options": {
-            "footer": {
-              "fields": [],
-              "reducer": [],
-              "show": false
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "time"
             },
-            "showHeader": true,
-            "sortBy": []
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
           },
-          "pluginVersion": "8.4.4",
-          "targets": [
-            {
-              "alias": "",
-              "datasource": {
-                "type": "mssql",
-                "uid": "ygPVA4snk"
-              },
-              "format": "table",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n;with cte_aggregated as (\n\tselect collection_time_utc, task_name, count(*) as counts, \n\t      memory_kb = sum(memory_kb), \n\t      cpu_time_seconds = sum(cpu_time_seconds)\n\t\t\t  --,cpu_row_id = DENSE_RANK()over(partition by otl.collection_time_utc order by sum(cpu_time_seconds) desc)\n\t\t\t  ,memory_rank = DENSE_RANK()over(partition by otl.collection_time_utc order by sum(memory_kb) desc)\n\tfrom [dbo].[os_task_list] otl\n\twhere $__timeFilter(collection_time_utc)\n\t\t--collection_time_utc > dateadd(minute,-2,getutcdate())\n\tgroup by collection_time_utc, task_name\n)\nselect collection_time_utc as time, memory_rank, task_name, \n      memory = case when memory_kb >= 1024*1024 then convert(varchar, convert(numeric(20,2),memory_kb/(1024.0*1024.0)))+' gb'\n                    when memory_kb >= 1024 then convert(varchar, convert(numeric(20,2),memory_kb/1024.0))+' mb'\n                    else convert(varchar, memory_kb)+' kb'\n                    end, \n      counts, \n      [cpu_time (dd hh:mm:ss)] = Concat\n\t\t\t\t\t\t\t\t(\n\t\t\t\t\t\t\t\t\tRIGHT('00'+CAST(ISNULL((cpu_time_seconds / 3600 / 24), 0) AS VARCHAR(2)),2)\n\t\t\t\t\t\t\t\t\t,' '\n\t\t\t\t\t\t\t\t\t,RIGHT('00'+CAST(ISNULL(cpu_time_seconds / 3600  % 24, 0) AS VARCHAR(2)),2)\n\t\t\t\t\t\t\t\t\t,':'\n\t\t\t\t\t\t\t\t\t,RIGHT('00'+CAST(ISNULL(cpu_time_seconds / 60 % 60, 0) AS VARCHAR(2)),2)\n\t\t\t\t\t\t\t\t\t,':'\n\t\t\t\t\t\t\t\t\t,RIGHT('00'+CAST(ISNULL(cpu_time_seconds % 3600 % 60, 0) AS VARCHAR(2)),2)\n\t\t\t\t\t\t\t\t)\nfrom cte_aggregated\nwhere memory_rank <= $row_limit\norder by time, memory_rank\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
-              "refId": "A"
-            }
-          ],
-          "title": "Tasks (Processes) By Memory Utilization",
-          "transformations": [],
-          "type": "table"
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "memory_rank"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 139
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 80,
+      "options": {
+        "footer": {
+          "fields": [],
+          "reducer": [],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "8.4.4",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLSERVER}"
+          },
+          "format": "table",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n;with cte_aggregated as (\n\tselect collection_time_utc, task_name, count(*) as counts, \n\t      memory_kb = sum(memory_kb), \n\t      cpu_time_seconds = sum(cpu_time_seconds)\n\t\t\t  --,cpu_row_id = DENSE_RANK()over(partition by otl.collection_time_utc order by sum(cpu_time_seconds) desc)\n\t\t\t  ,memory_rank = DENSE_RANK()over(partition by otl.collection_time_utc order by sum(memory_kb) desc)\n\tfrom [dbo].[os_task_list] otl\n\twhere $__timeFilter(collection_time_utc)\n\t\t--collection_time_utc > dateadd(minute,-2,getutcdate())\n\tgroup by collection_time_utc, task_name\n)\nselect collection_time_utc as time, memory_rank, task_name, \n      memory = case when memory_kb >= 1024*1024 then convert(varchar, convert(numeric(20,2),memory_kb/(1024.0*1024.0)))+' gb'\n                    when memory_kb >= 1024 then convert(varchar, convert(numeric(20,2),memory_kb/1024.0))+' mb'\n                    else convert(varchar, memory_kb)+' kb'\n                    end, \n      counts, \n      [cpu_time (dd hh:mm:ss)] = Concat\n\t\t\t\t\t\t\t\t(\n\t\t\t\t\t\t\t\t\tRIGHT('00'+CAST(ISNULL((cpu_time_seconds / 3600 / 24), 0) AS VARCHAR(2)),2)\n\t\t\t\t\t\t\t\t\t,' '\n\t\t\t\t\t\t\t\t\t,RIGHT('00'+CAST(ISNULL(cpu_time_seconds / 3600  % 24, 0) AS VARCHAR(2)),2)\n\t\t\t\t\t\t\t\t\t,':'\n\t\t\t\t\t\t\t\t\t,RIGHT('00'+CAST(ISNULL(cpu_time_seconds / 60 % 60, 0) AS VARCHAR(2)),2)\n\t\t\t\t\t\t\t\t\t,':'\n\t\t\t\t\t\t\t\t\t,RIGHT('00'+CAST(ISNULL(cpu_time_seconds % 3600 % 60, 0) AS VARCHAR(2)),2)\n\t\t\t\t\t\t\t\t)\nfrom cte_aggregated\nwhere memory_rank <= $row_limit\norder by time, memory_rank\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+          "refId": "A"
         }
       ],
-      "title": "OS Tasks (Processes) - Memory Utilization",
-      "type": "row"
+      "title": "Tasks (Processes) By Memory Utilization",
+      "transformations": [],
+      "type": "table"
     }
   ],
-  "refresh": "1m",
+  "refresh": "5s",
   "schemaVersion": 35,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": [
       {
-        "current": {
-          "selected": true,
-          "text": "21L-LTPABL-1187",
-          "value": "21L-LTPABL-1187"
-        },
+        "current": {},
         "definition": "select srvname from sys.sysservers where providername = 'SQLOLEDB'",
         "hide": 0,
         "includeAll": false,
@@ -2199,7 +2199,8 @@
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
-        "type": "query"
+        "type": "query",
+        "datasource": "${DS_SQLSERVER}"
       },
       {
         "current": {

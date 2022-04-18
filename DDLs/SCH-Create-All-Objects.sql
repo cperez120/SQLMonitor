@@ -12,13 +12,20 @@ GO
 
 */
 
-/* ***** 1) Create Partition Function ***************** */
+-- Partition function & scheme for [datetime2]
 create partition function pf_dba (datetime2)
 as range right for values ('2022-03-25 00:00:00.0000000')
 go
 
-/* ***** 2) Create Partition Scheme ***************** */
 create partition scheme ps_dba as partition pf_dba all to ([primary])
+go
+
+-- Partition function & scheme for [datetime]
+create partition function pf_dba_datetime (datetime)
+as range right for values ('2022-03-25 00:00:00.000')
+go
+
+create partition scheme ps_dba_datetime as partition pf_dba_datetime all to ([primary])
 go
 
 /* ***** 3) Create table [dbo].[performance_counters] using Partition scheme ***************** */
