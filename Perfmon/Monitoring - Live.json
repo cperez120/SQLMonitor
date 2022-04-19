@@ -78,7 +78,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1650274440069,
+  "iteration": 1650361987143,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -1890,175 +1890,71 @@
             "type": "mssql",
             "uid": "${DS_SQLSERVER}"
           },
-          "description": "WaitWaits for selected duration",
+          "description": "select * from dbo.BlitzCache\nhttps://www.sqlskills.com/blogs/paul/wait-statistics-or-please-tell-me-where-it-hurts/",
           "fieldConfig": {
             "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
               "custom": {
-                "align": "auto",
-                "displayMode": "auto"
+                "axisLabel": "Wait Stats (ms)",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
               },
               "mappings": [],
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   }
                 ]
-              }
+              },
+              "unit": "ms"
             },
-            "overrides": [
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "CollectionTime"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 186
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Duration_S"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 93
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "WaitType"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 186
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Duration"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 94
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Percentage"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 118
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Wait_S"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 116
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Resource_S"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 126
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Signal_S"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 109
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "WaitCount"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 97
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "time"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 181
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "%"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 64
-                  }
-                ]
-              }
-            ]
+            "overrides": []
           },
           "gridPos": {
-            "h": 11,
+            "h": 12,
             "w": 24,
             "x": 0,
             "y": 6
           },
-          "id": 49,
+          "id": 109,
           "options": {
-            "footer": {
-              "fields": "",
-              "reducer": [
-                "sum"
-              ],
-              "show": false
+            "legend": {
+              "calcs": [],
+              "displayMode": "table",
+              "placement": "right"
             },
-            "showHeader": true,
-            "sortBy": []
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
           },
           "pluginVersion": "8.4.4",
           "targets": [
@@ -2068,39 +1964,17 @@
                 "type": "mssql",
                 "uid": "${DS_SQLSERVER}"
               },
-              "format": "table",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nset nocount on;\r\n/*\tGet @start_time & @end_time from user/Grafana\r\n\tGet times when WaitStats was flushed\r\n\tDivide wait stats for the intervals\r\n*/\r\nDECLARE @server_name varchar(256);\r\nDECLARE @start_time datetime2;\r\nDECLARE @end_time datetime2;\r\n--set @server_name = '$server';\r\n--set @start_time = DATEADD(MINUTE,-180,GETDATE());\r\n--set @end_time = GETDATE();\r\nselect @start_time = st.local_time, @end_time = et.local_time \r\nfrom dbo.utc2local($__timeFrom()) as st join dbo.utc2local($__timeTo()) et on 1 = 1;\r\n\r\nDECLARE @verbose bit = 0;\r\n\r\nif OBJECT_ID('tempdb..#wait_stats_lower_bounds') is not null\r\n\tdrop table tempdb..#wait_stats_lower_bounds;\r\nwith T_waits_ranges_lower_bounds as (\r\n\tselect *\r\n\tfrom (\r\n\t\tSELECT si.wait_stats_cleared_time as point_in_time\r\n\t\tFROM dbo.dm_os_sys_info AS si\r\n\t\tWHERE 1 = 1\r\n\t\t--and pc.server_name = @server_name\r\n\t\tand collection_time BETWEEN @start_time AND @end_time\r\n\t\t--\r\n\t\tunion\r\n\t\t--\r\n\t\tselect point_in_time\r\n\t\tfrom (values (@start_time),(@end_time)) Times (point_in_time)\r\n\t) as ranges\r\n)\r\nselect /* Get times where WaitStats was Cleared */\r\n\t   IDENTITY(int,1,1) as id, \r\n\t   point_in_time\r\ninto #wait_stats_lower_bounds\r\nfrom T_waits_ranges_lower_bounds\r\norder by point_in_time asc;\r\n\r\nif OBJECT_ID('tempdb..#wait_stats_time_range') is not null\r\n\tdrop table tempdb..#wait_stats_time_range;\r\nselect l.id as range_id, l.point_in_time as range_lower_time, u.point_in_time as range_upper_time\r\ninto #wait_stats_time_range\r\nfrom #wait_stats_lower_bounds as l\r\njoin #wait_stats_lower_bounds as u on u.id = l.id + 1\r\norder by range_id;\r\n\r\n\r\nif @verbose = 1\r\nbegin\r\n\tselect [RunningQuery] = '#wait_stats_lower_bounds', * from #wait_stats_lower_bounds;\r\n\tselect [RunningQuery] = '#wait_stats_time_range', * from #wait_stats_time_range;\r\n\tselect count(distinct Collection_Time) as WaitStats_Sample_Counts from [dbo].[WaitStats];\r\nend\r\n\r\nIF OBJECT_ID('tempdb..#Wait_Stats_Delta') IS NOT NULL\r\n\tDROP TABLE #Wait_Stats_Delta;\r\nCREATE TABLE #Wait_Stats_Delta\r\n(\r\n\t--[id_T1] [int] NULL,\r\n\t--[id_T2] [int] NULL,\r\n\t--[point_in_time_T1] [datetime2](7) NULL,\r\n\t--[point_in_time_T2] [datetime2](7) NULL,\r\n\t--[Collection_Time_T1] [datetime2](7) NULL,\r\n\t--[Collection_Time_T2] [datetime2](7) NULL,\r\n\t[RowNum] [int] NOT NULL,\r\n\t[Collection_Time] [datetime2](7) NOT NULL,\r\n\t[Collection_Time_Duration_Seconds] [bigint] NOT NULL,\r\n\t[WaitType] [nvarchar](120) NOT NULL,\r\n\t[Wait_S] [decimal](15, 2) NULL,\r\n\t[Resource_S] [decimal](15, 2) NULL,\r\n\t[Signal_S] [decimal](15, 2) NULL,\r\n\t[WaitCount] [bigint] NULL,\r\n\t[Percentage] [decimal](5,2) NULL,\r\n\t[AvgWait_S] [decimal](35, 22) NULL,\r\n\t[AvgRes_S] [decimal](35, 22) NULL,\r\n\t[AvgSig_S] [decimal](35, 22) NULL\r\n)\r\n\r\ndeclare @l_id int\r\n\t\t,@l_point_in_time datetime2\r\n\t\t,@l_counter int = 1\r\n\t\t,@l_counter_max int;\r\n\r\nselect @l_counter_max = max(range_id) from #wait_stats_time_range;\r\n/* Loop for N-1 times, where N =  point in times for range calculation */\r\nwhile @l_counter <= @l_counter_max -- execute for N-1 times\r\nbegin\r\n\r\n\tif OBJECT_ID('tempdb..#wait_stats_range_lower') is not null\r\n\t\tdrop table #wait_stats_range_lower;\r\n\tselect  /*\tGet wait stats for start time of the time range.\r\n\t\t\t*/\r\n\t\t\tid = r.range_id, r.range_lower_time, r.range_upper_time,\r\n\t\t\tws.Collection_Time, \r\n\t\t\tws.WaitType, \r\n\t\t\tws.Wait_S, ws.Resource_S, ws.Signal_S, ws.WaitCount, ws.Percentage\r\n\t\t\t--,ws.AvgWait_S, ws.AvgRes_S, ws.AvgSig_S\r\n\t\t\t,[condition] = (case when (@l_counter <> 1) and (@l_counter <>  @l_counter_max) -- Intermediate range\r\n\t\t\t\t\t\t\t\t\t\tthen 'Intermediate range'\r\n\t\t\t\t\t\t\t\t\t\twhen (@l_counter = 1) and (@l_counter = @l_counter_max) -- 1st/last, and only range\r\n\t\t\t\t\t\t\t\t\t\tthen '1st/last, and only range'\r\n\t\t\t\t\t\t\t\t\t\twhen (@l_counter = 1) and (@l_counter <> @l_counter_max) -- 1st and intermediate range\r\n\t\t\t\t\t\t\t\t\t\tthen '1st and intermediate range'\r\n\t\t\t\t\t\t\t\t\t\twhen (@l_counter = @l_counter_max) and (@l_counter - 1 <> 0) -- last and intermediate\r\n\t\t\t\t\t\t\t\t\t\tthen 'last and intermediate'\r\n\t\t\t\t\t\t\t\t\telse null\r\n\t\t\t\t\t\t\t\t\tend)\r\n\tinto #wait_stats_range_lower\r\n\tfrom #wait_stats_time_range as r, [dbo].[WaitStats] AS ws with (nolock)\r\n\twhere r.range_id = @l_counter /* loop filter */\r\n\t\tand ws.Collection_Time = (\tcase when (@l_counter <> 1) and (@l_counter <>  @l_counter_max) -- Intermediate range\r\n\t\t\t\t\t\t\t\t\t\tthen (select MIN(wsi.Collection_Time) as Collection_Time from [dbo].[WaitStats] as wsi with (nolock) where wsi.Collection_Time > r.range_lower_time)\r\n\t\t\t\t\t\t\t\t\t\twhen (@l_counter = 1) and (@l_counter = @l_counter_max) -- 1st/last, and only range\r\n\t\t\t\t\t\t\t\t\t\tthen (select MIN(wsi.Collection_Time) as Collection_Time from [dbo].[WaitStats] as wsi with (nolock) where wsi.Collection_Time >= r.range_lower_time)\r\n\t\t\t\t\t\t\t\t\t\twhen (@l_counter = 1) and (@l_counter <> @l_counter_max) -- 1st and intermediate range\r\n\t\t\t\t\t\t\t\t\t\tthen (select MIN(wsi.Collection_Time) as Collection_Time from [dbo].[WaitStats] as wsi with (nolock) where wsi.Collection_Time >= r.range_lower_time)\r\n\t\t\t\t\t\t\t\t\t\twhen (@l_counter = @l_counter_max) and (@l_counter - 1 <> 0) -- last and intermediate\r\n\t\t\t\t\t\t\t\t\t\tthen (select MIN(wsi.Collection_Time) as Collection_Time from [dbo].[WaitStats] as wsi with (nolock) where wsi.Collection_Time > r.range_lower_time)\r\n\t\t\t\t\t\t\t\t\telse null\r\n\t\t\t\t\t\t\t\t\tend\r\n\t\t\t\t\t\t\t\t);\r\n\t\r\n\tif OBJECT_ID('tempdb..#wait_stats_range_upper') is not null\r\n\t\tdrop table #wait_stats_range_upper;\r\n\tselect  /*\tGet wait stats for start time of the time range.\r\n\t\t\t*/\r\n\t\t\tid = r.range_id, r.range_lower_time, r.range_upper_time,\r\n\t\t\tws.Collection_Time, \r\n\t\t\tws.WaitType, \r\n\t\t\tws.Wait_S, ws.Resource_S, ws.Signal_S, ws.WaitCount, ws.Percentage\r\n\t\t\t--,ws.AvgWait_S, ws.AvgRes_S, ws.AvgSig_S\r\n\t\t\t,[condition] = (case when (@l_counter <> 1) and (@l_counter <>  @l_counter_max) -- Intermediate range\r\n\t\t\t\t\t\t\t\t\t\tthen 'Intermediate range'\r\n\t\t\t\t\t\t\t\t\t\twhen (@l_counter = 1) and (@l_counter = @l_counter_max) -- 1st/last, and only range\r\n\t\t\t\t\t\t\t\t\t\tthen '1st/last, and only range'\r\n\t\t\t\t\t\t\t\t\t\twhen (@l_counter = 1) and (@l_counter <> @l_counter_max) -- 1st and intermediate range\r\n\t\t\t\t\t\t\t\t\t\tthen '1st and intermediate range'\r\n\t\t\t\t\t\t\t\t\t\twhen (@l_counter = @l_counter_max) and (@l_counter - 1 <> 0) -- last and intermediate\r\n\t\t\t\t\t\t\t\t\t\tthen 'last and intermediate'\r\n\t\t\t\t\t\t\t\t\telse null\r\n\t\t\t\t\t\t\t\t\tend)\r\n\tinto #wait_stats_range_upper\r\n\tfrom #wait_stats_time_range as r, [dbo].[WaitStats] AS ws with (nolock)\r\n\twhere r.range_id = @l_counter /* loop filter */\r\n\t\tand ws.Collection_Time = (\tcase when (@l_counter <> 1) and (@l_counter <>  @l_counter_max) -- Intermediate range\r\n\t\t\t\t\t\t\t\t\t\tthen (select MAX(wsi.Collection_Time) as Collection_Time from [dbo].[WaitStats] as wsi with (nolock) where wsi.Collection_Time < r.range_upper_time)\r\n\t\t\t\t\t\t\t\t\t\twhen (@l_counter = 1) and (@l_counter = @l_counter_max) -- 1st/last, and only range\r\n\t\t\t\t\t\t\t\t\t\tthen (select MAX(wsi.Collection_Time) as Collection_Time from [dbo].[WaitStats] as wsi with (nolock) where wsi.Collection_Time <= r.range_upper_time)\r\n\t\t\t\t\t\t\t\t\t\twhen (@l_counter = 1) and (@l_counter <> @l_counter_max) -- 1st and intermediate range\r\n\t\t\t\t\t\t\t\t\t\tthen (select MAX(wsi.Collection_Time) as Collection_Time from [dbo].[WaitStats] as wsi with (nolock) where wsi.Collection_Time < r.range_upper_time)\r\n\t\t\t\t\t\t\t\t\t\twhen (@l_counter = @l_counter_max) and (@l_counter - 1 <> 0) -- last and intermediate\r\n\t\t\t\t\t\t\t\t\t\tthen (select MAX(wsi.Collection_Time) as Collection_Time from [dbo].[WaitStats] as wsi with (nolock) where wsi.Collection_Time <= r.range_upper_time)\r\n\t\t\t\t\t\t\t\t\telse null\r\n\t\t\t\t\t\t\t\t\tend\r\n\t\t\t\t\t\t\t\t);\r\n\r\n\tif @verbose = 1\r\n\tbegin\r\n\t\tselect [@l_counter] = @l_counter, [@l_counter_max] = @l_counter_max;\r\n\t\tselect [RunningQuery] = '#wait_stats_range_lower', * from #wait_stats_range_lower;\r\n\t\tselect [RunningQuery] = '#wait_stats_range_upper', * from #wait_stats_range_upper;\r\n\tend\r\n\t\r\n\t\r\n\t;with T_Waits_Delta AS (\r\n\t\tSELECT Collection_Time, Collection_Time_Duration_Seconds, WaitType, Wait_S, Resource_S, Signal_S, WaitCount,\r\n\t\t\t\t[Percentage],\r\n\t\t\t\tAvgWait_S = Wait_S/WaitCount, \r\n\t\t\t\tAvgRes_S = Resource_S/WaitCount, \r\n\t\t\t\tAvgSig_S = Signal_S/WaitCount\r\n\t\t--INTO tempdb..Wait_Stats_Delta\r\n\t\tFROM (\r\n\t\t\t\tSELECT --id_T1 = T1.id, id_T2 = T2.id,\r\n\t\t\t\t\t\t--point_in_time_T1 = T1.point_in_time, point_in_time_T2 = T2.point_in_time,\r\n\t\t\t\t\t\t--Collection_Time_T1 = T1.Collection_Time, Collection_Time_T2 = T2.Collection_Time,\r\n\t\t\t\t\t\t[RunningQuery] = 'Wait_Stats_Delta',\r\n\t\t\t\t\t\tCollection_Time = COALESCE(T2.Collection_Time,T1.Collection_Time),\r\n\t\t\t\t\t\tCollection_Time_Duration_Seconds = DATEDIFF(second,T1.Collection_Time,T2.Collection_Time),\r\n\t\t\t\t\t\tWaitType = COALESCE(T1.WaitType,T2.WaitType),\r\n\t\t\t\t\t\tWait_S = ISNULL(T2.Wait_S,0.0) - ISNULL(T1.Wait_S,0.0),\r\n\t\t\t\t\t\tResource_S = ISNULL(T2.Resource_S,0.0) - ISNULL(T1.Resource_S,0.0),\r\n\t\t\t\t\t\tSignal_S = ISNULL(T2.Signal_S,0.0) - ISNULL(T1.Signal_S,0.0),\r\n\t\t\t\t\t\tWaitCount = ISNULL(T2.WaitCount,0.0) - ISNULL(T1.WaitCount,0.0),\r\n\t\t\t\t\t\t[Percentage] = NULL\r\n\t\t\t\tFROM #wait_stats_range_lower as T1 full outer join #wait_stats_range_upper as T2 on T2.WaitType = T1.WaitType\r\n\t\t\t) as waits\r\n\t\tWHERE 1 = 1\r\n\t\t\tAND WaitCount > 0\r\n\t)\r\n\t\r\n\tINSERT #Wait_Stats_Delta\r\n\tSELECT ROW_NUMBER() OVER(ORDER BY Wait_S DESC, Resource_S DESC) AS [RowNum],\r\n\t\t\tCollection_Time = COALESCE(dur.Collection_Time,d.Collection_Time), \r\n\t\t\tCollection_Time_Duration_Seconds = COALESCE(dur.Collection_Time_Duration_Seconds,d.Collection_Time_Duration_Seconds, r.Range_Duration_Seconds), \r\n\t\t\tWaitType, Wait_S, Resource_S, Signal_S, WaitCount,\r\n\t\t\t\t[Percentage] = (Wait_S*100.0)/SUM(Wait_S)OVER(),\r\n\t\t\t\tAvgWait_S, AvgRes_S, AvgSig_S\r\n\tFROM T_Waits_Delta as d\r\n\tJOIN (select max(Collection_Time_Duration_Seconds) as Collection_Time_Duration_Seconds, max(Collection_Time) as Collection_Time from T_Waits_Delta) as dur ON 1 = 1\r\n\tJOIN (select DATEDIFF(second,r.range_lower_time,r.range_upper_time) AS Range_Duration_Seconds from #wait_stats_time_range as r where r.range_id = @l_counter) as r ON 1 = 1\r\n\tWHERE 1 = 1\r\n\t\tAND Wait_S >= 0.0\r\n\tORDER BY Wait_S DESC;\t\r\n\t\r\n\r\n\tset @l_counter += 1;\r\nend\r\n\r\nSELECT\t--dbo.local2utc(CAST(W1.Collection_Time AS smalldatetime)) as [time],\r\n\t\tl2u.utc_time as [time],\r\n\t\tMAX ([W1].WaitType) AS [WaitType],\r\n\t\tCAST (MAX ([W1].[Percentage]) AS DECIMAL (5,2)) AS [Percentage],\r\n\t\t(select duration from dbo.time2duration( cast(MAX([W1].Wait_S) as int), 's' )) AS [Wait_S],\r\n\t\t--t2d_w.duration as [Wait_S],\r\n\t\t----CAST (MAX ([W1].Resource_S) AS DECIMAL (16,2)) AS [Resource_S],\r\n\t\t--t2d_r.duration as [Resource_S],\r\n\t\t(select duration from dbo.time2duration( cast(MAX([W1].Resource_S) as int), 's' )) AS [Resource_S],\r\n\t\t--CAST (MAX ([W1].Signal_S) AS DECIMAL (16,2)) AS [Signal_S],\r\n\t\t(select duration from dbo.time2duration( cast(MAX([W1].Signal_S) as int), 's' )) AS [Signal_S],\r\n\t\t--t2d_s.duration as [Signal_S],\r\n\t\tMAX ([W1].[WaitCount]) AS [WaitCount],\r\n\t\tCAST ((MAX ([W1].Wait_S) / MAX ([W1].[WaitCount])) AS DECIMAL (16,4)) AS [AvgWait_S],\r\n\t\tCAST ((MAX ([W1].Resource_S) / MAX ([W1].[WaitCount])) AS DECIMAL (16,4)) AS [AvgRes_S],\r\n\t\tCAST ((MAX ([W1].Signal_S) / MAX ([W1].[WaitCount])) AS DECIMAL (16,4)) AS [AvgSig_S]\r\n\t\t--,CAST ('https://www.sqlskills.com/help/waits/' + MAX ([W1].[wait_type]) as XML) AS [Help/Info URL]\r\nFROM #Wait_Stats_Delta AS [W1]\r\nINNER JOIN #Wait_Stats_Delta AS [W2] ON W1.Collection_Time = W2.Collection_Time AND W2.[RowNum] <= [W1].[RowNum]\r\ncross apply dbo.local2utc([W1].[Collection_Time]) as l2u\r\n--cross apply dbo.time2duration( cast(MAX([W1].Wait_S) as int), 's' ) as t2d_w\r\n--cross apply dbo.time2duration( cast(MAX([W1].Resource_S) as int), 's' ) as t2d_r\r\n--cross apply dbo.time2duration( cast(MAX([W1].Signal_S) as int), 's' ) as t2d_s\r\n--GROUP BY [W1].[Collection_Time], [W1].[RowNum]\r\nGROUP BY l2u.utc_time, [W1].[RowNum]\r\nHAVING SUM ([W2].[Percentage]) - MAX( [W1].[Percentage] ) < 95 -- percentage threshold\r\nORDER BY [time] asc, [Percentage] desc;\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+              "format": "time_series",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeFrom())\n\t\t,@end_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeTo());\n\ndeclare @WaitStatsTop tinyint = 5;\n\nSELECT\ttime = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), CONVERT(datetime2,[CheckDate])), \n\t\t[metric] =  [WaitCategory]+ ' (__ '+[wait_type]+' __)', \n\t\t--[WaitCategory], \n\t\t--[WaitsRank],\n\t\t--[Ignorable], \n\t\t--[ElapsedSeconds], \n\t\t[value] = [wait_time_ms_delta]\n\t\t--[wait_time_minutes_delta], \n\t\t--[wait_time_minutes_per_minute], \n\t\t--[signal_wait_time_ms_delta], \n\t\t--[waiting_tasks_count_delta],\n\t\t--ISNULL((CAST([wait_time_ms_delta] AS DECIMAL(38,2))/NULLIF(CAST([waiting_tasks_count_delta] AS DECIMAL(38,2)),0)),0) AS [wait_time_ms_per_wait]\nFROM \n(\n\tSELECT\n\t[ServerName], \n\t[CheckDate], \n\t[wait_type], \n\t[WaitCategory], \n\t[Ignorable], \n\t[ElapsedSeconds], \n\t[wait_time_ms_delta], \n\t[wait_time_minutes_delta], \n\t[wait_time_minutes_per_minute], \n\t[signal_wait_time_ms_delta], \n\t[waiting_tasks_count_delta],\n\tROW_NUMBER() OVER(PARTITION BY [CheckDate] ORDER BY [CheckDate] ASC,[wait_time_ms_delta] DESC) AS [WaitsRank]\n\tFROM dbo.BlitzFirst_WaitStats_Deltas AS [Waits]\n\tWHERE CheckDate between TODATETIMEOFFSET(@start_time,DATEPART(TZOFFSET, SYSDATETIMEOFFSET())) and TODATETIMEOFFSET(@end_time,DATEPART(TZOFFSET, SYSDATETIMEOFFSET()))\n\tAND [wait_type] NOT IN (\n        -- These wait types are almost 100% never a problem and so they are\n        -- filtered out to avoid them skewing the results. Click on the URL\n        -- for more information.\n        N'BROKER_EVENTHANDLER', -- https://www.sqlskills.com/help/waits/BROKER_EVENTHANDLER\n        N'BROKER_RECEIVE_WAITFOR', -- https://www.sqlskills.com/help/waits/BROKER_RECEIVE_WAITFOR\n        N'BROKER_TASK_STOP', -- https://www.sqlskills.com/help/waits/BROKER_TASK_STOP\n        N'BROKER_TO_FLUSH', -- https://www.sqlskills.com/help/waits/BROKER_TO_FLUSH\n        N'BROKER_TRANSMITTER', -- https://www.sqlskills.com/help/waits/BROKER_TRANSMITTER\n        N'CHECKPOINT_QUEUE', -- https://www.sqlskills.com/help/waits/CHECKPOINT_QUEUE\n        N'CHKPT', -- https://www.sqlskills.com/help/waits/CHKPT\n        N'CLR_AUTO_EVENT', -- https://www.sqlskills.com/help/waits/CLR_AUTO_EVENT\n        N'CLR_MANUAL_EVENT', -- https://www.sqlskills.com/help/waits/CLR_MANUAL_EVENT\n        N'CLR_SEMAPHORE', -- https://www.sqlskills.com/help/waits/CLR_SEMAPHORE\n        N'CXCONSUMER', -- https://www.sqlskills.com/help/waits/CXCONSUMER\n \n        -- Maybe comment these four out if you have mirroring issues\n        N'DBMIRROR_DBM_EVENT', -- https://www.sqlskills.com/help/waits/DBMIRROR_DBM_EVENT\n        N'DBMIRROR_EVENTS_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_EVENTS_QUEUE\n        N'DBMIRROR_WORKER_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_WORKER_QUEUE\n        N'DBMIRRORING_CMD', -- https://www.sqlskills.com/help/waits/DBMIRRORING_CMD\n \n        N'DIRTY_PAGE_POLL', -- https://www.sqlskills.com/help/waits/DIRTY_PAGE_POLL\n        N'DISPATCHER_QUEUE_SEMAPHORE', -- https://www.sqlskills.com/help/waits/DISPATCHER_QUEUE_SEMAPHORE\n        N'EXECSYNC', -- https://www.sqlskills.com/help/waits/EXECSYNC\n        N'FSAGENT', -- https://www.sqlskills.com/help/waits/FSAGENT\n        N'FT_IFTS_SCHEDULER_IDLE_WAIT', -- https://www.sqlskills.com/help/waits/FT_IFTS_SCHEDULER_IDLE_WAIT\n        N'FT_IFTSHC_MUTEX', -- https://www.sqlskills.com/help/waits/FT_IFTSHC_MUTEX\n \n        -- Maybe comment these six out if you have AG issues\n        N'HADR_CLUSAPI_CALL', -- https://www.sqlskills.com/help/waits/HADR_CLUSAPI_CALL\n        N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', -- https://www.sqlskills.com/help/waits/HADR_FILESTREAM_IOMGR_IOCOMPLETION\n        N'HADR_LOGCAPTURE_WAIT', -- https://www.sqlskills.com/help/waits/HADR_LOGCAPTURE_WAIT\n        N'HADR_NOTIFICATION_DEQUEUE', -- https://www.sqlskills.com/help/waits/HADR_NOTIFICATION_DEQUEUE\n        N'HADR_TIMER_TASK', -- https://www.sqlskills.com/help/waits/HADR_TIMER_TASK\n        N'HADR_WORK_QUEUE', -- https://www.sqlskills.com/help/waits/HADR_WORK_QUEUE\n \n        N'KSOURCE_WAKEUP', -- https://www.sqlskills.com/help/waits/KSOURCE_WAKEUP\n        N'LAZYWRITER_SLEEP', -- https://www.sqlskills.com/help/waits/LAZYWRITER_SLEEP\n        N'LOGMGR_QUEUE', -- https://www.sqlskills.com/help/waits/LOGMGR_QUEUE\n        N'MEMORY_ALLOCATION_EXT', -- https://www.sqlskills.com/help/waits/MEMORY_ALLOCATION_EXT\n        N'ONDEMAND_TASK_QUEUE', -- https://www.sqlskills.com/help/waits/ONDEMAND_TASK_QUEUE\n        N'PARALLEL_REDO_DRAIN_WORKER', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_DRAIN_WORKER\n        N'PARALLEL_REDO_LOG_CACHE', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_LOG_CACHE\n        N'PARALLEL_REDO_TRAN_LIST', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_TRAN_LIST\n        N'PARALLEL_REDO_WORKER_SYNC', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_SYNC\n        N'PARALLEL_REDO_WORKER_WAIT_WORK', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_WAIT_WORK\n        N'PREEMPTIVE_XE_GETTARGETSTATE', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_XE_GETTARGETSTATE\n        N'PWAIT_ALL_COMPONENTS_INITIALIZED', -- https://www.sqlskills.com/help/waits/PWAIT_ALL_COMPONENTS_INITIALIZED\n        N'PWAIT_DIRECTLOGCONSUMER_GETNEXT', -- https://www.sqlskills.com/help/waits/PWAIT_DIRECTLOGCONSUMER_GETNEXT\n        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP', -- https://www.sqlskills.com/help/waits/QDS_PERSIST_TASK_MAIN_LOOP_SLEEP\n        N'QDS_ASYNC_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_ASYNC_QUEUE\n        N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP',\n            -- https://www.sqlskills.com/help/waits/QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP\n        N'QDS_SHUTDOWN_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_SHUTDOWN_QUEUE\n        N'REDO_THREAD_PENDING_WORK', -- https://www.sqlskills.com/help/waits/REDO_THREAD_PENDING_WORK\n        N'REQUEST_FOR_DEADLOCK_SEARCH', -- https://www.sqlskills.com/help/waits/REQUEST_FOR_DEADLOCK_SEARCH\n        N'RESOURCE_QUEUE', -- https://www.sqlskills.com/help/waits/RESOURCE_QUEUE\n        N'SERVER_IDLE_CHECK', -- https://www.sqlskills.com/help/waits/SERVER_IDLE_CHECK\n        N'SLEEP_BPOOL_FLUSH', -- https://www.sqlskills.com/help/waits/SLEEP_BPOOL_FLUSH\n        N'SLEEP_DBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DBSTARTUP\n        N'SLEEP_DCOMSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DCOMSTARTUP\n        N'SLEEP_MASTERDBREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERDBREADY\n        N'SLEEP_MASTERMDREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERMDREADY\n        N'SLEEP_MASTERUPGRADED', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERUPGRADED\n        N'SLEEP_MSDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_MSDBSTARTUP\n        N'SLEEP_SYSTEMTASK', -- https://www.sqlskills.com/help/waits/SLEEP_SYSTEMTASK\n        N'SLEEP_TASK', -- https://www.sqlskills.com/help/waits/SLEEP_TASK\n        N'SLEEP_TEMPDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_TEMPDBSTARTUP\n        N'SNI_HTTP_ACCEPT', -- https://www.sqlskills.com/help/waits/SNI_HTTP_ACCEPT\n        N'SOS_WORK_DISPATCHER', -- https://www.sqlskills.com/help/waits/SOS_WORK_DISPATCHER\n        N'SP_SERVER_DIAGNOSTICS_SLEEP', -- https://www.sqlskills.com/help/waits/SP_SERVER_DIAGNOSTICS_SLEEP\n        N'SQLTRACE_BUFFER_FLUSH', -- https://www.sqlskills.com/help/waits/SQLTRACE_BUFFER_FLUSH\n        N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', -- https://www.sqlskills.com/help/waits/SQLTRACE_INCREMENTAL_FLUSH_SLEEP\n        N'SQLTRACE_WAIT_ENTRIES', -- https://www.sqlskills.com/help/waits/SQLTRACE_WAIT_ENTRIES\n        N'WAIT_FOR_RESULTS', -- https://www.sqlskills.com/help/waits/WAIT_FOR_RESULTS\n        N'WAITFOR', -- https://www.sqlskills.com/help/waits/WAITFOR\n        N'WAITFOR_TASKSHUTDOWN', -- https://www.sqlskills.com/help/waits/WAITFOR_TASKSHUTDOWN\n        N'WAIT_XTP_RECOVERY', -- https://www.sqlskills.com/help/waits/WAIT_XTP_RECOVERY\n        N'WAIT_XTP_HOST_WAIT', -- https://www.sqlskills.com/help/waits/WAIT_XTP_HOST_WAIT\n        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', -- https://www.sqlskills.com/help/waits/WAIT_XTP_OFFLINE_CKPT_NEW_LOG\n        N'WAIT_XTP_CKPT_CLOSE', -- https://www.sqlskills.com/help/waits/WAIT_XTP_CKPT_CLOSE\n        N'XE_DISPATCHER_JOIN', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_JOIN\n        N'XE_DISPATCHER_WAIT', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_WAIT\n        N'XE_TIMER_EVENT' -- https://www.sqlskills.com/help/waits/XE_TIMER_EVENT\n    )\n) TopWaits\nWHERE [WaitsRank] <= @WaitStatsTop\nORDER BY \n[time] ASC \n,[wait_time_ms_delta] DESC\nOPTION(RECOMPILE);\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
               "refId": "A"
             }
           ],
-          "title": "Wait Stats - Delta",
-          "transformations": [
-            {
-              "id": "organize",
-              "options": {
-                "excludeByName": {},
-                "indexByName": {},
-                "renameByName": {
-                  "AvgRes_S": "Avg Res Wait (Sec)",
-                  "AvgSig_S": "Avg Sig Wait (Sec)",
-                  "AvgWait_S": "Avg Wait (Sec)",
-                  "Percentage": "%",
-                  "Resource_S": "Resource Wait",
-                  "Signal_S": "Signal Wait",
-                  "WaitCount": "Wait Count",
-                  "WaitType": "Wait Type",
-                  "Wait_S": "Wait Duration",
-                  "time": "Time"
-                }
-              }
-            }
-          ],
-          "transparent": true,
-          "type": "table"
+          "title": "WaitStats",
+          "type": "timeseries"
         }
       ],
       "repeat": "server",
-      "title": "Delta - Wait Stats",
+      "title": "Wait Stats",
       "type": "row"
     },
     {
@@ -2238,7 +2112,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "red"
+                    "color": "red",
+                    "value": null
                   },
                   {
                     "color": "transparent",
@@ -2311,9 +2186,504 @@
       ],
       "title": "OS Tasks (Processes) - Memory Utilization",
       "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "id": 88,
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLSERVER}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto",
+                "filterable": true
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "sql_command"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 352
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 9
+          },
+          "id": 86,
+          "options": {
+            "footer": {
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": []
+          },
+          "pluginVersion": "8.4.4",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLSERVER}"
+              },
+              "format": "table",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeFrom())\n\t\t,@end_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeTo());\n\nselect [collection_time] = convert(varchar,w.collection_time,120), w.session_id, \n\t\tw.[dd hh:mm:ss.mss], w.program_name, w.login_name, w.database_name, w.host_name,\n\t\tw.status, w.CPU, w.used_memory, w.open_tran_count, \n\t\tw.wait_info, \n\t\tsql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n\t\t\t\t\t\t\telse left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n\t\tw.blocked_session_count, \n\t\tw.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, \n\t\tw.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\nfrom dbo.WhoIsActive w\nwhere w.collection_time between @start_time and @end_time\norder by w.collection_time DESC, w.start_time ASC\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "refId": "A"
+            }
+          ],
+          "title": "WhoIsActive Data",
+          "type": "table"
+        }
+      ],
+      "repeat": "server",
+      "title": "What's Running - [sp_WhoIsActive]",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "id": 107,
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLSERVER}"
+          },
+          "description": "select * from dbo.BlitzWho",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto",
+                "filterable": true
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 18
+          },
+          "id": 105,
+          "options": {
+            "footer": {
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "8.4.4",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLSERVER}"
+              },
+              "format": "table",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeFrom())\n\t\t,@end_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeTo());\n\nselect\t[CheckDate], [elapsed_time], [session_id], [database_name], [query_text], [outer_command], [cached_parameter_info], [live_parameter_info], [query_cost], [status], [wait_info], [wait_resource], [top_session_waits], [blocking_session_id], [open_transaction_count], [is_implicit_transaction], [nt_domain], [host_name], [login_name], [nt_user_name], [program_name], [client_interface_name], [login_time], [start_time], [request_time], [request_cpu_time], [request_logical_reads], [request_writes], [request_physical_reads], [session_cpu], [session_logical_reads], [session_physical_reads], [session_writes], [tempdb_allocations_mb], [memory_usage], [estimated_completion_time], [percent_complete], [deadlock_priority], [transaction_isolation_level], [degree_of_parallelism], [last_dop], [min_dop], [max_dop], [last_grant_kb], [min_grant_kb], [max_grant_kb], [last_used_grant_kb], [min_used_grant_kb], [max_used_grant_kb], [last_ideal_grant_kb], [min_ideal_grant_kb], [max_ideal_grant_kb], [last_reserved_threads], [min_reserved_threads], [max_reserved_threads], [last_used_threads], [min_used_threads], [max_used_threads], [grant_time], [requested_memory_kb], [grant_memory_kb], [is_request_granted], [required_memory_kb], [query_memory_grant_used_memory_kb], [ideal_memory_kb], [is_small], [timeout_sec], [resource_semaphore_id], [wait_order], [wait_time_ms], [next_candidate_for_memory_grant], [target_memory_kb], [max_target_memory_kb], [total_memory_kb], [available_memory_kb], [granted_memory_kb], [query_resource_semaphore_used_memory_kb], [grantee_count], [waiter_count], [timeout_error_count], [forced_grant_count], [workload_group_name], [resource_pool_name], [context_info], ID\nfrom dbo.BlitzWho b\nwhere b.CheckDate between TODATETIMEOFFSET(@start_time,DATEPART(TZOFFSET, SYSDATETIMEOFFSET())) and TODATETIMEOFFSET(@end_time,DATEPART(TZOFFSET, SYSDATETIMEOFFSET()))\norder by b.CheckDate desc, start_time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "refId": "A"
+            }
+          ],
+          "title": "BlitzWho",
+          "type": "table"
+        }
+      ],
+      "title": "First Responder Kit - BlitzWho",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "id": 92,
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLSERVER}"
+          },
+          "description": "select * from dbo.BlitzCache",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto",
+                "filterable": true
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 11
+          },
+          "id": 90,
+          "options": {
+            "footer": {
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "8.4.4",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLSERVER}"
+              },
+              "format": "table",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeFrom())\n\t\t,@end_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeTo());\n\nselect\t[CheckDate], [QueryType], [QueryText], [Warnings], [DatabaseName], [SerialDesiredMemory], [SerialRequiredMemory], [AverageCPU], [TotalCPU], \n        [PercentCPUByType], [AverageDuration], [TotalDuration], [PercentDurationByType], [AverageReads], [TotalReads], [PercentReadsByType], \n        [AverageWrites], [TotalWrites], [PercentWritesByType], [ExecutionCount], [PercentExecutionsByType], [ExecutionsPerMinute], \n        [PlanCreationTime], [PlanCreationTimeHours], [LastExecutionTime], [LastCompletionTime], [PlanGenerationNum], [MinReturnedRows], \n        [MaxReturnedRows], [AverageReturnedRows], [TotalReturnedRows], [NumberOfPlans], [NumberOfDistinctPlans], [MinGrantKB], [MaxGrantKB], \n        [MinUsedGrantKB], [MaxUsedGrantKB], [PercentMemoryGrantUsed], [AvgMaxMemoryGrant], [MinSpills], [MaxSpills], [TotalSpills], [AvgSpills], \n        [QueryPlanCost], ID \nfrom dbo.BlitzCache b\nwhere b.CheckDate between TODATETIMEOFFSET(@start_time,DATEPART(TZOFFSET, SYSDATETIMEOFFSET())) and TODATETIMEOFFSET(@end_time,DATEPART(TZOFFSET, SYSDATETIMEOFFSET()))\norder by b.CheckDate desc, ID\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "refId": "A"
+            }
+          ],
+          "title": "BlitzCache",
+          "type": "table"
+        }
+      ],
+      "title": "First Responder Kit - BlitzCache",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "id": 95,
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLSERVER}"
+          },
+          "description": "select * from dbo.BlitzFirst",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto",
+                "filterable": true
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 14,
+            "w": 24,
+            "x": 0,
+            "y": 12
+          },
+          "id": 93,
+          "options": {
+            "footer": {
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "8.4.4",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLSERVER}"
+              },
+              "format": "table",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeFrom())\n\t\t,@end_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeTo());\n\nselect\t[CheckDate], [Priority], [FindingsGroup], [Finding], [URL], [Details], [QueryText], [StartTime], [LoginName], [NTUserName], [OriginalLoginName], [ProgramName], [HostName], [DatabaseID], [DatabaseName], [OpenTransactionCount], [QueryHash]\nfrom dbo.BlitzFirst b\nwhere b.CheckDate between TODATETIMEOFFSET(@start_time,DATEPART(TZOFFSET, SYSDATETIMEOFFSET())) and TODATETIMEOFFSET(@end_time,DATEPART(TZOFFSET, SYSDATETIMEOFFSET()))\nand (CheckID > -1) and (Priority between 2 and 250)\norder by b.CheckDate desc, ID\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "refId": "A"
+            }
+          ],
+          "title": "BlitzFirst",
+          "type": "table"
+        }
+      ],
+      "title": "First Responder Kit - BlitzFirst",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "id": 99,
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLSERVER}"
+          },
+          "description": "select * from dbo.BlitzFirst_FileStats",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto",
+                "filterable": true
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 13
+          },
+          "id": 97,
+          "options": {
+            "footer": {
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "8.4.4",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLSERVER}"
+              },
+              "format": "table",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeFrom())\n\t\t,@end_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeTo());\n\nselect\t[CheckDate], [DatabaseName], [FileLogicalName], [TypeDesc], [SizeOnDiskMB], [io_stall_read_ms], [num_of_reads], [bytes_read], [io_stall_write_ms], [num_of_writes], [bytes_written], [PhysicalName]\nfrom dbo.BlitzFirst_FileStats b\nwhere b.CheckDate between TODATETIMEOFFSET(@start_time,DATEPART(TZOFFSET, SYSDATETIMEOFFSET())) and TODATETIMEOFFSET(@end_time,DATEPART(TZOFFSET, SYSDATETIMEOFFSET()))\norder by b.CheckDate desc, DatabaseName, FileLogicalName\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "refId": "A"
+            }
+          ],
+          "title": "BlitzFirst_FileStats",
+          "transformations": [],
+          "type": "table"
+        }
+      ],
+      "title": "First Responder Kit - FileStats",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 103,
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLSERVER}"
+          },
+          "description": "select * from dbo.BlitzCache\nhttps://www.sqlskills.com/blogs/paul/wait-statistics-or-please-tell-me-where-it-hurts/",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto",
+                "filterable": true
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 14
+          },
+          "id": 101,
+          "options": {
+            "footer": {
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "8.4.4",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLSERVER}"
+              },
+              "format": "table",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeFrom())\n\t\t,@end_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeTo());\n\ndeclare @WaitStatsTop tinyint = 10;\n\nSELECT\t[CheckDate], \n\t\t[wait_type], \n\t\t[WaitsRank],\n\t\t[WaitCategory], \n\t\t[Ignorable], \n\t\t[ElapsedSeconds], \n\t\t[wait_time_ms_delta], \n\t\t[wait_time_minutes_delta], \n\t\t[wait_time_minutes_per_minute], \n\t\t[signal_wait_time_ms_delta], \n\t\t[waiting_tasks_count_delta],\n\t\tISNULL((CAST([wait_time_ms_delta] AS DECIMAL(38,2))/NULLIF(CAST([waiting_tasks_count_delta] AS DECIMAL(38,2)),0)),0) AS [wait_time_ms_per_wait]\nFROM \n(\n\tSELECT\n\t[ServerName], \n\t[CheckDate], \n\t[wait_type], \n\t[WaitCategory], \n\t[Ignorable], \n\t[ElapsedSeconds], \n\t[wait_time_ms_delta], \n\t[wait_time_minutes_delta], \n\t[wait_time_minutes_per_minute], \n\t[signal_wait_time_ms_delta], \n\t[waiting_tasks_count_delta],\n\tROW_NUMBER() OVER(PARTITION BY [CheckDate] ORDER BY [CheckDate] ASC,[wait_time_ms_delta] DESC) AS [WaitsRank]\n\tFROM dbo.BlitzFirst_WaitStats_Deltas AS [Waits]\n\tWHERE CheckDate between TODATETIMEOFFSET(@start_time,DATEPART(TZOFFSET, SYSDATETIMEOFFSET())) and TODATETIMEOFFSET(@end_time,DATEPART(TZOFFSET, SYSDATETIMEOFFSET()))\n\tAND [wait_type] NOT IN (\n        -- These wait types are almost 100% never a problem and so they are\n        -- filtered out to avoid them skewing the results. Click on the URL\n        -- for more information.\n        N'BROKER_EVENTHANDLER', -- https://www.sqlskills.com/help/waits/BROKER_EVENTHANDLER\n        N'BROKER_RECEIVE_WAITFOR', -- https://www.sqlskills.com/help/waits/BROKER_RECEIVE_WAITFOR\n        N'BROKER_TASK_STOP', -- https://www.sqlskills.com/help/waits/BROKER_TASK_STOP\n        N'BROKER_TO_FLUSH', -- https://www.sqlskills.com/help/waits/BROKER_TO_FLUSH\n        N'BROKER_TRANSMITTER', -- https://www.sqlskills.com/help/waits/BROKER_TRANSMITTER\n        N'CHECKPOINT_QUEUE', -- https://www.sqlskills.com/help/waits/CHECKPOINT_QUEUE\n        N'CHKPT', -- https://www.sqlskills.com/help/waits/CHKPT\n        N'CLR_AUTO_EVENT', -- https://www.sqlskills.com/help/waits/CLR_AUTO_EVENT\n        N'CLR_MANUAL_EVENT', -- https://www.sqlskills.com/help/waits/CLR_MANUAL_EVENT\n        N'CLR_SEMAPHORE', -- https://www.sqlskills.com/help/waits/CLR_SEMAPHORE\n        N'CXCONSUMER', -- https://www.sqlskills.com/help/waits/CXCONSUMER\n \n        -- Maybe comment these four out if you have mirroring issues\n        N'DBMIRROR_DBM_EVENT', -- https://www.sqlskills.com/help/waits/DBMIRROR_DBM_EVENT\n        N'DBMIRROR_EVENTS_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_EVENTS_QUEUE\n        N'DBMIRROR_WORKER_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_WORKER_QUEUE\n        N'DBMIRRORING_CMD', -- https://www.sqlskills.com/help/waits/DBMIRRORING_CMD\n \n        N'DIRTY_PAGE_POLL', -- https://www.sqlskills.com/help/waits/DIRTY_PAGE_POLL\n        N'DISPATCHER_QUEUE_SEMAPHORE', -- https://www.sqlskills.com/help/waits/DISPATCHER_QUEUE_SEMAPHORE\n        N'EXECSYNC', -- https://www.sqlskills.com/help/waits/EXECSYNC\n        N'FSAGENT', -- https://www.sqlskills.com/help/waits/FSAGENT\n        N'FT_IFTS_SCHEDULER_IDLE_WAIT', -- https://www.sqlskills.com/help/waits/FT_IFTS_SCHEDULER_IDLE_WAIT\n        N'FT_IFTSHC_MUTEX', -- https://www.sqlskills.com/help/waits/FT_IFTSHC_MUTEX\n \n        -- Maybe comment these six out if you have AG issues\n        N'HADR_CLUSAPI_CALL', -- https://www.sqlskills.com/help/waits/HADR_CLUSAPI_CALL\n        N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', -- https://www.sqlskills.com/help/waits/HADR_FILESTREAM_IOMGR_IOCOMPLETION\n        N'HADR_LOGCAPTURE_WAIT', -- https://www.sqlskills.com/help/waits/HADR_LOGCAPTURE_WAIT\n        N'HADR_NOTIFICATION_DEQUEUE', -- https://www.sqlskills.com/help/waits/HADR_NOTIFICATION_DEQUEUE\n        N'HADR_TIMER_TASK', -- https://www.sqlskills.com/help/waits/HADR_TIMER_TASK\n        N'HADR_WORK_QUEUE', -- https://www.sqlskills.com/help/waits/HADR_WORK_QUEUE\n \n        N'KSOURCE_WAKEUP', -- https://www.sqlskills.com/help/waits/KSOURCE_WAKEUP\n        N'LAZYWRITER_SLEEP', -- https://www.sqlskills.com/help/waits/LAZYWRITER_SLEEP\n        N'LOGMGR_QUEUE', -- https://www.sqlskills.com/help/waits/LOGMGR_QUEUE\n        N'MEMORY_ALLOCATION_EXT', -- https://www.sqlskills.com/help/waits/MEMORY_ALLOCATION_EXT\n        N'ONDEMAND_TASK_QUEUE', -- https://www.sqlskills.com/help/waits/ONDEMAND_TASK_QUEUE\n        N'PARALLEL_REDO_DRAIN_WORKER', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_DRAIN_WORKER\n        N'PARALLEL_REDO_LOG_CACHE', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_LOG_CACHE\n        N'PARALLEL_REDO_TRAN_LIST', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_TRAN_LIST\n        N'PARALLEL_REDO_WORKER_SYNC', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_SYNC\n        N'PARALLEL_REDO_WORKER_WAIT_WORK', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_WAIT_WORK\n        N'PREEMPTIVE_XE_GETTARGETSTATE', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_XE_GETTARGETSTATE\n        N'PWAIT_ALL_COMPONENTS_INITIALIZED', -- https://www.sqlskills.com/help/waits/PWAIT_ALL_COMPONENTS_INITIALIZED\n        N'PWAIT_DIRECTLOGCONSUMER_GETNEXT', -- https://www.sqlskills.com/help/waits/PWAIT_DIRECTLOGCONSUMER_GETNEXT\n        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP', -- https://www.sqlskills.com/help/waits/QDS_PERSIST_TASK_MAIN_LOOP_SLEEP\n        N'QDS_ASYNC_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_ASYNC_QUEUE\n        N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP',\n            -- https://www.sqlskills.com/help/waits/QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP\n        N'QDS_SHUTDOWN_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_SHUTDOWN_QUEUE\n        N'REDO_THREAD_PENDING_WORK', -- https://www.sqlskills.com/help/waits/REDO_THREAD_PENDING_WORK\n        N'REQUEST_FOR_DEADLOCK_SEARCH', -- https://www.sqlskills.com/help/waits/REQUEST_FOR_DEADLOCK_SEARCH\n        N'RESOURCE_QUEUE', -- https://www.sqlskills.com/help/waits/RESOURCE_QUEUE\n        N'SERVER_IDLE_CHECK', -- https://www.sqlskills.com/help/waits/SERVER_IDLE_CHECK\n        N'SLEEP_BPOOL_FLUSH', -- https://www.sqlskills.com/help/waits/SLEEP_BPOOL_FLUSH\n        N'SLEEP_DBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DBSTARTUP\n        N'SLEEP_DCOMSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DCOMSTARTUP\n        N'SLEEP_MASTERDBREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERDBREADY\n        N'SLEEP_MASTERMDREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERMDREADY\n        N'SLEEP_MASTERUPGRADED', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERUPGRADED\n        N'SLEEP_MSDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_MSDBSTARTUP\n        N'SLEEP_SYSTEMTASK', -- https://www.sqlskills.com/help/waits/SLEEP_SYSTEMTASK\n        N'SLEEP_TASK', -- https://www.sqlskills.com/help/waits/SLEEP_TASK\n        N'SLEEP_TEMPDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_TEMPDBSTARTUP\n        N'SNI_HTTP_ACCEPT', -- https://www.sqlskills.com/help/waits/SNI_HTTP_ACCEPT\n        N'SOS_WORK_DISPATCHER', -- https://www.sqlskills.com/help/waits/SOS_WORK_DISPATCHER\n        N'SP_SERVER_DIAGNOSTICS_SLEEP', -- https://www.sqlskills.com/help/waits/SP_SERVER_DIAGNOSTICS_SLEEP\n        N'SQLTRACE_BUFFER_FLUSH', -- https://www.sqlskills.com/help/waits/SQLTRACE_BUFFER_FLUSH\n        N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', -- https://www.sqlskills.com/help/waits/SQLTRACE_INCREMENTAL_FLUSH_SLEEP\n        N'SQLTRACE_WAIT_ENTRIES', -- https://www.sqlskills.com/help/waits/SQLTRACE_WAIT_ENTRIES\n        N'WAIT_FOR_RESULTS', -- https://www.sqlskills.com/help/waits/WAIT_FOR_RESULTS\n        N'WAITFOR', -- https://www.sqlskills.com/help/waits/WAITFOR\n        N'WAITFOR_TASKSHUTDOWN', -- https://www.sqlskills.com/help/waits/WAITFOR_TASKSHUTDOWN\n        N'WAIT_XTP_RECOVERY', -- https://www.sqlskills.com/help/waits/WAIT_XTP_RECOVERY\n        N'WAIT_XTP_HOST_WAIT', -- https://www.sqlskills.com/help/waits/WAIT_XTP_HOST_WAIT\n        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', -- https://www.sqlskills.com/help/waits/WAIT_XTP_OFFLINE_CKPT_NEW_LOG\n        N'WAIT_XTP_CKPT_CLOSE', -- https://www.sqlskills.com/help/waits/WAIT_XTP_CKPT_CLOSE\n        N'XE_DISPATCHER_JOIN', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_JOIN\n        N'XE_DISPATCHER_WAIT', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_WAIT\n        N'XE_TIMER_EVENT' -- https://www.sqlskills.com/help/waits/XE_TIMER_EVENT\n    )\n) TopWaits\nWHERE [WaitsRank] <= @WaitStatsTop\nORDER BY \n[CheckDate] DESC, \n[wait_time_ms_delta] DESC\nOPTION(RECOMPILE);\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "refId": "A"
+            }
+          ],
+          "title": "WaitStats",
+          "type": "table"
+        }
+      ],
+      "title": "First Responder Kit - WaitStats",
+      "type": "row"
     }
   ],
-  "refresh": "5s",
+  "refresh": "5m",
   "schemaVersion": 35,
   "style": "dark",
   "tags": [],
@@ -2338,7 +2708,7 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": "300",
           "value": "300"
         },
@@ -2359,7 +2729,7 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": "SqlServer",
           "value": "SqlServer"
         },
@@ -2369,6 +2739,7 @@
         "name": "datasource",
         "options": [],
         "query": "mssql",
+        "queryValue": "",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -2377,7 +2748,7 @@
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -2397,6 +2768,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live",
   "uid": "Fg8Q_wSMz",
-  "version": 67,
+  "version": 87,
   "weekStart": ""
 }
