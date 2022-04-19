@@ -42,7 +42,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Import-P
 		@retry_attempts=0, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'CmdExec', 
-		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  D:\GitHub-Personal\SqlServer-Baselining-Grafana\NonSql-Files\perfmon-collector-push-to-sqlserver.ps1 -SqlInstance ''localhost'' -Database ''DBA''', 
+		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  D:\GitHub-Personal\SqlServer-Baselining-Grafana\Perfmon\perfmon-collector-push-to-sqlserver.ps1 -SqlInstance ''localhost'' -Database ''DBA''', 
 		@flags=40, 
 		@proxy_name=N'Ajay'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
@@ -57,7 +57,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Import-T
 		@retry_attempts=0, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'CmdExec', 
-		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  D:\GitHub-Personal\SqlServer-Baselining-Grafana\NonSql-Files\tasklist-push-to-sqlserver.ps1 -SqlInstance ''localhost'' -Database ''DBA''', 
+		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  D:\GitHub-Personal\SqlServer-Baselining-Grafana\Perfmon\tasklist-push-to-sqlserver.ps1 -SqlInstance ''localhost'' -Database ''DBA''', 
 		@flags=40, 
 		@proxy_name=N'Ajay'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
