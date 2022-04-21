@@ -1,15 +1,16 @@
-﻿$ssn = New-PSSession -ComputerName 'SqlProd-A'
-
-# Set execution policy
-Invoke-Command -Session $ssn -ScriptBlock { Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy Unrestricted -Force }
+﻿$HostName = 'SqlProd-B'
+$DestinationDrive = 'C:\'
 
 # Copy Perfmon scripts
-Invoke-Command -Session $ssn -ScriptBlock { 
-    Copy-Item -Path '\\SQLShare\S$\Perfmon' -Destination "E:" -Recurse -Container
-}
+Copy-Item -Path '\\SQLShare\S$\Perfmon' -Destination "\\$HostName\$($DestinationDrive.Replace(':','$'))" -Recurse -Container -Force
 
+$ssn = New-PSSession -ComputerName $HostName
 Invoke-Command -Session $ssn -ScriptBlock { 
-    & 'E:\Perfmon\perfmon-collector-logman.ps1' 
+    # Set execution policy
+    Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy Unrestricted -Force 
+    
+    # Create data collector
+    & 'C:\Perfmon\perfmon-collector-logman.ps1' -TemplatePath 'C:\Perfmon\DBA_PerfMon_All_Counters_Template.xml'
 }
 
 $ssn | Remove-PSSession
