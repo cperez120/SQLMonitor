@@ -2,7 +2,8 @@ USE [msdb]
 GO
 
 /****** Object:  Job [(dba) Run-WhoIsActive]    Script Date: Tue, 19 Apr 12:34:23 ******/
-EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Run-WhoIsActive', @delete_unused_schedule=1
+if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Run-WhoIsActive')
+	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Run-WhoIsActive', @delete_unused_schedule=1
 GO
 
 /****** Object:  Job [(dba) Run-WhoIsActive]    Script Date: Tue, 19 Apr 12:34:23 ******/

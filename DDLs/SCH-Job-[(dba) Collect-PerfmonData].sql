@@ -2,14 +2,16 @@ USE [msdb]
 GO
 
 /****** Object:  Job [(dba) Collect-PerfmonData]    Script Date: Tue, 19 Apr 12:19:44 ******/
-EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Collect-PerfmonData', @delete_unused_schedule=1
+if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Collect-PerfmonData')
+	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Collect-PerfmonData', @delete_unused_schedule=1
 GO
 
-/****** Object:  Job [(dba) Collect-PerfmonData]    Script Date: Tue, 19 Apr 12:19:44 ******/
+
+/****** Object:  Job [(dba) Collect-PerfmonData]    Script Date: 4/21/2022 5:42:25 AM ******/
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
-/****** Object:  JobCategory [(dba) Monitoring & Alerting]    Script Date: Tue, 19 Apr 12:19:44 ******/
+/****** Object:  JobCategory [(dba) Monitoring & Alerting]    Script Date: 4/21/2022 5:42:25 AM ******/
 IF NOT EXISTS (SELECT name FROM msdb.dbo.syscategories WHERE name=N'(dba) Monitoring & Alerting' AND category_class=1)
 BEGIN
 EXEC @ReturnCode = msdb.dbo.sp_add_category @class=N'JOB', @type=N'LOCAL', @name=N'(dba) Monitoring & Alerting'
@@ -31,7 +33,7 @@ https://github.com/imajaydwivedi/SqlServer-Baselining-Grafana/blob/master/NonSql
 		@category_name=N'(dba) Monitoring & Alerting', 
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [Import-PerfmonData]    Script Date: Tue, 19 Apr 12:19:44 ******/
+/****** Object:  Step [Import-PerfmonData]    Script Date: 4/21/2022 5:42:25 AM ******/
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Import-PerfmonData', 
 		@step_id=1, 
 		@cmdexec_success_code=0, 
@@ -42,11 +44,10 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Import-P
 		@retry_attempts=0, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'CmdExec', 
-		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  D:\GitHub-Personal\SqlServer-Baselining-Grafana\Perfmon\perfmon-collector-push-to-sqlserver.ps1 -SqlInstance ''localhost'' -Database ''DBA''', 
-		@flags=40, 
-		@proxy_name=N'Ajay'
+		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  E:\Perfmon\perfmon-collector-push-to-sqlserver.ps1 -HostName Workstation -SqlInstance Workstation -Database DBA', 
+		@flags=40
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [Import-TaskList]    Script Date: Tue, 19 Apr 12:19:44 ******/
+/****** Object:  Step [Import-TaskList]    Script Date: 4/21/2022 5:42:25 AM ******/
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Import-TaskList', 
 		@step_id=2, 
 		@cmdexec_success_code=0, 
@@ -57,9 +58,8 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Import-T
 		@retry_attempts=0, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'CmdExec', 
-		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  D:\GitHub-Personal\SqlServer-Baselining-Grafana\Perfmon\tasklist-push-to-sqlserver.ps1 -SqlInstance ''localhost'' -Database ''DBA''', 
-		@flags=40, 
-		@proxy_name=N'Ajay'
+		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  E:\Perfmon\tasklist-push-to-sqlserver.ps1 -HostName Workstation -SqlInstance Workstation -Database DBA', 
+		@flags=40
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_update_job @job_id = @jobId, @start_step_id = 1
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback

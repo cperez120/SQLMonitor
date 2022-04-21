@@ -2,7 +2,8 @@ USE [msdb]
 GO
 
 /****** Object:  Job [(dba) Partitions-Maintenance]    Script Date: Tue, 19 Apr 12:31:58 ******/
-EXEC msdb.dbo.sp_delete_job @job_name='(dba) Partitions-Maintenance', @delete_unused_schedule=1
+if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Partitions-Maintenance')
+	EXEC msdb.dbo.sp_delete_job @job_name='(dba) Partitions-Maintenance', @delete_unused_schedule=1
 GO
 
 /****** Object:  Job [(dba) Partitions-Maintenance]    Script Date: Tue, 19 Apr 12:31:58 ******/

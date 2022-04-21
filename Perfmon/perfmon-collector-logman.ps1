@@ -2,9 +2,10 @@
 
 # Copy paste the template file on folder that would contain Perfmon data collection logs
     # Point the template path
-$data_collector_template_path = “Y:\Perfmon\DBA_PerfMon_All_Counters_Template.xml”;
+$data_collector_template_path = “E:\Perfmon\DBA_PerfMon_All_Counters_Template.xml”;
 $data_collector_set_name = 'DBA';
 [bool]$WhatIf = $false
+
 
 # Find Perfmon data collection logs folder path
 $collector_root_directory = Split-Path $data_collector_template_path -Parent
@@ -13,12 +14,14 @@ $file_rotation_time = '00:30:00'
 $sample_interval = '00:00:10'
 
 # Get named instances installed on box
+"Finding sql instances on host.." | Write-Host -ForegroundColor Cyan
 $sqlInstances = @()
 $sqlInstances +=  (Get-Service *sql* | ? {$_.Name -ne 'MSSQLSERVER' -and $_.DisplayName -match '^SQL Server \(.+\)$'} | Select-Object -ExpandProperty Name)
 
 # Add counters for named instances
 if($sqlInstances.Count -gt 0)
 {
+    "Add counters for named instances ($($sqlInstances -join ',')).." | Write-Host -ForegroundColor Cyan
     # https://stackoverflow.com/questions/16428559/powershell-script-to-update-xml-file-content
 
     # read template data into xml object
@@ -58,6 +61,7 @@ if($sqlInstances.Count -gt 0)
 
     #save the changes
     $tempFile = $collector_root_directory+"\$(Get-Random).xml"
+    "Creating new temporary template file '$tempFile'.." | Write-Host -ForegroundColor Cyan
     $xmlDoc.Save($tempFile)
 
     $data_collector_template_path = $tempFile
@@ -65,15 +69,18 @@ if($sqlInstances.Count -gt 0)
 
 # Create data collector from template, update sample & rotation time, and start collector
 if(-not $WhatIf) {
+    "Creating Collector Set [$data_collector_set_name] from template [$data_collector_template_path].." | Write-Host -ForegroundColor Cyan
     logman import -name “$data_collector_set_name” -xml “$data_collector_template_path”
+    "Updating Collector Set [$data_collector_set_name] with sample interval, rotation time, and output file path.." | Write-Host -ForegroundColor Cyan
     logman update -name “$data_collector_set_name” -f bin -cnf "$file_rotation_time" -o "$log_file_path" -si "$sample_interval"
+    "Starting Collector Set [$data_collector_set_name].." | Write-Host -ForegroundColor Cyan
     logman start -name “$data_collector_set_name”
 }
-else {
-    "Perfmon template '$data_collector_template_path' created for execution." | Write-Host -ForegroundColor Yellow
-}
 
-Remove-Item -Path $tempFile -WhatIf:$WhatIf
+if([System.IO.File]::Exists($tempFile)) {
+    "Removing temporary template file [$tempFile].." | Write-Host -ForegroundColor Cyan
+    Remove-Item -Path $tempFile -WhatIf:$WhatIf
+}
 <#
 logman stop -name “$data_collector_set_name”
 logman delete -name “$data_collector_set_name”

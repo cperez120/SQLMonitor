@@ -3,8 +3,8 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="(local):MSI\ajayd">
-          <Created>2020-09-17T11:07:43.3325728+05:30</Created>
+        <ConnectionNode Name="(local):LAB\adwivedi">
+          <Created>2020-09-16T22:37:43.3325728-07:00</Created>
           <Type>SQL</Type>
           <Server>(local)</Server>
           <UserName />
@@ -15,8 +15,8 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="LOCALHOST:MSI\ajayd">
-          <Created>2020-10-18T21:11:28.7072242+05:30</Created>
+        <ConnectionNode Name="LOCALHOST:LAB\adwivedi">
+          <Created>2020-10-18T08:41:28.7072242-07:00</Created>
           <Type>SQL</Type>
           <Server>LOCALHOST</Server>
           <UserName />
@@ -28,7 +28,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="SQL-A:verysecretadmin">
-          <Created>2020-09-17T22:43:18.0128969+05:30</Created>
+          <Created>2020-09-17T10:13:18.0128969-07:00</Created>
           <Type>SQL</Type>
           <Server>SQL-A</Server>
           <UserName>verysecretadmin</UserName>
@@ -40,7 +40,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="SQL-A\V17:sa">
-          <Created>2020-09-17T22:43:32.3897371+05:30</Created>
+          <Created>2020-09-17T10:13:32.3897371-07:00</Created>
           <Type>SQL</Type>
           <Server>SQL-A\V17</Server>
           <UserName>sa</UserName>
@@ -55,53 +55,59 @@
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
-        <FileNode Name="SCH-create-functions.sql">
+        <FileNode Name="DatabaseMail_Using_GMail.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>SCH-create-functions.sql</FullPath>
+          <FullPath>DatabaseMail_Using_GMail.sql</FullPath>
         </FileNode>
-        <FileNode Name="SCH-DBA-database.sql">
+        <FileNode Name="SCH-Create-All-Objects.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>SCH-DBA-database.sql</FullPath>
+          <FullPath>SCH-Create-All-Objects.sql</FullPath>
         </FileNode>
-        <FileNode Name="SCH-Job-[(dba) Collect Metrics - WhoIsActive].sql">
+        <FileNode Name="SCH-Create-functions-OBSELETE.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>SCH-Job-[(dba) Collect Metrics - WhoIsActive].sql</FullPath>
+          <FullPath>SCH-Create-functions-OBSELETE.sql</FullPath>
         </FileNode>
-        <FileNode Name="SCH-Jobs-All-[(dba) Collect Metrics].sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>SCH-Jobs-All-[(dba) Collect Metrics].sql</FullPath>
-        </FileNode>
-        <FileNode Name="SCH-tables-views.sql">
+        <FileNode Name="SCH-Job-[(dba) Collect-PerfmonData].sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>SCH-tables-views.sql</FullPath>
+          <FullPath>SCH-Job-[(dba) Collect-PerfmonData].sql</FullPath>
         </FileNode>
-        <FileNode Name="SCH-tables-views-Named-Instance.sql">
+        <FileNode Name="SCH-Job-[(dba) Partitions-Maintenance].sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>SCH-tables-views-Named-Instance.sql</FullPath>
+          <FullPath>SCH-Job-[(dba) Partitions-Maintenance].sql</FullPath>
         </FileNode>
-        <FileNode Name="SCH-usp_collect_performance_metrics.sql">
+        <FileNode Name="SCH-Job-[(dba) Purge-DbaMetrics - Daily].sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>SCH-usp_collect_performance_metrics.sql</FullPath>
+          <FullPath>SCH-Job-[(dba) Purge-DbaMetrics - Daily].sql</FullPath>
         </FileNode>
-        <FileNode Name="SCH-usp_collect_performance_metrics-v1.0.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+        <FileNode Name="SCH-Job-[(dba) Run First-Responder-Kit].sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>SCH-usp_collect_performance_metrics-v1.0.sql</FullPath>
+          <FullPath>SCH-Job-[(dba) Run First-Responder-Kit].sql</FullPath>
+        </FileNode>
+        <FileNode Name="SCH-Job-[(dba) Run-WhoIsActive].sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-Job-[(dba) Run-WhoIsActive].sql</FullPath>
+        </FileNode>
+        <FileNode Name="SCH-Linked-Servers-Sample.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-Linked-Servers-Sample.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>

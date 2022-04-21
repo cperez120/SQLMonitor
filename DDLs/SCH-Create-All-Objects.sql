@@ -8,7 +8,14 @@ GO
 	4) Create dbo.perfmon_files table using Partition scheme
 	5) Create table [dbo].[os_task_list] using Partition scheme
 	5) Add/Remove Partition Boundaries
-	6) 
+	
+	Self Steps
+	-----------
+	1) Self StepsCreated a global default mail profile. https://github.com/imajaydwivedi/SQLDBA-SSMS-Solution/blob/0c2eaecca3dcf6745e3b2d262208c2f2257008bb/SQLDBATools-Inventory/DatabaseMail_Using_GMail.sql
+	2) Create sp_WhoIsActive in [master] database. https://github.com/imajaydwivedi/SQLDBA-SSMS-Solution/blob/ae2541e37c28ea5b50887de993666bc81f29eba5/BlitzQueries/SCH-sp_WhoIsActive_v12_00(Modified).sql
+	3) Install Brent Ozar's First Responder Kit. https://raw.githubusercontent.com/BrentOzarULTD/SQL-Server-First-Responder-Kit/dev/Install-All-Scripts.sql
+			Install-DbaFirstResponderKit -SqlInstance workstation -Force -Verbose
+	4)
 
 */
 
@@ -33,7 +40,7 @@ go
 create table [dbo].[performance_counters]
 (
 	[collection_time_utc] [datetime2](7) NOT NULL,
-	[computer_name] [varchar](200) NOT NULL,
+	[host_name] [varchar](255) NOT NULL,
 	[path] [nvarchar](2000) NOT NULL,
 	[object] [varchar](255) NOT NULL,
 	[counter] [varchar](255) NOT NULL,
@@ -43,12 +50,14 @@ create table [dbo].[performance_counters]
 go
 
 create clustered index ci_performance_counters on [dbo].[performance_counters] 
-	([collection_time_utc], object, counter, [instance], [value]) on ps_dba ([collection_time_utc])
+	([collection_time_utc], [host_name], object, counter, [instance], [value]) on ps_dba ([collection_time_utc])
 go
 
 /* ***** 4) Create dbo.perfmon_files table using Partition scheme ***************** */
-CREATE TABLE [dbo].[perfmon_files](
-	[server_name] [varchar](100) NOT NULL,
+-- drop table [dbo].[perfmon_files]
+CREATE TABLE [dbo].[perfmon_files]
+(
+	[host_name] [varchar](255) NOT NULL,
 	[file_name] [varchar](255) NOT NULL,
 	[file_path] [varchar](255) NOT NULL,
 	[collection_time_utc] [datetime2](7) NOT NULL default sysutcdatetime(),
@@ -65,10 +74,11 @@ GO
 CREATE TABLE [dbo].[os_task_list]
 (	
 	[collection_time_utc] [datetime2](7) NOT NULL,
+	[host_name] [varchar](255) NOT NULL,
 	[task_name] [nvarchar](100) not null,
 	[pid] bigint not null,
 	[session_name] [varchar](20) null,
-	[memory_kb] bigint NOT NULL,
+	[memory_kb] bigint NULL,
 	[status] [varchar](30) NULL,
 	[user_name] [varchar](200) NOT NULL,
 	[cpu_time] [char](10) NOT NULL,
@@ -77,15 +87,15 @@ CREATE TABLE [dbo].[os_task_list]
 ) on ps_dba ([collection_time_utc])
 go
 
-create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [task_name]) on ps_dba ([collection_time_utc])
+create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [host_name], [task_name]) on ps_dba ([collection_time_utc])
 go
-create nonclustered index nci_user_name on [dbo].[os_task_list] ([collection_time_utc], [user_name]) on ps_dba ([collection_time_utc])
+create nonclustered index nci_user_name on [dbo].[os_task_list] ([collection_time_utc], [host_name], [user_name]) on ps_dba ([collection_time_utc])
 go
-create nonclustered index nci_window_title on [dbo].[os_task_list] ([collection_time_utc], [window_title]) on ps_dba ([collection_time_utc])
+create nonclustered index nci_window_title on [dbo].[os_task_list] ([collection_time_utc], [host_name], [window_title]) on ps_dba ([collection_time_utc])
 go
-create nonclustered index nci_cpu_time_seconds on [dbo].[os_task_list] ([collection_time_utc], [cpu_time_seconds]) on ps_dba ([collection_time_utc])
+create nonclustered index nci_cpu_time_seconds on [dbo].[os_task_list] ([collection_time_utc], [host_name], [cpu_time_seconds]) on ps_dba ([collection_time_utc])
 go
-create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_time_utc], [memory_kb]) on ps_dba ([collection_time_utc])
+create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_time_utc], [host_name], [memory_kb]) on ps_dba ([collection_time_utc])
 go
 
 

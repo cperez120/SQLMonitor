@@ -8,6 +8,9 @@ Param (
     $Database = 'DBA',
 
     [Parameter(Mandatory=$false)]
+    $HostName = $env:COMPUTERNAME,
+
+    [Parameter(Mandatory=$false)]
     $TablePerfmonFiles = '[dbo].[perfmon_files]',
 
     [Parameter(Mandatory=$false)]
@@ -23,11 +26,13 @@ Param (
     [Bool]$CleanupFiles = $true
 )
 
+Write-Debug "At start of function"
+
 # Fetch Collector details
 $startTime = Get-Date
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetch details of [$collectorSetName] data collector.."
-$pfCollector = Get-DbaPfDataCollector -CollectorSet $collectorSetName
-$pfCollectorSet = Get-DbaPfDataCollectorSet -CollectorSet $collectorSetName
+$pfCollector = Get-DbaPfDataCollector -ComputerName $HostName -CollectorSet $collectorSetName
+$pfCollectorSet = Get-DbaPfDataCollectorSet -ComputerName $HostName -CollectorSet $collectorSetName
 $computerName = $pfCollector.ComputerName
 $lastFile = $pfCollector.LatestOutputLocation
 $pfCollectorFolder = Split-Path $lastFile -Parent
@@ -35,7 +40,7 @@ $lastImportedFile = $null
 
 # Get latest imported file
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetch details of last imported file from [$SqlInstance].[$Database].$TablePerfmonFiles.."
-$lastImportedFile = Invoke-DbaQuery -SqlInstance $SqlInstance -Database $Database -Query "select top 1 file_name from $TablePerfmonFiles where server_name = '$($env:COMPUTERNAME)' order by file_name desc" | Select-Object -ExpandProperty file_name;
+$lastImportedFile = Invoke-DbaQuery -SqlInstance $SqlInstance -Database $Database -Query "select top 1 file_name from $TablePerfmonFiles where host_name = '$HostName' order by file_name desc" | Select-Object -ExpandProperty file_name;
 
 # Stop collector set
 if($pfCollectorSet.State -eq 'Running') {
@@ -46,11 +51,12 @@ if($pfCollectorSet.State -eq 'Running') {
 # Note existing files
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Scan existing perfmon files generated.."
 $pfCollectorFiles = @()
-$pfCollectorFiles += Get-ChildItem $pfCollectorFolder -Recurse -File -Name *.blg | Where-Object {[String]::IsNullOrEmpty($lastImportedFile) -or ($_ -gt $lastImportedFile)} | Sort-Object
+#$pfCollectorFiles += Get-ChildItem $pfCollectorFolder -Recurse -File -Name *.blg | Where-Object {[String]::IsNullOrEmpty($lastImportedFile) -or ($_ -gt $lastImportedFile)} | Sort-Object
+$pfCollectorFiles += Get-ChildItem $("\\$HostName\"+$pfCollectorFolder.Replace(':','$')) -Recurse -File -Name *.blg | Where-Object {[String]::IsNullOrEmpty($lastImportedFile) -or ($_ -gt $lastImportedFile)} | Sort-Object
 
 # Start collector set
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Start data collector.."
-Start-DbaPfDataCollectorSet -CollectorSet $collectorSetName | Out-Null
+Start-DbaPfDataCollectorSet -ComputerName $HostName -CollectorSet $collectorSetName | Out-Null
 
 foreach($file in $pfCollectorFiles)
 {
@@ -58,8 +64,9 @@ foreach($file in $pfCollectorFiles)
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Processing file '$file', and import data into [$SqlInstance].[$Database].$TablePerfmonCounters.."
     try
     {
-        Import-Counter -Path "$pfCollectorFolder\$file" -EA silentlycontinue | Select-Object -ExpandProperty CounterSamples | 
-                Select-Object @{l='collection_time_utc';e={($_.TimeStamp).ToUniversalTime()}}, @{l='computer_name';e={$computerName}}, @{l='path';e={$_.Path}}, `
+        #Import-Counter -Path "$pfCollectorFolder\$file" -EA silentlycontinue | Select-Object -ExpandProperty CounterSamples | 
+        Import-Counter -Path "$("\\$HostName\"+$pfCollectorFolder.Replace(':','$'))\$file" -EA silentlycontinue | Select-Object -ExpandProperty CounterSamples | 
+                Select-Object @{l='collection_time_utc';e={($_.TimeStamp).ToUniversalTime()}}, @{l='host_name';e={$computerName}}, @{l='path';e={$_.Path}}, `
                               @{l='object';e={$path = $_.Path; $splitPath = $path.Split('\\')|Where-Object{-not [String]::IsNullOrEmpty($_)}; $object = $splitPath[1]; $object.replace("($($_.InstanceName))",'') }}, `
                               @{l='counter';e={$path = $_.Path; $splitPath = $path.Split('\\')|Where-Object{-not [String]::IsNullOrEmpty($_)}; $splitPath[2] }}, `
                               @{l='value';e={$_.CookedValue}}, @{l='instance';e={$_.InstanceName}} |
@@ -70,10 +77,10 @@ foreach($file in $pfCollectorFiles)
         # If blg file is read successfully, then add file entry into database
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Make entry of file in [$SqlInstance].[$Database].[dbo].[perfmon_files].."
         $sqlInsertFile = @"
-        insert dbo.perfmon_files (server_name, file_name, file_path)
-        select @server_name, @file_name, @file_path;
+        insert dbo.perfmon_files (host_name, file_name, file_path)
+        select @host_name, @file_name, @file_path;
 "@
-        Invoke-DbaQuery -SqlInstance $SqlInstance -Database $Database -Query $sqlInsertFile -SqlParameter @{server_name = $env:COMPUTERNAME; file_name = $file; file_path = "$pfCollectorFolder\$file"}
+        Invoke-DbaQuery -SqlInstance $SqlInstance -Database $Database -Query $sqlInsertFile -SqlParameter @{host_name = $HostName; file_name = $file; file_path = "$pfCollectorFolder\$file"}
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Entry made.."
 
         if($CleanupFiles) {

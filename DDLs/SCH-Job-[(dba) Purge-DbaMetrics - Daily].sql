@@ -2,7 +2,8 @@ USE [msdb]
 GO
 
 /****** Object:  Job [(dba) Purge-DbaMetrics - Daily]    Script Date: Tue, 19 Apr 12:33:20 ******/
-EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Purge-DbaMetrics - Daily', @delete_unused_schedule=1
+if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Purge-DbaMetrics - Daily')
+	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Purge-DbaMetrics - Daily', @delete_unused_schedule=1
 GO
 
 /****** Object:  Job [(dba) Purge-DbaMetrics - Daily]    Script Date: Tue, 19 Apr 12:33:20 ******/

@@ -2,7 +2,8 @@ USE [msdb]
 GO
 
 /****** Object:  Job [(dba) Run First-Responder-Kit]    Script Date: Tue, 19 Apr 12:33:50 ******/
-EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Run First-Responder-Kit', @delete_unused_schedule=1
+if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Run First-Responder-Kit')
+	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Run First-Responder-Kit', @delete_unused_schedule=1
 GO
 
 /****** Object:  Job [(dba) Run First-Responder-Kit]    Script Date: Tue, 19 Apr 12:33:50 ******/
