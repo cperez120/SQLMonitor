@@ -3,8 +3,8 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="(local):MSI\ajayd">
-          <Created>2020-09-17T21:15:13.7076563+05:30</Created>
+        <ConnectionNode Name="(local):LAB\adwivedi">
+          <Created>2020-09-17T08:45:13.7076563-07:00</Created>
           <Type>SQL</Type>
           <Server>(local)</Server>
           <UserName />
@@ -24,36 +24,6 @@
           <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>dm_os_perfmance_counters.sql</FullPath>
-        </FileNode>
-        <FileNode Name="qry-aggregate-job.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>qry-aggregate-job.sql</FullPath>
-        </FileNode>
-        <FileNode Name="qry-aggregate-sample.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>qry-aggregate-sample.sql</FullPath>
-        </FileNode>
-        <FileNode Name="qry-find-delete-duplicate.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>qry-find-delete-duplicate.sql</FullPath>
-        </FileNode>
-        <FileNode Name="qry-grafana-cpu.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>qry-grafana-cpu.sql</FullPath>
-        </FileNode>
-        <FileNode Name="qry-grafana-cpu-perfmon.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>qry-grafana-cpu-perfmon.sql</FullPath>
         </FileNode>
         <FileNode Name="Wait Time (ms).sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
