@@ -1,5 +1,5 @@
-﻿$HostName = 'SqlDr-C'
-$DestinationDrive = 'C:\'
+﻿$HostName = 'AllVersion'
+$DestinationDrive = 'Y:\'
 
 # Copy Perfmon scripts
 Copy-Item -Path '\\SQLShare\S$\Perfmon' -Destination "\\$HostName\$($DestinationDrive.Replace(':','$'))" -Recurse -Container -Force
@@ -10,7 +10,7 @@ Invoke-Command -Session $ssn -ScriptBlock {
     Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy Unrestricted -Force 
     
     # Create data collector
-    & 'C:\Perfmon\perfmon-collector-logman.ps1' -TemplatePath 'C:\Perfmon\DBA_PerfMon_All_Counters_Template.xml'
+    & 'Y:\Perfmon\perfmon-collector-logman.ps1' -TemplatePath 'Y:\Perfmon\DBA_PerfMon_All_Counters_Template.xml'
 }
 
 $ssn | Remove-PSSession
