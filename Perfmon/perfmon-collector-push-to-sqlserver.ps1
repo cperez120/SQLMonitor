@@ -85,13 +85,15 @@ foreach($file in $pfCollectorFiles)
 
         if($CleanupFiles) {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove file.."
-            Remove-Item "$pfCollectorFolder\$file"
+            #Remove-Item "$pfCollectorFolder\$file"
+            Remove-Item "$("\\$HostName\"+$pfCollectorFolder.Replace(':','$'))\$file"
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "File removed.."
         }
     }
     catch {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove file as its generating error.."
-        Remove-Item "$pfCollectorFolder\$file"
+        #Remove-Item "$pfCollectorFolder\$file"
+        Remove-Item "$("\\$HostName\"+$pfCollectorFolder.Replace(':','$'))\$file"
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "File removed.."
     }
 }

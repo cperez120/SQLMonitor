@@ -15,7 +15,10 @@ GO
 	2) Create sp_WhoIsActive in [master] database. https://github.com/imajaydwivedi/SQLDBA-SSMS-Solution/blob/ae2541e37c28ea5b50887de993666bc81f29eba5/BlitzQueries/SCH-sp_WhoIsActive_v12_00(Modified).sql
 	3) Install Brent Ozar's First Responder Kit. https://raw.githubusercontent.com/BrentOzarULTD/SQL-Server-First-Responder-Kit/dev/Install-All-Scripts.sql
 			Install-DbaFirstResponderKit -SqlInstance workstation -Force -Verbose
-	4)
+	4) Install PowerShell modules
+		Update-Module -Force -ErrorAction Continue -Verbose
+		Update-Help -Force -ErrorAction Continue -Verbose
+		Install-Module dbatools, enhancedhtml2, sqlserver, poshrsjob -Scope AllUsers -Force -ErrorAction Continue -Verbose
 
 */
 
