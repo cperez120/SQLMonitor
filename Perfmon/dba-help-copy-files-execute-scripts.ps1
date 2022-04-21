@@ -1,4 +1,4 @@
-﻿$HostName = 'SqlProd-B'
+﻿$HostName = 'SqlDr-C'
 $DestinationDrive = 'C:\'
 
 # Copy Perfmon scripts
