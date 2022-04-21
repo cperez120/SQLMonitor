@@ -55,6 +55,9 @@ go
 create clustered index ci_performance_counters on [dbo].[performance_counters] 
 	([collection_time_utc], [host_name], object, counter, [instance], [value]) on ps_dba ([collection_time_utc])
 go
+create nonclustered index nci_counter_collection_time_utc
+	on [dbo].[performance_counters] ([counter],[collection_time_utc]) on ps_dba ([collection_time_utc])
+GO
 
 /* ***** 4) Create dbo.perfmon_files table using Partition scheme ***************** */
 -- drop table [dbo].[perfmon_files]
