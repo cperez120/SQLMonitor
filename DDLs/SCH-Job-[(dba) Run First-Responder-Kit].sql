@@ -6,11 +6,14 @@ if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Run First-Re
 	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Run First-Responder-Kit', @delete_unused_schedule=1
 GO
 
-/****** Object:  Job [(dba) Run First-Responder-Kit]    Script Date: Tue, 19 Apr 12:33:50 ******/
+USE [msdb]
+GO
+
+/****** Object:  Job [(dba) Run First-Responder-Kit]    Script Date: 4/22/2022 10:51:38 AM ******/
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
-/****** Object:  JobCategory [(dba) Monitoring & Alerting]    Script Date: Tue, 19 Apr 12:33:50 ******/
+/****** Object:  JobCategory [(dba) Monitoring & Alerting]    Script Date: 4/22/2022 10:51:38 AM ******/
 IF NOT EXISTS (SELECT name FROM msdb.dbo.syscategories WHERE name=N'(dba) Monitoring & Alerting' AND category_class=1)
 BEGIN
 EXEC @ReturnCode = msdb.dbo.sp_add_category @class=N'JOB', @type=N'LOCAL', @name=N'(dba) Monitoring & Alerting'
@@ -30,7 +33,7 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Run First-Responder-Ki
 		@category_name=N'(dba) Monitoring & Alerting', 
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [(dba) Run First-Responder-Kit]    Script Date: Tue, 19 Apr 12:33:50 ******/
+/****** Object:  Step [(dba) Run First-Responder-Kit]    Script Date: 4/22/2022 10:51:38 AM ******/
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'(dba) Run First-Responder-Kit', 
 		@step_id=1, 
 		@cmdexec_success_code=0, 
@@ -49,8 +52,8 @@ exec sp_BlitzFirst
 	@OutputSchemaName = ''dbo'',
 	@OutputTableName = ''BlitzFirst'',
 	@OutputTableNameFileStats = ''BlitzFirst_FileStats'',
-	@OutputTableNamePerfmonStats = ''BlitzFirst_PerfmonStats'',
-	@OutputTableNameWaitStats = ''BlitzFirst_WaitStats'',
+	--@OutputTableNamePerfmonStats = ''BlitzFirst_PerfmonStats'',
+	--@OutputTableNameWaitStats = ''BlitzFirst_WaitStats'',
 	@OutputTableNameBlitzCache = ''BlitzCache'',
 	@OutputTableNameBlitzWho = ''BlitzWho'',
 	@OutputTableRetentionDays = 30', 
@@ -59,12 +62,12 @@ exec sp_BlitzFirst
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_update_job @job_id = @jobId, @start_step_id = 1
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'(dba) Run First-Responder-Kit', 
+EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'(dba) Run First-Responder-Kit - WaitStats', 
 		@enabled=1, 
 		@freq_type=4, 
 		@freq_interval=1, 
 		@freq_subday_type=4, 
-		@freq_subday_interval=10, 
+		@freq_subday_interval=15, 
 		@freq_relative_interval=0, 
 		@freq_recurrence_factor=0, 
 		@active_start_date=20220318, 
@@ -81,5 +84,4 @@ QuitWithRollback:
     IF (@@TRANCOUNT > 0) ROLLBACK TRANSACTION
 EndSave:
 GO
-
 
