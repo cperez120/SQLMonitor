@@ -84,7 +84,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1650599915011,
+  "iteration": 1650609866945,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -98,7 +98,7 @@
       },
       "id": 37,
       "panels": [],
-      "repeat": "datasource",
+      "repeat": "service_name",
       "title": "Sql Server - Overview",
       "type": "row"
     },
@@ -1494,7 +1494,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent"
+                    "color": "transparent",
+                    "value": null
                   },
                   {
                     "color": "orange",
@@ -1584,7 +1585,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   }
                 ]
               }
@@ -1608,7 +1610,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 3
+            "y": 14
           },
           "id": 111,
           "options": {
@@ -1636,7 +1638,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "table",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeFrom())\n\t\t,@end_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeTo());\n\n-- Get Blocking Tree\nif exists (select * from dbo.WhoIsActive where (collection_time between @start_time and @end_time) and (blocking_session_id is not null or blocked_session_count > 0) )\nbegin\n\n\t;WITH T_BLOCKERS AS\n\t(\n\t\t-- Find block Leaders\n\t\tSELECT\t[dd hh:mm:ss.mss], [collection_time], [session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE([sql_command],[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), [login_name], wait_info, [blocking_session_id], [blocked_session_count],\n\t\t\t\t[status], open_tran_count, [host_name], [database_name], [program_name], Pool, tasks,\n\t\t\t\tr.cpu, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\t[LEVEL] = CAST (REPLICATE ('0', 4-LEN (CAST (r.session_id AS VARCHAR))) + CAST (r.session_id AS VARCHAR) AS VARCHAR (1000))\n\t\t\t\t,[head_blocker] = session_id\n\t\tFROM\tdbo.WhoIsActive AS r\n\t\tWHERE\t (collection_time between @start_time and @end_time)\n\t\tand (r.blocking_session_id IS NULL AND [blocked_session_count] > 0)\n\t\t--\t\n\t\tUNION ALL\n\t\t--\n\t\tSELECT\tr.[dd hh:mm:ss.mss], r.[collection_time], r.[session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE(r.[sql_command],r.[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = r.additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), r.[login_name], r.wait_info, r.[blocking_session_id], r.[blocked_session_count],\n\t\t\t\tr.[status], r.open_tran_count, r.[host_name], r.[database_name], r.[program_name], r.Pool, r.tasks,\n\t\t\t\tr.cpu, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\tCAST (B.LEVEL + RIGHT (CAST ((1000 + r.session_id) AS VARCHAR (100)), 4) AS VARCHAR (1000)) AS LEVEL\n\t\t\t\t,[head_blocker] = case when B.[head_blocker] is null then B.session_id else B.[head_blocker] end\n\t\tFROM\tdbo.WhoIsActive AS r\n\t\tINNER JOIN \n\t\t\t\tT_BLOCKERS AS B\n\t\t\tON\tr.collection_time = B.collection_time\n\t\t\tAND\tr.blocking_session_id = B.session_id\n\t\tWHERE\t r.blocking_session_id <> r.session_id\n\t)\n\tSELECT\t[collection_time], [dd hh:mm:ss.mss], [session_id], \n\t\t\t[BLOCKING_TREE] = N'    ' + REPLICATE (N'|         ', LEN (LEVEL)/4 - 1) \n\t\t\t\t\t\t\t+\tCASE\tWHEN (LEN(LEVEL)/4 - 1) = 0\n\t\t\t\t\t\t\t\t\t\tTHEN 'HEAD -  '\n\t\t\t\t\t\t\t\t\t\tELSE '|------  ' \n\t\t\t\t\t\t\t\tEND\n\t\t\t\t\t\t\t+\tCAST (r.session_id AS NVARCHAR (10)) + N' ' + ISNULL((CASE WHEN LEFT(ISNULL(r.[sql_text],''),1) = '(' THEN SUBSTRING(ISNULL(r.[sql_text],''),CHARINDEX('exec',ISNULL(r.[sql_text],'')),LEN(ISNULL(r.[sql_text],'')))  ELSE ISNULL(r.[sql_text],'') END),''),\n\t\t\t[blocking_session_id], [blocked_session_count] = case when [blocked_session_count] = 0 then null else [blocked_session_count] end, [login_name], [program_name], [host_name],\n\t\t\ttasks,\n\t\t\t[sql_commad] = CONVERT(XML, '<?query -- '+char(13)\n\t\t\t\t\t\t\t+ (CASE WHEN LEFT([sql_text],1) = '(' THEN SUBSTRING([sql_text],CHARINDEX('exec',[sql_text]),LEN([sql_text]))  ELSE [sql_text] END)\n\t\t\t\t\t\t\t+ char(13)+'--?>')\n\t\t\t,command, [database_name], wait_info, status, \n\t\t\tr.open_tran_count, r.cpu, r.[reads], r.[writes], r.[physical_io]\n\tFROM\tT_BLOCKERS AS r\n\tORDER BY collection_time, LEVEL;\nend\nelse\n  select 'No Blocking Found for Time Window' as [No Result]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeFrom())\n\t\t,@end_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeTo());\n\n-- Get Blocking Tree\nif exists (select * from dbo.WhoIsActive where (collection_time between @start_time and @end_time) and (blocking_session_id is not null or blocked_session_count > 0) )\nbegin\n\n\t;WITH T_BLOCKERS AS\n\t(\n\t\t-- Find block Leaders\n\t\tSELECT\t[dd hh:mm:ss.mss], [collection_time], [session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE([sql_command],[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), [login_name], wait_info, [blocking_session_id], [blocked_session_count],\n\t\t\t\t[status], open_tran_count, [host_name], [database_name], [program_name], Pool, tasks,\n\t\t\t\tr.cpu, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\t[LEVEL] = CAST (REPLICATE ('0', 4-LEN (CAST (r.session_id AS VARCHAR))) + CAST (r.session_id AS VARCHAR) AS VARCHAR (1000))\n\t\t\t\t,[head_blocker] = session_id\n\t\tFROM\tdbo.WhoIsActive AS r\n\t\tWHERE\t (collection_time between @start_time and @end_time)\n\t\tand (r.blocking_session_id IS NULL AND [blocked_session_count] > 0)\n\t\t--\t\n\t\tUNION ALL\n\t\t--\n\t\tSELECT\tr.[dd hh:mm:ss.mss], r.[collection_time], r.[session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE(r.[sql_command],r.[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = r.additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), r.[login_name], r.wait_info, r.[blocking_session_id], r.[blocked_session_count],\n\t\t\t\tr.[status], r.open_tran_count, r.[host_name], r.[database_name], r.[program_name], r.Pool, r.tasks,\n\t\t\t\tr.cpu, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\tCAST (B.LEVEL + RIGHT (CAST ((1000 + r.session_id) AS VARCHAR (100)), 4) AS VARCHAR (1000)) AS LEVEL\n\t\t\t\t,[head_blocker] = case when B.[head_blocker] is null then B.session_id else B.[head_blocker] end\n\t\tFROM\tdbo.WhoIsActive AS r\n\t\tINNER JOIN \n\t\t\t\tT_BLOCKERS AS B\n\t\t\tON\tr.collection_time = B.collection_time\n\t\t\tAND\tr.blocking_session_id = B.session_id\n\t\tWHERE\t r.blocking_session_id <> r.session_id\n\t)\n\tSELECT\t[collection_time], [dd hh:mm:ss.mss], [session_id], \n\t\t\t[BLOCKING_TREE] = N'    ' + REPLICATE (N'|         ', LEN (LEVEL)/4 - 1) \n\t\t\t\t\t\t\t+\tCASE\tWHEN (LEN(LEVEL)/4 - 1) = 0\n\t\t\t\t\t\t\t\t\t\tTHEN 'HEAD -  '\n\t\t\t\t\t\t\t\t\t\tELSE '|------  ' \n\t\t\t\t\t\t\t\tEND\n\t\t\t\t\t\t\t+\tCAST (r.session_id AS NVARCHAR (10)) + N' ' + ISNULL((CASE WHEN LEFT(ISNULL(r.[sql_text],''),1) = '(' THEN SUBSTRING(ISNULL(r.[sql_text],''),CHARINDEX('exec',ISNULL(r.[sql_text],'')),LEN(ISNULL(r.[sql_text],'')))  ELSE ISNULL(r.[sql_text],'') END),''),\n\t\t\t[blocking_session_id], [blocked_session_count] = case when [blocked_session_count] = 0 then null else [blocked_session_count] end, [login_name], [program_name], [host_name],\n\t\t\ttasks,\n\t\t\t--[sql_commad] = CONVERT(XML, '<?query -- '+char(13)\n\t\t\t--\t\t\t\t+ (CASE WHEN LEFT([sql_text],1) = '(' THEN SUBSTRING([sql_text],CHARINDEX('exec',[sql_text]),LEN([sql_text]))  ELSE [sql_text] END)\n\t\t\t--\t\t\t\t+ char(13)+'--?>')\n\t\t\tcommand, [database_name], wait_info, status, \n\t\t\tr.open_tran_count, r.cpu, r.[reads], r.[writes], r.[physical_io]\n\tFROM\tT_BLOCKERS AS r\n\tORDER BY collection_time, LEVEL;\nend\nelse\n  select 'No Blocking Found for Time Window' as [No Result]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
               "refId": "A"
             }
           ],
@@ -1702,7 +1704,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent"
+                    "color": "transparent",
+                    "value": null
                   },
                   {
                     "color": "orange",
@@ -1792,7 +1795,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1921,7 +1925,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "red"
+                    "color": "red",
+                    "value": null
                   },
                   {
                     "color": "transparent",
@@ -2031,7 +2036,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2047,7 +2053,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 5
+            "y": 7
           },
           "id": 18,
           "options": {
@@ -2117,7 +2123,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "red"
+                    "color": "red",
+                    "value": null
                   },
                   {
                     "color": "transparent",
@@ -2158,7 +2165,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 9
+            "y": 8
           },
           "id": 77,
           "options": {
@@ -2327,7 +2334,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2367,7 +2375,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 11
+            "y": 10
           },
           "id": 86,
           "options": {
@@ -2433,7 +2441,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2448,7 +2457,7 @@
             "h": 12,
             "w": 24,
             "x": 0,
-            "y": 12
+            "y": 11
           },
           "id": 105,
           "options": {
@@ -2513,7 +2522,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2528,7 +2538,7 @@
             "h": 12,
             "w": 24,
             "x": 0,
-            "y": 11
+            "y": 12
           },
           "id": 90,
           "options": {
@@ -2593,7 +2603,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2608,7 +2619,7 @@
             "h": 14,
             "w": 24,
             "x": 0,
-            "y": 14
+            "y": 13
           },
           "id": 93,
           "options": {
@@ -2673,7 +2684,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2688,7 +2700,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 13
+            "y": 14
           },
           "id": 97,
           "options": {
@@ -2754,7 +2766,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2769,7 +2782,7 @@
             "h": 12,
             "w": 24,
             "x": 0,
-            "y": 16
+            "y": 15
           },
           "id": 101,
           "options": {
@@ -3011,6 +3024,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live",
   "uid": "Fg8Q_wSMz",
-  "version": 52,
+  "version": 54,
   "weekStart": ""
 }
