@@ -78,7 +78,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1650571191389,
+  "iteration": 1650596472145,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -2981,14 +2981,14 @@
       },
       {
         "current": {},
-        "definition": "select case when pc.object = 'sqlserver:memory manager' then 'MSSQLSERVER' else UPPER(replace(object,':memory manager','')) end as [service_name]\nfrom (select distinct object from [[server]].[[inventory_db]].dbo.performance_counters pc\n\t\twhere collection_time_utc >= dateadd(minute,-10,getutcdate())\n\t\tand pc.counter = 'Memory Grants Pending' ) pc",
+        "definition": "select case when pc.object = 'sqlserver:memory manager' then 'MSSQLSERVER' else UPPER(replace(object,':memory manager','')) end as [service_name]\nfrom (select distinct object from [[server]].[[inventory_db]].dbo.performance_counters pc\n\t\twhere collection_time_utc >= dateadd(minute,-10,getutcdate())\n\t\tand pc.counter = 'Memory Grants Pending' ) pc\n--\nunion\n--\nselect @@servicename",
         "hide": 0,
         "includeAll": false,
         "label": "Service Name",
         "multi": false,
         "name": "service_name",
         "options": [],
-        "query": "select case when pc.object = 'sqlserver:memory manager' then 'MSSQLSERVER' else UPPER(replace(object,':memory manager','')) end as [service_name]\nfrom (select distinct object from [[server]].[[inventory_db]].dbo.performance_counters pc\n\t\twhere collection_time_utc >= dateadd(minute,-10,getutcdate())\n\t\tand pc.counter = 'Memory Grants Pending' ) pc",
+        "query": "select case when pc.object = 'sqlserver:memory manager' then 'MSSQLSERVER' else UPPER(replace(object,':memory manager','')) end as [service_name]\nfrom (select distinct object from [[server]].[[inventory_db]].dbo.performance_counters pc\n\t\twhere collection_time_utc >= dateadd(minute,-10,getutcdate())\n\t\tand pc.counter = 'Memory Grants Pending' ) pc\n--\nunion\n--\nselect @@servicename",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -3059,6 +3059,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live",
   "uid": "Fg8Q_wSMz",
-  "version": 36,
+  "version": 38,
   "weekStart": ""
 }
