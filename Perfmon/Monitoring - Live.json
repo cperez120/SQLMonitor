@@ -13,6 +13,12 @@
   "__requires": [
     {
       "type": "panel",
+      "id": "dashlist",
+      "name": "Dashboard list",
+      "version": ""
+    },
+    {
+      "type": "panel",
       "id": "gauge",
       "name": "Gauge",
       "version": ""
@@ -78,7 +84,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1650596472145,
+  "iteration": 1650599915011,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -1630,7 +1636,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "table",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeFrom())\n\t\t,@end_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeTo());\n\n-- Get Blocking Tree\nif exists (select * from dbo.WhoIsActive where (collection_time between @start_time and @end_time) and (blocking_session_id is not null or blocked_session_count > 0) )\nbegin\n\n\t;WITH T_BLOCKERS AS\n\t(\n\t\t-- Find block Leaders\n\t\tSELECT\t[dd hh:mm:ss.mss], [collection_time], [session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE([sql_command],[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), [login_name], wait_info, [blocking_session_id], [blocked_session_count],\n\t\t\t\t[status], open_tran_count, [host_name], [database_name], [program_name], Pool, tasks,\n\t\t\t\tr.cpu, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\t[LEVEL] = CAST (REPLICATE ('0', 4-LEN (CAST (r.session_id AS VARCHAR))) + CAST (r.session_id AS VARCHAR) AS VARCHAR (1000))\n\t\t\t\t,[head_blocker] = session_id\n\t\tFROM\tdbo.WhoIsActive AS r\n\t\tWHERE\t (collection_time between @start_time and @end_time)\n\t\tand (r.blocking_session_id IS NULL AND [blocked_session_count] > 0)\n\t\t--\t\n\t\tUNION ALL\n\t\t--\n\t\tSELECT\tr.[dd hh:mm:ss.mss], r.[collection_time], r.[session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE(r.[sql_command],r.[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = r.additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), r.[login_name], r.wait_info, r.[blocking_session_id], r.[blocked_session_count],\n\t\t\t\tr.[status], r.open_tran_count, r.[host_name], r.[database_name], r.[program_name], r.Pool, r.tasks,\n\t\t\t\tr.cpu, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\tCAST (B.LEVEL + RIGHT (CAST ((1000 + r.session_id) AS VARCHAR (100)), 4) AS VARCHAR (1000)) AS LEVEL\n\t\t\t\t,[head_blocker] = case when B.[head_blocker] is null then B.session_id else B.[head_blocker] end\n\t\tFROM\tdbo.WhoIsActive AS r\n\t\tINNER JOIN \n\t\t\t\tT_BLOCKERS AS B\n\t\t\tON\tr.collection_time = B.collection_time\n\t\t\tAND\tr.blocking_session_id = B.session_id\n\t\tWHERE\t r.blocking_session_id <> r.session_id\n\t)\n\tSELECT\t[collection_time], [dd hh:mm:ss.mss], [session_id], \n\t\t\t[BLOCKING_TREE] = N'    ' + REPLICATE (N'|         ', LEN (LEVEL)/4 - 1) \n\t\t\t\t\t\t\t+\tCASE\tWHEN (LEN(LEVEL)/4 - 1) = 0\n\t\t\t\t\t\t\t\t\t\tTHEN 'HEAD -  '\n\t\t\t\t\t\t\t\t\t\tELSE '|------  ' \n\t\t\t\t\t\t\t\tEND\n\t\t\t\t\t\t\t+\tCAST (r.session_id AS NVARCHAR (10)) + N' ' + ISNULL((CASE WHEN LEFT(ISNULL(r.[sql_text],''),1) = '(' THEN SUBSTRING(ISNULL(r.[sql_text],''),CHARINDEX('exec',ISNULL(r.[sql_text],'')),LEN(ISNULL(r.[sql_text],'')))  ELSE ISNULL(r.[sql_text],'') END),''),\n\t\t\t[blocking_session_id], [blocked_session_count] = case when [blocked_session_count] = 0 then null else [blocked_session_count] end, [login_name], [program_name], [host_name],\n\t\t\ttasks,\n\t\t\t[sql_commad] = CONVERT(XML, '<?query -- '+char(13)\n\t\t\t\t\t\t\t+ (CASE WHEN LEFT([sql_text],1) = '(' THEN SUBSTRING([sql_text],CHARINDEX('exec',[sql_text]),LEN([sql_text]))  ELSE [sql_text] END)\n\t\t\t\t\t\t\t+ char(13)+'--?>')\n\t\t\t,command, [database_name], wait_info, status, \n\t\t\tr.open_tran_count, r.cpu, r.[reads], r.[writes], r.[physical_io]\n\tFROM\tT_BLOCKERS AS r\n\tORDER BY collection_time, LEVEL;\nend\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeFrom())\n\t\t,@end_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeTo());\n\n-- Get Blocking Tree\nif exists (select * from dbo.WhoIsActive where (collection_time between @start_time and @end_time) and (blocking_session_id is not null or blocked_session_count > 0) )\nbegin\n\n\t;WITH T_BLOCKERS AS\n\t(\n\t\t-- Find block Leaders\n\t\tSELECT\t[dd hh:mm:ss.mss], [collection_time], [session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE([sql_command],[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), [login_name], wait_info, [blocking_session_id], [blocked_session_count],\n\t\t\t\t[status], open_tran_count, [host_name], [database_name], [program_name], Pool, tasks,\n\t\t\t\tr.cpu, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\t[LEVEL] = CAST (REPLICATE ('0', 4-LEN (CAST (r.session_id AS VARCHAR))) + CAST (r.session_id AS VARCHAR) AS VARCHAR (1000))\n\t\t\t\t,[head_blocker] = session_id\n\t\tFROM\tdbo.WhoIsActive AS r\n\t\tWHERE\t (collection_time between @start_time and @end_time)\n\t\tand (r.blocking_session_id IS NULL AND [blocked_session_count] > 0)\n\t\t--\t\n\t\tUNION ALL\n\t\t--\n\t\tSELECT\tr.[dd hh:mm:ss.mss], r.[collection_time], r.[session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE(r.[sql_command],r.[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = r.additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), r.[login_name], r.wait_info, r.[blocking_session_id], r.[blocked_session_count],\n\t\t\t\tr.[status], r.open_tran_count, r.[host_name], r.[database_name], r.[program_name], r.Pool, r.tasks,\n\t\t\t\tr.cpu, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\tCAST (B.LEVEL + RIGHT (CAST ((1000 + r.session_id) AS VARCHAR (100)), 4) AS VARCHAR (1000)) AS LEVEL\n\t\t\t\t,[head_blocker] = case when B.[head_blocker] is null then B.session_id else B.[head_blocker] end\n\t\tFROM\tdbo.WhoIsActive AS r\n\t\tINNER JOIN \n\t\t\t\tT_BLOCKERS AS B\n\t\t\tON\tr.collection_time = B.collection_time\n\t\t\tAND\tr.blocking_session_id = B.session_id\n\t\tWHERE\t r.blocking_session_id <> r.session_id\n\t)\n\tSELECT\t[collection_time], [dd hh:mm:ss.mss], [session_id], \n\t\t\t[BLOCKING_TREE] = N'    ' + REPLICATE (N'|         ', LEN (LEVEL)/4 - 1) \n\t\t\t\t\t\t\t+\tCASE\tWHEN (LEN(LEVEL)/4 - 1) = 0\n\t\t\t\t\t\t\t\t\t\tTHEN 'HEAD -  '\n\t\t\t\t\t\t\t\t\t\tELSE '|------  ' \n\t\t\t\t\t\t\t\tEND\n\t\t\t\t\t\t\t+\tCAST (r.session_id AS NVARCHAR (10)) + N' ' + ISNULL((CASE WHEN LEFT(ISNULL(r.[sql_text],''),1) = '(' THEN SUBSTRING(ISNULL(r.[sql_text],''),CHARINDEX('exec',ISNULL(r.[sql_text],'')),LEN(ISNULL(r.[sql_text],'')))  ELSE ISNULL(r.[sql_text],'') END),''),\n\t\t\t[blocking_session_id], [blocked_session_count] = case when [blocked_session_count] = 0 then null else [blocked_session_count] end, [login_name], [program_name], [host_name],\n\t\t\ttasks,\n\t\t\t[sql_commad] = CONVERT(XML, '<?query -- '+char(13)\n\t\t\t\t\t\t\t+ (CASE WHEN LEFT([sql_text],1) = '(' THEN SUBSTRING([sql_text],CHARINDEX('exec',[sql_text]),LEN([sql_text]))  ELSE [sql_text] END)\n\t\t\t\t\t\t\t+ char(13)+'--?>')\n\t\t\t,command, [database_name], wait_info, status, \n\t\t\tr.open_tran_count, r.cpu, r.[reads], r.[writes], r.[physical_io]\n\tFROM\tT_BLOCKERS AS r\n\tORDER BY collection_time, LEVEL;\nend\nelse\n  select 'No Blocking Found for Time Window' as [No Result]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
               "refId": "A"
             }
           ],
@@ -1716,7 +1722,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 3
+            "y": 4
           },
           "id": 57,
           "options": {
@@ -1849,7 +1855,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "table",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeFrom())\n\t\t,@end_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeTo());\n\nselect [collection_time] = convert(varchar,w.collection_time,120), w.session_id, \n\t\tw.[dd hh:mm:ss.mss], w.program_name, w.login_name, w.database_name, w.host_name,\n\t\tw.status, w.CPU, w.used_memory, w.open_tran_count, \n\t\tw.wait_info, \n\t\tsql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n\t\t\t\t\t\t\telse left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n\t\tw.blocked_session_count, \n\t\tw.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, \n\t\tw.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\nfrom dbo.WhoIsActive w\nwhere w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i)\nand datediff(minute,start_time,collection_time) >= $duration\norder by w.collection_time DESC, w.start_time ASC\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeFrom())\n\t\t,@end_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeTo());\n\nif exists ( select * from dbo.WhoIsActive w \n            where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i) \n            and datediff(minute,start_time,collection_time) >= $duration )\nbegin\n  select [collection_time] = convert(varchar,w.collection_time,120), w.session_id, \n  \t\tw.[dd hh:mm:ss.mss], w.program_name, w.login_name, w.database_name, w.host_name,\n  \t\tw.status, w.CPU, w.used_memory, w.open_tran_count, \n  \t\tw.wait_info, \n  \t\tsql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n  \t\t\t\t\t\t\telse left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n  \t\tw.blocked_session_count, \n  \t\tw.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, \n  \t\tw.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n  from dbo.WhoIsActive w\n  where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i)\n  and datediff(minute,start_time,collection_time) >= $duration\n  order by w.collection_time DESC, w.start_time ASC\nend\nELSE\n  select 'No long running query found for time window' as [No Result]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
               "refId": "A"
             }
           ],
@@ -2088,107 +2094,6 @@
         "x": 0,
         "y": 18
       },
-      "id": 47,
-      "panels": [
-        {
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "description": "select * from dbo.BlitzCache\nhttps://www.sqlskills.com/blogs/paul/wait-statistics-or-please-tell-me-where-it-hurts/",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "Wait Stats (ms)",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  }
-                ]
-              },
-              "unit": "ms"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 12,
-            "w": 24,
-            "x": 0,
-            "y": 6
-          },
-          "id": 109,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "table",
-              "placement": "right"
-            },
-            "tooltip": {
-              "mode": "multi",
-              "sort": "desc"
-            }
-          },
-          "pluginVersion": "8.4.4",
-          "targets": [
-            {
-              "alias": "",
-              "datasource": {
-                "type": "mssql",
-                "uid": "${DS_SQLMONITOR}"
-              },
-              "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeFrom())\n\t\t,@end_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeTo());\n\ndeclare @WaitStatsTop tinyint = 5;\n\nSELECT\ttime = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), CONVERT(datetime2,[CheckDate])), \n\t\t[metric] =  [WaitCategory]+ ' (__ '+[wait_type]+' __)', \n\t\t--[WaitCategory], \n\t\t--[WaitsRank],\n\t\t--[Ignorable], \n\t\t--[ElapsedSeconds], \n\t\t[value] = [wait_time_ms_delta]\n\t\t--[wait_time_minutes_delta], \n\t\t--[wait_time_minutes_per_minute], \n\t\t--[signal_wait_time_ms_delta], \n\t\t--[waiting_tasks_count_delta],\n\t\t--ISNULL((CAST([wait_time_ms_delta] AS DECIMAL(38,2))/NULLIF(CAST([waiting_tasks_count_delta] AS DECIMAL(38,2)),0)),0) AS [wait_time_ms_per_wait]\nFROM \n(\n\tSELECT\n\t[ServerName], \n\t[CheckDate], \n\t[wait_type], \n\t[WaitCategory], \n\t[Ignorable], \n\t[ElapsedSeconds], \n\t[wait_time_ms_delta], \n\t[wait_time_minutes_delta], \n\t[wait_time_minutes_per_minute], \n\t[signal_wait_time_ms_delta], \n\t[waiting_tasks_count_delta],\n\tROW_NUMBER() OVER(PARTITION BY [CheckDate] ORDER BY [CheckDate] ASC,[wait_time_ms_delta] DESC) AS [WaitsRank]\n\tFROM dbo.BlitzFirst_WaitStats_Deltas AS [Waits]\n\tWHERE CheckDate between TODATETIMEOFFSET(@start_time,DATEPART(TZOFFSET, SYSDATETIMEOFFSET())) and TODATETIMEOFFSET(@end_time,DATEPART(TZOFFSET, SYSDATETIMEOFFSET()))\n\tAND [wait_type] NOT IN (\n        -- These wait types are almost 100% never a problem and so they are\n        -- filtered out to avoid them skewing the results. Click on the URL\n        -- for more information.\n        N'BROKER_EVENTHANDLER', -- https://www.sqlskills.com/help/waits/BROKER_EVENTHANDLER\n        N'BROKER_RECEIVE_WAITFOR', -- https://www.sqlskills.com/help/waits/BROKER_RECEIVE_WAITFOR\n        N'BROKER_TASK_STOP', -- https://www.sqlskills.com/help/waits/BROKER_TASK_STOP\n        N'BROKER_TO_FLUSH', -- https://www.sqlskills.com/help/waits/BROKER_TO_FLUSH\n        N'BROKER_TRANSMITTER', -- https://www.sqlskills.com/help/waits/BROKER_TRANSMITTER\n        N'CHECKPOINT_QUEUE', -- https://www.sqlskills.com/help/waits/CHECKPOINT_QUEUE\n        N'CHKPT', -- https://www.sqlskills.com/help/waits/CHKPT\n        N'CLR_AUTO_EVENT', -- https://www.sqlskills.com/help/waits/CLR_AUTO_EVENT\n        N'CLR_MANUAL_EVENT', -- https://www.sqlskills.com/help/waits/CLR_MANUAL_EVENT\n        N'CLR_SEMAPHORE', -- https://www.sqlskills.com/help/waits/CLR_SEMAPHORE\n        N'CXCONSUMER', -- https://www.sqlskills.com/help/waits/CXCONSUMER\n \n        -- Maybe comment these four out if you have mirroring issues\n        N'DBMIRROR_DBM_EVENT', -- https://www.sqlskills.com/help/waits/DBMIRROR_DBM_EVENT\n        N'DBMIRROR_EVENTS_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_EVENTS_QUEUE\n        N'DBMIRROR_WORKER_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_WORKER_QUEUE\n        N'DBMIRRORING_CMD', -- https://www.sqlskills.com/help/waits/DBMIRRORING_CMD\n \n        N'DIRTY_PAGE_POLL', -- https://www.sqlskills.com/help/waits/DIRTY_PAGE_POLL\n        N'DISPATCHER_QUEUE_SEMAPHORE', -- https://www.sqlskills.com/help/waits/DISPATCHER_QUEUE_SEMAPHORE\n        N'EXECSYNC', -- https://www.sqlskills.com/help/waits/EXECSYNC\n        N'FSAGENT', -- https://www.sqlskills.com/help/waits/FSAGENT\n        N'FT_IFTS_SCHEDULER_IDLE_WAIT', -- https://www.sqlskills.com/help/waits/FT_IFTS_SCHEDULER_IDLE_WAIT\n        N'FT_IFTSHC_MUTEX', -- https://www.sqlskills.com/help/waits/FT_IFTSHC_MUTEX\n \n        -- Maybe comment these six out if you have AG issues\n        N'HADR_CLUSAPI_CALL', -- https://www.sqlskills.com/help/waits/HADR_CLUSAPI_CALL\n        N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', -- https://www.sqlskills.com/help/waits/HADR_FILESTREAM_IOMGR_IOCOMPLETION\n        N'HADR_LOGCAPTURE_WAIT', -- https://www.sqlskills.com/help/waits/HADR_LOGCAPTURE_WAIT\n        N'HADR_NOTIFICATION_DEQUEUE', -- https://www.sqlskills.com/help/waits/HADR_NOTIFICATION_DEQUEUE\n        N'HADR_TIMER_TASK', -- https://www.sqlskills.com/help/waits/HADR_TIMER_TASK\n        N'HADR_WORK_QUEUE', -- https://www.sqlskills.com/help/waits/HADR_WORK_QUEUE\n \n        N'KSOURCE_WAKEUP', -- https://www.sqlskills.com/help/waits/KSOURCE_WAKEUP\n        N'LAZYWRITER_SLEEP', -- https://www.sqlskills.com/help/waits/LAZYWRITER_SLEEP\n        N'LOGMGR_QUEUE', -- https://www.sqlskills.com/help/waits/LOGMGR_QUEUE\n        N'MEMORY_ALLOCATION_EXT', -- https://www.sqlskills.com/help/waits/MEMORY_ALLOCATION_EXT\n        N'ONDEMAND_TASK_QUEUE', -- https://www.sqlskills.com/help/waits/ONDEMAND_TASK_QUEUE\n        N'PARALLEL_REDO_DRAIN_WORKER', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_DRAIN_WORKER\n        N'PARALLEL_REDO_LOG_CACHE', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_LOG_CACHE\n        N'PARALLEL_REDO_TRAN_LIST', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_TRAN_LIST\n        N'PARALLEL_REDO_WORKER_SYNC', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_SYNC\n        N'PARALLEL_REDO_WORKER_WAIT_WORK', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_WAIT_WORK\n        N'PREEMPTIVE_XE_GETTARGETSTATE', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_XE_GETTARGETSTATE\n        N'PWAIT_ALL_COMPONENTS_INITIALIZED', -- https://www.sqlskills.com/help/waits/PWAIT_ALL_COMPONENTS_INITIALIZED\n        N'PWAIT_DIRECTLOGCONSUMER_GETNEXT', -- https://www.sqlskills.com/help/waits/PWAIT_DIRECTLOGCONSUMER_GETNEXT\n        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP', -- https://www.sqlskills.com/help/waits/QDS_PERSIST_TASK_MAIN_LOOP_SLEEP\n        N'QDS_ASYNC_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_ASYNC_QUEUE\n        N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP',\n            -- https://www.sqlskills.com/help/waits/QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP\n        N'QDS_SHUTDOWN_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_SHUTDOWN_QUEUE\n        N'REDO_THREAD_PENDING_WORK', -- https://www.sqlskills.com/help/waits/REDO_THREAD_PENDING_WORK\n        N'REQUEST_FOR_DEADLOCK_SEARCH', -- https://www.sqlskills.com/help/waits/REQUEST_FOR_DEADLOCK_SEARCH\n        N'RESOURCE_QUEUE', -- https://www.sqlskills.com/help/waits/RESOURCE_QUEUE\n        N'SERVER_IDLE_CHECK', -- https://www.sqlskills.com/help/waits/SERVER_IDLE_CHECK\n        N'SLEEP_BPOOL_FLUSH', -- https://www.sqlskills.com/help/waits/SLEEP_BPOOL_FLUSH\n        N'SLEEP_DBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DBSTARTUP\n        N'SLEEP_DCOMSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DCOMSTARTUP\n        N'SLEEP_MASTERDBREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERDBREADY\n        N'SLEEP_MASTERMDREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERMDREADY\n        N'SLEEP_MASTERUPGRADED', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERUPGRADED\n        N'SLEEP_MSDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_MSDBSTARTUP\n        N'SLEEP_SYSTEMTASK', -- https://www.sqlskills.com/help/waits/SLEEP_SYSTEMTASK\n        N'SLEEP_TASK', -- https://www.sqlskills.com/help/waits/SLEEP_TASK\n        N'SLEEP_TEMPDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_TEMPDBSTARTUP\n        N'SNI_HTTP_ACCEPT', -- https://www.sqlskills.com/help/waits/SNI_HTTP_ACCEPT\n        N'SOS_WORK_DISPATCHER', -- https://www.sqlskills.com/help/waits/SOS_WORK_DISPATCHER\n        N'SP_SERVER_DIAGNOSTICS_SLEEP', -- https://www.sqlskills.com/help/waits/SP_SERVER_DIAGNOSTICS_SLEEP\n        N'SQLTRACE_BUFFER_FLUSH', -- https://www.sqlskills.com/help/waits/SQLTRACE_BUFFER_FLUSH\n        N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', -- https://www.sqlskills.com/help/waits/SQLTRACE_INCREMENTAL_FLUSH_SLEEP\n        N'SQLTRACE_WAIT_ENTRIES', -- https://www.sqlskills.com/help/waits/SQLTRACE_WAIT_ENTRIES\n        N'WAIT_FOR_RESULTS', -- https://www.sqlskills.com/help/waits/WAIT_FOR_RESULTS\n        N'WAITFOR', -- https://www.sqlskills.com/help/waits/WAITFOR\n        N'WAITFOR_TASKSHUTDOWN', -- https://www.sqlskills.com/help/waits/WAITFOR_TASKSHUTDOWN\n        N'WAIT_XTP_RECOVERY', -- https://www.sqlskills.com/help/waits/WAIT_XTP_RECOVERY\n        N'WAIT_XTP_HOST_WAIT', -- https://www.sqlskills.com/help/waits/WAIT_XTP_HOST_WAIT\n        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', -- https://www.sqlskills.com/help/waits/WAIT_XTP_OFFLINE_CKPT_NEW_LOG\n        N'WAIT_XTP_CKPT_CLOSE', -- https://www.sqlskills.com/help/waits/WAIT_XTP_CKPT_CLOSE\n        N'XE_DISPATCHER_JOIN', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_JOIN\n        N'XE_DISPATCHER_WAIT', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_WAIT\n        N'XE_TIMER_EVENT' -- https://www.sqlskills.com/help/waits/XE_TIMER_EVENT\n    )\n) TopWaits\nWHERE [WaitsRank] <= @WaitStatsTop\nORDER BY \n[time] ASC \n,[wait_time_ms_delta] DESC\nOPTION(RECOMPILE);\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
-              "refId": "A"
-            }
-          ],
-          "title": "WaitStats",
-          "type": "timeseries"
-        }
-      ],
-      "repeat": "datasource",
-      "title": "Wait Stats",
-      "type": "row"
-    },
-    {
-      "collapsed": true,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 19
-      },
       "id": 79,
       "panels": [
         {
@@ -2253,7 +2158,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 20
+            "y": 9
           },
           "id": 77,
           "options": {
@@ -2292,7 +2197,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 19
       },
       "id": 82,
       "panels": [
@@ -2398,7 +2303,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 20
       },
       "id": 88,
       "panels": [
@@ -2462,7 +2367,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 10
+            "y": 11
           },
           "id": 86,
           "options": {
@@ -2503,7 +2408,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 21
       },
       "id": 107,
       "panels": [
@@ -2543,7 +2448,7 @@
             "h": 12,
             "w": 24,
             "x": 0,
-            "y": 10
+            "y": 12
           },
           "id": 105,
           "options": {
@@ -2583,7 +2488,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 22
       },
       "id": 92,
       "panels": [
@@ -2663,7 +2568,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 23
       },
       "id": 95,
       "panels": [
@@ -2743,7 +2648,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 24
       },
       "id": 99,
       "panels": [
@@ -2824,7 +2729,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 25
       },
       "id": 103,
       "panels": [
@@ -2897,9 +2802,47 @@
       "repeat": "datasource",
       "title": "First Responder Kit - WaitStats",
       "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
+      "id": 121,
+      "panels": [
+        {
+          "description": "",
+          "gridPos": {
+            "h": 7,
+            "w": 24,
+            "x": 0,
+            "y": 16
+          },
+          "id": 119,
+          "options": {
+            "folderId": 1,
+            "maxItems": 10,
+            "query": "",
+            "showHeadings": false,
+            "showRecentlyViewed": false,
+            "showSearch": false,
+            "showStarred": true,
+            "tags": []
+          },
+          "pluginVersion": "8.4.6",
+          "title": "Other Dashboards",
+          "type": "dashlist"
+        }
+      ],
+      "repeat": "datasource",
+      "title": "Other Dashboards",
+      "type": "row"
     }
   ],
-  "refresh": "1m",
+  "refresh": "",
   "schemaVersion": 35,
   "style": "dark",
   "tags": [],
@@ -2947,6 +2890,10 @@
       },
       {
         "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
         "definition": "SELECT DB_NAME()",
         "hide": 2,
         "includeAll": false,
@@ -2959,11 +2906,14 @@
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
-        "type": "query",
-        "datasource": "${DS_SQLMONITOR}"
+        "type": "query"
       },
       {
         "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
         "definition": "select host_name from [[server]].[[inventory_db]].dbo.performance_counters where collection_time_utc >= dateadd(minute,-10,getutcdate()) group by host_name",
         "hide": 0,
         "includeAll": false,
@@ -2976,11 +2926,14 @@
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
-        "type": "query",
-        "datasource": "${DS_SQLMONITOR}"
+        "type": "query"
       },
       {
         "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
         "definition": "select case when pc.object = 'sqlserver:memory manager' then 'MSSQLSERVER' else UPPER(replace(object,':memory manager','')) end as [service_name]\nfrom (select distinct object from [[server]].[[inventory_db]].dbo.performance_counters pc\n\t\twhere collection_time_utc >= dateadd(minute,-10,getutcdate())\n\t\tand pc.counter = 'Memory Grants Pending' ) pc\n--\nunion\n--\nselect @@servicename",
         "hide": 0,
         "includeAll": false,
@@ -2993,8 +2946,7 @@
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
-        "type": "query",
-        "datasource": "${DS_SQLMONITOR}"
+        "type": "query"
       },
       {
         "current": {
@@ -3059,6 +3011,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live",
   "uid": "Fg8Q_wSMz",
-  "version": 38,
+  "version": 52,
   "weekStart": ""
 }

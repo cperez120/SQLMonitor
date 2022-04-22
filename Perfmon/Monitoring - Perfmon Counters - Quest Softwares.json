@@ -62,7 +62,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1650596666217,
+  "iteration": 1650598595693,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -426,8 +426,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent",
-                    "value": null
+                    "color": "transparent"
                   },
                   {
                     "color": "orange",
@@ -527,8 +526,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -5017,6 +5015,10 @@
       },
       {
         "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
         "definition": "SELECT DB_NAME()",
         "hide": 2,
         "includeAll": false,
@@ -5029,8 +5031,7 @@
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
-        "type": "query",
-        "datasource": "${DS_SQLMONITOR}"
+        "type": "query"
       },
       {
         "current": {},
@@ -5054,6 +5055,10 @@
       },
       {
         "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
         "definition": "select host_name from [[server]].[[inventory_db]].dbo.performance_counters where collection_time_utc >= dateadd(minute,-10,getutcdate()) group by host_name",
         "hide": 0,
         "includeAll": false,
@@ -5066,11 +5071,14 @@
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
-        "type": "query",
-        "datasource": "${DS_SQLMONITOR}"
+        "type": "query"
       },
       {
         "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
         "definition": "select case when pc.object = 'sqlserver:memory manager' then 'MSSQLSERVER' else UPPER(replace(object,':memory manager','')) end as [service_name]\nfrom (select distinct object from [[server]].[[inventory_db]].dbo.performance_counters pc\n\t\twhere collection_time_utc >= dateadd(minute,-10,getutcdate())\n\t\tand pc.counter = 'Memory Grants Pending' ) pc\n--\nunion\n--\nselect @@servicename",
         "hide": 0,
         "includeAll": false,
@@ -5083,8 +5091,7 @@
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
-        "type": "query",
-        "datasource": "${DS_SQLMONITOR}"
+        "type": "query"
       },
       {
         "current": {
@@ -5127,6 +5134,6 @@
   "timezone": "",
   "title": "Monitoring - Perfmon Counters - Quest Softwares",
   "uid": "_dioLINMk",
-  "version": 18,
+  "version": 22,
   "weekStart": ""
 }
