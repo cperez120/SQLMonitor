@@ -34,8 +34,21 @@ Setup of baselining & visualization is divided into 2 parts:-
 - [Part 02 - Configure Grafana for Visualization on baselined data](#part-02---configure-grafana-for-visualization-on-baselined-data)
 
 ### Part 01 - Setup Baselining of SqlServer
-1. **Create \[DBA\] database** using below script. Make sure to change the data and log files path in above script before execution. Ideally, you want to put each filegroup file in separate disk.
-	 > * [DDLs/SCH-DBA-database.sql](DDLs/SCH-DBA-database.sql)<br>
+1. Ensure your server to be baselined has a **mail profile set as default & public**.
+	> * [DDLs/DatabaseMail_Using_GMail.sql](DDLs/DatabaseMail_Using_GMail.sql)<br>
+	 
+2. Create following modified version of `sp_WhoIsActive` in `[master]` database. 
+	> * [sp_WhoIsActive_V12_00(Modified)](https://github.com/imajaydwivedi/SQLDBA-SSMS-Solution/blob/ae2541e37c28ea5b50887de993666bc81f29eba5/BlitzQueries/SCH-sp_WhoIsActive_v12_00(Modified).sql)
+	
+3. Install [Brent Ozar's First Responder Kit](https://raw.githubusercontent.com/BrentOzarULTD/SQL-Server-First-Responder-Kit/dev/Install-All-Scripts.sql) in `[master]` database.
+	> * [DDLs/DatabaseMail_Using_GMail.sql](DDLs/FirstResponderKit-Install-All-Scripts.sql)<br>
+
+4. Install PowerShell modules using below code
+```
+Update-Module -Force -ErrorAction Continue -Verbose
+Update-Help -Force -ErrorAction Continue -Verbose
+Install-Module dbatools, enhancedhtml2, sqlserver, poshrsjob -Scope AllUsers -Force -ErrorAction Continue -Verbose
+```
 
 2. Download/Copy below files from path [NonSql-Files](NonSql-Files) to local directory where perfmon data collector files will be generated. Say, **E:\Perfmon\\** on SQL Server box. *This directory should have at least 4 gb of size*.<br>
    > * DBA_PerfMon_NonSQL_Collector_Template.xml
