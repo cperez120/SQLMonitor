@@ -7,11 +7,13 @@ GO
 	3) Create table [dbo].[performance_counters] using Partition scheme
 	4) Create dbo.perfmon_files table using Partition scheme
 	5) Create table [dbo].[os_task_list] using Partition scheme
-	5) Add/Remove Partition Boundaries
+	6) Create & Populate table [dbo].[BlitzFirst_WaitStats_Categories]
+	7) Create view [dbo].[vw_wait_stats_deltas] 
+	8) Add/Remove Partition Boundaries
 	
 	Self Steps
 	-----------
-	1) Self StepsCreated a global default mail profile. https://github.com/imajaydwivedi/SQLDBA-SSMS-Solution/blob/0c2eaecca3dcf6745e3b2d262208c2f2257008bb/SQLDBATools-Inventory/DatabaseMail_Using_GMail.sql
+	1) Create a public & default mail profile. https://github.com/imajaydwivedi/SQLDBA-SSMS-Solution/blob/0c2eaecca3dcf6745e3b2d262208c2f2257008bb/SQLDBATools-Inventory/DatabaseMail_Using_GMail.sql
 	2) Create sp_WhoIsActive in [master] database. https://github.com/imajaydwivedi/SQLDBA-SSMS-Solution/blob/ae2541e37c28ea5b50887de993666bc81f29eba5/BlitzQueries/SCH-sp_WhoIsActive_v12_00(Modified).sql
 	3) Install Brent Ozar's First Responder Kit. https://raw.githubusercontent.com/BrentOzarULTD/SQL-Server-First-Responder-Kit/dev/Install-All-Scripts.sql
 			Install-DbaFirstResponderKit -SqlInstance workstation -Force -Verbose
