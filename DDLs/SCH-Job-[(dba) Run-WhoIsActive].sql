@@ -91,11 +91,6 @@ DECLARE @_send_mail bit = 0;
 IF @verbose > 0
 	PRINT ''Dynamically fetch @_job_name ..''
 SET @_job_name = ''(dba) Run-WhoIsActive'';
-IF program_name() LIKE ''SQLAgent - TSQL JobStep (Job %''
-	EXEC sp_executesql	@stmt = N''SELECT @_job_name_OUTPUT = name FROM msdb.dbo.sysjobs WHERE job_id = CONVERT(uniqueidentifier, $(ESCAPE_NONE(JOBID)))'',
-						@params = N''@_job_name_OUTPUT nvarchar(500) OUTPUT'',
-						@_job_name_OUTPUT = @_job_name OUTPUT;
---PRINT ''"''+@_job_name+''"'';
 
 IF @verbose > 0
 BEGIN

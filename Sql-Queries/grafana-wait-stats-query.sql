@@ -1,34 +1,25 @@
-declare @start_time datetime2 = dateadd(minute,-20,sysutcdatetime());
-declare @end_time datetime2 = sysutcdatetime();
+declare @start_time datetime = '2022-04-23T00:49:44Z'
+		  ,@end_time datetime = '2022-04-23T06:49:44Z';
 
 declare @WaitStatsTop tinyint = 10;
+declare @WaitsPercentTop int = 99;
 
-SELECT	time = [collection_time_utc],
-		[metric] =  [WaitCategory]+ ' (__ '+[wait_type]+' __)', 
-		--[WaitCategory], 
-		--[WaitsRank],
-		--[Ignorable], 
-		--[ElapsedSeconds], 
-		[value] = [wait_time_ms_delta]
-		--[wait_time_minutes_delta], 
-		--[wait_time_minutes_per_minute], 
-		--[signal_wait_time_ms_delta], 
-		--[waiting_tasks_count_delta],
-		--ISNULL((CAST([wait_time_ms_delta] AS DECIMAL(38,2))/NULLIF(CAST([waiting_tasks_count_delta] AS DECIMAL(38,2)),0)),0) AS [wait_time_ms_per_wait]
-FROM 
+;WITH [Waits] AS
 (
-	SELECT
-	[collection_time_utc], 
-	[wait_type], 
-	[WaitCategory], 
-	[Ignorable], 
-	[ElapsedSeconds], 
-	[wait_time_ms_delta], 
-	[wait_time_minutes_delta], 
-	[wait_time_minutes_per_minute], 
-	[signal_wait_time_ms_delta], 
-	[waiting_tasks_count_delta],
-	ROW_NUMBER() OVER(PARTITION BY [collection_time_utc] ORDER BY [collection_time_utc] ASC,[wait_time_ms_delta] DESC) AS [WaitsRank]
+	SELECT	[collection_time_utc], 
+			[wait_type], 
+			[WaitCategory], 
+			[Ignorable], 
+			[ElapsedSeconds], 
+			[wait_time_ms_delta], 
+			[wait_time_minutes_delta], 
+			[wait_time_minutes_per_minute], 
+			([wait_time_ms_delta] - [signal_wait_time_ms_delta]) as [resource_wait_time_ms_delta],
+			[signal_wait_time_ms_delta], 
+			[waiting_tasks_count_delta],
+			ROW_NUMBER() OVER(PARTITION BY [collection_time_utc] ORDER BY [wait_time_ms_delta] DESC) AS [WaitsRank],
+			(100.0 * [wait_time_ms_delta]) / (SUM ([wait_time_ms_delta]) OVER (PARTITION BY [collection_time_utc])) AS [Percentage]
+			,(100.0 * (SUM([wait_time_ms_delta]) OVER(PARTITION BY [collection_time_utc] ORDER BY [wait_time_ms_delta] DESC, [waiting_tasks_count_delta] DESC, [wait_type]))) / (SUM ([wait_time_ms_delta]) OVER (PARTITION BY [collection_time_utc])) AS [PercentageTotal]
 	FROM dbo.[vw_wait_stats_deltas] AS [Waits]
 	WHERE collection_time_utc between @start_time and @end_time
 	AND [wait_type] NOT IN (
@@ -117,9 +108,23 @@ FROM
         N'XE_DISPATCHER_WAIT', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_WAIT
         N'XE_TIMER_EVENT' -- https://www.sqlskills.com/help/waits/XE_TIMER_EVENT
     )
-) TopWaits
+)
+SELECT	time = [collection_time_utc]
+		,[metric] =  [WaitCategory]+ ' (__ '+[wait_type]+' __)'
+		--,[WaitCategory]
+		--,[WaitsRank]
+		--,[Percentage]
+		--,[Ignorable]
+		--,[ElapsedSeconds]
+		,[value] = [wait_time_ms_delta]
+		--,[wait_time_minutes_delta]
+		--,[wait_time_minutes_per_minute]
+		--,[signal_wait_time_ms_delta]
+		--,[waiting_tasks_count_delta]
+		--,ISNULL((CAST([wait_time_ms_delta] AS DECIMAL(38,2))/NULLIF(CAST([waiting_tasks_count_delta] AS DECIMAL(38,2)),0)),0) AS [wait_time_ms_per_wait]
+		--,[PercentageTotal]
+FROM [Waits] as cur
 WHERE [WaitsRank] <= @WaitStatsTop
-ORDER BY 
-[time] ASC 
-,[wait_time_ms_delta] DESC
+AND [PercentageTotal] <= @WaitsPercentTop
+ORDER BY [time] ASC, [wait_time_ms_delta] DESC, [waiting_tasks_count_delta] DESC
 OPTION(RECOMPILE);
