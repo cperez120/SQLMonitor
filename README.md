@@ -13,11 +13,14 @@ Navigation
 
 ## Live Dashboard - Basic Metrics
 You can visit [http://ajaydwivedi.ddns.net:3000](http://ajaydwivedi.ddns.net:3000/d/Fg8Q_wSMz/monitoring-live?orgId=1&refresh=30s&from=now-30m&to=now) for live dashboard for basic real time monitoring.<br><br>
-![](https://github.com/imajaydwivedi/Images/blob/master/SqlServer-Baselining-Grafana/SQLDBATools%20_%20Monitoring%20-%20Live.JPG) <br>
+
+![](https://github.com/imajaydwivedi/Images/blob/33429d24f7ebca45bf0aa1052896462a50ada85e/SqlServer-Baselining-Grafana/Live-Dashboards-All.gif) <br>
+
 
 ## Live Dashboard - Perfmon Counters - Quest Softwares
 Visit [http://ajaydwivedi.ddns.net:3000](http://ajaydwivedi.ddns.net:3000/d/_dioLINMk/monitoring-perfmon-counters-quest-softwares?orgId=1&refresh=1m) for live dashboard of all Perfmon counters suggested in [SQL Server Perfmon Counters of Interest - Quest Software](https://drive.google.com/file/d/1LB7Joo6055T1FfPcholXByazOX55e5b8/view?usp=sharing).<br><br>
-![](https://github.com/imajaydwivedi/Images/blob/master/SqlServer-Baselining-Grafana/SQLDBATools%20_%20Monitoring%20-%20Perfmon%20Counters%20-%20Quest%20Softwares.JPG) <br>
+
+![](https://github.com/imajaydwivedi/Images/blob/33429d24f7ebca45bf0aa1052896462a50ada85e/SqlServer-Baselining-Grafana/Quest-Dashboards-All.gif) <br>
 
 ### Portal Credentials
 Database/Grafana Portal | User Name | Password
