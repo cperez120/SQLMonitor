@@ -76,8 +76,8 @@ Here ensure that all the jobs created in step 6 & 7 are executing successfully. 
 
 For Grafana, I am using one SqlInstance as my **Inventory** (central) server. What this mean is, on this server, I'll create linked servers for all the SqlInstances that required monitoring using Grafana.
 
-1. Create login `grafana` on all SqlInstance to be monitored including inventory server having `sysadmin` access. [Sql-Queries/grafana-login.sql](Sql-Queries/grafana-login.sql)
-	> This high `sysadmin` priviledge for this login would be fixed in future releases.
+1. Create login `grafana` on all SqlInstance to be monitored including inventory server using script [Sql-Queries/grafana-login.sql](Sql-Queries/grafana-login.sql)
+	> This script provides `grafana` login basic access like `db_datareader`, `view definition` and `execute` stored procedure on `DBA` database.
 
 2. On your **Inventory server**, [create linked Server for each SqlInstance](DDLs/SCH-Linked-Servers-Sample.sql) that require monitoring through Grafana. Make use of `Microsoft OLEDB Provider for SQL Server`.
 	![](https://github.com/imajaydwivedi/Images/blob/master/SqlServer-Baselining-Grafana/Inventory-Server-Linked-Servers.JPG) <br>
