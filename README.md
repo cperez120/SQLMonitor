@@ -42,7 +42,7 @@ Execute all below steps on Sql Instances unless specified otherwise.
 	> * [sp_WhoIsActive_V12_00(Modified)](https://github.com/imajaydwivedi/SQLDBA-SSMS-Solution/blob/ae2541e37c28ea5b50887de993666bc81f29eba5/BlitzQueries/SCH-sp_WhoIsActive_v12_00(Modified).sql)
 	
 3. Install [Brent Ozar's First Responder Kit](https://raw.githubusercontent.com/BrentOzarULTD/SQL-Server-First-Responder-Kit/dev/Install-All-Scripts.sql) in `[master]` database.
-	> * [DDLs/DatabaseMail_Using_GMail.sql](DDLs/FirstResponderKit-Install-All-Scripts.sql)<br>
+	> * [DDLs/FirstResponderKit-Install-All-Scripts.sql](DDLs/FirstResponderKit-Install-All-Scripts.sql)<br>
 
 4. Install following powershell modules on host/SqlInstance that would have data collection SQL Agent job `(dba) Collect-PerfmonData`-
 ```
@@ -82,7 +82,7 @@ For Grafana, I am using one SqlInstance as my **Inventory** (central) server. Wh
 2. On your **Inventory server**, [create linked Server for each SqlInstance](DDLs/SCH-Linked-Servers-Sample.sql) that require monitoring through Grafana. Make use of `Microsoft OLEDB Provider for SQL Server`.
 	![](https://github.com/imajaydwivedi/Images/blob/master/SqlServer-Baselining-Grafana/Inventory-Server-Linked-Servers.JPG) <br>
 	
-3. On grafana portal, create *data source* named **'SqlMonitor'** with details of inventory server, and `grafana` login.
+3. On grafana portal, create *data source* named **`SqlMonitor`** with details of inventory server, and `grafana` login.
 	![](https://github.com/imajaydwivedi/Images/blob/master/SqlServer-Baselining-Grafana/Grafana-Inventory-DataSource.JPG) <br>
 
 4. Create a folder with name `SQLServer'. We will keep/import all our dashboards in this folder.
