@@ -33,7 +33,8 @@ Setup of baselining & visualization is divided into 2 parts:-
 - [Part 01 - Setup Baselining of SqlServer](#part-01---setup-baselining-of-sqlserver)
 - [Part 02 - Configure Grafana for Visualization on baselined data](#part-02---configure-grafana-for-visualization-on-baselined-data)
 
-### Part 01 - Setup Baselining of SqlServer
+### Part 01 - Setup Baselining of SqlServer. 
+Execute all below steps on server to be baselined unless specified otherwise.
 1. Ensure your server to be baselined has a **mail profile set as default & public**.
 	> * [DDLs/DatabaseMail_Using_GMail.sql](DDLs/DatabaseMail_Using_GMail.sql)<br>
 	 
@@ -50,7 +51,18 @@ Update-Help -Force -ErrorAction Continue -Verbose
 Install-Module dbatools, enhancedhtml2, sqlserver, poshrsjob -Scope AllUsers -Force -ErrorAction Continue -Verbose
 ```
 
-2. Download/Copy below files from path [NonSql-Files](NonSql-Files) to local directory where perfmon data collector files will be generated. Say, **E:\Perfmon\\** on SQL Server box. *This directory should have at least 4 gb of size*.<br>
+5. Create required database objects in your preferred `[DBA]` database using [DDLs\SCH-Create-All-Objects.sql](DDLs\SCH-Create-All-Objects.sql). This will create partition function, scheme, few tables & views.
+	> * [DDLs/SCH-Create-All-Objects.sql](DDLs/SCH-Create-All-Objects.sql)<br>
+	
+6.  Execute the below scripts to create respective SQL Agent jobs -
+	* [DDLs/SCH-Job-\[*(dba) Collect-PerfmonData*\]](DDLs/SCH-Job-%5B(dba)%20Collect-PerfmonData%5D.sql)
+	* [DDLs/SCH-Job-\[*(dba) Collect-WaitStats*\]](DDLs/SCH-Job-%5B(dba)%20Collect-WaitStats%5D.sql)
+	* [DDLs/SCH-Job-\[*(dba) Partitions-Maintenance*\]](DDLs/SCH-Job-%5B(dba)%20Partitions-Maintenance%5D.sql)
+	* [DDLs/SCH-Job-\[*(dba) Purge-DbaMetrics - Daily*\]](DDLs/SCH-Job-%5B(dba)%20Purge-DbaMetrics%20-%20Daily%5D.sql)
+	* [DDLs/SCH-Job-\[*(dba) Run First-Responder-Kit*\]](DDLs/SCH-Job-%5B(dba)%20Run%20First-Responder-Kit%5D.sql)
+	* [DDLs/SCH-Job-\[*(dba) Run-WhoIsActive*\]](DDLs/SCH-Job-%5B(dba)%20Run-WhoIsActive%5D.sql)
+	
+7.    script Download/Copy below files from path [NonSql-Files](NonSql-Files) to local directory where perfmon data collector files will be generated. Say, **E:\Perfmon\\** on SQL Server box. *This directory should have at least 4 gb of size*.<br>
    > * DBA_PerfMon_NonSQL_Collector_Template.xml
 	 > * perfmon-collector-logman.ps1
 	 > * perfmon-collector-push-to-sqlserver.ps1
