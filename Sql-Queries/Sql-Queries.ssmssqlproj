@@ -3,6 +3,18 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
+        <ConnectionNode Name="Demo:LAB\adwivedi">
+          <Created>2022-04-24T03:31:36.2749461-07:00</Created>
+          <Type>SQL</Type>
+          <Server>Demo</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="Localhost:LAB\adwivedi">
           <Created>2022-04-22T10:19:27.0461072-07:00</Created>
           <Type>SQL</Type>
@@ -10,6 +22,18 @@
           <UserName />
           <Authentication>Windows Authentication</Authentication>
           <InitialDB>DBA</InitialDB>
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="SqlMonitor:LAB\adwivedi">
+          <Created>2022-04-24T03:31:26.302972-07:00</Created>
+          <Type>SQL</Type>
+          <Server>SqlMonitor</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB>master</InitialDB>
           <LoginTimeout>30</LoginTimeout>
           <ExecutionTimeout>0</ExecutionTimeout>
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
@@ -31,11 +55,23 @@
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
+        <FileNode Name="Blocking-Test.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Demo:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Demo</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>Blocking-Test.sql</FullPath>
+        </FileNode>
         <FileNode Name="datetime-conversions.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:WORKSTATION:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>WORKSTATION</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>datetime-conversions.sql</FullPath>
+        </FileNode>
+        <FileNode Name="grafana-login.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Demo:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Demo</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>grafana-login.sql</FullPath>
         </FileNode>
         <FileNode Name="grafana-wait-stats-query.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>

@@ -719,6 +719,29 @@ GO
 CREATE SCHEMA [tst]
 GO
 
+-- Set DBA database trustworthy
+declare @dbname nvarchar(255)
+set @dbname=quotename(db_name())
+exec('alter database '+@dbname+' set trustworthy on');
+go
+
+
+-- drop procedure usp_extended_results
+create procedure usp_extended_results @processor_name nvarchar(500) = null output, @host_distribution nvarchar(500) = null output
+with execute as owner
+as
+begin
+	set nocount on;
+	
+	-- Processor Name
+	exec xp_instance_regread 'HKEY_LOCAL_MACHINE', 'HARDWARE\DESCRIPTION\System\CentralProcessor\0', 'ProcessorNameString', @value = @processor_name output;
+
+	-- Windows Version
+	EXEC xp_instance_regread 'HKEY_LOCAL_MACHINE', 'SOFTWARE\Microsoft\Windows NT\CurrentVersion', 'ProductName', @value = @host_distribution OUTPUT;
+	
+end
+go
+
 
 /* Validate Partition Data */
 SELECT SCHEMA_NAME(o.schema_id)+'.'+ o.name as TableName,

@@ -43,29 +43,11 @@
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
-        <FileNode Name="grafana-login.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>grafana-login.sql</FullPath>
-        </FileNode>
         <FileNode Name="performance_counters.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlProd1:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>SqlProd1</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>performance_counters.sql</FullPath>
-        </FileNode>
-        <FileNode Name="SQLQuery1.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>SQLQuery1.sql</FullPath>
-        </FileNode>
-        <FileNode Name="Wait Time (ms).sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>Wait Time (ms).sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>

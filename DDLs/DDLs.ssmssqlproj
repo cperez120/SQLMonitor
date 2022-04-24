@@ -27,6 +27,18 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="Demo:LAB\adwivedi">
+          <Created>2022-04-24T03:16:24.7741875-07:00</Created>
+          <Type>SQL</Type>
+          <Server>Demo</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="LOCALHOST:LAB\adwivedi">
           <Created>2020-10-18T08:41:28.7072242-07:00</Created>
           <Type>SQL</Type>
@@ -98,15 +110,15 @@
           <FullPath>DatabaseMail_Using_GMail.sql</FullPath>
         </FileNode>
         <FileNode Name="FirstResponderKit-Install-All-Scripts.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:msi:False:sa</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>msi</AssociatedConnSrvName>
-          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>FirstResponderKit-Install-All-Scripts.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Create-All-Objects.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:msi:False:sa</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>msi</AssociatedConnSrvName>
-          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>SCH-Create-All-Objects.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Create-functions-OBSELETE.sql">
@@ -116,39 +128,39 @@
           <FullPath>SCH-Create-functions-OBSELETE.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Collect-PerfmonData].sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:msi:False:sa</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>msi</AssociatedConnSrvName>
-          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Demo:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Demo</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Collect-PerfmonData].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Collect-WaitStats].sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:msi:False:sa</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>msi</AssociatedConnSrvName>
-          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Demo:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Demo</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Collect-WaitStats].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Partitions-Maintenance].sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:msi:False:sa</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>msi</AssociatedConnSrvName>
-          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Demo:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Demo</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Partitions-Maintenance].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Purge-DbaMetrics - Daily].sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:msi:False:sa</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>msi</AssociatedConnSrvName>
-          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Demo:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Demo</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Purge-DbaMetrics - Daily].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Run First-Responder-Kit].sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:msi:False:sa</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>msi</AssociatedConnSrvName>
-          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Demo:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Demo</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Run First-Responder-Kit].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Run-WhoIsActive].sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:msi:False:sa</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>msi</AssociatedConnSrvName>
-          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Demo:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Demo</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Run-WhoIsActive].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Linked-Servers-Sample.sql">
@@ -158,9 +170,9 @@
           <FullPath>SCH-Linked-Servers-Sample.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-sp_WhoIsActive_v12_00(Modified).sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:msi:False:sa</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>msi</AssociatedConnSrvName>
-          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>SCH-sp_WhoIsActive_v12_00(Modified).sql</FullPath>
         </FileNode>
       </Items>

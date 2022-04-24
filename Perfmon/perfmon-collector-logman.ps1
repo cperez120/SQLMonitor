@@ -1,7 +1,7 @@
 ﻿[CmdletBinding()]
 Param (
     [Parameter(Mandatory=$false)]
-    $TemplatePath = “E:\Perfmon\DBA_PerfMon_All_Counters_Template.xml”,
+    $TemplatePath = “C:\Perfmon\DBA_PerfMon_All_Counters_Template.xml”,
     [Parameter(Mandatory=$false)]
     $CollectorSetName = "DBA",
     [Parameter(Mandatory=$false)]
