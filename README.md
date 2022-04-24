@@ -76,21 +76,26 @@ Here ensure that all the jobs created in step 6 & 7 are executing successfully. 
 
 For Grafana, I am using one SqlInstance as my **Inventory** (central) server. What this mean is, on this server, I'll create linked servers for all the SqlInstances that required monitoring using Grafana.
 
-1. Create login `grafana` on all SqlInstance to be monitored having `sysadmin` access. [Sql-Queries/grafana-login.sql](Sql-Queries/grafana-login.sql)
+1. Create login `grafana` on all SqlInstance to be monitored including inventory server having `sysadmin` access. [Sql-Queries/grafana-login.sql](Sql-Queries/grafana-login.sql)
 	> This high `sysadmin` priviledge for this login would be fixed in future releases.
-2. On your **Inventory server**, [create linked Server for each SqlInstance](DDLs/SCH-Linked-Servers-Sample.sql) that require monitoring through Grafana. Make use of 'Microsoft OLEDB Provider for SQL Server'.
 
+2. On your **Inventory server**, [create linked Server for each SqlInstance](DDLs/SCH-Linked-Servers-Sample.sql) that require monitoring through Grafana. Make use of `Microsoft OLEDB Provider for SQL Server`.
 	![](https://github.com/imajaydwivedi/Images/blob/master/SqlServer-Baselining-Grafana/Inventory-Server-Linked-Servers.JPG) <br>
 	
-2. On grafana portal, create *data source* named **'Inventory'** with details of above step, and **\[grafana\]** login.
-
+3. On grafana portal, create *data source* named **'SqlMonitor'** with details of inventory server, and `grafana` login.
 	![](https://github.com/imajaydwivedi/Images/blob/master/SqlServer-Baselining-Grafana/Grafana-Inventory-DataSource.JPG) <br>
-	
-3. Finally, Create dashboards by importing below *.json files
 
-	> * [NonSql-Files/Grafana - Monitoring - Live - External Share.json](NonSql-Files/Grafana%20-%20Monitoring%20-%20Live%20-%20External%20Share.json)
-	> * [NonSql-Files/Grafana - Monitoring - Perfmon Counters - Quest Softwares - External Share.json](NonSql-Files/Grafana%20-%20Monitoring%20-%20Perfmon%20Counters%20-%20Quest%20Softwares%20-%20External%20Share.json)
+4. Create a folder with name `SQLServer'. We will keep/import all our dashboards in this folder.
+
+5. Finally, Create dashboards by importing below *.json files
+
+	> * [Perfmon/Monitoring - Live.json](Perfmon/Monitoring%20-%20Live.json)
+	> * [Perfmon/Grafana - Monitoring - Perfmon Counters - Quest Softwares.json](Perfmon/Grafana%20-%20Monitoring%20-%20Perfmon%20Counters%20-%20Quest%20Softwares.json)
+	> * [Perfmon/Wait Stats.json](Perfmon/Wait%20Stats.json)
+
+While importing, ensure to select `SqlMonitor` as datasource & `SQLServer` as folder. Both of these were created in above steps 3 & 4.
+![](https://github.com/imajaydwivedi/Images/blob/master/SqlServer-Baselining-Grafana/Grafana-Setup-Import-Dashboard.png) <br>
 	
-	This should create the grafana dashboard according to settings of above json files.
+This should create the grafana dashboard according to settings of above json files.
 	
-	Thanks :smiley:. Subscribe for updates :thumbsup:
+Thanks :smiley:. Subscribe for updates :thumbsup:
