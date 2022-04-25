@@ -89,7 +89,7 @@ CREATE TABLE [dbo].[os_task_list]
 	[memory_kb] bigint NULL,
 	[status] [varchar](30) NULL,
 	[user_name] [varchar](200) NOT NULL,
-	[cpu_time] [char](10) NOT NULL,
+	[cpu_time] [char](14) NOT NULL,
 	[cpu_time_seconds] bigint NOT NULL,
 	[window_title] [nvarchar](2000) NULL
 ) on ps_dba ([collection_time_utc])
@@ -193,7 +193,7 @@ go
 
 
 -- drop procedure usp_extended_results
-create procedure usp_extended_results @processor_name nvarchar(500) = null output, @host_distribution nvarchar(500) = null output
+create procedure usp_extended_results @processor_name nvarchar(500) = null output, @host_distribution nvarchar(500) = null output, @fqdn nvarchar(100) = null output
 with execute as owner
 as
 begin
@@ -204,6 +204,10 @@ begin
 
 	-- Windows Version
 	EXEC xp_instance_regread 'HKEY_LOCAL_MACHINE', 'SOFTWARE\Microsoft\Windows NT\CurrentVersion', 'ProductName', @value = @host_distribution OUTPUT;
+
+	-- FQDN
+	EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain', @fqdn OUTPUT;     
+	SET @fqdn = Cast(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @fqdn;
 	
 end
 go

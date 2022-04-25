@@ -115,11 +115,23 @@
           <AssociatedConnUserName />
           <FullPath>FirstResponderKit-Install-All-Scripts.sql</FullPath>
         </FileNode>
+        <FileNode Name="grafana-login.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>grafana-login.sql</FullPath>
+        </FileNode>
         <FileNode Name="SCH-Create-All-Objects.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Create-All-Objects.sql</FullPath>
+        </FileNode>
+        <FileNode Name="SCH-Create-All-Objects-NonSupportedVersions.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-Create-All-Objects-NonSupportedVersions.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Create-functions-OBSELETE.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
@@ -174,6 +186,12 @@
           <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-sp_WhoIsActive_v12_00(Modified).sql</FullPath>
+        </FileNode>
+        <FileNode Name="SCH-tables-Synonyms-for-Non-Perfmon-SqlInstance.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>SCH-tables-Synonyms-for-Non-Perfmon-SqlInstance.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>

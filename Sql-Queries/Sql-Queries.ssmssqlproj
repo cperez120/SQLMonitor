@@ -39,6 +39,18 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="SqlProd1:LAB\adwivedi">
+          <Created>2022-04-25T09:28:37.3903183-07:00</Created>
+          <Type>SQL</Type>
+          <Server>SqlProd1</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="WORKSTATION:LAB\adwivedi">
           <Created>2022-04-20T20:54:58.8034594-07:00</Created>
           <Type>SQL</Type>
@@ -61,17 +73,17 @@
           <AssociatedConnUserName />
           <FullPath>Blocking-Test.sql</FullPath>
         </FileNode>
+        <FileNode Name="check-domain-ip-hostname.sql.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlProd1:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlProd1</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>check-domain-ip-hostname.sql.sql</FullPath>
+        </FileNode>
         <FileNode Name="datetime-conversions.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:WORKSTATION:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>WORKSTATION</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>datetime-conversions.sql</FullPath>
-        </FileNode>
-        <FileNode Name="grafana-login.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Demo:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Demo</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>grafana-login.sql</FullPath>
         </FileNode>
         <FileNode Name="grafana-wait-stats-query.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
