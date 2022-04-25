@@ -132,15 +132,161 @@ CREATE TABLE [dbo].[BlitzFirst_WaitStats_Categories]
 	[WaitType] [nvarchar](60) NOT NULL,
 	[WaitCategory] [nvarchar](128) NOT NULL,
 	[Ignorable] [bit] NULL,
-PRIMARY KEY CLUSTERED 
-(
-	[WaitType] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
+	PRIMARY KEY CLUSTERED (	[WaitType] ASC )
+)
 GO
 
 ALTER TABLE [dbo].[BlitzFirst_WaitStats_Categories] ADD  DEFAULT ((0)) FOR [Ignorable]
 GO
+
+
+-- DROP VIEW [dbo].[vw_wait_stats_deltas];
+CREATE VIEW [dbo].[vw_wait_stats_deltas] 
+WITH SCHEMABINDING 
+AS
+WITH RowDates as ( 
+	SELECT ROW_NUMBER() OVER (ORDER BY [collection_time_utc]) ID, [collection_time_utc]
+	FROM [dbo].[wait_stats] 
+	--WHERE [collection_time_utc] between @start_time and @end_time
+	GROUP BY [collection_time_utc]
+)
+, collection_time_utcs as
+(	SELECT ThisDate.collection_time_utc, LastDate.collection_time_utc as Previouscollection_time_utc
+    FROM RowDates ThisDate
+    JOIN RowDates LastDate
+    ON ThisDate.ID = LastDate.ID + 1
+)
+--select * from collection_time_utcs
+SELECT w.collection_time_utc, w.wait_type, COALESCE(wc.WaitCategory, 'Other') AS WaitCategory, COALESCE(wc.Ignorable,0) AS Ignorable
+, DATEDIFF(ss, wPrior.collection_time_utc, w.collection_time_utc) AS ElapsedSeconds
+, (w.wait_time_ms - wPrior.wait_time_ms) AS wait_time_ms_delta
+, (w.wait_time_ms - wPrior.wait_time_ms) / 60000.0 AS wait_time_minutes_delta
+, (w.wait_time_ms - wPrior.wait_time_ms) / 1000.0 / DATEDIFF(ss, wPrior.collection_time_utc, w.collection_time_utc) AS wait_time_minutes_per_minute
+, (w.signal_wait_time_ms - wPrior.signal_wait_time_ms) AS signal_wait_time_ms_delta
+, (w.waiting_tasks_count - wPrior.waiting_tasks_count) AS waiting_tasks_count_delta
+FROM [dbo].[wait_stats] w
+--INNER HASH JOIN collection_time_utcs Dates
+INNER JOIN collection_time_utcs Dates
+ON Dates.collection_time_utc = w.collection_time_utc
+INNER JOIN [dbo].[wait_stats] wPrior ON w.wait_type = wPrior.wait_type AND Dates.Previouscollection_time_utc = wPrior.collection_time_utc
+LEFT OUTER JOIN [dbo].[BlitzFirst_WaitStats_Categories] wc ON w.wait_type = wc.WaitType
+WHERE [w].[wait_time_ms] >= [wPrior].[wait_time_ms]
+--ORDER BY w.collection_time_utc, wait_time_ms_delta desc
+GO
+
+CREATE SCHEMA [bkp]
+GO
+CREATE SCHEMA [poc]
+GO
+CREATE SCHEMA [stg]
+GO
+CREATE SCHEMA [tst]
+GO
+
+-- Set DBA database trustworthy & [sa] owner
+declare @dbname nvarchar(255);
+set @dbname=quotename(db_name());
+
+exec('alter database '+@dbname+' set trustworthy on');
+exec('alter authorization on database::'+@dbname+' to [sa]');
+go
+
+
+-- drop procedure usp_extended_results
+create procedure usp_extended_results @processor_name nvarchar(500) = null output, @host_distribution nvarchar(500) = null output
+with execute as owner
+as
+begin
+	set nocount on;
+	
+	-- Processor Name
+	exec xp_instance_regread 'HKEY_LOCAL_MACHINE', 'HARDWARE\DESCRIPTION\System\CentralProcessor\0', 'ProcessorNameString', @value = @processor_name output;
+
+	-- Windows Version
+	EXEC xp_instance_regread 'HKEY_LOCAL_MACHINE', 'SOFTWARE\Microsoft\Windows NT\CurrentVersion', 'ProductName', @value = @host_distribution OUTPUT;
+	
+end
+go
+
+
+/* Validate Partition Data */
+SELECT SCHEMA_NAME(o.schema_id)+'.'+ o.name as TableName,
+	pf.name as PartitionFunction,
+	ds.name AS PartitionScheme, 
+	p.partition_number AS PartitionNumber, 
+	CASE pf.boundary_value_on_right WHEN 1 THEN 'RIGHT' ELSE 'LEFT' END AS PartitionFunctionRange, 
+	prv_left.value AS LowerBoundaryValue, 
+	prv_right.value AS UpperBoundaryValue, 
+	fg.name AS FileGroupName,
+	p.[row_count] as TotalRows,
+	CONVERT(DECIMAL(12,2), p.reserved_page_count*8/1024.0) as ReservedSpaceMB,
+	CONVERT(DECIMAL(12,2), p.used_page_count*8/1024.0) as UsedSpaceMB
+FROM sys.dm_db_partition_stats AS p (NOLOCK)
+	INNER JOIN sys.indexes AS i (NOLOCK) ON i.[object_id] = p.[object_id] AND i.index_id = p.index_id
+	INNER JOIN sys.data_spaces AS ds (NOLOCK) ON ds.data_space_id = i.data_space_id
+	INNER JOIN sys.objects AS o (NOLOCK) ON o.object_id = p.object_id
+	INNER JOIN sys.partition_schemes AS ps (NOLOCK) ON ps.data_space_id = ds.data_space_id
+	INNER JOIN sys.partition_functions AS pf (NOLOCK) ON pf.function_id = ps.function_id
+	INNER JOIN sys.destination_data_spaces AS dds2 (NOLOCK) ON dds2.partition_scheme_id = ps.data_space_id AND dds2.destination_id = p.partition_number
+	INNER JOIN sys.filegroups AS fg (NOLOCK) ON fg.data_space_id = dds2.data_space_id
+	LEFT OUTER JOIN sys.partition_range_values AS prv_left (NOLOCK) ON ps.function_id = prv_left.function_id AND prv_left.boundary_id = p.partition_number - 1
+	LEFT OUTER JOIN sys.partition_range_values AS prv_right (NOLOCK) ON ps.function_id = prv_right.function_id AND prv_right.boundary_id = p.partition_number
+WHERE
+	OBJECTPROPERTY(p.[object_id], 'IsMSShipped') = 0
+ORDER BY p.partition_number;	
+go
+
+/* Add boundaries to partition. 1 boundary per hour */
+set nocount on;
+declare @partition_boundary datetime2;
+declare @target_boundary_value datetime2; /* 3 months back date */
+set @target_boundary_value = DATEADD(mm,DATEDIFF(mm,0,GETDATE())-3,0);
+set @target_boundary_value = '2022-03-25 19:00:00.000'
+
+declare cur_boundaries cursor local fast_forward for
+		select convert(datetime2,prv.value) as boundary_value
+		from sys.partition_range_values prv
+		join sys.partition_functions pf on pf.function_id = prv.function_id
+		where pf.name = 'pf_dba' and convert(datetime2,prv.value) < @target_boundary_value
+		order by prv.value asc;
+
+open cur_boundaries;
+fetch next from cur_boundaries into @partition_boundary;
+while @@FETCH_STATUS = 0
+begin
+	--print @partition_boundary
+	alter partition function pf_dba() merge range (@partition_boundary);
+
+	fetch next from cur_boundaries into @partition_boundary;
+end
+CLOSE cur_boundaries
+DEALLOCATE cur_boundaries;
+go
+
+
+/* Remove boundaries with retention of 3 months */
+set nocount on;
+declare @current_boundary_value datetime2;
+declare @target_boundary_value datetime2; /* last day of new quarter */
+set @target_boundary_value = DATEADD (dd, -1, DATEADD(qq, DATEDIFF(qq, 0, GETDATE()) +2, 0));
+
+select top 1 @current_boundary_value = convert(datetime2,prv.value)
+from sys.partition_range_values prv
+join sys.partition_functions pf on pf.function_id = prv.function_id
+where pf.name = 'pf_dba'
+order by prv.value desc;
+
+select [@current_boundary_value] = @current_boundary_value, [@target_boundary_value] = @target_boundary_value;
+
+while (@current_boundary_value < @target_boundary_value)
+begin
+	set @current_boundary_value = DATEADD(hour,1,@current_boundary_value);
+	--print @current_boundary_value
+	alter partition scheme ps_dba next used [primary];
+	alter partition function pf_dba() split range (@current_boundary_value);	
+end
+go
+
 
 IF OBJECT_ID('[dbo].[BlitzFirst_WaitStats_Categories]') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM [dbo].[BlitzFirst_WaitStats_Categories])
 BEGIN
@@ -674,152 +820,3 @@ BEGIN
 	INSERT INTO [dbo].[BlitzFirst_WaitStats_Categories](WaitType, WaitCategory, Ignorable) VALUES ('XE_TIMER_EVENT','Idle',1);
 END
 GO
-
-
--- DROP VIEW [dbo].[vw_wait_stats_deltas];
-CREATE VIEW [dbo].[vw_wait_stats_deltas] 
-WITH SCHEMABINDING 
-AS
-WITH RowDates as ( 
-	SELECT ROW_NUMBER() OVER (ORDER BY [collection_time_utc]) ID, [collection_time_utc]
-	FROM [dbo].[wait_stats] 
-	--WHERE [collection_time_utc] between @start_time and @end_time
-	GROUP BY [collection_time_utc]
-)
-, collection_time_utcs as
-(	SELECT ThisDate.collection_time_utc, LastDate.collection_time_utc as Previouscollection_time_utc
-    FROM RowDates ThisDate
-    JOIN RowDates LastDate
-    ON ThisDate.ID = LastDate.ID + 1
-)
---select * from collection_time_utcs
-SELECT w.collection_time_utc, w.wait_type, COALESCE(wc.WaitCategory, 'Other') AS WaitCategory, COALESCE(wc.Ignorable,0) AS Ignorable
-, DATEDIFF(ss, wPrior.collection_time_utc, w.collection_time_utc) AS ElapsedSeconds
-, (w.wait_time_ms - wPrior.wait_time_ms) AS wait_time_ms_delta
-, (w.wait_time_ms - wPrior.wait_time_ms) / 60000.0 AS wait_time_minutes_delta
-, (w.wait_time_ms - wPrior.wait_time_ms) / 1000.0 / DATEDIFF(ss, wPrior.collection_time_utc, w.collection_time_utc) AS wait_time_minutes_per_minute
-, (w.signal_wait_time_ms - wPrior.signal_wait_time_ms) AS signal_wait_time_ms_delta
-, (w.waiting_tasks_count - wPrior.waiting_tasks_count) AS waiting_tasks_count_delta
-FROM [dbo].[wait_stats] w
---INNER HASH JOIN collection_time_utcs Dates
-INNER JOIN collection_time_utcs Dates
-ON Dates.collection_time_utc = w.collection_time_utc
-INNER JOIN [dbo].[wait_stats] wPrior ON w.wait_type = wPrior.wait_type AND Dates.Previouscollection_time_utc = wPrior.collection_time_utc
-LEFT OUTER JOIN [dbo].[BlitzFirst_WaitStats_Categories] wc ON w.wait_type = wc.WaitType
-WHERE [w].[wait_time_ms] >= [wPrior].[wait_time_ms]
---ORDER BY w.collection_time_utc, wait_time_ms_delta desc
-GO
-
-CREATE SCHEMA [bkp]
-GO
-CREATE SCHEMA [poc]
-GO
-CREATE SCHEMA [stg]
-GO
-CREATE SCHEMA [tst]
-GO
-
--- Set DBA database trustworthy
-declare @dbname nvarchar(255)
-set @dbname=quotename(db_name())
-exec('alter database '+@dbname+' set trustworthy on');
-go
-
-
--- drop procedure usp_extended_results
-create procedure usp_extended_results @processor_name nvarchar(500) = null output, @host_distribution nvarchar(500) = null output
-with execute as owner
-as
-begin
-	set nocount on;
-	
-	-- Processor Name
-	exec xp_instance_regread 'HKEY_LOCAL_MACHINE', 'HARDWARE\DESCRIPTION\System\CentralProcessor\0', 'ProcessorNameString', @value = @processor_name output;
-
-	-- Windows Version
-	EXEC xp_instance_regread 'HKEY_LOCAL_MACHINE', 'SOFTWARE\Microsoft\Windows NT\CurrentVersion', 'ProductName', @value = @host_distribution OUTPUT;
-	
-end
-go
-
-
-/* Validate Partition Data */
-SELECT SCHEMA_NAME(o.schema_id)+'.'+ o.name as TableName,
-	pf.name as PartitionFunction,
-	ds.name AS PartitionScheme, 
-	p.partition_number AS PartitionNumber, 
-	CASE pf.boundary_value_on_right WHEN 1 THEN 'RIGHT' ELSE 'LEFT' END AS PartitionFunctionRange, 
-	prv_left.value AS LowerBoundaryValue, 
-	prv_right.value AS UpperBoundaryValue, 
-	fg.name AS FileGroupName,
-	p.[row_count] as TotalRows,
-	CONVERT(DECIMAL(12,2), p.reserved_page_count*8/1024.0) as ReservedSpaceMB,
-	CONVERT(DECIMAL(12,2), p.used_page_count*8/1024.0) as UsedSpaceMB
-FROM sys.dm_db_partition_stats AS p (NOLOCK)
-	INNER JOIN sys.indexes AS i (NOLOCK) ON i.[object_id] = p.[object_id] AND i.index_id = p.index_id
-	INNER JOIN sys.data_spaces AS ds (NOLOCK) ON ds.data_space_id = i.data_space_id
-	INNER JOIN sys.objects AS o (NOLOCK) ON o.object_id = p.object_id
-	INNER JOIN sys.partition_schemes AS ps (NOLOCK) ON ps.data_space_id = ds.data_space_id
-	INNER JOIN sys.partition_functions AS pf (NOLOCK) ON pf.function_id = ps.function_id
-	INNER JOIN sys.destination_data_spaces AS dds2 (NOLOCK) ON dds2.partition_scheme_id = ps.data_space_id AND dds2.destination_id = p.partition_number
-	INNER JOIN sys.filegroups AS fg (NOLOCK) ON fg.data_space_id = dds2.data_space_id
-	LEFT OUTER JOIN sys.partition_range_values AS prv_left (NOLOCK) ON ps.function_id = prv_left.function_id AND prv_left.boundary_id = p.partition_number - 1
-	LEFT OUTER JOIN sys.partition_range_values AS prv_right (NOLOCK) ON ps.function_id = prv_right.function_id AND prv_right.boundary_id = p.partition_number
-WHERE
-	OBJECTPROPERTY(p.[object_id], 'IsMSShipped') = 0
-ORDER BY p.partition_number;	
-go
-
-/* Add boundaries to partition. 1 boundary per hour */
-set nocount on;
-declare @partition_boundary datetime2;
-declare @target_boundary_value datetime2; /* 3 months back date */
-set @target_boundary_value = DATEADD(mm,DATEDIFF(mm,0,GETDATE())-3,0);
-set @target_boundary_value = '2022-03-25 19:00:00.000'
-
-declare cur_boundaries cursor local fast_forward for
-		select convert(datetime2,prv.value) as boundary_value
-		from sys.partition_range_values prv
-		join sys.partition_functions pf on pf.function_id = prv.function_id
-		where pf.name = 'pf_dba' and convert(datetime2,prv.value) < @target_boundary_value
-		order by prv.value asc;
-
-open cur_boundaries;
-fetch next from cur_boundaries into @partition_boundary;
-while @@FETCH_STATUS = 0
-begin
-	--print @partition_boundary
-	alter partition function pf_dba() merge range (@partition_boundary);
-
-	fetch next from cur_boundaries into @partition_boundary;
-end
-CLOSE cur_boundaries
-DEALLOCATE cur_boundaries;
-go
-
-
-/* Remove boundaries with retention of 3 months */
-set nocount on;
-declare @current_boundary_value datetime2;
-declare @target_boundary_value datetime2; /* last day of new quarter */
-set @target_boundary_value = DATEADD (dd, -1, DATEADD(qq, DATEDIFF(qq, 0, GETDATE()) +2, 0));
-
-select top 1 @current_boundary_value = convert(datetime2,prv.value)
-from sys.partition_range_values prv
-join sys.partition_functions pf on pf.function_id = prv.function_id
-where pf.name = 'pf_dba'
-order by prv.value desc;
-
-select [@current_boundary_value] = @current_boundary_value, [@target_boundary_value] = @target_boundary_value;
-
-while (@current_boundary_value < @target_boundary_value)
-begin
-	set @current_boundary_value = DATEADD(hour,1,@current_boundary_value);
-	--print @current_boundary_value
-	alter partition scheme ps_dba next used [primary];
-	alter partition function pf_dba() split range (@current_boundary_value);	
-end
-go
-
-select * from [dbo].[os_task_list]
-go
