@@ -84,7 +84,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1650690612001,
+  "iteration": 1650866277516,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -438,7 +438,7 @@
             "uid": "${DS_SQLMONITOR}"
           },
           "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\n--select host_distribution + ' ('+host_architecture+')' from sys.dm_os_host_info\r\nDECLARE @value nvarchar(1000);\r\nEXEC xp_instance_regread 'HKEY_LOCAL_MACHINE', 'SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion', 'ProductName', @value = @value OUTPUT;\r\nSELECT @value\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\n--select host_distribution + ' ('+host_architecture+')' from sys.dm_os_host_info\r\ndeclare @host_distribution nvarchar(500);\r\nexec usp_extended_results @host_distribution = @host_distribution output;\r\n\r\nselect @host_distribution\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
           "refId": "A"
         }
       ],
@@ -754,7 +754,7 @@
             "uid": "${DS_SQLMONITOR}"
           },
           "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nDECLARE @cpu_info nvarchar(1000);\r\nEXEC xp_instance_regread 'HKEY_LOCAL_MACHINE', 'HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0', 'ProcessorNameString', @value = @cpu_info OUTPUT;\r\n\r\nSELECT @cpu_info\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\ndeclare @processor_name nvarchar(500);\r\nexec usp_extended_results @processor_name = @processor_name output;\r\n\r\nselect @processor_name\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
           "refId": "A"
         }
       ],
@@ -1564,8 +1564,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent",
-                    "value": null
+                    "color": "transparent"
                   },
                   {
                     "color": "orange",
@@ -1655,8 +1654,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               }
@@ -2628,8 +2626,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "red",
-                    "value": null
+                    "color": "red"
                   },
                   {
                     "color": "transparent",
@@ -2734,8 +2731,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "red",
-                    "value": null
+                    "color": "red"
                   },
                   {
                     "color": "transparent",
@@ -3290,8 +3286,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -3434,14 +3429,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "SELECT DB_NAME()",
+        "definition": "SELECT DB_NAME() as [db_name]",
         "hide": 2,
         "includeAll": false,
         "label": "Inventory Database",
         "multi": false,
         "name": "inventory_db",
         "options": [],
-        "query": "SELECT DB_NAME()",
+        "query": "SELECT DB_NAME() as [db_name]",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -3454,14 +3449,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "select host_name from [[server]].[[inventory_db]].dbo.performance_counters where collection_time_utc >= dateadd(minute,-10,getutcdate()) group by host_name",
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect host_name \nfrom [$inventory_db].dbo.performance_counters \nwhere collection_time_utc >= dateadd(minute,-10,getutcdate()) \ngroup by host_name\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
         "hide": 0,
         "includeAll": false,
         "label": "Host Name",
         "multi": false,
         "name": "host_name",
         "options": [],
-        "query": "select host_name from [[server]].[[inventory_db]].dbo.performance_counters where collection_time_utc >= dateadd(minute,-10,getutcdate()) group by host_name",
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect host_name \nfrom [$inventory_db].dbo.performance_counters \nwhere collection_time_utc >= dateadd(minute,-10,getutcdate()) \ngroup by host_name\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -3474,14 +3469,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "select case when pc.object = 'sqlserver:memory manager' then 'MSSQLSERVER' else UPPER(replace(object,':memory manager','')) end as [service_name]\nfrom (select distinct object from [[server]].[[inventory_db]].dbo.performance_counters pc\n\t\twhere collection_time_utc >= dateadd(minute,-10,getutcdate())\n\t\tand pc.counter = 'Memory Grants Pending' ) pc\n--\nunion\n--\nselect @@servicename",
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF;\nDECLARE @sql varchar(max) = \"\n\nselect case when pc.object = 'sqlserver:memory manager' then 'MSSQLSERVER' else UPPER(replace(object,':memory manager','')) end as [service_name]\nfrom (select distinct object from [$inventory_db].dbo.performance_counters pc\n\t\twhere collection_time_utc >= dateadd(minute,-10,getutcdate())\n\t\tand pc.counter = 'Memory Grants Pending' ) pc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
         "hide": 0,
         "includeAll": false,
         "label": "Service Name",
         "multi": false,
         "name": "service_name",
         "options": [],
-        "query": "select case when pc.object = 'sqlserver:memory manager' then 'MSSQLSERVER' else UPPER(replace(object,':memory manager','')) end as [service_name]\nfrom (select distinct object from [[server]].[[inventory_db]].dbo.performance_counters pc\n\t\twhere collection_time_utc >= dateadd(minute,-10,getutcdate())\n\t\tand pc.counter = 'Memory Grants Pending' ) pc\n--\nunion\n--\nselect @@servicename",
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF;\nDECLARE @sql varchar(max) = \"\n\nselect case when pc.object = 'sqlserver:memory manager' then 'MSSQLSERVER' else UPPER(replace(object,':memory manager','')) end as [service_name]\nfrom (select distinct object from [$inventory_db].dbo.performance_counters pc\n\t\twhere collection_time_utc >= dateadd(minute,-10,getutcdate())\n\t\tand pc.counter = 'Memory Grants Pending' ) pc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -3533,7 +3528,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -3551,6 +3546,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live",
   "uid": "Fg8Q_wSMz",
-  "version": 69,
+  "version": 77,
   "weekStart": ""
 }

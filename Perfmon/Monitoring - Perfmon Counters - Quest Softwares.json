@@ -62,7 +62,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1650650038254,
+  "iteration": 1650866282356,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -1788,12 +1788,11 @@
           "options": {
             "legend": {
               "calcs": [
-                "lastNotNull",
                 "max",
                 "mean"
               ],
               "displayMode": "table",
-              "placement": "bottom"
+              "placement": "right"
             },
             "tooltip": {
               "mode": "multi",
@@ -5019,26 +5018,6 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "SELECT DB_NAME()",
-        "hide": 2,
-        "includeAll": false,
-        "label": "Inventory Database",
-        "multi": false,
-        "name": "inventory_db",
-        "options": [],
-        "query": "SELECT DB_NAME()",
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
-      },
-      {
-        "current": {},
-        "datasource": {
-          "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
-        },
         "definition": "select srvname from sys.sysservers where providername = 'SQLOLEDB'",
         "hide": 0,
         "includeAll": false,
@@ -5059,14 +5038,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "select host_name from [[server]].[[inventory_db]].dbo.performance_counters where collection_time_utc >= dateadd(minute,-10,getutcdate()) group by host_name",
-        "hide": 0,
+        "definition": "SELECT DB_NAME() as [db_name]",
+        "hide": 2,
         "includeAll": false,
-        "label": "Host Name",
+        "label": "Inventory Database",
         "multi": false,
-        "name": "host_name",
+        "name": "inventory_db",
         "options": [],
-        "query": "select host_name from [[server]].[[inventory_db]].dbo.performance_counters where collection_time_utc >= dateadd(minute,-10,getutcdate()) group by host_name",
+        "query": "SELECT DB_NAME() as [db_name]",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -5079,14 +5058,34 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "select case when pc.object = 'sqlserver:memory manager' then 'MSSQLSERVER' else UPPER(replace(object,':memory manager','')) end as [service_name]\nfrom (select distinct object from [[server]].[[inventory_db]].dbo.performance_counters pc\n\t\twhere collection_time_utc >= dateadd(minute,-10,getutcdate())\n\t\tand pc.counter = 'Memory Grants Pending' ) pc\n--\nunion\n--\nselect @@servicename",
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect host_name \nfrom [$inventory_db].dbo.performance_counters \nwhere collection_time_utc >= dateadd(minute,-10,getutcdate()) \ngroup by host_name\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Host Name",
+        "multi": false,
+        "name": "host_name",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect host_name \nfrom [$inventory_db].dbo.performance_counters \nwhere collection_time_utc >= dateadd(minute,-10,getutcdate()) \ngroup by host_name\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF;\nDECLARE @sql varchar(max) = \"\n\nselect case when pc.object = 'sqlserver:memory manager' then 'MSSQLSERVER' else UPPER(replace(object,':memory manager','')) end as [service_name]\nfrom (select distinct object from [$inventory_db].dbo.performance_counters pc\n\t\twhere collection_time_utc >= dateadd(minute,-10,getutcdate())\n\t\tand pc.counter = 'Memory Grants Pending' ) pc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
         "hide": 0,
         "includeAll": false,
         "label": "Service Name",
         "multi": false,
         "name": "service_name",
         "options": [],
-        "query": "select case when pc.object = 'sqlserver:memory manager' then 'MSSQLSERVER' else UPPER(replace(object,':memory manager','')) end as [service_name]\nfrom (select distinct object from [[server]].[[inventory_db]].dbo.performance_counters pc\n\t\twhere collection_time_utc >= dateadd(minute,-10,getutcdate())\n\t\tand pc.counter = 'Memory Grants Pending' ) pc\n--\nunion\n--\nselect @@servicename",
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF;\nDECLARE @sql varchar(max) = \"\n\nselect case when pc.object = 'sqlserver:memory manager' then 'MSSQLSERVER' else UPPER(replace(object,':memory manager','')) end as [service_name]\nfrom (select distinct object from [$inventory_db].dbo.performance_counters pc\n\t\twhere collection_time_utc >= dateadd(minute,-10,getutcdate())\n\t\tand pc.counter = 'Memory Grants Pending' ) pc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -5134,6 +5133,6 @@
   "timezone": "",
   "title": "Monitoring - Perfmon Counters - Quest Softwares",
   "uid": "_dioLINMk",
-  "version": 22,
+  "version": 25,
   "weekStart": ""
 }
