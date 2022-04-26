@@ -13,3 +13,8 @@ go
 --drop synonym dbo.os_task_list
 create synonym dbo.os_task_list for [OtherSqlInstance].[DBA].[dbo].[os_task_list]
 go
+
+/* 
+Now modify the view mentioned in DDLs\All Scripts 
+dbo.vw_performance_counters
+*/

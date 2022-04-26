@@ -4,7 +4,8 @@ select	default_domain() as [domain],
 		[server_name] = serverproperty('ServerName'),
 		[host_name] = SERVERPROPERTY('ComputerNamePhysicalNetBIOS'),
 		[sql_version] = @@VERSION, 
-		[service_name] = servicename, 
+		[service_name] = servicename,
+		[instance_name] = @@servicename,
 		service_account,
 		SERVERPROPERTY('Edition') AS Edition,
 		SERVERPROPERTY('ProductVersion') AS ProductVersion,  
@@ -19,3 +20,4 @@ from sys.dm_os_cluster_nodes;
 DECLARE @Domain NVARCHAR(100)
 EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT;     
 SELECT Cast(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @Domain AS FQDN
+

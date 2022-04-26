@@ -84,7 +84,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1650907581246,
+  "iteration": 1650945578738,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -99,7 +99,7 @@
       "id": 37,
       "panels": [],
       "repeat": "datasource",
-      "title": "LIVE Metrics - [$fqdn] - [$ip]",
+      "title": "LIVE Metrics - [$fqdn] - [$ip] - [$host_name\\$instance_name]",
       "type": "row"
     },
     {
@@ -1648,7 +1648,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 15
+            "y": 2
           },
           "id": 16,
           "options": {
@@ -3773,7 +3773,7 @@
           "uid": "${DS_SQLMONITOR}"
         },
         "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) as [host_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
-        "hide": 0,
+        "hide": 2,
         "includeAll": false,
         "label": "Host Name",
         "multi": false,
@@ -3825,6 +3825,26 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar, @@servicename) as [instance_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Instance Name",
+        "multi": false,
+        "name": "instance_name",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar, @@servicename) as [instance_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
       }
     ]
   },
@@ -3847,6 +3867,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live",
   "uid": "Fg8Q_wSMz",
-  "version": 100,
+  "version": 109,
   "weekStart": ""
 }
