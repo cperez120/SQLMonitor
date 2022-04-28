@@ -60,7 +60,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1650984357948,
+  "iteration": 1651147708190,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -75,7 +75,7 @@
       "id": 4,
       "panels": [],
       "repeat": "datasource",
-      "title": "WaitStats - Histogram -  [$fqdn] - [$ip]",
+      "title": "WaitStats - Histogram -  [$fqdn] - [$ip] - @ ${collection_time_utc:date:YYYY-MM-DD HH.MM}",
       "type": "row"
     },
     {
@@ -213,8 +213,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -405,6 +404,26 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect top 1 collection_time_utc\nfrom [$inventory_db].[dbo].[wait_stats]\norder by collection_time_utc desc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Collection Time UTC",
+        "multi": false,
+        "name": "collection_time_utc",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect top 1 collection_time_utc\nfrom [$inventory_db].[dbo].[wait_stats]\norder by collection_time_utc desc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
       }
     ]
   },
@@ -427,6 +446,6 @@
   "timezone": "",
   "title": "Wait Stats",
   "uid": "a2sghOwnk",
-  "version": 18,
+  "version": 21,
   "weekStart": ""
 }
