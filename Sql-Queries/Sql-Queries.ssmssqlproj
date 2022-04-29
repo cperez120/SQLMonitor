@@ -211,6 +211,18 @@
           <AssociatedConnUserName />
           <FullPath>grafana-wait-stats-query.sql</FullPath>
         </FileNode>
+        <FileNode Name="os-processes-cpu-over-time.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>os-processes-cpu-over-time.sql</FullPath>
+        </FileNode>
+        <FileNode Name="os-processes-memory-over-time.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>os-processes-memory-over-time.sql</FullPath>
+        </FileNode>
         <FileNode Name="SCH-Transaction-to-New-Arch-Queries.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Sql2017:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Sql2017</AssociatedConnSrvName>
