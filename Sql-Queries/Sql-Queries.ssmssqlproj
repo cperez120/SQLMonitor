@@ -193,6 +193,12 @@
           <AssociatedConnUserName />
           <FullPath>Blocking-Test.sql</FullPath>
         </FileNode>
+        <FileNode Name="blocking-time-series.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>blocking-time-series.sql</FullPath>
+        </FileNode>
         <FileNode Name="check-domain-ip-hostname.sql.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQL2019:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>SQL2019</AssociatedConnSrvName>
