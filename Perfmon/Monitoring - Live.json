@@ -98,7 +98,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1651222063010,
+  "iteration": 1651222786176,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -2294,7 +2294,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2310,7 +2311,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 8
+            "y": 21
           },
           "id": 18,
           "options": {
@@ -2842,7 +2843,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   }
                 ]
               },
@@ -2949,7 +2951,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   }
                 ]
               },
@@ -3006,7 +3009,7 @@
               "refId": "A"
             }
           ],
-          "title": "[${server}] - OS Process - CPU Time[${server}] - OS Process - CPU Time - Utilization - $cpu_delta_minutes Minute Interval",
+          "title": "[${server}] - OS Process - CPU Time - Utilization - $cpu_delta_minutes Minute Interval",
           "type": "timeseries"
         }
       ],
@@ -3068,7 +3071,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   }
                 ]
               },
@@ -3175,7 +3179,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   }
                 ]
               },
@@ -4201,6 +4206,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live",
   "uid": "Fg8Q_wSMz",
-  "version": 151,
+  "version": 152,
   "weekStart": ""
 }
