@@ -27,6 +27,102 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="SQL2012:LAB\adwivedi">
+          <Created>2022-04-28T03:38:40.9368475-07:00</Created>
+          <Type>SQL</Type>
+          <Server>SQL2012</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="Sql2014:LAB\adwivedi">
+          <Created>2022-04-28T03:35:46.3488592-07:00</Created>
+          <Type>SQL</Type>
+          <Server>Sql2014</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="Sql2016:LAB\adwivedi">
+          <Created>2022-04-28T03:22:19.0668513-07:00</Created>
+          <Type>SQL</Type>
+          <Server>Sql2016</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="Sql2017:LAB\adwivedi">
+          <Created>2022-04-28T01:09:34.7441281-07:00</Created>
+          <Type>SQL</Type>
+          <Server>Sql2017</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="SQL2019:LAB\adwivedi">
+          <Created>2022-04-28T01:09:59.5549187-07:00</Created>
+          <Type>SQL</Type>
+          <Server>SQL2019</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="SqlDr1:LAB\adwivedi">
+          <Created>2022-04-28T00:50:33.5718288-07:00</Created>
+          <Type>SQL</Type>
+          <Server>SqlDr1</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="SqlDr2:LAB\adwivedi">
+          <Created>2022-04-28T01:05:55.6925607-07:00</Created>
+          <Type>SQL</Type>
+          <Server>SqlDr2</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="SqlDr3:LAB\adwivedi">
+          <Created>2022-04-28T01:08:15.8135126-07:00</Created>
+          <Type>SQL</Type>
+          <Server>SqlDr3</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="SqlMonitor:LAB\adwivedi">
           <Created>2022-04-24T03:31:26.302972-07:00</Created>
           <Type>SQL</Type>
@@ -43,6 +139,30 @@
           <Created>2022-04-25T09:28:37.3903183-07:00</Created>
           <Type>SQL</Type>
           <Server>SqlProd1</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="SqlProd2:LAB\adwivedi">
+          <Created>2022-04-28T00:03:04.7162958-07:00</Created>
+          <Type>SQL</Type>
+          <Server>SqlProd2</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="SqlProd3:LAB\adwivedi">
+          <Created>2022-04-28T00:12:30.6811539-07:00</Created>
+          <Type>SQL</Type>
+          <Server>SqlProd3</Server>
           <UserName />
           <Authentication>Windows Authentication</Authentication>
           <InitialDB />
@@ -73,9 +193,15 @@
           <AssociatedConnUserName />
           <FullPath>Blocking-Test.sql</FullPath>
         </FileNode>
+        <FileNode Name="blocking-time-series.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>blocking-time-series.sql</FullPath>
+        </FileNode>
         <FileNode Name="check-domain-ip-hostname.sql.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlProd1:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>SqlProd1</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQL2019:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SQL2019</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>check-domain-ip-hostname.sql.sql</FullPath>
         </FileNode>
@@ -90,6 +216,24 @@
           <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>grafana-wait-stats-query.sql</FullPath>
+        </FileNode>
+        <FileNode Name="os-processes-cpu-over-time.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>os-processes-cpu-over-time.sql</FullPath>
+        </FileNode>
+        <FileNode Name="os-processes-memory-over-time.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>os-processes-memory-over-time.sql</FullPath>
+        </FileNode>
+        <FileNode Name="SCH-Transaction-to-New-Arch-Queries.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Sql2017:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Sql2017</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-Transaction-to-New-Arch-Queries.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>

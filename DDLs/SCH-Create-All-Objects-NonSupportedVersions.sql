@@ -2,17 +2,11 @@ USE [DBA]
 GO
 
 /*
-	1) Create Partition Function
-	2) Create Partition Scheme
-	3) Create table [dbo].[performance_counters] using Partition scheme
-	4) Create dbo.perfmon_files table using Partition scheme
-	5) Create table [dbo].[os_task_list] using Partition scheme
-	6) Create & Populate table [dbo].[BlitzFirst_WaitStats_Categories]
-	7) Create view [dbo].[vw_wait_stats_deltas] 
-	8) Add/Remove Partition Boundaries
-	
-	Self Steps
-	-----------
+	Version -> v2.0.0
+	-----------------
+
+	*** Self Pre Steps ***
+	----------------------
 	1) Create a public & default mail profile. https://github.com/imajaydwivedi/SQLDBA-SSMS-Solution/blob/0c2eaecca3dcf6745e3b2d262208c2f2257008bb/SQLDBATools-Inventory/DatabaseMail_Using_GMail.sql
 	2) Create sp_WhoIsActive in [master] database. https://github.com/imajaydwivedi/SQLDBA-SSMS-Solution/blob/ae2541e37c28ea5b50887de993666bc81f29eba5/BlitzQueries/SCH-sp_WhoIsActive_v12_00(Modified).sql
 	3) Install Brent Ozar's First Responder Kit. https://raw.githubusercontent.com/BrentOzarULTD/SQL-Server-First-Responder-Kit/dev/Install-All-Scripts.sql
@@ -22,9 +16,86 @@ GO
 		Update-Help -Force -ErrorAction Continue -Verbose
 		Install-Module dbatools, enhancedhtml2, sqlserver, poshrsjob -Scope AllUsers -Force -ErrorAction Continue -Verbose
 
+	*** Steps in this Script ****
+	-----------------------------
+	1) Create Partition function for [datetime2] & [datetime]
+	2) Create Partition Scheme for [datetime2] & [datetime]
+	3) Create table dbo.instance_hosts
+	4) Create table dbo.instance_details
+	5) Create table [dbo].[performance_counters] using Partition scheme
+	6) Create View [dbo].[vw_performance_counters] for Multi SqlCluster on same nodes Architecture
+	7) Create dbo.perfmon_files table using Partition scheme
+	8) Create table [dbo].[os_task_list] using Partition scheme
+	9) Create View [dbo].[vw_os_task_list] for Multi SqlCluster on same nodes Architecture
+	10) Create table  [dbo].[wait_stats] using Partition scheme
+	11) Create table  [dbo].[BlitzFirst_WaitStats_Categories]
+	12) Create view  [dbo].[wait_stats]
+	13) Create required schemas
+	14) Set DBA database trustworthy & [sa] owner
+	15) Create procedure dbo.usp_extended_results
+	16) Validate Partition Data
+	17) Add boundaries to partition. 1 boundary per hour
+	18) Remove boundaries with retention of 3 months
+	19) Populate [dbo].[BlitzFirst_WaitStats_Categories]
+
 */
 
-/* ***** 3) Create table [dbo].[performance_counters] using Partition scheme ***************** */
+IF DB_NAME() = 'master'
+	raiserror ('Kindly execute all queries in [DBA] database', 20, -1) with log;
+go
+
+/* ****** 1) Partition function for [datetime2] & [datetime] ******* */
+create partition function pf_dba (datetime2)
+as range right for values ('2022-03-25 00:00:00.0000000')
+go
+create partition function pf_dba_datetime (datetime)
+as range right for values ('2022-03-25 00:00:00.000')
+go
+
+
+/* ****** 2) Partition Scheme for [datetime2] & [datetime] ******* */
+create partition scheme ps_dba as partition pf_dba all to ([primary])
+go
+create partition scheme ps_dba_datetime as partition pf_dba_datetime all to ([primary])
+go
+
+
+/* ***** 3) Create table dbo.instance_hosts ***************************** */
+-- drop table dbo.instance_hosts;
+create table dbo.instance_hosts
+(
+	[host_name] nvarchar(255) not null,
+	constraint pk_instance_hosts primary key clustered ([host_name])
+)
+go
+
+insert dbo.instance_hosts
+select [host_name] = CONVERT(nvarchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS'));
+go
+
+
+/* ***** 4) Create table dbo.instance_details ***************************** */
+-- drop table dbo.instance_details;
+create table dbo.instance_details
+(
+	[sql_instance] nvarchar(255) not null,
+	[host_name] nvarchar(255) not null,
+	[collector_sql_instance] nvarchar(255) null default convert(nvarchar,serverproperty('MachineName')),
+	constraint pk_instance_details primary key clustered ([sql_instance], [host_name]), 
+	constraint fk_host_name foreign key ([host_name]) references dbo.instance_hosts ([host_name])
+)
+go
+
+insert dbo.instance_details ( [sql_instance], [host_name], [collector_sql_instance] )
+select	[sql_instance] = convert(nvarchar,serverproperty('MachineName')),
+		--[ip] = CONNECTIONPROPERTY('local_net_address')
+		[host_name] = CONVERT(nvarchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')),
+		--[service_name] = case when @@servicename = 'MSSQLSERVER' then @@servicename else 'MSSQL$'+@@servicename end,
+		[collector_sql_instance] = convert(nvarchar,serverproperty('MachineName'))
+go
+
+
+/* ***** 5) Create table [dbo].[performance_counters] using Partition scheme ***************** */
 -- drop table [dbo].[performance_counters]
 create table [dbo].[performance_counters]
 (
@@ -45,20 +116,22 @@ create nonclustered index nci_counter_collection_time_utc
 	on [dbo].[performance_counters] ([counter],[collection_time_utc]) 
 GO
 
-/* Create View for Multi SqlCluster on same nodes Architecture */
+
+/* ***** 6) Create View [dbo].[vw_performance_counters] for Multi SqlCluster on same nodes Architecture */
 -- drop view dbo.vw_performance_counters
 create view dbo.vw_performance_counters
-with schemabinding
+--with schemabinding
 as
 with cte_counters_local as (select collection_time_utc, host_name, path, object, counter, value, instance from dbo.performance_counters)
---,cte_counters_sqlinstance2 as (select collection_time_utc, host_name, path, object, counter, value, instance from dbo.performance_counters_sqlinstance2)
+--,cte_counters_sql2019 as (select collection_time_utc, host_name, path, object, counter, value, instance from [SQL2019].DBA.dbo.performance_counters)
+
 select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_local
---union
---select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_sqlinstance2
+--union all
+--select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_sql2019
 go
 
 
-/* ***** 4) Create dbo.perfmon_files table using Partition scheme ***************** */
+/* ***** 7) Create dbo.perfmon_files table using Partition scheme ***************** */
 -- drop table [dbo].[perfmon_files]
 CREATE TABLE [dbo].[perfmon_files]
 (
@@ -74,7 +147,8 @@ CREATE TABLE [dbo].[perfmon_files]
 ) 
 GO
 
-/* ***** 5) Create table [dbo].[os_task_list] using Partition scheme ***************** */
+
+/* ***** 8) Create table [dbo].[os_task_list] using Partition scheme ***************** */
 -- drop table [dbo].[os_task_list]
 CREATE TABLE [dbo].[os_task_list]
 (	
@@ -103,6 +177,23 @@ go
 create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_time_utc], [host_name], [memory_kb]) 
 go
 
+
+/* ***** 9) Create View [dbo].[vw_os_task_list] for Multi SqlCluster on same nodes Architecture */
+-- drop view dbo.vw_os_task_list
+create view dbo.vw_os_task_list
+--with schemabinding
+as
+with cte_os_tasks_local as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from dbo.os_task_list)
+--,cte_os_tasks_sql2019 as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from [SQL2019].DBA.dbo.os_task_list)
+
+select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_local
+--union all
+--select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_sql2019
+go
+
+
+
+/* ***** 10) Create table  [dbo].[wait_stats] using Partition scheme ***************** */
 -- drop table [dbo].[wait_stats]
 CREATE TABLE [dbo].[wait_stats]
 (
@@ -115,15 +206,13 @@ CREATE TABLE [dbo].[wait_stats]
 ) 
 GO
 
---create clustered index ci_wait_stats on [dbo].[wait_stats] ([collection_time_utc], [wait_type]) 
---go
-
 alter table [dbo].[wait_stats] add primary key ([collection_time_utc], [wait_type]) 
 go
 
 
 
-/****** Object:  Table [dbo].[BlitzFirst_WaitStats_Categories]    Script Date: 4/23/2022 2:26:59 AM ******/
+/* ***** 11) Create table  [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
+-- drop table [dbo].[BlitzFirst_WaitStats_Categories]
 CREATE TABLE [dbo].[BlitzFirst_WaitStats_Categories]
 (
 	[WaitType] [nvarchar](60) NOT NULL,
@@ -136,7 +225,7 @@ GO
 ALTER TABLE [dbo].[BlitzFirst_WaitStats_Categories] ADD  DEFAULT ((0)) FOR [Ignorable]
 GO
 
-
+/* ***** 12) Create view  [dbo].[wait_stats] ***************** */
 -- DROP VIEW [dbo].[vw_wait_stats_deltas];
 CREATE VIEW [dbo].[vw_wait_stats_deltas] 
 WITH SCHEMABINDING 
@@ -171,6 +260,8 @@ WHERE [w].[wait_time_ms] >= [wPrior].[wait_time_ms]
 --ORDER BY w.collection_time_utc, wait_time_ms_delta desc
 GO
 
+
+/* ***** 13) Create required schemas ***************** */
 CREATE SCHEMA [bkp]
 GO
 CREATE SCHEMA [poc]
@@ -180,7 +271,8 @@ GO
 CREATE SCHEMA [tst]
 GO
 
--- Set DBA database trustworthy & [sa] owner
+
+/* ***** 14) Set DBA database trustworthy & [sa] owner ***************** */
 declare @dbname nvarchar(255);
 set @dbname=quotename(db_name());
 
@@ -189,8 +281,9 @@ exec('alter authorization on database::'+@dbname+' to [sa]');
 go
 
 
+/* ***** 15) Create procedure dbo.usp_extended_results ***************** */
 -- drop procedure usp_extended_results
-create procedure usp_extended_results @processor_name nvarchar(500) = null output, @host_distribution nvarchar(500) = null output, @fqdn nvarchar(100) = null output
+create procedure dbo.usp_extended_results @processor_name nvarchar(500) = null output, @host_distribution nvarchar(500) = null output, @fqdn nvarchar(100) = null output
 with execute as owner
 as
 begin
@@ -210,7 +303,8 @@ end
 go
 
 
-/* Validate Partition Data */
+/* ***** 16) Validate Partition Data ***************** */
+/*
 SELECT SCHEMA_NAME(o.schema_id)+'.'+ o.name as TableName,
 	pf.name as PartitionFunction,
 	ds.name AS PartitionScheme, 
@@ -236,13 +330,14 @@ WHERE
 	OBJECTPROPERTY(p.[object_id], 'IsMSShipped') = 0
 ORDER BY p.partition_number;	
 go
+*/
 
-/* Add boundaries to partition. 1 boundary per hour */
+
+/* ***** 17) Add boundaries to partition. 1 boundary per hour ***************** */
 set nocount on;
 declare @partition_boundary datetime2;
 declare @target_boundary_value datetime2; /* 3 months back date */
 set @target_boundary_value = DATEADD(mm,DATEDIFF(mm,0,GETDATE())-3,0);
-set @target_boundary_value = '2022-03-25 19:00:00.000'
 
 declare cur_boundaries cursor local fast_forward for
 		select convert(datetime2,prv.value) as boundary_value
@@ -265,7 +360,7 @@ DEALLOCATE cur_boundaries;
 go
 
 
-/* Remove boundaries with retention of 3 months */
+/* ***** 18) Remove boundaries with retention of 3 months ***************** */
 set nocount on;
 declare @current_boundary_value datetime2;
 declare @target_boundary_value datetime2; /* last day of new quarter */
@@ -289,6 +384,7 @@ end
 go
 
 
+/* ***** 19) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
 IF OBJECT_ID('[dbo].[BlitzFirst_WaitStats_Categories]') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM [dbo].[BlitzFirst_WaitStats_Categories])
 BEGIN
 	--TRUNCATE TABLE [dbo].[BlitzFirst_WaitStats_Categories];
