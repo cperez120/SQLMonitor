@@ -1,17 +1,11 @@
-use DBA
-go
-
 set nocount on;
-
-declare @start_time datetime = dateadd(minute,-60,getutcdate());
+declare @start_time datetime = dateadd(minute,-30,getutcdate())
 declare @end_time datetime = getutcdate();
 declare @host_name nvarchar(255) = 'WORKSTATION'
 declare @TopRowFilter tinyint = 10;
 
-
 declare @delta_minutes int;
-declare @_duration_minute int = datediff(minute,@start_time,@end_time);
-set @delta_minutes = (case when @_duration_minute <= 30 then 5 when @_duration_minute <= 120 then 10 else 15 end);
+set @delta_minutes = 1;
 
 if object_id('tempdb..#dates') is not null
 	drop table #dates;
@@ -21,11 +15,12 @@ declare @_collection_time_utc_prev datetime2;
 
 declare cur_dates cursor local fast_forward for
 	select collection_time_utc
-	from dbo.os_task_list 
+	from dbo.vw_os_task_list
 	where host_name = @host_name
 	and collection_time_utc between @start_time and @end_time
 	group by collection_time_utc
-	order by collection_time_utc;
+	order by collection_time_utc
+	option(recompile);
 
 open cur_dates;
 fetch next from cur_dates into @_collection_time_utc;
@@ -53,27 +48,27 @@ end
 close cur_dates;
 deallocate cur_dates;
 
---select *
---from #dates;
+select * from #dates;
 
 if object_id('tempdb..#os_task_list') is not null
 	drop table #os_task_list;
 with cte_tasks as (
-	select tl.collection_time_utc, tl.task_name, [cpu_s] = sum(cpu_time_seconds), [counts] = count(*)
-	from dbo.os_task_list tl join #dates d on d.collection_time_utc = tl.collection_time_utc
+	select tl.collection_time_utc, tl.task_name, [memory_kb] = sum([memory_kb]), [counts] = count(*)
+	from dbo.vw_os_task_list tl join #dates d on d.collection_time_utc = tl.collection_time_utc
 	where (tl.collection_time_utc between @start_time and @end_time)
 	and tl.host_name = @host_name
 	and task_name not in ('System Idle Process','') -- add other harmless processes here
 	group by tl.collection_time_utc, tl.task_name
 )
-select	collection_time_utc, task_name, cpu_s, counts
-		,[cpu_s__delta] = isnull(cpu_s - (lag(cpu_s) over (partition by task_name order by collection_time_utc)),0)
-		,[CpuRank] = ROW_NUMBER() OVER(PARTITION BY [collection_time_utc] ORDER BY cpu_s DESC)
+select	collection_time_utc, task_name, [memory_kb], counts
+		--,[cpu_s__delta] = isnull(cpu_s - (lag(cpu_s) over (partition by task_name order by collection_time_utc)),0)
+		,[RowRank] = ROW_NUMBER() OVER(PARTITION BY [collection_time_utc] ORDER BY [memory_kb] DESC)
 into #os_task_list
 from cte_tasks;
 
 
-select collection_time_utc, task_name, [cpu_s__delta]
+select collection_time_utc as time, task_name as metric, [memory_kb] as value
 from #os_task_list
-where CpuRank <= @TopRowFilter
-order by collection_time_utc, CpuRank, cpu_s desc;
+where [RowRank] <= @TopRowFilter
+and collection_time_utc > (select min(m.collection_time_utc) from #os_task_list m)
+order by [time], [RowRank], [value] desc;
