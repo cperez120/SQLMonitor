@@ -44,7 +44,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Import-P
 		@retry_attempts=0, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'CmdExec', 
-		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  C:\Perfmon\perfmon-collector-push-to-sqlserver.ps1 -HostName YourHostName -SqlInstance YourSqlInstanceName -Database DBA', 
+		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  C:\Perfmon\perfmon-collector-push-to-sqlserver.ps1 -HostName localhost -SqlInstance localhost -Database DBA', 
 		@flags=40
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 /****** Object:  Step [Import-TaskList]    Script Date: 4/21/2022 5:42:25 AM ******/
@@ -58,7 +58,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Import-T
 		@retry_attempts=0, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'CmdExec', 
-		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  C:\Perfmon\tasklist-push-to-sqlserver.ps1 -HostName YourHostName -SqlInstance YourSqlInstanceName -Database DBA', 
+		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  C:\Perfmon\tasklist-push-to-sqlserver.ps1 -HostName localhost -SqlInstance localhost -Database DBA', 
 		@flags=40
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_update_job @job_id = @jobId, @start_step_id = 1
