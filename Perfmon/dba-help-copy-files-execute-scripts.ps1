@@ -1,4 +1,4 @@
-﻿$HostName = 'Demo'
+﻿$HostName = 'SqlPractice'
 $DestinationDrive = 'C:\'
 
 # Copy Perfmon scripts
@@ -10,8 +10,8 @@ Invoke-Command -Session $ssn -ScriptBlock {
     # Set execution policy
     Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy Unrestricted -Force 
 
-    logman stop -name “DBA”
-    logman delete -name “DBA”
+    #logman stop -name “DBA”
+    #logman delete -name “DBA”
     
     # Create data collector
     & "$($Using:DestinationDrive)Perfmon\perfmon-collector-logman.ps1" -TemplatePath "$($Using:DestinationDrive)Perfmon\DBA_PerfMon_All_Counters_Template.xml"
