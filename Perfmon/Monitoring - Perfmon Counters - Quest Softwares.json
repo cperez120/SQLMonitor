@@ -70,7 +70,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1651248156602,
+  "iteration": 1651315651126,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -130,7 +130,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent"
+                    "color": "transparent",
+                    "value": null
                   },
                   {
                     "color": "orange",
@@ -230,7 +231,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -278,7 +280,7 @@
         }
       ],
       "repeat": "datasource",
-      "title": "CPU & Processor - [$fqdn] - [$ip] - [$host_name\\$instance_name] - @ ${collection_time_utc:date:YYYY-MM-DD HH.MM}",
+      "title": "CPU & Processor - [$fqdn] - [$ip] - [$host_name\\$instance_name] - @ ${collection_time_utc:date:YYYY-MM-DD HH.mm}",
       "type": "row"
     },
     {
@@ -335,7 +337,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -351,7 +354,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 1
+            "y": 2
           },
           "id": 26,
           "options": {
@@ -426,7 +429,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -442,7 +446,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 7
+            "y": 8
           },
           "id": 58,
           "options": {
@@ -523,7 +527,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -539,7 +544,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 18
+            "y": 19
           },
           "id": 60,
           "options": {
@@ -1052,8 +1057,7 @@
                 "lineWidth": 1,
                 "pointSize": 2,
                 "scaleDistribution": {
-                  "log": 2,
-                  "type": "log"
+                  "type": "linear"
                 },
                 "showPoints": "always",
                 "spanNulls": true,
@@ -1147,8 +1151,7 @@
                 "lineWidth": 1,
                 "pointSize": 2,
                 "scaleDistribution": {
-                  "log": 2,
-                  "type": "log"
+                  "type": "linear"
                 },
                 "showPoints": "always",
                 "spanNulls": true,
@@ -4098,8 +4101,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent",
-                    "value": null
+                    "color": "transparent"
                   },
                   {
                     "color": "orange",
@@ -4198,8 +4200,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -5390,6 +5391,6 @@
   "timezone": "",
   "title": "Monitoring - Perfmon Counters - Quest Softwares",
   "uid": "_dioLINMk",
-  "version": 56,
+  "version": 59,
   "weekStart": ""
 }
