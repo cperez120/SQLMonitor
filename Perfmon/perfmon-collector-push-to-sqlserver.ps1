@@ -26,11 +26,13 @@ Param (
     [Bool]$CleanupFiles = $true
 )
 
+$startTime = Get-Date
+Import-Module dbatools;
+$ErrorActionPreference = 'Stop'
+
 Write-Debug "At start of function"
 
 # Fetch Collector details
-$startTime = Get-Date
-Import-Module dbatools;
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetch details of [$collectorSetName] data collector.."
 $pfCollector = Get-DbaPfDataCollector -ComputerName $HostName -CollectorSet $collectorSetName
 $pfCollectorSet = Get-DbaPfDataCollectorSet -ComputerName $HostName -CollectorSet $collectorSetName
