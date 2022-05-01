@@ -39,12 +39,6 @@
       "version": ""
     },
     {
-      "type": "panel",
-      "id": "gauge",
-      "name": "Gauge",
-      "version": ""
-    },
-    {
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
@@ -55,12 +49,6 @@
       "id": "mssql",
       "name": "Microsoft SQL Server",
       "version": "1.0.0"
-    },
-    {
-      "type": "panel",
-      "id": "piechart",
-      "name": "Pie chart",
-      "version": ""
     },
     {
       "type": "panel",
@@ -105,7 +93,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1651401414904,
+  "iteration": 1651416261183,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -117,151 +105,11 @@
         "x": 0,
         "y": 0
       },
-      "id": 37,
+      "id": 154,
       "panels": [],
       "repeat": "datasource",
-      "title": "LIVE Metrics - [$fqdn] - [$ip] - [$host_name\\$instance_name] - @ ${perfmon_collection_time_utc:date:YYYY-MM-DD HH.mm}",
+      "title": "LIVE Metrics - OS Info - [$fqdn] - [$ip]",
       "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "select * from sys.dm_exec_requests r where blocking_session_id <> 0",
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "dark-orange",
-                "value": 2
-              },
-              {
-                "color": "dark-red",
-                "value": 5
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 3,
-        "x": 0,
-        "y": 1
-      },
-      "id": 21,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "mean"
-          ],
-          "fields": "/^counts$/",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect count(*) as counts from sys.dm_exec_requests r with (nolock) where r.blocking_session_id <> 0\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
-          "refId": "A"
-        }
-      ],
-      "title": "Blocked Sessions",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "unit": "%"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 7,
-        "x": 3,
-        "y": 1
-      },
-      "id": 10,
-      "options": {
-        "displayLabels": [
-          "value"
-        ],
-        "legend": {
-          "displayMode": "table",
-          "placement": "right",
-          "values": [
-            "value"
-          ]
-        },
-        "pieType": "pie",
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "pluginVersion": "8.4.4",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "time_series",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\ndeclare @object_name varchar(255);\r\nset @object_name = (case when '$service_name' = 'MSSQLSERVER' then 'SQLServer' else '$service_name' end);\r\n\r\n;with cte_os as (\r\n\tSELECT top 1 'OS' as metric, pc.value\r\n\t\t\t,collection_time_utc\r\n\tFROM $perfmon_table_name pc with (nolock)\r\n\tWHERE pc.host_name = '$perfmon_host_name'\r\n\t-- $__timeFilter(collection_time_utc) and \r\n\t\t and pc.object = 'Processor' \r\n\t\t and pc.counter = '% processor time' \r\n\t\t and pc.instance = '_total'\r\n\tORDER BY collection_time_utc desc\r\n)\r\n,cte_sql as (\r\n\tSELECT top 1 'SqlServer' as metric, (pc.value/$sql_schedulers) as value\r\n\t\t\t,collection_time_utc\r\n\t\t\t,row_number()over(partition by pc.object order by collection_time_utc desc) as row_id\r\n\tFROM $perfmon_table_name pc with(nolock)\r\n\tWHERE pc.host_name = '$perfmon_host_name' and\r\n\t-- $__timeFilter(collection_time_utc) and \r\n\t\t pc.object = 'process' and pc.counter = '% processor time' and pc.instance = 'sqlservr'\r\n\tORDER BY collection_time_utc desc\r\n)\r\n--select collection_time_utc as time, metric, value from cte_os\r\n--union all\r\nselect collection_time_utc as time, metric, value from cte_sql\r\nunion all\r\nselect cte_os.collection_time_utc as time, 'Other' as metric, cte_os.value-cte_sql.value as value  from cte_os, cte_sql\r\nunion all\r\nselect collection_time_utc as time, 'Unused' as metric, 100-value from cte_os\r\n\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
-          "refId": "A"
-        }
-      ],
-      "title": "CPU @ ${perfmon_collection_time_utc:date:YYYY-MM-DD HH.mm}",
-      "type": "piechart"
     },
     {
       "datasource": {
@@ -300,7 +148,7 @@
       "gridPos": {
         "h": 2,
         "w": 3,
-        "x": 10,
+        "x": 0,
         "y": 1
       },
       "id": 70,
@@ -364,7 +212,7 @@
       "gridPos": {
         "h": 2,
         "w": 3,
-        "x": 13,
+        "x": 3,
         "y": 1
       },
       "id": 64,
@@ -428,7 +276,7 @@
       "gridPos": {
         "h": 2,
         "w": 4,
-        "x": 16,
+        "x": 6,
         "y": 1
       },
       "id": 75,
@@ -491,197 +339,9 @@
       },
       "gridPos": {
         "h": 2,
-        "w": 2,
-        "x": 20,
-        "y": 1
-      },
-      "id": 66,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "/.*/",
-          "values": true
-        },
-        "text": {
-          "titleSize": 8,
-          "valueSize": 18
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect convert(varchar,osi.cpu_count)+' / '+convert(varchar,osi.scheduler_count)\r\nfrom sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
-          "refId": "A"
-        }
-      ],
-      "title": "CPU (OS / SQL)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "decimals": 2,
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "gbytes"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 3,
-        "x": 10,
-        "y": 3
-      },
-      "id": 68,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "/.*/",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nSELECT [server_ram_gb] = ceiling(osi.physical_memory_kb/1024.0/1024.0)\r\nFROM sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
-          "refId": "A"
-        }
-      ],
-      "title": "Box M/r",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "decimals": 2,
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 3,
-        "x": 13,
-        "y": 3
-      },
-      "id": 67,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "/^os_uptime$/",
-          "values": false
-        },
-        "text": {
-          "titleSize": 8,
-          "valueSize": 18
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect os_uptime = Concat\r\n        (\r\n            RIGHT('000'+CAST(ISNULL((datediff(second,sqlserver_start_time,GETDATE()) / 3600 / 24), 0) AS VARCHAR(3)),3)\r\n            ,' '\r\n            ,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time,GETDATE()) / 3600  % 24, 0) AS VARCHAR(2)),2)\r\n            ,':'\r\n            ,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time,GETDATE()) / 60 % 60, 0) AS VARCHAR(2)),2)\r\n            ,':'\r\n            ,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time,GETDATE()) % 3600 % 60, 0) AS VARCHAR(2)),2)\r\n        )\r\nfrom sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
-          "refId": "A"
-        }
-      ],
-      "title": "SqlServer Uptime",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "decimals": 2,
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 2,
         "w": 6,
-        "x": 16,
-        "y": 3
+        "x": 10,
+        "y": 1
       },
       "id": 83,
       "options": {
@@ -723,159 +383,6 @@
         "type": "mssql",
         "uid": "${DS_SQLMONITOR}"
       },
-      "description": "select * from sys.dm_exec_requests r where blocking_session_id <> 0",
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "dark-orange",
-                "value": 500
-              },
-              {
-                "color": "dark-red",
-                "value": 700
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 3,
-        "x": 0,
-        "y": 4
-      },
-      "id": 122,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "mean"
-          ],
-          "fields": "/^counts$/",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect count(*) as counts from sys.dm_exec_connections with (nolock)\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
-          "refId": "A"
-        }
-      ],
-      "title": "Connections",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "decimals": 2,
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "dark-red",
-                "value": null
-              },
-              {
-                "color": "dark-red",
-                "value": -10
-              },
-              {
-                "color": "dark-red",
-                "value": 300
-              },
-              {
-                "color": "super-light-red",
-                "value": 600
-              },
-              {
-                "color": "light-green",
-                "value": 601
-              },
-              {
-                "color": "dark-green",
-                "value": 1200
-              }
-            ]
-          },
-          "unit": "dateTimeAsSystem"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 3,
-        "x": 13,
-        "y": 5
-      },
-      "id": 65,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "/.*/",
-          "values": true
-        },
-        "text": {
-          "titleSize": 8,
-          "valueSize": 18
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect sqlserver_start_time\r\nfrom sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
-          "refId": "A"
-        }
-      ],
-      "title": "SqlServer Start Time",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -896,11 +403,11 @@
       },
       "gridPos": {
         "h": 2,
-        "w": 6,
+        "w": 3,
         "x": 16,
-        "y": 5
+        "y": 1
       },
-      "id": 73,
+      "id": 69,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -928,205 +435,11 @@
             "uid": "${DS_SQLMONITOR}"
           },
           "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect convert(varchar,SERVERPROPERTY('ProductVersion'))+' ('+convert(varchar,SERVERPROPERTY('Edition'))+')'\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect virtual_machine_type_desc\r\nfrom sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
           "refId": "A"
         }
       ],
-      "title": "SQL Version",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "Ratio of Total Server Memory to Target Server Memory",
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "percentage",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "#EAB839",
-                "value": 70
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "%"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 3,
-        "x": 10,
-        "y": 6
-      },
-      "id": 13,
-      "options": {
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "mean"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "time_series",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nSELECT top 1 ttl.collection_time_utc as time, case when tgt.value = 0 then 0 else (ttl.value*100)/tgt.value end as [SQLServer Max M/r Usage]\nFROM $perfmon_table_name as ttl with (nolock)\nJOIN $perfmon_table_name as tgt with (nolock)\nON ttl.object = tgt.object \nAND ttl.object = (@object_name+':Memory Manager')\nAND ttl.counter = 'Total Server Memory (KB)'\nAND tgt.counter = 'Target Server Memory (KB)'\nWHERE ttl.host_name = '$perfmon_host_name' and tgt.host_name = '$perfmon_host_name'\nORDER BY time desc;\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
-          "refId": "A"
-        }
-      ],
-      "title": "Sql M/r Usage",
-      "transformations": [],
-      "type": "gauge"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#73BF69",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 3,
-        "x": 0,
-        "y": 7
-      },
-      "id": 23,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "text": {},
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\n--\tQuery to find what's is running on server\r\nSELECT\tgetdate() as time, COUNT(*) as active_request_count\r\nFROM\tsys.dm_exec_sessions AS s\r\nLEFT JOIN sys.dm_exec_requests AS r ON r.session_id = s.session_id\r\nOUTER APPLY sys.dm_exec_sql_text(r.sql_handle) AS st\r\nOUTER APPLY sys.dm_exec_query_plan(r.plan_handle) AS bqp\r\nOUTER APPLY sys.dm_exec_text_query_plan(r.plan_handle,r.statement_start_offset, r.statement_end_offset) as sqp\r\nWHERE\ts.session_id != @@SPID\r\n\tAND (\t(CASE\tWHEN\ts.session_id IN (select ri.blocking_session_id from sys.dm_exec_requests as ri )\r\n\t\t\t\t\t--\tGet sessions involved in blocking (including system sessions)\r\n\t\t\t\t\tTHEN\t1\r\n\t\t\t\t\tWHEN\tr.blocking_session_id IS NOT NULL AND r.blocking_session_id <> 0\r\n\t\t\t\t\tTHEN\t1\r\n\t\t\t\t\tELSE\t0\r\n\t\t\tEND) = 1\r\n\t\t\tOR\r\n\t\t\t(CASE\tWHEN\ts.session_id > 50\r\n\t\t\t\t\t\t\tAND r.session_id IS NOT NULL -- either some part of session has active request\r\n\t\t\t\t\t\t\t--AND ISNULL(open_resultset_count,0) > 0 -- some result is open\r\n\t\t\t\t\t\t\tAND s.status <> 'sleeping'\r\n\t\t\t\t\tTHEN\t1\r\n\t\t\t\t\tELSE\t0\r\n\t\t\tEND) = 1\r\n\t\t\tOR\r\n\t\t\t(CASE\tWHEN\ts.session_id > 50\r\n\t\t\t\t\t\t\tAND ISNULL(r.open_transaction_count,0) > 0\r\n\t\t\t\t\tTHEN\t1\r\n\t\t\t\t\tELSE\t0\r\n\t\t\tEND) = 1\r\n\t\t)\t\t\r\nORDER BY time;\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
-          "refId": "A"
-        }
-      ],
-      "title": "Active Requests",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "decimals": 2,
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "dark-red",
-                "value": null
-              },
-              {
-                "color": "#EAB839",
-                "value": 2048
-              },
-              {
-                "color": "green",
-                "value": 4096
-              }
-            ]
-          },
-          "unit": "mbytes"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 3,
-        "x": 13,
-        "y": 7
-      },
-      "id": 11,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "mean"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "time_series",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\ndeclare @object_name varchar(255);\r\nset @object_name = (case when '$service_name' = 'MSSQLSERVER' then 'SQLServer' else '$service_name' end);\r\n\r\nSELECT top 1 collection_time_utc as time, value as [Available Memory]\r\nFROM $perfmon_table_name pc with (nolock)\r\nWHERE $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\r\n\t  pc.object = 'memory' and pc.counter = 'available mbytes'\r\nORDER BY collection_time_utc desc;\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
-          "refId": "A"
-        }
-      ],
-      "title": "Available Memory",
+      "title": "Machine Type",
       "type": "stat"
     },
     {
@@ -1161,10 +474,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
-        "w": 6,
-        "x": 16,
-        "y": 7
+        "h": 5,
+        "w": 5,
+        "x": 19,
+        "y": 1
       },
       "id": 142,
       "options": {
@@ -1192,6 +505,470 @@
       ],
       "title": "Cluster Nodes",
       "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "gbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 0,
+        "y": 3
+      },
+      "id": 68,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nSELECT [server_ram_gb] = ceiling(osi.physical_memory_kb/1024.0/1024.0)\r\nFROM sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "refId": "A"
+        }
+      ],
+      "title": "Box M/r",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1024
+              },
+              {
+                "color": "yellow",
+                "value": 2048
+              },
+              {
+                "color": "green",
+                "value": 4096
+              }
+            ]
+          },
+          "unit": "mbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 3,
+        "y": 3
+      },
+      "id": 156,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "time_series",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\ndeclare @object_name varchar(255);\r\nset @object_name = (case when '$service_name' = 'MSSQLSERVER' then 'SQLServer' else '$service_name' end);\r\n\r\nSELECT top 1 collection_time_utc as time, value as [Available Memory]\r\nFROM $perfmon_table_name pc with (nolock)\r\nWHERE pc.host_name = '$perfmon_host_name' -- and $__timeFilter(collection_time_utc)\r\n\t  and pc.object = 'memory' and pc.counter = 'available mbytes'\r\nORDER BY collection_time_utc desc;\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "refId": "A"
+        }
+      ],
+      "title": "Available Memory",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-yellow",
+                "value": null
+              }
+            ]
+          },
+          "unit": "string"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 6,
+        "y": 3
+      },
+      "id": 84,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [],
+          "fields": "/.*/",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect count(*) as counts\nfrom $os_task_list_table_name otl with (nolock)\nwhere collection_time_utc = (select top 1 i.collection_time_utc from $os_task_list_table_name i with (nolock)\n                              where i.host_name = '$perfmon_host_name' order by i.collection_time_utc desc)\nand otl.host_name = '$perfmon_host_name'\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+          "refId": "A"
+        }
+      ],
+      "title": "OS Processes @ ${os_task_list_collection_time_utc:date:YYYY-MM-DD HH.mm}",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 10,
+        "y": 3
+      },
+      "id": 158,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [],
+          "fields": "/.*/",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\ndeclare @object_name varchar(255);\r\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\r\n\r\nSELECT top 1 pc.value\r\nFROM $perfmon_table_name pc with (nolock)\r\nWHERE pc.host_name = '$perfmon_host_name' and\r\n-- $__timeFilter(collection_time_utc) and \r\n\t pc.object = 'Processor' and pc.counter = '% processor time' and pc.instance = '_total'\r\nORDER BY collection_time_utc desc\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "refId": "A"
+        }
+      ],
+      "title": "OS CPU @ ${os_task_list_collection_time_utc:date:YYYY-MM-DD HH.mm}",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 16,
+        "y": 3
+      },
+      "id": 66,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "/.*/",
+          "values": true
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect convert(varchar,osi.cpu_count)+' / '+convert(varchar,osi.scheduler_count)\r\nfrom sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "refId": "A"
+        }
+      ],
+      "title": "CPU (OS / SQL)",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "id": 37,
+      "panels": [],
+      "repeat": "datasource",
+      "title": "LIVE Metrics - [$host_name\\$instance_name] - @ ${perfmon_collection_time_utc:date:YYYY-MM-DD HH.mm}",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "select * from sys.dm_exec_requests r where blocking_session_id <> 0",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "dark-orange",
+                "value": 2
+              },
+              {
+                "color": "dark-red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 0,
+        "y": 7
+      },
+      "id": 21,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "/^counts$/",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect count(*) as counts from sys.dm_exec_requests r with (nolock) where r.blocking_session_id <> 0\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+          "refId": "A"
+        }
+      ],
+      "title": "Blocked Sessions",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 3,
+        "y": 7
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\ndeclare @object_name varchar(255);\r\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\r\n\r\nselect top 1 collection_time_utc as time, \r\n       value as SqlServer_Memory\r\nfrom $perfmon_table_name as pc with (nolock)\r\nwhere pc.host_name = '$perfmon_host_name'\r\n    --$__timeFilter(collection_time_utc) and\r\n\t  and pc.object = (@object_name+':Memory Manager')\r\n\t\tand pc.counter in ('Total Server Memory (KB)')\r\norder by collection_time_utc desc;\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "refId": "A"
+        }
+      ],
+      "title": "SqlServer M/r Usage",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -1232,8 +1009,8 @@
       "gridPos": {
         "h": 3,
         "w": 3,
-        "x": 0,
-        "y": 10
+        "x": 6,
+        "y": 7
       },
       "id": 14,
       "options": {
@@ -1280,22 +1057,34 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "dark-yellow",
+                "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 90
               }
             ]
           },
-          "unit": "string"
+          "unit": "percent"
         },
         "overrides": []
       },
       "gridPos": {
         "h": 3,
         "w": 4,
-        "x": 3,
-        "y": 10
+        "x": 10,
+        "y": 7
       },
-      "id": 84,
+      "id": 160,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
@@ -1317,136 +1106,11 @@
             "uid": "${DS_SQLMONITOR}"
           },
           "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect count(*) as counts\nfrom $os_task_list_table_name otl with (nolock)\nwhere collection_time_utc = (select top 1 i.collection_time_utc from $os_task_list_table_name i with (nolock)\n                              where i.host_name = '$perfmon_host_name' order by i.collection_time_utc desc)\nand otl.host_name = '$perfmon_host_name'\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect top 1 pc.value/$sql_schedulers as [value]\r\n--select avg(pc.value)/$sql_schedulers as [value]\r\nfrom $perfmon_table_name pc with (nolock)\r\nwhere host_name = '$perfmon_host_name' \r\n/*\r\nand ( collection_time_utc >= dateadd(minute,-5,getutcdate()) \r\n      or collection_time_utc >= dateadd(minute,-10,getutcdate())\r\n      or collection_time_utc >= dateadd(minute,-15,getutcdate()) \r\n    )\r\n*/\r\nand ((pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr'))\r\nand pc.value > 0\r\norder by collection_time_utc desc\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
           "refId": "A"
         }
       ],
-      "title": "OS Processes @ ${os_task_list_collection_time_utc:date:YYYY-MM-DD HH.mm}",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "kbytes"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 3,
-        "x": 7,
-        "y": 10
-      },
-      "id": 4,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\ndeclare @object_name varchar(255);\r\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\r\n\r\nselect top 1 collection_time_utc as time, \r\n       value as SqlServer_Memory\r\nfrom $perfmon_table_name as pc with (nolock)\r\nwhere pc.host_name = '$perfmon_host_name'\r\n    --$__timeFilter(collection_time_utc) and\r\n\t  and pc.object = (@object_name+':Memory Manager')\r\n\t\tand pc.counter in ('Total Server Memory (KB)')\r\norder by collection_time_utc desc;\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
-          "refId": "A"
-        }
-      ],
-      "title": "SqlServer M/r Usage",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "decimals": 2,
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 3,
-        "x": 13,
-        "y": 10
-      },
-      "id": 74,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "/.*/",
-          "values": true
-        },
-        "text": {
-          "titleSize": 8,
-          "valueSize": 18
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect CONVERT(varchar,SERVERPROPERTY('IsClustered'))+' / '+CONVERT(varchar,SERVERPROPERTY('IsHadrEnabled'))\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
-          "refId": "A"
-        }
-      ],
-      "title": "IsClustered / IsHadrEnabled",
+      "title": "SQL CPU @ ${os_task_list_collection_time_utc:date:YYYY-MM-DD HH.mm}",
       "type": "stat"
     },
     {
@@ -1467,15 +1131,11 @@
                 "value": null
               },
               {
-                "color": "dark-red",
-                "value": -10
-              },
-              {
-                "color": "dark-red",
+                "color": "yellow",
                 "value": 300
               },
               {
-                "color": "super-light-red",
+                "color": "orange",
                 "value": 600
               },
               {
@@ -1495,8 +1155,8 @@
       "gridPos": {
         "h": 3,
         "w": 3,
-        "x": 10,
-        "y": 11
+        "x": 14,
+        "y": 7
       },
       "id": 15,
       "options": {
@@ -1553,12 +1213,12 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 2,
-        "w": 3,
-        "x": 13,
-        "y": 12
+        "h": 3,
+        "w": 7,
+        "x": 17,
+        "y": 7
       },
-      "id": 69,
+      "id": 73,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -1572,8 +1232,7 @@
           "values": true
         },
         "text": {
-          "titleSize": 8,
-          "valueSize": 18
+          "valueSize": 24
         },
         "textMode": "auto"
       },
@@ -1586,11 +1245,346 @@
             "uid": "${DS_SQLMONITOR}"
           },
           "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect virtual_machine_type_desc\r\nfrom sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect convert(varchar,SERVERPROPERTY('ProductVersion'))+' ('+convert(varchar,SERVERPROPERTY('Edition'))+')'\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
           "refId": "A"
         }
       ],
-      "title": "Machine Type",
+      "title": "SQL Version",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 0,
+        "y": 10
+      },
+      "id": 23,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\n--\tQuery to find what's is running on server\r\nSELECT\tgetdate() as time, COUNT(*) as active_request_count\r\nFROM\tsys.dm_exec_sessions AS s\r\nLEFT JOIN sys.dm_exec_requests AS r ON r.session_id = s.session_id\r\nOUTER APPLY sys.dm_exec_sql_text(r.sql_handle) AS st\r\nOUTER APPLY sys.dm_exec_query_plan(r.plan_handle) AS bqp\r\nOUTER APPLY sys.dm_exec_text_query_plan(r.plan_handle,r.statement_start_offset, r.statement_end_offset) as sqp\r\nWHERE\ts.session_id != @@SPID\r\n\tAND (\t(CASE\tWHEN\ts.session_id IN (select ri.blocking_session_id from sys.dm_exec_requests as ri )\r\n\t\t\t\t\t--\tGet sessions involved in blocking (including system sessions)\r\n\t\t\t\t\tTHEN\t1\r\n\t\t\t\t\tWHEN\tr.blocking_session_id IS NOT NULL AND r.blocking_session_id <> 0\r\n\t\t\t\t\tTHEN\t1\r\n\t\t\t\t\tELSE\t0\r\n\t\t\tEND) = 1\r\n\t\t\tOR\r\n\t\t\t(CASE\tWHEN\ts.session_id > 50\r\n\t\t\t\t\t\t\tAND r.session_id IS NOT NULL -- either some part of session has active request\r\n\t\t\t\t\t\t\t--AND ISNULL(open_resultset_count,0) > 0 -- some result is open\r\n\t\t\t\t\t\t\tAND s.status <> 'sleeping'\r\n\t\t\t\t\tTHEN\t1\r\n\t\t\t\t\tELSE\t0\r\n\t\t\tEND) = 1\r\n\t\t\tOR\r\n\t\t\t(CASE\tWHEN\ts.session_id > 50\r\n\t\t\t\t\t\t\tAND ISNULL(r.open_transaction_count,0) > 0\r\n\t\t\t\t\tTHEN\t1\r\n\t\t\t\t\tELSE\t0\r\n\t\t\tEND) = 1\r\n\t\t)\t\t\r\nORDER BY time;\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "refId": "A"
+        }
+      ],
+      "title": "Active Requests",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "select * from sys.dm_exec_requests r where blocking_session_id <> 0",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "dark-orange",
+                "value": 500
+              },
+              {
+                "color": "dark-red",
+                "value": 700
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 3,
+        "y": 10
+      },
+      "id": 122,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "/^counts$/",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect count(*) as counts from sys.dm_exec_connections with (nolock)\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+          "refId": "A"
+        }
+      ],
+      "title": "Connections",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 14,
+        "y": 10
+      },
+      "id": 74,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "/.*/",
+          "values": true
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect CONVERT(varchar,SERVERPROPERTY('IsClustered'))+' / '+CONVERT(varchar,SERVERPROPERTY('IsHadrEnabled'))\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "refId": "A"
+        }
+      ],
+      "title": "IsClustered / IsHadrEnabled",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 17,
+        "y": 10
+      },
+      "id": 67,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "/^os_uptime$/",
+          "values": false
+        },
+        "text": {
+          "titleSize": 8
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect os_uptime = Concat\r\n        (\r\n            RIGHT('000'+CAST(ISNULL((datediff(second,sqlserver_start_time,GETDATE()) / 3600 / 24), 0) AS VARCHAR(3)),3)\r\n            ,' '\r\n            ,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time,GETDATE()) / 3600  % 24, 0) AS VARCHAR(2)),2)\r\n            ,':'\r\n            ,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time,GETDATE()) / 60 % 60, 0) AS VARCHAR(2)),2)\r\n            ,':'\r\n            ,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time,GETDATE()) % 3600 % 60, 0) AS VARCHAR(2)),2)\r\n        )\r\nfrom sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "refId": "A"
+        }
+      ],
+      "title": "SqlServer Uptime",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-red",
+                "value": null
+              },
+              {
+                "color": "dark-red",
+                "value": -10
+              },
+              {
+                "color": "dark-red",
+                "value": 300
+              },
+              {
+                "color": "super-light-red",
+                "value": 600
+              },
+              {
+                "color": "light-green",
+                "value": 601
+              },
+              {
+                "color": "dark-green",
+                "value": 1200
+              }
+            ]
+          },
+          "unit": "dateTimeAsSystem"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 20,
+        "y": 10
+      },
+      "id": 65,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "/.*/",
+          "values": true
+        },
+        "text": {
+          "titleSize": 8
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect sqlserver_start_time\r\nfrom sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "refId": "A"
+        }
+      ],
+      "title": "SqlServer Start Time",
       "type": "stat"
     },
     {
@@ -1599,7 +1593,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 13
       },
       "id": 33,
       "panels": [
@@ -1661,7 +1655,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 2
+            "y": 14
           },
           "id": 16,
           "options": {
@@ -1688,7 +1682,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect pc.collection_time_utc as time, \n\t\tcase when (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total') then 'OS'\n\t\t\twhen (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr') then 'Sql Server'\n\t\t\telse null\n\t\t\tend as metric,\n\t--object, counter as metric, instance\n\tcase when pc.object = 'processor' then pc.value else pc.value/(select count(*) from sys.dm_os_schedulers dos where status = 'VISIBLE ONLINE') end as value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and host_name = '$perfmon_host_name' and\n\t ((pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total')\n\tor (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr')\n\t)\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect pc.collection_time_utc as time, \n\t\tcase when (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total') then 'OS'\n\t\t\twhen (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr') then 'Sql Server'\n\t\t\telse null\n\t\t\tend as metric,\n\t--object, counter as metric, instance\n\tcase when pc.object = 'processor' then pc.value else pc.value/$sql_schedulers end as value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and host_name = '$perfmon_host_name'\nand (   (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total')\n\t   or (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr')\n\t  )\nand pc.value > 0\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
               "refId": "A"
             }
           ],
@@ -1706,7 +1700,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 14
       },
       "id": 113,
       "panels": [
@@ -1801,7 +1795,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 15
       },
       "id": 151,
       "panels": [
@@ -2006,7 +2000,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 16
       },
       "id": 59,
       "panels": [
@@ -2120,7 +2114,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 17
       },
       "id": 140,
       "panels": [
@@ -2270,7 +2264,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 18
       },
       "id": 117,
       "panels": [
@@ -2375,7 +2369,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 19
       },
       "id": 29,
       "panels": [
@@ -2484,7 +2478,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 20
       },
       "id": 27,
       "panels": [
@@ -2594,7 +2588,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 21
       },
       "id": 126,
       "panels": [
@@ -3033,7 +3027,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 22
       },
       "id": 79,
       "panels": [
@@ -3106,7 +3100,7 @@
             "h": 15,
             "w": 24,
             "x": 0,
-            "y": 24
+            "y": 20
           },
           "id": 144,
           "options": {
@@ -3213,7 +3207,7 @@
             "h": 15,
             "w": 24,
             "x": 0,
-            "y": 39
+            "y": 35
           },
           "id": 145,
           "options": {
@@ -3259,7 +3253,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 23
       },
       "id": 82,
       "panels": [
@@ -3485,7 +3479,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 24
       },
       "id": 88,
       "panels": [
@@ -3590,7 +3584,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 25
       },
       "id": 103,
       "panels": [
@@ -3695,7 +3689,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 26
       },
       "id": 121,
       "panels": [
@@ -4201,7 +4195,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {
@@ -4219,6 +4213,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 11,
+  "version": 18,
   "weekStart": ""
 }
