@@ -21,7 +21,10 @@ $timeUTC = (Get-Date).ToUniversalTime()
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Get running processes on OS `$taskList.."
 $taskList = @()
-if($env:COMPUTERNAME -eq $HostName) {
+if($HostName -eq $env:COMPUTERNAME -or $HostName -eq 'localhost') {
+    if($HostName -eq 'localhost') {
+        $HostName = $env:COMPUTERNAME
+    }
     $taskList += TASKLIST /v /fo csv | ConvertFrom-Csv
 }
 else {
