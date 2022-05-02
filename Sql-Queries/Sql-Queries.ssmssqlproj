@@ -135,6 +135,18 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="SqlPractice:LAB\adwivedi">
+          <Created>2022-05-01T08:15:29.4151569-07:00</Created>
+          <Type>SQL</Type>
+          <Server>SqlPractice</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="SqlProd1:LAB\adwivedi">
           <Created>2022-04-25T09:28:37.3903183-07:00</Created>
           <Type>SQL</Type>
@@ -175,6 +187,18 @@
           <Created>2022-04-20T20:54:58.8034594-07:00</Created>
           <Type>SQL</Type>
           <Server>WORKSTATION</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="WORKSTATION\SQLEXPRESS:LAB\adwivedi">
+          <Created>2022-05-01T09:24:12.593858-07:00</Created>
+          <Type>SQL</Type>
+          <Server>WORKSTATION\SQLEXPRESS</Server>
           <UserName />
           <Authentication>Windows Authentication</Authentication>
           <InitialDB />
@@ -234,6 +258,12 @@
           <AssociatedConnSrvName>Sql2017</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Transaction-to-New-Arch-Queries.sql</FullPath>
+        </FileNode>
+        <FileNode Name="wait-stats-since-startup.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>wait-stats-since-startup.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>

@@ -1,4 +1,4 @@
-﻿$HostName = 'SqlPractice'
+﻿$HostName = 'DC'
 $DestinationDrive = 'C:\'
 
 # Copy Perfmon scripts

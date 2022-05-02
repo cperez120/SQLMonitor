@@ -70,7 +70,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1651315651126,
+  "iteration": 1651394728052,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -179,7 +179,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect pc.collection_time_utc as time, \n\t\tcase when (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total') then '% Processor Time (os)'\n\t\t\twhen (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr') then '% Processor Time (sqlservr)'\n\t\t\telse null\n\t\t\tend as metric,\n\t--object, counter as metric, instance\n\tcase when pc.object = 'processor' then pc.value else pc.value/(select count(*) from sys.dm_os_schedulers dos where status = 'VISIBLE ONLINE') end as value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t ((pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total')\n\tor (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr')\n\t)\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nselect pc.collection_time_utc as time, \n\t\tcase when (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total') then '% Processor Time (os)'\n\t\t\twhen (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr') then '% Processor Time (sqlservr)'\n\t\t\telse null\n\t\t\tend as metric,\n\t--object, counter as metric, instance\n\tcase when pc.object = 'processor' then pc.value else pc.value/(select count(*) from sys.dm_os_schedulers dos where status = 'VISIBLE ONLINE') end as value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t ((pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total')\n\tor (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr')\n\t)\norder by time",
               "refId": "A"
             }
           ],
@@ -271,7 +271,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect pc.collection_time_utc as time, \n\tobject + ': '+ counter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'system' and pc.counter in ('Processor Queue Length')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\nselect pc.collection_time_utc as time, \n\tobject + ': '+ counter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'system' and pc.counter in ('Processor Queue Length')\norder by time",
               "refId": "A"
             }
           ],
@@ -280,7 +280,7 @@
         }
       ],
       "repeat": "datasource",
-      "title": "CPU & Processor - [$fqdn] - [$ip] - [$host_name\\$instance_name] - @ ${collection_time_utc:date:YYYY-MM-DD HH.mm}",
+      "title": "CPU & Processor - [$fqdn] - [$ip] - [$perfmon_host_name\\$instance_name] - @ ${collection_time_utc:date:YYYY-MM-DD HH.mm}",
       "type": "row"
     },
     {
@@ -377,7 +377,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect pc.collection_time_utc as time, pc.value as [Available Memory]\r\nfrom $perfmon_table_name pc with (nolock)\r\nwhere $__timeFilter(collection_time_utc)\r\nand pc.host_name = '$perfmon_host_name'\r\nand pc.object = 'memory' and pc.counter = 'available mbytes'\r\nORDER BY time\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\n\r\nselect pc.collection_time_utc as time, pc.value as [Available Memory]\r\nfrom $perfmon_table_name pc with (nolock)\r\nwhere $__timeFilter(collection_time_utc)\r\nand pc.host_name = '$perfmon_host_name'\r\nand pc.object = 'memory' and pc.counter = 'available mbytes'\r\nORDER BY time",
               "refId": "A"
             }
           ],
@@ -475,7 +475,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect pc.collection_time_utc as time, counter as metric , pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc)\nand pc.host_name = '$perfmon_host_name'\nand\tpc.object = 'memory' and pc.counter in ('Pages Input/Sec','Pages/Sec')\nORDER BY time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;\n",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\nselect pc.collection_time_utc as time, counter as metric , pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc)\nand pc.host_name = '$perfmon_host_name'\nand\tpc.object = 'memory' and pc.counter in ('Pages Input/Sec','Pages/Sec')\nORDER BY time",
               "refId": "A"
             }
           ],
@@ -574,7 +574,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect pc.collection_time_utc as time, counter as metric , pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc)\nand pc.host_name = '$perfmon_host_name'\nand pc.object = 'Paging File' and pc.counter in ('% Usage','% Usage Peak')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\nselect pc.collection_time_utc as time, counter as metric , pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc)\nand pc.host_name = '$perfmon_host_name'\nand pc.object = 'Paging File' and pc.counter in ('% Usage','% Usage Peak')\norder by time",
               "refId": "A"
             }
           ],
@@ -640,7 +640,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -683,7 +684,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':sql statistics') and pc.counter in ('Batch Requests/sec')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':sql statistics') and pc.counter in ('Batch Requests/sec')\norder by time",
               "refId": "A"
             }
           ],
@@ -735,7 +736,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -804,7 +806,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':access methods') --and pc.counter in ('Index Searches/sec')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':access methods') --and pc.counter in ('Index Searches/sec')\norder by time",
               "refId": "A"
             }
           ],
@@ -871,7 +873,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -916,7 +919,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  (\t(pc.object = (@object_name+':Memory Manager')\n\t\tand pc.counter in ('Memory Grants Outstanding','Memory Grants Pending'))\n\t)\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  (\t(pc.object = (@object_name+':Memory Manager')\n\t\tand pc.counter in ('Memory Grants Outstanding','Memory Grants Pending'))\n\t)\norder by time",
               "refId": "A"
             }
           ],
@@ -967,7 +970,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   }
                 ]
               },
@@ -1008,7 +1012,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  (\t(pc.object = (@object_name+':Memory Manager')\n\t\tand pc.counter in ('Total Server Memory (KB)','Target Server Memory (KB)','Granted Workspace Memory (KB)','Maximum Workspace Memory (KB)'))\n\t)\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  (\t(pc.object = (@object_name+':Memory Manager')\n\t\tand pc.counter in ('Total Server Memory (KB)','Target Server Memory (KB)','Granted Workspace Memory (KB)','Maximum Workspace Memory (KB)'))\n\t)\norder by time\n",
               "refId": "A"
             }
           ],
@@ -1074,7 +1078,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1117,7 +1122,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'logicaldisk' and pc.counter in ('current disk queue length')\n\t and (pc.instance <> '_total' and pc.instance not like 'harddiskvolume%')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'logicaldisk' and pc.counter in ('current disk queue length')\n\t and (pc.instance <> '_total' and pc.instance not like 'harddiskvolume%')\norder by time\n",
               "refId": "A"
             }
           ],
@@ -1168,7 +1173,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1210,7 +1216,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance+' ('+replace(counter,'Avg. Disk ','')+')' as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'logicaldisk' and pc.counter in ('Avg. Disk sec/Read','Avg. Disk sec/Write')\n\t and (pc.instance <> '_total' and pc.instance not like 'harddiskvolume%')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance+' ('+replace(counter,'Avg. Disk ','')+')' as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'logicaldisk' and pc.counter in ('Avg. Disk sec/Read','Avg. Disk sec/Write')\n\t and (pc.instance <> '_total' and pc.instance not like 'harddiskvolume%')\norder by time\n",
               "refId": "A"
             }
           ],
@@ -1261,7 +1267,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1303,7 +1310,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance+' ('+replace(counter,'disk ','')+')' as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'logicaldisk' and pc.counter in ('Disk Bytes/sec','Disk Write Bytes/sec','Disk Read Bytes/sec')\n\t and (pc.instance <> '_total' and pc.instance not like 'harddiskvolume%')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance+' ('+replace(counter,'disk ','')+')' as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'logicaldisk' and pc.counter in ('Disk Bytes/sec','Disk Write Bytes/sec','Disk Read Bytes/sec')\n\t and (pc.instance <> '_total' and pc.instance not like 'harddiskvolume%')\norder by time\n",
               "refId": "A"
             }
           ],
@@ -1369,7 +1376,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1412,7 +1420,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'physicaldisk' and pc.counter in ('Current Disk Queue Length')\n\t and pc.instance <> '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'physicaldisk' and pc.counter in ('Current Disk Queue Length')\n\t and pc.instance <> '_total'\norder by time\n",
               "refId": "A"
             }
           ],
@@ -1446,8 +1454,7 @@
                 "lineWidth": 1,
                 "pointSize": 5,
                 "scaleDistribution": {
-                  "log": 2,
-                  "type": "log"
+                  "type": "linear"
                 },
                 "showPoints": "never",
                 "spanNulls": true,
@@ -1464,7 +1471,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1506,7 +1514,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance+' ('+replace(counter,'Avg. Disk ','')+')' as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'physicaldisk' and pc.counter in ('Avg. Disk sec/Read','Avg. Disk sec/Write')\n\t and pc.instance <> '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance+' ('+replace(counter,'Avg. Disk ','')+')' as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'physicaldisk' and pc.counter in ('Avg. Disk sec/Read','Avg. Disk sec/Write')\n\t and pc.instance <> '_total'\norder by time\n",
               "refId": "A"
             }
           ],
@@ -1540,8 +1548,7 @@
                 "lineWidth": 1,
                 "pointSize": 2,
                 "scaleDistribution": {
-                  "log": 10,
-                  "type": "log"
+                  "type": "linear"
                 },
                 "showPoints": "always",
                 "spanNulls": true,
@@ -1558,7 +1565,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1602,7 +1610,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance+' ('+replace(counter,'disk ','')+')' as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'physicaldisk' and pc.counter in ('Disk Bytes/sec','Disk Write Bytes/sec','Disk Read Bytes/sec')\n\t and pc.instance <> '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance+' ('+replace(counter,'disk ','')+')' as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'physicaldisk' and pc.counter in ('Disk Bytes/sec','Disk Write Bytes/sec','Disk Read Bytes/sec')\n\t and pc.instance <> '_total'\norder by time\n",
               "refId": "A"
             }
           ],
@@ -1668,7 +1676,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1711,7 +1720,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'Network Interface' and pc.counter in ('Bytes Total/sec')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'Network Interface' and pc.counter in ('Bytes Total/sec')\norder by time\n",
               "refId": "A"
             }
           ],
@@ -1778,7 +1787,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1822,7 +1832,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @database varchar (200);\n\nif(ltrim(rtrim('$database')) <> '') \n  set @database = '$database'\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance + (case when counter = 'Log File(s) Size (KB)' then ' (total)' else ' (used)' end) as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Databases') and pc.counter in ('Log File(s) Size (KB)','Log File(s) Used Size (KB)')\n\t and (\n\t      (@database is null and pc.instance not in ('_Total','master','model','mssqlsystemresource'))\n\t      or\n\t      (pc.instance = @database)\n\t     )\norder by time, metric\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @database varchar (200);\n\nif(ltrim(rtrim('$database')) <> '') \n  set @database = '$database'\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance + (case when counter = 'Log File(s) Size (KB)' then ' (total)' else ' (used)' end) as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Databases') and pc.counter in ('Log File(s) Size (KB)','Log File(s) Used Size (KB)')\n\t and (\n\t      (@database is null and pc.instance not in ('_Total','master','model','mssqlsystemresource'))\n\t      or\n\t      (pc.instance = @database)\n\t     )\norder by time, metric\n",
               "refId": "A"
             }
           ],
@@ -1880,7 +1890,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1925,7 +1936,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @database varchar (200);\n\nif(ltrim(rtrim('$database')) <> '') \n  set @database = '$database'\n  \ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance + (case when counter = 'Data File(s) Size (KB)' then ' (total)' else ' (used)' end) as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Databases') and pc.counter in ('Data File(s) Size (KB)','Data File(s) Used Size (KB)')\n\t and (\n\t      (@database is null and pc.instance not in ('_Total','master','model','mssqlsystemresource'))\n\t      or\n\t      (pc.instance = @database)\n\t     )\norder by time, metric\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @database varchar (200);\n\nif(ltrim(rtrim('$database')) <> '') \n  set @database = '$database'\n  \ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance + (case when counter = 'Data File(s) Size (KB)' then ' (total)' else ' (used)' end) as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Databases') and pc.counter in ('Data File(s) Size (KB)','Data File(s) Used Size (KB)')\n\t and (\n\t      (@database is null and pc.instance not in ('_Total','master','model','mssqlsystemresource'))\n\t      or\n\t      (pc.instance = @database)\n\t     )\norder by time, metric\n",
               "refId": "A"
             }
           ],
@@ -1998,7 +2009,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2043,7 +2055,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Databases') and pc.counter in ('Log Bytes Flushed/sec')\n\t and pc.instance not in ('_Total','master','model','mssqlsystemresource')\norder by time, metric\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Databases') and pc.counter in ('Log Bytes Flushed/sec')\n\t and pc.instance not in ('_Total','master','model','mssqlsystemresource')\norder by time, metric\n",
               "refId": "A"
             }
           ],
@@ -2101,7 +2113,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2144,7 +2157,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Databases') and pc.counter in ('Log Flush Wait Time')\n\t and pc.instance not in ('_Total','master','model','mssqlsystemresource')\norder by time, metric\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Databases') and pc.counter in ('Log Flush Wait Time')\n\t and pc.instance not in ('_Total','master','model','mssqlsystemresource')\norder by time, metric\n",
               "refId": "A"
             }
           ],
@@ -2199,7 +2212,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2242,7 +2256,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance+' - '+counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Databases') and pc.counter in ('Log Flush Waits/sec','Log Flushes/sec','Log Growths','Log Shrinks','Log Truncations','Percent Log Used')\n\t and pc.instance not in ('_Total','master','model','mssqlsystemresource')\norder by time, metric\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance+' - '+counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Databases') and pc.counter in ('Log Flush Waits/sec','Log Flushes/sec','Log Growths','Log Shrinks','Log Truncations','Percent Log Used')\n\t and pc.instance not in ('_Total','master','model','mssqlsystemresource')\norder by time, metric\n",
               "refId": "A"
             }
           ],
@@ -2309,7 +2323,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2352,7 +2367,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':SQL Statistics')\n\t  and pc.counter in ('auto-param attempts/sec','failed auto-params/sec','safe auto-params/sec','unsafe auto-params/sec')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':SQL Statistics')\n\t  and pc.counter in ('auto-param attempts/sec','failed auto-params/sec','safe auto-params/sec','unsafe auto-params/sec')\norder by time",
               "refId": "A"
             }
           ],
@@ -2418,7 +2433,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2461,7 +2477,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':sql statistics') and pc.counter in ('Batch Requests/sec')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':sql statistics') and pc.counter in ('Batch Requests/sec')\norder by time\n",
               "refId": "A"
             }
           ],
@@ -2512,7 +2528,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2556,7 +2573,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Buffer Manager')\n\t and pc.counter in ('Page Life Expectancy')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Buffer Manager')\n\t and pc.counter in ('Page Life Expectancy')\norder by time\n",
               "refId": "A"
             }
           ],
@@ -2608,7 +2625,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2654,7 +2672,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Buffer Manager')\n\t and pc.counter in ('Free List Stalls/sec','Lazy Writes/Sec','Page Lookups/sec',\n\t                    'Page Reads/sec','Readahead pages/sec','Checkpoint Pages/sec','Page Writes/sec')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Buffer Manager')\n\t and pc.counter in ('Free List Stalls/sec','Lazy Writes/Sec','Page Lookups/sec',\n\t                    'Page Reads/sec','Readahead pages/sec','Checkpoint Pages/sec','Page Writes/sec')\norder by time\n",
               "refId": "A"
             }
           ],
@@ -2720,7 +2738,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2765,7 +2784,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,case when object like '%Buffer Manager' then 'Buffer Manager - '+counter else 'Memory Manager - '+counter end as metric\n\t--,object, counter, instance\n\t,case when counter = 'Database Pages' then pc.value*8 else pc.value end as value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t (\t(pc.object = (@object_name+':Buffer Manager') \n\t\t\tand pc.counter in ('Database Pages')\n\t\t  )\n\t\tor \n\t\t (pc.object = (@object_name+':Memory Manager') \n\t\t\tand pc.counter in ('Total Server Memory (KB)','Target Server Memory (KB)')\n\t\t )\n\t)\n--and collection_time_utc >= dateadd(minute,-5,getutcdate())\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,case when object like '%Buffer Manager' then 'Buffer Manager - '+counter else 'Memory Manager - '+counter end as metric\n\t--,object, counter, instance\n\t,case when counter = 'Database Pages' then pc.value*8 else pc.value end as value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t (\t(pc.object = (@object_name+':Buffer Manager') \n\t\t\tand pc.counter in ('Database Pages')\n\t\t  )\n\t\tor \n\t\t (pc.object = (@object_name+':Memory Manager') \n\t\t\tand pc.counter in ('Total Server Memory (KB)','Target Server Memory (KB)')\n\t\t )\n\t)\n--and collection_time_utc >= dateadd(minute,-5,getutcdate())\norder by time\n",
               "refId": "A"
             }
           ],
@@ -2817,7 +2836,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2862,7 +2882,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,case when object like '%Buffer Manager' then 'Buffer Manager - '+counter else 'Memory Manager - '+counter end as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t (\t/*(pc.object = (@object_name+':Buffer Manager') \n\t\t\tand pc.counter in ('Database Pages','Target Pages')\n\t\t)\n\t\tor */\n\t\t(pc.object = (@object_name+':Memory Manager') \n\t\t\tand pc.counter in ('Connection Memory (KB)','Lock Memory (KB)','Stolen Server Memory (KB)','SQL Cache Memory (KB)','Free Memory (KB)')\n\t\t)\n\t)\n--and collection_time_utc >= dateadd(minute,-5,getutcdate())\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,case when object like '%Buffer Manager' then 'Buffer Manager - '+counter else 'Memory Manager - '+counter end as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t (\t/*(pc.object = (@object_name+':Buffer Manager') \n\t\t\tand pc.counter in ('Database Pages','Target Pages')\n\t\t)\n\t\tor */\n\t\t(pc.object = (@object_name+':Memory Manager') \n\t\t\tand pc.counter in ('Connection Memory (KB)','Lock Memory (KB)','Stolen Server Memory (KB)','SQL Cache Memory (KB)','Free Memory (KB)')\n\t\t)\n\t)\n--and collection_time_utc >= dateadd(minute,-5,getutcdate())\norder by time",
               "refId": "A"
             }
           ],
@@ -2929,7 +2949,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -2973,7 +2994,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':SQL Statistics')\n\t  and pc.counter in ('Batch Requests/sec','SQL Compilations/sec','SQL Re-Compilations/sec')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':SQL Statistics')\n\t  and pc.counter in ('Batch Requests/sec','SQL Compilations/sec','SQL Re-Compilations/sec')\norder by time\n",
               "refId": "A"
             }
           ],
@@ -3025,7 +3046,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3067,7 +3089,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t(\n\t ( pc.object = (@object_name+':Cursor Manager by Type') and pc.counter in ('Active Cursors') and instance <> '_total')\n\t or\n\t ( pc.object = (@object_name+':SQL Errors') and pc.counter in ('errors/sec') and instance <> '_total' )\n\t)\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t(\n\t ( pc.object = (@object_name+':Cursor Manager by Type') and pc.counter in ('Active Cursors') and instance <> '_total')\n\t or\n\t ( pc.object = (@object_name+':SQL Errors') and pc.counter in ('errors/sec') and instance <> '_total' )\n\t)\norder by time\n",
               "refId": "A"
             }
           ],
@@ -3119,7 +3141,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3162,7 +3185,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,case when counter = 'Number of Deadlocks/sec' then counter else instance end as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name'\n  and (\n\t     (pc.object = (@object_name+':SQL Errors') and pc.instance <> '_total')\n\t  or (pc.object = (@object_name+':Locks') and pc.counter in ('Number of Deadlocks/sec'))\n\t  )\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,case when counter = 'Number of Deadlocks/sec' then counter else instance end as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name'\n  and (\n\t     (pc.object = (@object_name+':SQL Errors') and pc.instance <> '_total')\n\t  or (pc.object = (@object_name+':Locks') and pc.counter in ('Number of Deadlocks/sec'))\n\t  )\norder by time\n",
               "refId": "A"
             }
           ],
@@ -3214,7 +3237,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3259,7 +3283,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' \n  and pc.object = (@object_name+':Deprecated Features') --and pc.counter in ('Active Cursors') and instance <> '_total'\n\tand pc.value > 0\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' \n  and pc.object = (@object_name+':Deprecated Features') --and pc.counter in ('Active Cursors') and instance <> '_total'\n\tand pc.value > 0\norder by time\n",
               "refId": "A"
             }
           ],
@@ -3326,7 +3350,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3370,7 +3395,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Plan Cache') and instance = '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Plan Cache') and instance = '_total'\norder by time\n",
               "refId": "A"
             }
           ],
@@ -3422,7 +3447,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3466,7 +3492,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Plan Cache') and pc.counter in ('cache object counts') and instance <> '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Plan Cache') and pc.counter in ('cache object counts') and instance <> '_total'\norder by time",
               "refId": "A"
             }
           ],
@@ -3518,7 +3544,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3562,7 +3589,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value*8 as value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Plan Cache') and pc.counter in ('cache pages') and instance <> '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value*8 as value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Plan Cache') and pc.counter in ('cache pages') and instance <> '_total'\norder by time\n",
               "refId": "A"
             }
           ],
@@ -3614,7 +3641,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3658,7 +3686,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Plan Cache') and pc.counter in ('cache objects in use') and instance <> '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Plan Cache') and pc.counter in ('cache objects in use') and instance <> '_total'\norder by time",
               "refId": "A"
             }
           ],
@@ -3724,7 +3752,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3763,7 +3792,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Transactions')\n\t  and pc.counter in ('Longest Transaction Running Time')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Transactions')\n\t  and pc.counter in ('Longest Transaction Running Time')\norder by time",
               "refId": "A"
             }
           ],
@@ -3813,7 +3842,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3856,7 +3886,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Transactions')\n\t  and pc.counter in ('free space in tempdb (kb)')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Transactions')\n\t  and pc.counter in ('free space in tempdb (kb)')\norder by time",
               "refId": "A"
             }
           ],
@@ -3906,7 +3936,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3945,7 +3976,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Transactions')\n\t  and pc.counter in ('Transactions')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Transactions')\n\t  and pc.counter in ('Transactions')\norder by time",
               "refId": "A"
             }
           ],
@@ -3995,7 +4026,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -4034,7 +4066,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Transactions')\n\t  and pc.counter in ('Transactions')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t  pc.object = (@object_name+':Transactions')\n\t  and pc.counter in ('Transactions')\norder by time",
               "refId": "A"
             }
           ],
@@ -4101,7 +4133,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent"
+                    "color": "transparent",
+                    "value": null
                   },
                   {
                     "color": "orange",
@@ -4149,7 +4182,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect pc.collection_time_utc as time, \n\t\t'winsock rejected connections/sec' as metric,\n\t--object, counter as metric, instance\n\tpc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t object = 'microsoft winsock bsp' and counter = 'rejected connections/sec'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\nselect pc.collection_time_utc as time, \n\t\t'winsock rejected connections/sec' as metric,\n\t--object, counter as metric, instance\n\tpc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t object = 'microsoft winsock bsp' and counter = 'rejected connections/sec'\norder by time\n",
               "refId": "A"
             }
           ],
@@ -4200,7 +4233,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -4245,7 +4279,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\tpc.object = (@object_name+':General Statistics') \n\t and pc.counter in ('User Connections','Logins/sec','Logouts/sec','Processes blocked',\n\t                  'Temp Tables Creation Rate','Temp Tables For Destruction')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\tpc.object = (@object_name+':General Statistics') \n\t and pc.counter in ('User Connections','Logins/sec','Logouts/sec','Processes blocked',\n\t                  'Temp Tables Creation Rate','Temp Tables For Destruction')\norder by time\n",
               "refId": "A"
             }
           ],
@@ -4311,7 +4345,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -4356,7 +4391,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\tpc.object = (@object_name+':Locks') \n\t and pc.counter in ('Lock Wait Time (ms)')\n\t  and pc.instance <> '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\tpc.object = (@object_name+':Locks') \n\t and pc.counter in ('Lock Wait Time (ms)')\n\t  and pc.instance <> '_total'\norder by time",
               "refId": "A"
             }
           ],
@@ -4408,7 +4443,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -4453,7 +4489,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\tpc.object = (@object_name+':Locks') \n\t and pc.counter in ('Average Wait Time (ms)')\n\t  and pc.instance <> '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\tpc.object = (@object_name+':Locks') \n\t and pc.counter in ('Average Wait Time (ms)')\n\t  and pc.instance <> '_total'\norder by time",
               "refId": "A"
             }
           ],
@@ -4505,7 +4541,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -4550,7 +4587,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\tpc.object = (@object_name+':Locks') \n\t and pc.counter in ('Lock Waits/sec')\n\t  and pc.instance <> '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\tpc.object = (@object_name+':Locks') \n\t and pc.counter in ('Lock Waits/sec')\n\t  and pc.instance <> '_total'\norder by time",
               "refId": "A"
             }
           ],
@@ -4616,7 +4653,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -4658,7 +4696,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\tpc.object = (@object_name+':Latches') \n\t and pc.counter in ('Latch Waits/sec')\n\t  --and pc.instance <> '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\tpc.object = (@object_name+':Latches') \n\t and pc.counter in ('Latch Waits/sec')\n\t  --and pc.instance <> '_total'\norder by time",
               "refId": "A"
             }
           ],
@@ -4710,7 +4748,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -4749,7 +4788,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\tpc.object = (@object_name+':Latches') \n\t and pc.counter in ('Total Latch Wait Time (ms)','Average Latch Wait Time (ms)')\n\t  --and pc.instance <> '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\tpc.object = (@object_name+':Latches') \n\t and pc.counter in ('Total Latch Wait Time (ms)','Average Latch Wait Time (ms)')\n\t  --and pc.instance <> '_total'\norder by time",
               "refId": "A"
             }
           ],
@@ -4816,7 +4855,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -4858,7 +4898,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name'\n\tand ( (pc.object = (@object_name+':Replication Dist.') and pc.counter in ('Dist:Delivery Latency'))\n\t      or\n\t      (pc.object = (@object_name+':Replication Logreader') and pc.counter in ('Logreader:Delivery Latency'))\n      )\n\t  --and pc.instance <> '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name'\n\tand ( (pc.object = (@object_name+':Replication Dist.') and pc.counter in ('Dist:Delivery Latency'))\n\t      or\n\t      (pc.object = (@object_name+':Replication Logreader') and pc.counter in ('Logreader:Delivery Latency'))\n      )\n\t  --and pc.instance <> '_total'\norder by time",
               "refId": "A"
             }
           ],
@@ -4909,7 +4949,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -4951,7 +4992,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name'\n\tand ( (pc.object = (@object_name+':Replication Dist.') and pc.counter in ('Dist:Delivered Cmds/sec','Dist:Delivered Trans/sec'))\n\t      or\n\t      (pc.object = (@object_name+':Replication Logreader') and pc.counter in ('Logreader:Delivered Cmds/sec','Logreader:Delivered Trans/sec'))\n      )\n\t  --and pc.instance <> '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name'\n\tand ( (pc.object = (@object_name+':Replication Dist.') and pc.counter in ('Dist:Delivered Cmds/sec','Dist:Delivered Trans/sec'))\n\t      or\n\t      (pc.object = (@object_name+':Replication Logreader') and pc.counter in ('Logreader:Delivered Cmds/sec','Logreader:Delivered Trans/sec'))\n      )\n\t  --and pc.instance <> '_total'\norder by time",
               "refId": "A"
             }
           ],
@@ -5017,7 +5058,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -5061,7 +5103,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter+' ('+instance+')' as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name'\n\tand pc.object = 'SQLAgent:Jobs' and pc.counter in ('Active jobs','Failed jobs','Successful jobs') and pc.instance in ('_total')\n\t  --and pc.instance <> '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,counter+' ('+instance+')' as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name'\n\tand pc.object = 'SQLAgent:Jobs' and pc.counter in ('Active jobs','Failed jobs','Successful jobs') and pc.instance in ('_total')\n\t  --and pc.instance <> '_total'\norder by time",
               "refId": "A"
             }
           ],
@@ -5074,7 +5116,7 @@
       "type": "row"
     },
     {
-      "collapsed": true,
+      "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -5087,7 +5129,7 @@
       "type": "row"
     },
     {
-      "collapsed": true,
+      "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -5136,14 +5178,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "select srvname from sys.sysservers where providername = 'SQLOLEDB'",
+        "definition": "select distinct sql_instance from dbo.instance_details\n--select srvname from sys.sysservers where providername = 'SQLOLEDB'",
         "hide": 0,
         "includeAll": false,
         "label": "Sql Instance",
         "multi": false,
         "name": "server",
         "options": [],
-        "query": "select srvname from sys.sysservers where providername = 'SQLOLEDB'",
+        "query": "select distinct sql_instance from dbo.instance_details\n--select srvname from sys.sysservers where providername = 'SQLOLEDB'",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -5176,14 +5218,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect host_name \nfrom [$inventory_db].dbo.instance_details\nwhere sql_instance = '$server'\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nselect host_name \nfrom [$inventory_db].dbo.instance_details with (nolock)\nwhere sql_instance = '$server'",
         "hide": 0,
         "includeAll": false,
         "label": "Host Name",
         "multi": false,
         "name": "perfmon_host_name",
         "options": [],
-        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect host_name \nfrom [$inventory_db].dbo.instance_details\nwhere sql_instance = '$server'\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nselect host_name \nfrom [$inventory_db].dbo.instance_details with (nolock)\nwhere sql_instance = '$server'",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -5196,14 +5238,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect case when @@servicename = 'MSSQLSERVER' then @@servicename else 'MSSQL$'+@@servicename end;\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\n\nif not exists (select srvname from sys.sysservers where providername = 'SQLOLEDB' and srvname = '$server')\n   select 'NA'\nelse\nbegin\nDECLARE @sql varchar(max) = \"\nselect case when @@servicename = 'MSSQLSERVER' then @@servicename else 'MSSQL$'+@@servicename end;\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;\nend",
         "hide": 0,
         "includeAll": false,
         "label": "Service Name",
         "multi": false,
         "name": "perfmon_service_name",
         "options": [],
-        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect case when @@servicename = 'MSSQLSERVER' then @@servicename else 'MSSQL$'+@@servicename end;\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\n\nif not exists (select srvname from sys.sysservers where providername = 'SQLOLEDB' and srvname = '$server')\n   select 'NA'\nelse\nbegin\nDECLARE @sql varchar(max) = \"\nselect case when @@servicename = 'MSSQLSERVER' then @@servicename else 'MSSQL$'+@@servicename end;\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;\nend",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -5237,14 +5279,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @fqdn nvarchar(100);\nexec usp_extended_results @fqdn = @fqdn output;\n\nselect @fqdn\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\n\nif not exists (select srvname from sys.sysservers where providername = 'SQLOLEDB' and srvname = '$server')\n   select '$perfmon_host_name'\nelse\nbegin\nDECLARE @sql varchar(max) = \"\n\ndeclare @fqdn nvarchar(100);\nexec usp_extended_results @fqdn = @fqdn output;\n\nselect @fqdn\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;\nend",
         "hide": 2,
         "includeAll": false,
         "label": "FQDN",
         "multi": false,
         "name": "fqdn",
         "options": [],
-        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @fqdn nvarchar(100);\nexec usp_extended_results @fqdn = @fqdn output;\n\nselect @fqdn\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\n\nif not exists (select srvname from sys.sysservers where providername = 'SQLOLEDB' and srvname = '$server')\n   select '$perfmon_host_name'\nelse\nbegin\nDECLARE @sql varchar(max) = \"\n\ndeclare @fqdn nvarchar(100);\nexec usp_extended_results @fqdn = @fqdn output;\n\nselect @fqdn\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;\nend",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -5257,14 +5299,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar, @@servicename) as [instance_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\n\nif not exists (select srvname from sys.sysservers where providername = 'SQLOLEDB' and srvname = '$server')\n   select case when '$server' = convert(nvarchar,SERVERPROPERTY('MachineName')) then CONVERT(varchar, @@servicename) ELSE 'None' end\nelse\nbegin\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar, @@servicename) as [instance_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;\nend",
         "hide": 2,
         "includeAll": false,
         "label": "Instance Name",
         "multi": false,
         "name": "instance_name",
         "options": [],
-        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar, @@servicename) as [instance_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\n\nif not exists (select srvname from sys.sysservers where providername = 'SQLOLEDB' and srvname = '$server')\n   select case when '$server' = convert(nvarchar,SERVERPROPERTY('MachineName')) then CONVERT(varchar, @@servicename) ELSE 'None' end\nelse\nbegin\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar, @@servicename) as [instance_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;\nend",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -5277,14 +5319,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,  CONNECTIONPROPERTY('local_net_address') ) as [ip]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\n\nif not exists (select srvname from sys.sysservers where providername = 'SQLOLEDB' and srvname = '$server')\n   select 'NA'\nelse\nbegin\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,  CONNECTIONPROPERTY('local_net_address') ) as [ip]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;\nend",
         "hide": 2,
         "includeAll": false,
         "label": "IP Address",
         "multi": false,
         "name": "ip",
         "options": [],
-        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,  CONNECTIONPROPERTY('local_net_address') ) as [ip]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\n\nif not exists (select srvname from sys.sysservers where providername = 'SQLOLEDB' and srvname = '$server')\n   select 'NA'\nelse\nbegin\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,  CONNECTIONPROPERTY('local_net_address') ) as [ip]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;\nend",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -5297,34 +5339,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) as [host_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\n\nif not exists (select srvname from sys.sysservers where providername = 'SQLOLEDB' and srvname = '$server')\n   select '$perfmon_host_name'\nelse\nbegin\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) as [host_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;\nend",
         "hide": 2,
         "includeAll": false,
         "label": "Host Name",
         "multi": false,
         "name": "host_name",
         "options": [],
-        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) as [host_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
-      },
-      {
-        "current": {},
-        "datasource": {
-          "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
-        },
-        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect top 1 collection_time_utc\nfrom [$inventory_db].dbo.vw_performance_counters\nwhere host_name = '$host_name'\norder by collection_time_utc desc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
-        "hide": 2,
-        "includeAll": false,
-        "label": "Collection Time UTC",
-        "multi": false,
-        "name": "collection_time_utc",
-        "options": [],
-        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect top 1 collection_time_utc\nfrom [$inventory_db].dbo.vw_performance_counters\nwhere host_name = '$host_name'\norder by collection_time_utc desc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\n\nif not exists (select srvname from sys.sysservers where providername = 'SQLOLEDB' and srvname = '$server')\n   select '$perfmon_host_name'\nelse\nbegin\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) as [host_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;\nend",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -5352,6 +5374,26 @@
         ]
       },
       {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\n\nselect top 1 collection_time_utc\nfrom [$inventory_db].$perfmon_table_name\nwhere host_name = '$host_name'\norder by collection_time_utc desc\n",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Collection Time UTC",
+        "multi": false,
+        "name": "collection_time_utc",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\n\nselect top 1 collection_time_utc\nfrom [$inventory_db].$perfmon_table_name\nwhere host_name = '$host_name'\norder by collection_time_utc desc\n",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
         "hide": 2,
         "label": "OS Task List Table",
         "name": "os_task_list_table_name",
@@ -5374,7 +5416,7 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -5389,8 +5431,8 @@
     ]
   },
   "timezone": "",
-  "title": "Monitoring - Perfmon Counters - Quest Softwares",
-  "uid": "_dioLINMk",
-  "version": 59,
+  "title": "Monitoring - Perfmon Counters - Quest Softwares - Central",
+  "uid": "central_perfmon",
+  "version": 38,
   "weekStart": ""
 }
