@@ -20,3 +20,6 @@ grant view database state to [grafana]
 go
 grant execute on object::usp_extended_results to [grafana]
 go
+grant execute on object::dbo.sp_WhatIsRunning to [public]
+go
+

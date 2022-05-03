@@ -243,6 +243,18 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="Workstation:LAB\adwivedi">
+          <Created>2022-05-02T23:35:58.1342039-07:00</Created>
+          <Type>SQL</Type>
+          <Server>Workstation</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="WORKSTATION\SQLEXPRESS:LAB\adwivedi">
           <Created>2022-05-01T09:23:40.229618-07:00</Created>
           <Type>SQL</Type>
@@ -343,6 +355,12 @@
           <AssociatedConnUserName />
           <FullPath>SCH-Linked-Servers-Sample.sql</FullPath>
         </FileNode>
+        <FileNode Name="SCH-sp_WhatIsRunning.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-sp_WhatIsRunning.sql</FullPath>
+        </FileNode>
         <FileNode Name="SCH-sp_WhoIsActive_v12_00(Modified).sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
@@ -354,6 +372,12 @@
           <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-tables-Synonyms-for-Non-Perfmon-SqlInstance.sql</FullPath>
+        </FileNode>
+        <FileNode Name="SCH-WhoIsActive-Partitioning.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-WhoIsActive-Partitioning.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>
