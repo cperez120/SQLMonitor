@@ -9,9 +9,11 @@ GO
 	----------------------
 	1) Create a public & default mail profile. https://github.com/imajaydwivedi/SQLDBA-SSMS-Solution/blob/0c2eaecca3dcf6745e3b2d262208c2f2257008bb/SQLDBATools-Inventory/DatabaseMail_Using_GMail.sql
 	2) Create sp_WhoIsActive in [master] database. https://github.com/imajaydwivedi/SQLDBA-SSMS-Solution/blob/ae2541e37c28ea5b50887de993666bc81f29eba5/BlitzQueries/SCH-sp_WhoIsActive_v12_00(Modified).sql
-	3) Install Brent Ozar's First Responder Kit. https://raw.githubusercontent.com/BrentOzarULTD/SQL-Server-First-Responder-Kit/dev/Install-All-Scripts.sql
+	3) Create sp_WhatIsRunning in [DBA] database. 
+			DDLs\SCH-sp_WhatIsRunning.sql
+	4) Install Brent Ozar's First Responder Kit. https://raw.githubusercontent.com/BrentOzarULTD/SQL-Server-First-Responder-Kit/dev/Install-All-Scripts.sql
 			Install-DbaFirstResponderKit -SqlInstance workstation -Force -Verbose
-	4) Install PowerShell modules
+	5) Install PowerShell modules
 		Update-Module -Force -ErrorAction Continue -Verbose
 		Update-Help -Force -ErrorAction Continue -Verbose
 		Install-Module dbatools, enhancedhtml2, sqlserver, poshrsjob -Scope AllUsers -Force -ErrorAction Continue -Verbose
@@ -32,10 +34,10 @@ GO
 	12) Create view  [dbo].[wait_stats]
 	13) Create required schemas
 	14) Set DBA database trustworthy & [sa] owner
-	15) Create procedure dbo.usp_extended_results
-	16) Validate Partition Data
-	17) Add boundaries to partition. 1 boundary per hour
-	18) Remove boundaries with retention of 3 months
+	15) Create procedure dbo.usp_extended_results	
+	16) Add boundaries to partition. 1 boundary per hour
+	17) Remove boundaries with retention of 3 months
+	18) Validate Partition Data
 	19) Populate [dbo].[BlitzFirst_WaitStats_Categories]
 
 */
@@ -64,13 +66,13 @@ go
 -- drop table dbo.instance_hosts;
 create table dbo.instance_hosts
 (
-	[host_name] nvarchar(255) not null,
+	[host_name] varchar(255) not null,
 	constraint pk_instance_hosts primary key clustered ([host_name])
 )
 go
 
 insert dbo.instance_hosts
-select [host_name] = CONVERT(nvarchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS'));
+select [host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS'));
 go
 
 
@@ -78,20 +80,21 @@ go
 -- drop table dbo.instance_details;
 create table dbo.instance_details
 (
-	[sql_instance] nvarchar(255) not null,
-	[host_name] nvarchar(255) not null,
-	[collector_sql_instance] nvarchar(255) null default convert(nvarchar,serverproperty('MachineName')),
+	[sql_instance] varchar(255) not null,
+	[host_name] varchar(255) not null,
+	[collector_sql_instance] varchar(255) null default convert(varchar,serverproperty('MachineName')),
 	constraint pk_instance_details primary key clustered ([sql_instance], [host_name]), 
 	constraint fk_host_name foreign key ([host_name]) references dbo.instance_hosts ([host_name])
 )
 go
 
 insert dbo.instance_details ( [sql_instance], [host_name], [collector_sql_instance] )
-select	[sql_instance] = convert(nvarchar,serverproperty('MachineName')),
-		--[ip] = CONNECTIONPROPERTY('local_net_address')
-		[host_name] = CONVERT(nvarchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')),
+select	[sql_instance] = convert(varchar,serverproperty('MachineName')),
+		--[ip] = convert(varchar,CONNECTIONPROPERTY('local_net_address')),
+		[host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')),
 		--[service_name] = case when @@servicename = 'MSSQLSERVER' then @@servicename else 'MSSQL$'+@@servicename end,
-		[collector_sql_instance] = convert(nvarchar,serverproperty('MachineName'))
+		[collector_sql_instance] = convert(varchar,serverproperty('MachineName'))
+		--[collector_sql_instance] = convert(varchar,CONNECTIONPROPERTY('local_net_address'))
 go
 
 
@@ -105,15 +108,15 @@ create table [dbo].[performance_counters]
 	[object] [varchar](255) NOT NULL,
 	[counter] [varchar](255) NOT NULL,
 	[value] numeric(38,10) NULL,
-	[instance] [nvarchar](255) NULL
-) 
+	[instance] [varchar](255) NULL
+)
 go
 
 create clustered index ci_performance_counters on [dbo].[performance_counters] 
-	([collection_time_utc], [host_name], object, counter, [instance], [value]) 
+	([collection_time_utc], [host_name], object, counter, [instance], [value])
 go
 create nonclustered index nci_counter_collection_time_utc
-	on [dbo].[performance_counters] ([counter],[collection_time_utc]) 
+	on [dbo].[performance_counters] ([counter],[collection_time_utc])
 GO
 
 
@@ -125,7 +128,7 @@ as
 with cte_counters_local as (select collection_time_utc, host_name, path, object, counter, value, instance from dbo.performance_counters)
 --,cte_counters_sql2019 as (select collection_time_utc, host_name, path, object, counter, value, instance from [SQL2019].DBA.dbo.performance_counters)
 
-select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_local
+select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_local --with (forceseek)
 --union all
 --select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_sql2019
 go
@@ -143,8 +146,8 @@ CREATE TABLE [dbo].[perfmon_files]
 	(
 		[file_name] ASC,
 		[collection_time_utc] ASC
-	) 
-) 
+	)
+)
 GO
 
 
@@ -163,18 +166,18 @@ CREATE TABLE [dbo].[os_task_list]
 	[cpu_time] [char](14) NOT NULL,
 	[cpu_time_seconds] bigint NOT NULL,
 	[window_title] [nvarchar](2000) NULL
-) 
+)
 go
 
-create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [host_name], [task_name]) 
+create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [host_name], [task_name])
 go
-create nonclustered index nci_user_name on [dbo].[os_task_list] ([collection_time_utc], [host_name], [user_name]) 
+create nonclustered index nci_user_name on [dbo].[os_task_list] ([collection_time_utc], [host_name], [user_name])
 go
-create nonclustered index nci_window_title on [dbo].[os_task_list] ([collection_time_utc], [host_name], [window_title]) 
+create nonclustered index nci_window_title on [dbo].[os_task_list] ([collection_time_utc], [host_name], [window_title])
 go
-create nonclustered index nci_cpu_time_seconds on [dbo].[os_task_list] ([collection_time_utc], [host_name], [cpu_time_seconds]) 
+create nonclustered index nci_cpu_time_seconds on [dbo].[os_task_list] ([collection_time_utc], [host_name], [cpu_time_seconds])
 go
-create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_time_utc], [host_name], [memory_kb]) 
+create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_time_utc], [host_name], [memory_kb])
 go
 
 
@@ -203,10 +206,10 @@ CREATE TABLE [dbo].[wait_stats]
 	[wait_time_ms] [bigint] NOT NULL,
 	[max_wait_time_ms] [bigint] NOT NULL,
 	[signal_wait_time_ms] [bigint] NOT NULL
-) 
+)
 GO
 
-alter table [dbo].[wait_stats] add primary key ([collection_time_utc], [wait_type]) 
+alter table [dbo].[wait_stats] add primary key ([collection_time_utc], [wait_type])
 go
 
 
@@ -303,41 +306,43 @@ end
 go
 
 
-/* ***** 16) Validate Partition Data ***************** */
-/*
-SELECT SCHEMA_NAME(o.schema_id)+'.'+ o.name as TableName,
-	pf.name as PartitionFunction,
-	ds.name AS PartitionScheme, 
-	p.partition_number AS PartitionNumber, 
-	CASE pf.boundary_value_on_right WHEN 1 THEN 'RIGHT' ELSE 'LEFT' END AS PartitionFunctionRange, 
-	prv_left.value AS LowerBoundaryValue, 
-	prv_right.value AS UpperBoundaryValue, 
-	fg.name AS FileGroupName,
-	p.[row_count] as TotalRows,
-	CONVERT(DECIMAL(12,2), p.reserved_page_count*8/1024.0) as ReservedSpaceMB,
-	CONVERT(DECIMAL(12,2), p.used_page_count*8/1024.0) as UsedSpaceMB
-FROM sys.dm_db_partition_stats AS p (NOLOCK)
-	INNER JOIN sys.indexes AS i (NOLOCK) ON i.[object_id] = p.[object_id] AND i.index_id = p.index_id
-	INNER JOIN sys.data_spaces AS ds (NOLOCK) ON ds.data_space_id = i.data_space_id
-	INNER JOIN sys.objects AS o (NOLOCK) ON o.object_id = p.object_id
-	INNER JOIN sys.partition_schemes AS ps (NOLOCK) ON ps.data_space_id = ds.data_space_id
-	INNER JOIN sys.partition_functions AS pf (NOLOCK) ON pf.function_id = ps.function_id
-	INNER JOIN sys.destination_data_spaces AS dds2 (NOLOCK) ON dds2.partition_scheme_id = ps.data_space_id AND dds2.destination_id = p.partition_number
-	INNER JOIN sys.filegroups AS fg (NOLOCK) ON fg.data_space_id = dds2.data_space_id
-	LEFT OUTER JOIN sys.partition_range_values AS prv_left (NOLOCK) ON ps.function_id = prv_left.function_id AND prv_left.boundary_id = p.partition_number - 1
-	LEFT OUTER JOIN sys.partition_range_values AS prv_right (NOLOCK) ON ps.function_id = prv_right.function_id AND prv_right.boundary_id = p.partition_number
-WHERE
-	OBJECTPROPERTY(p.[object_id], 'IsMSShipped') = 0
-ORDER BY p.partition_number;	
+/* ***** 16) Add boundaries to partition. 1 boundary per hour ***************** */
+set nocount on;
+declare @current_boundary_value datetime2;
+declare @target_boundary_value datetime2; /* last day of new quarter */
+set @target_boundary_value = DATEADD (dd, -1, DATEADD(qq, DATEDIFF(qq, 0, GETDATE()) +2, 0));
+
+select top 1 @current_boundary_value = convert(datetime2,prv.value)
+from sys.partition_range_values prv
+join sys.partition_functions pf on pf.function_id = prv.function_id
+where pf.name = 'pf_dba'
+order by prv.value desc;
+
+if(@current_boundary_value is null)
+begin
+	select 'Error - @current_boundary_value is NULL. So set to 2 Days back.';
+	set @current_boundary_value = dateadd(hour,-48,cast(cast(getdate() as date) as datetime))
+end
+
+select [@current_boundary_value] = @current_boundary_value, [@target_boundary_value] = @target_boundary_value;
+
+while (@current_boundary_value < @target_boundary_value)
+begin
+	set @current_boundary_value = DATEADD(hour,1,@current_boundary_value);
+	--print @current_boundary_value
+	alter partition scheme ps_dba next used [primary];
+	alter partition function pf_dba() split range (@current_boundary_value);	
+end
 go
-*/
 
 
-/* ***** 17) Add boundaries to partition. 1 boundary per hour ***************** */
+/* ***** 17) Remove boundaries with retention of 3 months ***************** */
 set nocount on;
 declare @partition_boundary datetime2;
 declare @target_boundary_value datetime2; /* 3 months back date */
 set @target_boundary_value = DATEADD(mm,DATEDIFF(mm,0,GETDATE())-3,0);
+
+select @target_boundary_value as [@target_boundary_value];
 
 declare cur_boundaries cursor local fast_forward for
 		select convert(datetime2,prv.value) as boundary_value
@@ -360,29 +365,8 @@ DEALLOCATE cur_boundaries;
 go
 
 
-/* ***** 18) Remove boundaries with retention of 3 months ***************** */
-set nocount on;
-declare @current_boundary_value datetime2;
-declare @target_boundary_value datetime2; /* last day of new quarter */
-set @target_boundary_value = DATEADD (dd, -1, DATEADD(qq, DATEDIFF(qq, 0, GETDATE()) +2, 0));
-
-select top 1 @current_boundary_value = convert(datetime2,prv.value)
-from sys.partition_range_values prv
-join sys.partition_functions pf on pf.function_id = prv.function_id
-where pf.name = 'pf_dba'
-order by prv.value desc;
-
-select [@current_boundary_value] = @current_boundary_value, [@target_boundary_value] = @target_boundary_value;
-
-while (@current_boundary_value < @target_boundary_value)
-begin
-	set @current_boundary_value = DATEADD(hour,1,@current_boundary_value);
-	--print @current_boundary_value
-	alter partition scheme ps_dba next used [primary];
-	alter partition function pf_dba() split range (@current_boundary_value);	
-end
-go
-
+/* ***** 18) Validate Partition Data ***************** */
+-- Check query 'SQL-Queries\check-table-partitions.sql'
 
 /* ***** 19) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
 IF OBJECT_ID('[dbo].[BlitzFirst_WaitStats_Categories]') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM [dbo].[BlitzFirst_WaitStats_Categories])
