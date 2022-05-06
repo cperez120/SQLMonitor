@@ -93,7 +93,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1651577446518,
+  "iteration": 1651807109227,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -762,7 +762,7 @@
           "refId": "A"
         }
       ],
-      "title": "OS CPU @ ${os_task_list_collection_time_utc:date:YYYY-MM-DD HH.mm}",
+      "title": "OS CPU @ ${perfmon_collection_time_utc:date:YYYY-MM-DD HH.mm}",
       "type": "stat"
     },
     {
@@ -1110,7 +1110,7 @@
           "refId": "A"
         }
       ],
-      "title": "SQL CPU @ ${os_task_list_collection_time_utc:date:YYYY-MM-DD HH.mm}",
+      "title": "SQL CPU @ ${perfmon_collection_time_utc:date:YYYY-MM-DD HH.mm}",
       "type": "stat"
     },
     {
@@ -4236,6 +4236,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 28,
+  "version": 31,
   "weekStart": ""
 }
