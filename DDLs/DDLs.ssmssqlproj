@@ -4,7 +4,7 @@
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
         <ConnectionNode Name="(local):LAB\adwivedi">
-          <Created>2020-09-16T22:37:43.3325728-07:00</Created>
+          <Created>2020-09-17T11:07:43.3325728+05:30</Created>
           <Type>SQL</Type>
           <Server>(local)</Server>
           <UserName />
@@ -16,7 +16,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="AllVersion:LAB\adwivedi">
-          <Created>2022-04-21T10:18:07.766096-07:00</Created>
+          <Created>2022-04-21T22:48:07.766096+05:30</Created>
           <Type>SQL</Type>
           <Server>AllVersion</Server>
           <UserName />
@@ -28,7 +28,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="Demo:LAB\adwivedi">
-          <Created>2022-04-24T03:16:24.7741875-07:00</Created>
+          <Created>2022-04-24T15:46:24.7741875+05:30</Created>
           <Type>SQL</Type>
           <Server>Demo</Server>
           <UserName />
@@ -40,7 +40,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="LOCALHOST:LAB\adwivedi">
-          <Created>2020-10-18T08:41:28.7072242-07:00</Created>
+          <Created>2020-10-18T21:11:28.7072242+05:30</Created>
           <Type>SQL</Type>
           <Server>LOCALHOST</Server>
           <UserName />
@@ -52,7 +52,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="msi:sa">
-          <Created>2022-04-23T02:08:55.4517903-07:00</Created>
+          <Created>2022-04-23T14:38:55.4517903+05:30</Created>
           <Type>SQL</Type>
           <Server>msi</Server>
           <UserName>sa</UserName>
@@ -64,7 +64,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="SQL2012:LAB\adwivedi">
-          <Created>2022-04-28T01:17:48.6312614-07:00</Created>
+          <Created>2022-04-28T13:47:48.6312614+05:30</Created>
           <Type>SQL</Type>
           <Server>SQL2012</Server>
           <UserName />
@@ -76,7 +76,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="Sql2014:LAB\adwivedi">
-          <Created>2022-04-28T01:17:36.5304662-07:00</Created>
+          <Created>2022-04-28T13:47:36.5304662+05:30</Created>
           <Type>SQL</Type>
           <Server>Sql2014</Server>
           <UserName />
@@ -88,7 +88,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="Sql2016:LAB\adwivedi">
-          <Created>2022-04-28T01:17:25.0006385-07:00</Created>
+          <Created>2022-04-28T13:47:25.0006385+05:30</Created>
           <Type>SQL</Type>
           <Server>Sql2016</Server>
           <UserName />
@@ -100,7 +100,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="Sql2017:LAB\adwivedi">
-          <Created>2022-04-28T01:08:09.0130072-07:00</Created>
+          <Created>2022-04-28T13:38:09.0130072+05:30</Created>
           <Type>SQL</Type>
           <Server>Sql2017</Server>
           <UserName />
@@ -112,7 +112,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="Sql2019:LAB\adwivedi">
-          <Created>2022-04-28T01:10:29.4478396-07:00</Created>
+          <Created>2022-04-28T13:40:29.4478396+05:30</Created>
           <Type>SQL</Type>
           <Server>Sql2019</Server>
           <UserName />
@@ -124,7 +124,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="SQL-A:verysecretadmin">
-          <Created>2020-09-17T10:13:18.0128969-07:00</Created>
+          <Created>2020-09-17T22:43:18.0128969+05:30</Created>
           <Type>SQL</Type>
           <Server>SQL-A</Server>
           <UserName>verysecretadmin</UserName>
@@ -136,7 +136,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="SQL-A\V17:sa">
-          <Created>2020-09-17T10:13:32.3897371-07:00</Created>
+          <Created>2020-09-17T22:43:32.3897371+05:30</Created>
           <Type>SQL</Type>
           <Server>SQL-A\V17</Server>
           <UserName>sa</UserName>
@@ -148,7 +148,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="SqlDr1:LAB\adwivedi">
-          <Created>2022-04-28T00:50:40.2442066-07:00</Created>
+          <Created>2022-04-28T13:20:40.2442066+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlDr1</Server>
           <UserName />
@@ -160,7 +160,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="SqlDr2:LAB\adwivedi">
-          <Created>2022-04-28T01:06:02.7460201-07:00</Created>
+          <Created>2022-04-28T13:36:02.7460201+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlDr2</Server>
           <UserName />
@@ -172,7 +172,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="SqlDr3:LAB\adwivedi">
-          <Created>2022-04-28T01:08:22.4312313-07:00</Created>
+          <Created>2022-04-28T13:38:22.4312313+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlDr3</Server>
           <UserName />
@@ -184,7 +184,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="SqlMonitor:LAB\adwivedi">
-          <Created>2022-04-21T05:58:32.8161241-07:00</Created>
+          <Created>2022-04-21T18:28:32.8161241+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlMonitor</Server>
           <UserName />
@@ -196,7 +196,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="SqlPractice:LAB\adwivedi">
-          <Created>2022-04-29T20:29:21.3369982-07:00</Created>
+          <Created>2022-04-30T08:59:21.3369982+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlPractice</Server>
           <UserName />
@@ -208,7 +208,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="SqlProd1:LAB\adwivedi">
-          <Created>2022-04-27T22:08:24.0105849-07:00</Created>
+          <Created>2022-04-28T10:38:24.0105849+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlProd1</Server>
           <UserName />
@@ -220,7 +220,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="SqlProd2:LAB\adwivedi">
-          <Created>2022-04-28T00:03:09.9658817-07:00</Created>
+          <Created>2022-04-28T12:33:09.9658817+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlProd2</Server>
           <UserName />
@@ -232,7 +232,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="SqlProd3:LAB\adwivedi">
-          <Created>2022-04-28T00:12:43.0287544-07:00</Created>
+          <Created>2022-04-28T12:42:43.0287544+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlProd3</Server>
           <UserName />
@@ -244,7 +244,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="Workstation:LAB\adwivedi">
-          <Created>2022-05-02T23:35:58.1342039-07:00</Created>
+          <Created>2022-05-03T12:05:58.1342039+05:30</Created>
           <Type>SQL</Type>
           <Server>Workstation</Server>
           <UserName />
@@ -256,7 +256,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="WORKSTATION\SQLEXPRESS:LAB\adwivedi">
-          <Created>2022-05-01T09:23:40.229618-07:00</Created>
+          <Created>2022-05-01T21:53:40.229618+05:30</Created>
           <Type>SQL</Type>
           <Server>WORKSTATION\SQLEXPRESS</Server>
           <UserName />

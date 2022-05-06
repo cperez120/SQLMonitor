@@ -16,6 +16,7 @@ Param (
 
 Import-Module dbatools;
 
+Write-Debug "Here at start of function."
 $ErrorActionPreference = 'Stop'
 $timeUTC = (Get-Date).ToUniversalTime()
 
@@ -41,8 +42,11 @@ $processes += $taskList | Select @{l='collection_time_utc';e={$timeUTC}}, @{l='h
                 @{l='cpu_time_seconds';e={$cpu_time_parts = $($_.'CPU Time') -split ':'; (New-TimeSpan -Hours $cpu_time_parts[0] -Minutes $cpu_time_parts[1] -Seconds $cpu_time_parts[2]).TotalSeconds}}, `
                 @{l='window_title';e={$title = $_.'Window Title'; if($title -eq 'N/A'){$null}else{$title}}}
 
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$($processes.Count) processes found.."
+
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$(($processes | Where-Object {$_.memory_kb -gt 1024 -or $_.cpu_time_seconds -gt 0}).Count) processes found consuming cpu or memory over 1 kb."
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Push filtered os processes info to SqlServer [$SqlInstance].[$Database].$TableName.."
 $processes | Where-Object {$_.memory_kb -gt 1024 -or $_.cpu_time_seconds -gt 0} |
-        Write-DbaDbTableData -SqlInstance $SqlInstance -Database $Database -Table $TableName -EnableException -AutoCreateTable
+        Write-DbaDbTableData -SqlInstance $SqlInstance -Database $Database -Table $TableName -EnableException
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Export completed in $((New-TimeSpan -Start $timeUTC -End (Get-Date).ToUniversalTime()).TotalSeconds) seconds."
