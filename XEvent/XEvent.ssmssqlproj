@@ -4,7 +4,7 @@
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
         <ConnectionNode Name="(local):LAB\adwivedi">
-          <Created>2020-12-22T09:22:39.5331091-08:00</Created>
+          <Created>2020-12-22T22:52:39.5331091+05:30</Created>
           <Type>SQL</Type>
           <Server>(local)</Server>
           <UserName />
@@ -30,24 +30,6 @@
           <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>02) XEvent Extraction.sql</FullPath>
-        </FileNode>
-        <FileNode Name="QRY-Read-XEL-File.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>QRY-Read-XEL-File.sql</FullPath>
-        </FileNode>
-        <FileNode Name="SCH-Create-XEvent-Session.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>SCH-Create-XEvent-Session.sql</FullPath>
-        </FileNode>
-        <FileNode Name="SCH-ExtendedEvents-Queries.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>SCH-ExtendedEvents-Queries.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>
