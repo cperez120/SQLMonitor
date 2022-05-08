@@ -6,14 +6,12 @@ if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Partitions-M
 	EXEC msdb.dbo.sp_delete_job @job_name='(dba) Partitions-Maintenance', @delete_unused_schedule=1
 GO
 
-USE [msdb]
-GO
 
-/****** Object:  Job [(dba) Partitions-Maintenance]    Script Date: 5/3/2022 12:02:20 AM ******/
+/****** Object:  Job [(dba) Partitions-Maintenance]    Script Date: 5/7/2022 7:33:39 PM ******/
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
-/****** Object:  JobCategory [(dba) Monitoring & Alerting]    Script Date: 5/3/2022 12:02:20 AM ******/
+/****** Object:  JobCategory [(dba) Monitoring & Alerting]    Script Date: 5/7/2022 7:33:39 PM ******/
 IF NOT EXISTS (SELECT name FROM msdb.dbo.syscategories WHERE name=N'(dba) Monitoring & Alerting' AND category_class=1)
 BEGIN
 EXEC @ReturnCode = msdb.dbo.sp_add_category @class=N'JOB', @type=N'LOCAL', @name=N'(dba) Monitoring & Alerting'
@@ -33,7 +31,7 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Partitions-Maintenance
 		@category_name=N'(dba) Monitoring & Alerting', 
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [[datetime2] - Add partitions - Hourly - Till Next Quarter End]    Script Date: 5/3/2022 12:02:20 AM ******/
+/****** Object:  Step [[datetime2] - Add partitions - Hourly - Till Next Quarter End]    Script Date: 5/7/2022 7:33:39 PM ******/
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'[datetime2] - Add partitions - Hourly - Till Next Quarter End', 
 		@step_id=1, 
 		@cmdexec_success_code=0, 
@@ -52,19 +50,17 @@ declare @target_boundary_value datetime2; /* last day of new quarter */
 set @target_boundary_value = DATEADD (dd, -1, DATEADD(qq, DATEDIFF(qq, 0, GETUTCDATE()) +2, 0));
 
 select top 1 @current_boundary_value = convert(datetime2,prv.value)
-from sys.partition_range_values prv with (nolock)
-join sys.partition_functions pf with (nolock) on pf.function_id = prv.function_id
+from sys.partition_range_values prv
+join sys.partition_functions pf on pf.function_id = prv.function_id
 where pf.name = ''pf_dba''
 order by prv.value desc;
 
-if(@current_boundary_value is null)
+if(@current_boundary_value is null or @current_boundary_value < getutcdate() )
 begin
-	select ''Error - @current_boundary_value is NULL. So set to 2 Days back.'';
-	set @current_boundary_value = dateadd(hour,-48,cast(cast(GETUTCDATE() as date) as datetime2))
+	select ''Error - @current_boundary_value is NULL or its previous to current time.'';
+	set @current_boundary_value = dateadd(hour,datediff(hour,convert(date,getutcdate()),getutcdate())-1,cast(convert(date,getutcdate())as datetime2));
 end
-
-select [@current_boundary_value] = @current_boundary_value, [@target_boundary_value] = @target_boundary_value,
-		[total_partitions_to_add] = datediff(hour,@current_boundary_value,@target_boundary_value);
+select [@current_boundary_value] = @current_boundary_value, [@target_boundary_value] = @target_boundary_value;
 
 while (@current_boundary_value < @target_boundary_value)
 begin
@@ -76,7 +72,7 @@ end',
 		@database_name=N'DBA', 
 		@flags=12
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [[datetime] - Add partitions - Hourly - Till Next Quarter End]    Script Date: 5/3/2022 12:02:20 AM ******/
+/****** Object:  Step [[datetime] - Add partitions - Hourly - Till Next Quarter End]    Script Date: 5/7/2022 7:33:39 PM ******/
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'[datetime] - Add partitions - Hourly - Till Next Quarter End', 
 		@step_id=2, 
 		@cmdexec_success_code=0, 
@@ -100,15 +96,12 @@ join sys.partition_functions pf on pf.function_id = prv.function_id
 where pf.name = ''pf_dba_datetime''
 order by prv.value desc;
 
---select [@current_boundary_value] = @current_boundary_value, [@target_boundary_value] = @target_boundary_value;
-if(@current_boundary_value is null)
+if(@current_boundary_value is null or @current_boundary_value < getutcdate() )
 begin
-	select ''Error - @current_boundary_value is NULL. So set to 2 Days back.'';
-	set @current_boundary_value = dateadd(hour,-48,cast(cast(GETDATE() as date) as datetime))
+	select ''Error - @current_boundary_value is NULL or its previous to current time.'';
+	set @current_boundary_value = dateadd(hour,datediff(hour,convert(date,getutcdate()),getutcdate())-1,cast(convert(date,getutcdate())as datetime2));
 end
-
-select [@current_boundary_value] = @current_boundary_value, [@target_boundary_value] = @target_boundary_value,
-		[total_partitions_to_add] = datediff(hour,@current_boundary_value,@target_boundary_value);
+select [@current_boundary_value] = @current_boundary_value, [@target_boundary_value] = @target_boundary_value;
 
 while (@current_boundary_value < @target_boundary_value)
 begin
@@ -120,7 +113,7 @@ end',
 		@database_name=N'DBA', 
 		@flags=0
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [[datetime2] - Remove Partitions - Retain upto 3 Months]    Script Date: 5/3/2022 12:02:20 AM ******/
+/****** Object:  Step [[datetime2] - Remove Partitions - Retain upto 3 Months]    Script Date: 5/7/2022 7:33:39 PM ******/
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'[datetime2] - Remove Partitions - Retain upto 3 Months', 
 		@step_id=3, 
 		@cmdexec_success_code=0, 
@@ -160,7 +153,7 @@ DEALLOCATE cur_boundaries;',
 		@database_name=N'DBA', 
 		@flags=12
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [[datetime] - Remove Partitions - Retain upto 3 Months]    Script Date: 5/3/2022 12:02:20 AM ******/
+/****** Object:  Step [[datetime] - Remove Partitions - Retain upto 3 Months]    Script Date: 5/7/2022 7:33:39 PM ******/
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'[datetime] - Remove Partitions - Retain upto 3 Months', 
 		@step_id=4, 
 		@cmdexec_success_code=0, 
@@ -213,8 +206,8 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'(dba) Par
 		@active_start_date=20220326, 
 		@active_end_date=99991231, 
 		@active_start_time=0, 
-		@active_end_time=235959
-		--@schedule_uid=N'b43ab780-6b08-4127-a36f-e2f478409210'
+		@active_end_time=235959 
+		--,@schedule_uid=N'b43ab780-6b08-4127-a36f-e2f478409210'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_add_jobserver @job_id = @jobId, @server_name = N'(local)'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback

@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="(local):MSI\ajayd">
+        <ConnectionNode Name="(local):LAB\adwivedi">
           <Created>2020-12-22T22:52:39.5331091+05:30</Created>
           <Type>SQL</Type>
           <Server>(local)</Server>
@@ -19,17 +19,17 @@
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
-        <FileNode Name="QRY-Read-XEL-File.sql">
+        <FileNode Name="01) XEvent Definition.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>QRY-Read-XEL-File.sql</FullPath>
+          <FullPath>01) XEvent Definition.sql</FullPath>
         </FileNode>
-        <FileNode Name="SCH-Create-XEvent-Session.sql">
+        <FileNode Name="02) XEvent Extraction.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>SCH-Create-XEvent-Session.sql</FullPath>
+          <FullPath>02) XEvent Extraction.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>

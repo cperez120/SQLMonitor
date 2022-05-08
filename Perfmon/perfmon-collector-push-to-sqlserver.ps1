@@ -44,6 +44,7 @@ $lastImportedFile = $null
 # Get latest imported file
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetch details of last imported file from [$SqlInstance].[$Database].$TablePerfmonFiles.."
 $lastImportedFile = Invoke-DbaQuery -SqlInstance $SqlInstance -Database $Database -Query "select top 1 file_name from $TablePerfmonFiles where host_name = '$computerName' order by file_name desc" | Select-Object -ExpandProperty file_name;
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$lastImportedFile => '$lastImportedFile'."
 
 # Stop collector set
 if($pfCollectorSet.State -eq 'Running') {
@@ -53,9 +54,13 @@ if($pfCollectorSet.State -eq 'Running') {
 
 # Note existing files
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Scan existing perfmon files generated.."
+$perfmonFilesFound = @()
 $pfCollectorFiles = @()
-#$pfCollectorFiles += Get-ChildItem $pfCollectorFolder -Recurse -File -Name *.blg | Where-Object {[String]::IsNullOrEmpty($lastImportedFile) -or ($_ -gt $lastImportedFile)} | Sort-Object
-$pfCollectorFiles += Get-ChildItem $("\\$computerName\"+$pfCollectorFolder.Replace(':','$')) -Recurse -File -Name *.blg | Where-Object {[String]::IsNullOrEmpty($lastImportedFile) -or ($_ -gt $lastImportedFile)} | Sort-Object
+$perfmonFilesDirectory = $("\\$computerName\"+$pfCollectorFolder.Replace(':','$'))
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$perfmonFilesDirectory => '$perfmonFilesDirectory'."
+$perfmonFilesFound += Get-ChildItem $perfmonFilesDirectory -Recurse -File -Name *.blg
+$pfCollectorFiles += $perfmonFilesFound | Where-Object {[String]::IsNullOrEmpty($lastImportedFile) -or ($_ -gt $lastImportedFile)} | Sort-Object
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$($perfmonFilesFound.Count) files found. $($pfCollectorFiles.Count) qualify for import into tables."
 
 # Start collector set
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Start data collector.."

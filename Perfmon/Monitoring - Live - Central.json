@@ -93,7 +93,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1651577447574,
+  "iteration": 1652030898530,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -4265,6 +4265,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Central",
   "uid": "central_live_dashboard",
-  "version": 55,
+  "version": 56,
   "weekStart": ""
 }
