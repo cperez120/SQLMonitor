@@ -13,3 +13,14 @@ exec usp_RandomQ
 go
 */
 
+/*
+$sqlInstance= 'Workstation'
+$query = 'usp_RandomQ'
+
+Invoke-DbaQuery `
+        -SqlInstance $sqlInstance `
+        -Query $query `
+        -Database StackOverflow2013 `
+        -CommandType StoredProcedure
+
+*/
