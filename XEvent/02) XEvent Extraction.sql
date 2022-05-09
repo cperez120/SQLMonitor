@@ -158,14 +158,14 @@ close cur_files;
 deallocate cur_files;
 go
 
---select *
---from dbo.resource_consumption_Processed_XEL_Files f
---where f.is_removed_from_disk = 0 and is_processed = 1
---order by collection_time_utc desc;
-
-
+/*
 select *
-from [dbo].[resource_consumption]
+from dbo.resource_consumption_Processed_XEL_Files f
+where f.is_removed_from_disk = 0 and is_processed = 1
+order by collection_time_utc desc;
+*/
+
+-- select * from [dbo].[resource_consumption]
 
 
 /*
@@ -209,11 +209,11 @@ CREATE TABLE [dbo].[resource_consumption]
 	[scheduler_id] [int] NULL
 	--,[context_info] [varchar](1000) NULL
 	--,[event_data] [xml] NULL
-	,constraint pk_resource_consumption primary key clustered (start_time,event_time,[row_id])
+	,constraint pk_resource_consumption primary key clustered (event_time,start_time,[row_id])
 ) on ps_dba (start_time)
 GO
 
-alter table [dbo].[resource_consumption] add constraint pk_resource_consumption primary key clustered ([start_time], [event_time], [event_name], [session_id])
+create unique index uq_resource_consumption on [dbo].[resource_consumption]  ([start_time], [event_time], [row_id])
 GO
 
 --select	[start_time], event_time, event_name, session_id, result, 

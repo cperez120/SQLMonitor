@@ -6,11 +6,12 @@ if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Purge-DbaMet
 	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Purge-DbaMetrics - Daily', @delete_unused_schedule=1
 GO
 
-/****** Object:  Job [(dba) Purge-DbaMetrics - Daily]    Script Date: 4/24/2022 9:14:04 AM ******/
+
+/****** Object:  Job [(dba) Purge-DbaMetrics - Daily]    Script Date: 5/9/2022 11:44:39 PM ******/
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
-/****** Object:  JobCategory [(dba) Monitoring & Alerting]    Script Date: 4/24/2022 9:14:04 AM ******/
+/****** Object:  JobCategory [(dba) Monitoring & Alerting]    Script Date: 5/9/2022 11:44:39 PM ******/
 IF NOT EXISTS (SELECT name FROM msdb.dbo.syscategories WHERE name=N'(dba) Monitoring & Alerting' AND category_class=1)
 BEGIN
 EXEC @ReturnCode = msdb.dbo.sp_add_category @class=N'JOB', @type=N'LOCAL', @name=N'(dba) Monitoring & Alerting'
@@ -33,7 +34,7 @@ dbo.perfmon_files',
 		@category_name=N'(dba) Monitoring & Alerting', 
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [dbo.performance_counters]    Script Date: 4/24/2022 9:14:04 AM ******/
+/****** Object:  Step [dbo.performance_counters]    Script Date: 5/9/2022 11:44:39 PM ******/
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.performance_counters', 
 		@step_id=1, 
 		@cmdexec_success_code=0, 
@@ -59,7 +60,7 @@ end',
 		@database_name=N'DBA', 
 		@flags=12
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [dbo.perfmon_files]    Script Date: 4/24/2022 9:14:04 AM ******/
+/****** Object:  Step [dbo.perfmon_files]    Script Date: 5/9/2022 11:44:39 PM ******/
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.perfmon_files', 
 		@step_id=2, 
 		@cmdexec_success_code=0, 
@@ -85,7 +86,7 @@ end',
 		@database_name=N'DBA', 
 		@flags=12
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [dbo.os_task_list]    Script Date: 4/24/2022 9:14:04 AM ******/
+/****** Object:  Step [dbo.os_task_list]    Script Date: 5/9/2022 11:44:39 PM ******/
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.os_task_list', 
 		@step_id=3, 
 		@cmdexec_success_code=0, 
@@ -110,11 +111,11 @@ end',
 		@database_name=N'DBA', 
 		@flags=12
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [dbo.wait_stats]    Script Date: 4/24/2022 9:14:04 AM ******/
+/****** Object:  Step [dbo.wait_stats]    Script Date: 5/9/2022 11:44:39 PM ******/
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.wait_stats', 
 		@step_id=4, 
 		@cmdexec_success_code=0, 
-		@on_success_action=1, 
+		@on_success_action=3, 
 		@on_success_step_id=0, 
 		@on_fail_action=2, 
 		@on_fail_step_id=0, 
@@ -133,6 +134,60 @@ begin
 
 	set @r = @@ROWCOUNT
 end', 
+		@database_name=N'DBA', 
+		@flags=12
+IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
+/****** Object:  Step [dbo.resource_consumption]    Script Date: 5/9/2022 11:44:39 PM ******/
+EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.resource_consumption', 
+		@step_id=5, 
+		@cmdexec_success_code=0, 
+		@on_success_action=3, 
+		@on_success_step_id=0, 
+		@on_fail_action=2, 
+		@on_fail_step_id=0, 
+		@retry_attempts=0, 
+		@retry_interval=0, 
+		@os_run_priority=0, @subsystem=N'TSQL', 
+		@command=N'DECLARE @r INT;
+	
+SET @r = 1;
+while @r > 0
+begin
+	delete top (100000) pf
+	from dbo.resource_consumption pf
+	where pf.event_time < dateadd(day,-90,sysdatetime())
+	--option (table hint(h, INDEX(ci_alwayson_synchronization_history_aggregated)))
+
+	set @r = @@ROWCOUNT
+end
+', 
+		@database_name=N'DBA', 
+		@flags=12
+IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
+/****** Object:  Step [dbo.resource_consumption_Processed_XEL_Files]    Script Date: 5/9/2022 11:44:39 PM ******/
+EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.resource_consumption_Processed_XEL_Files', 
+		@step_id=6, 
+		@cmdexec_success_code=0, 
+		@on_success_action=1, 
+		@on_success_step_id=0, 
+		@on_fail_action=2, 
+		@on_fail_step_id=0, 
+		@retry_attempts=0, 
+		@retry_interval=0, 
+		@os_run_priority=0, @subsystem=N'TSQL', 
+		@command=N'DECLARE @r INT;
+	
+SET @r = 1;
+while @r > 0
+begin
+	delete top (100000) pf
+	from dbo.resource_consumption_Processed_XEL_Files pf
+	where pf.collection_time_utc < dateadd(day,-7,sysutcdatetime())
+	--option (table hint(h, INDEX(ci_alwayson_synchronization_history_aggregated)))
+
+	set @r = @@ROWCOUNT
+end
+', 
 		@database_name=N'DBA', 
 		@flags=12
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
@@ -161,3 +216,6 @@ QuitWithRollback:
 EndSave:
 GO
 
+
+EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Purge-DbaMetrics - Daily'
+GO
