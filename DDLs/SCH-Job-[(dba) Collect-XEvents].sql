@@ -1,16 +1,16 @@
 USE [msdb]
 GO
 
-if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Collect-OSProcesses')
-	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Collect-OSProcesses', @delete_unused_schedule=1
+if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Collect-XEvents')
+	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Collect-XEvents', @delete_unused_schedule=1
 GO
 
 
-/****** Object:  Job [(dba) Collect-XEvents]    Script Date: 5/9/2022 11:56:09 PM ******/
+/****** Object:  Job [(dba) Collect-XEvents]    Script Date: 5/10/2022 11:41:38 PM ******/
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
-/****** Object:  JobCategory [(dba) Monitoring & Alerting]    Script Date: 5/9/2022 11:56:09 PM ******/
+/****** Object:  JobCategory [(dba) Monitoring & Alerting]    Script Date: 5/10/2022 11:41:38 PM ******/
 IF NOT EXISTS (SELECT name FROM msdb.dbo.syscategories WHERE name=N'(dba) Monitoring & Alerting' AND category_class=1)
 BEGIN
 EXEC @ReturnCode = msdb.dbo.sp_add_category @class=N'JOB', @type=N'LOCAL', @name=N'(dba) Monitoring & Alerting'
@@ -30,7 +30,7 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Collect-XEvents',
 		@category_name=N'(dba) Monitoring & Alerting', 
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [Consume-XEvent-resource_consumption]    Script Date: 5/9/2022 11:56:09 PM ******/
+/****** Object:  Step [Consume-XEvent-resource_consumption]    Script Date: 5/10/2022 11:41:38 PM ******/
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Consume-XEvent-resource_consumption', 
 		@step_id=1, 
 		@cmdexec_success_code=0, 
@@ -70,9 +70,7 @@ select @xe_directory = (case when CHARINDEX(''\'',reverse(t.file_path)) <> 0 the
 		,@xe_file = t.file_path
 from targets_current t;
 
--- Set context info
-EXEC [sys].[sp_set_session_context] @key = ''xe_directory'', @value = @xe_directory, @read_only = 0;
-EXEC [sys].[sp_set_session_context] @key = ''xe_file_current'', @value = @xe_file, @read_only = 0;
+--select [@xe_directory] = @xe_directory, [@xe_file] = @xe_file;
 
 -- Fetch files from XEvent directory
 insert #xe_files
@@ -90,9 +88,7 @@ ALTER EVENT SESSION [resource_consumption] ON SERVER STATE=START;
 -- Extract XEvent Info from File
 declare @c_file nvarchar(255);
 declare @c_file_path nvarchar(2000);
---declare @xe_directory nvarchar(2000);
 
-SELECT @xe_directory = CONVERT(varchar(2000),SESSION_CONTEXT(N''xe_directory''));
 declare cur_files cursor local forward_only for
 		select subdirectory
 		from #xe_files f
@@ -101,12 +97,6 @@ declare cur_files cursor local forward_only for
 
 open cur_files;
 fetch next from cur_files into @c_file;
-
---drop table #event_data
---select xf.object_name as event_name, xf.file_name, xf.timestamp_utc, event_data = convert(xml,xf.event_data)
---into #event_data
---from sys.fn_xe_file_target_read_file(''/study-zone/mssql/xevents/resource_consumption_0_132719161685480000.xel'',null,null,null) as xf
---where xf.object_name in (''sql_batch_completed'',''rpc_completed'',''sql_statement_completed'')
 
 while @@FETCH_STATUS = 0
 begin
@@ -119,19 +109,16 @@ begin
 		select @c_file_path as file_path, @current_time as collection_time_utc;
 
 		;with t_event_data as (
-			select xf.object_name as event_name, xf.file_name, xf.timestamp_utc, event_data = convert(xml,xf.event_data)
+			select xf.object_name as event_name, xf.file_name, event_data = convert(xml,xf.event_data) --,xf.timestamp_utc, 
 			from sys.fn_xe_file_target_read_file(@c_file_path,null,null,null) as xf
 			where xf.object_name in (''sql_batch_completed'',''rpc_completed'',''sql_statement_completed'')
 		)
 		,t_data_extracted as (
-			select  --event_data,
-					[event_name]
-					--,[start_time] = dateadd(MICROSECOND, -event_data.value(''(/event/data[@name="duration"]/value)[1]'',''bigint''), event_data.value(''(/event/@timestamp)[1]'',''datetime2''))
-					,[event_time] = event_data.value(''(/event/@timestamp)[1]'',''datetime2'')
-					--,[end_time] = event_data.value(''(/event/@timestamp)[1]'',''datetime2'')
+			select  [event_name]
+					,[event_time] = DATEADD(mi, DATEDIFF(mi, sysutcdatetime(), sysdatetime()), (event_data.value(''(/event/@timestamp)[1]'',''datetime2'')))
+					--,[event_time] = event_data.value(''(/event/@timestamp)[1]'',''datetime2'')
 					,[cpu_time] = event_data.value(''(/event/data[@name="cpu_time"]/value)[1]'',''bigint'')
 					,[duration_seconds] = (event_data.value(''(/event/data[@name="duration"]/value)[1]'',''bigint''))/1000000
-					--,[page_server_reads] = event_data.value(''(/event/data[@name="duration"]/value)[1]'',''bigint'')
 					,[physical_reads] = event_data.value(''(/event/data[@name="physical_reads"]/value)[1]'',''bigint'')
 					,[logical_reads] = event_data.value(''(/event/data[@name="logical_reads"]/value)[1]'',''bigint'')
 					,[writes] = event_data.value(''(/event/data[@name="writes"]/value)[1]'',''bigint'')
@@ -148,13 +135,9 @@ begin
 										then ltrim(rtrim(event_data.value(''(/event/data[@name="statement"]/value)[1]'',''varchar(max)'')))
 										else ltrim(rtrim(event_data.value(''(/event/action[@name="sql_text"]/value)[1]'',''varchar(max)'')))
 									end
-					--,[line_number] = event_data.value(''(/event/data[@name="line_number"]/value)[1]'',''bigint'')
-					--,[offset] = event_data.value(''(/event/data[@name="offset"]/value)[1]'',''bigint'')
-					--,[offset_end] = event_data.value(''(/event/data[@name="offset_end"]/value)[1]'',''bigint'')
 					,[query_hash] = event_data.value(''(/event/action[@name="query_hash"]/value)[1]'',''varbinary(255)'')
 					,[query_plan_hash] = event_data.value(''(/event/action[@name="query_plan_hash"]/value)[1]'',''varbinary(255)'')
 					,[database_name] = event_data.value(''(/event/action[@name="database_name"]/value)[1]'',''varchar(255)'')
-					--,[object_name] = event_data.value(''(/event/data[@name="object_name"]/value)[1]'',''varchar(255)'')
 					,[client_hostname] = event_data.value(''(/event/action[@name="client_hostname"]/value)[1]'',''varchar(255)'')
 					,[client_app_name] = event_data.value(''(/event/action[@name="client_app_name"]/value)[1]'',''varchar(255)'')
 					,[session_resource_pool_id] = event_data.value(''(/event/action[@name="session_resource_pool_id"]/value)[1]'',''int'')
@@ -162,23 +145,26 @@ begin
 					,[session_id] = event_data.value(''(/event/action[@name="session_id"]/value)[1]'',''int'')
 					,[request_id] = event_data.value(''(/event/action[@name="request_id"]/value)[1]'',''int'')
 					,[scheduler_id] = event_data.value(''(/event/action[@name="scheduler_id"]/value)[1]'',''int'')
-					--,[context_info] = event_data.value(''(/event/action[@name="context_info"]/value)[1]'',''varchar(1000)'')
-			--from #event_data ed
 			from t_event_data ed
 		)
 		insert [dbo].[resource_consumption]
 		(	start_time, event_time, event_name, session_id, request_id, result, database_name, client_app_name, username, cpu_time, duration_seconds, 
 			logical_reads, physical_reads, row_count, writes, spills, sql_text, 
-			--line_number, offset, offset_end, 
 			query_hash, query_plan_hash, client_hostname, session_resource_pool_id, session_resource_group_id, scheduler_id --, context_info
 		)
 		select	start_time = DATEADD(second,-(duration_seconds),event_time), event_time, event_name, session_id, request_id, result, 
-				database_name, client_app_name, username, cpu_time, duration_seconds, logical_reads, physical_reads, row_count, 
-				writes, spills, sql_text, 
-				--line_number, offset, offset_end, 
-				query_hash, query_plan_hash, 
+				database_name, --client_app_name, 
+				[client_app_name] = CASE	WHEN	[client_app_name] like ''SQLAgent - TSQL JobStep %''
+					THEN	(	select	top 1 ''SQL Job = ''+j.name 
+								from msdb.dbo.sysjobs (nolock) as j
+								inner join msdb.dbo.sysjobsteps (nolock) AS js on j.job_id=js.job_id
+								where right(cast(js.job_id as nvarchar(50)),10) = RIGHT(substring([client_app_name],30,34),10) 
+							) + '' ( ''+SUBSTRING(LTRIM(RTRIM([client_app_name])), CHARINDEX('': Step '',LTRIM(RTRIM([client_app_name])))+2,LEN(LTRIM(RTRIM([client_app_name])))-CHARINDEX('': Step '',LTRIM(RTRIM([client_app_name])))-2)+'' )''
+					ELSE	[client_app_name]
+					END,
+				username, cpu_time, duration_seconds, logical_reads, physical_reads, row_count, 
+				writes, spills, sql_text, query_hash, query_plan_hash, 
 				client_hostname, session_resource_pool_id, session_resource_group_id, scheduler_id--, context_info
-		--into DBA..resource_consumption
 		from t_data_extracted de
 		where not exists (select 1 from [dbo].[resource_consumption] t 
 							where t.start_time = DATEADD(second,-(de.duration_seconds),de.event_time)
@@ -213,7 +199,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'(dba) Col
 		@active_start_date=20220509, 
 		@active_end_date=99991231, 
 		@active_start_time=0, 
-		@active_end_time=235959 
+		@active_end_time=235959
 		--,@schedule_uid=N'68b6bbf2-ba3c-47c2-b99a-7b175ef40cec'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_add_jobserver @job_id = @jobId, @server_name = N'(local)'
@@ -225,3 +211,6 @@ QuitWithRollback:
 EndSave:
 GO
 
+
+EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Collect-XEvents'
+GO
