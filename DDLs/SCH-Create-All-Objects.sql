@@ -336,11 +336,11 @@ CREATE TABLE [dbo].[resource_consumption]
 	[session_resource_pool_id] [int] NULL,
 	[session_resource_group_id] [int] NULL,
 	[scheduler_id] [int] NULL
-	,constraint pk_resource_consumption primary key clustered (event_time,start_time,[row_id])
+	,constraint pk_resource_consumption primary key clustered (event_time,start_time,[row_id]) on ps_dba ([event_time])
 ) on ps_dba ([event_time])
 GO
 
-create unique index uq_resource_consumption on [dbo].[resource_consumption]  ([start_time], [event_time], [row_id])
+create unique index uq_resource_consumption on [dbo].[resource_consumption]  ([start_time], [event_time], [row_id]) on ps_dba ([start_time])
 GO
 
 /* ***** 17) Create table [dbo].[resource_consumption_Processed_XEL_Files] ***************** */
