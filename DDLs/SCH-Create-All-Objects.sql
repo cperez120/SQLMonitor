@@ -34,11 +34,13 @@ GO
 	12) Create view  [dbo].[wait_stats]
 	13) Create required schemas
 	14) Set DBA database trustworthy & [sa] owner
-	15) Create procedure dbo.usp_extended_results	
-	16) Add boundaries to partition. 1 boundary per hour
-	17) Remove boundaries with retention of 3 months
-	18) Validate Partition Data
-	19) Populate [dbo].[BlitzFirst_WaitStats_Categories]
+	15) Create procedure dbo.usp_extended_results
+	16) Create table [dbo].[resource_consumption]
+	17) Create table [dbo].[resource_consumption_Processed_XEL_Files]
+	18) Add boundaries to partition. 1 boundary per hour
+	19) Remove boundaries with retention of 3 months
+	20) Validate Partition Data
+	21) Populate [dbo].[BlitzFirst_WaitStats_Categories]
 
 */
 
@@ -306,7 +308,52 @@ end
 go
 
 
-/* ***** 16) Add boundaries to partition. 1 boundary per hour ***************** */
+/* ***** 16) Create table [dbo].[resource_consumption] ***************** */
+-- DROP TABLE [dbo].[resource_consumption]
+CREATE TABLE [dbo].[resource_consumption]
+(
+	[row_id] [bigint] identity(1,1) NOT NULL,
+	[start_time] [datetime2](7) NOT NULL,
+	[event_time] [datetime2](7) NOT NULL,
+	[event_name] [nvarchar](60) NOT NULL,
+	[session_id] [int] NOT NULL,
+	[request_id] [int] NOT NULL,
+	[result] [varchar](50) NULL,
+	[database_name] [varchar](255) NULL,
+	[client_app_name] [varchar](255) NULL,
+	[username] [varchar](255) NULL,
+	[cpu_time] [bigint] NULL,
+	[duration_seconds] [bigint] NULL,
+	[logical_reads] [bigint] NULL,
+	[physical_reads] [bigint] NULL,
+	[row_count] [bigint] NULL,
+	[writes] [bigint] NULL,
+	[spills] [bigint] NULL,
+	[sql_text] [varchar](max) NULL,
+	[query_hash] [varbinary](255) NULL,
+	[query_plan_hash] [varbinary](255) NULL,
+	[client_hostname] [varchar](255) NULL,
+	[session_resource_pool_id] [int] NULL,
+	[session_resource_group_id] [int] NULL,
+	[scheduler_id] [int] NULL
+	,constraint pk_resource_consumption primary key clustered (event_time,start_time,[row_id])
+) on ps_dba ([event_time])
+GO
+
+create unique index uq_resource_consumption on [dbo].[resource_consumption]  ([start_time], [event_time], [row_id])
+GO
+
+/* ***** 17) Create table [dbo].[resource_consumption_Processed_XEL_Files] ***************** */
+-- drop table dbo.resource_consumption_Processed_XEL_Files
+create table dbo.resource_consumption_Processed_XEL_Files
+( file_path varchar(2000) not null, collection_time_utc datetime2 not null default SYSUTCDATETIME(), is_processed bit default 0 not null, is_removed_from_disk bit default 0 not null );
+go
+
+alter table dbo.resource_consumption_Processed_XEL_Files add constraint pk_resource_consumption_Processed_XEL_Files primary key clustered (file_path,  collection_time_utc);
+GO
+
+
+/* ***** 18) Add boundaries to partition. 1 boundary per hour ***************** */
 set nocount on;
 declare @current_boundary_value datetime2;
 declare @target_boundary_value datetime2; /* last day of new quarter */
@@ -339,7 +386,7 @@ end
 go
 
 
-/* ***** 17) Remove boundaries with retention of 3 months ***************** */
+/* ***** 19) Remove boundaries with retention of 3 months ***************** */
 set nocount on;
 declare @partition_boundary datetime2;
 declare @target_boundary_value datetime2; /* 3 months back date */
@@ -368,10 +415,10 @@ DEALLOCATE cur_boundaries;
 go
 
 
-/* ***** 18) Validate Partition Data ***************** */
+/* ***** 20) Validate Partition Data ***************** */
 -- Check query 'SQL-Queries\check-table-partitions.sql'
 
-/* ***** 19) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
+/* ***** 21) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
 IF OBJECT_ID('[dbo].[BlitzFirst_WaitStats_Categories]') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM [dbo].[BlitzFirst_WaitStats_Categories])
 BEGIN
 	--TRUNCATE TABLE [dbo].[BlitzFirst_WaitStats_Categories];

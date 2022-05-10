@@ -1,3 +1,6 @@
+USE master
+GO
+
 --	Drop and Re-create Extended Event Session
 IF EXISTS (SELECT * FROM sys.server_event_sessions WHERE name = 'resource_consumption')
 	EXEC ('DROP EVENT SESSION [resource_consumption] ON SERVER;');

@@ -34,11 +34,13 @@ GO
 	12) Create view  [dbo].[wait_stats]
 	13) Create required schemas
 	14) Set DBA database trustworthy & [sa] owner
-	15) Create procedure dbo.usp_extended_results	
-	16) Add boundaries to partition. 1 boundary per hour
-	17) Remove boundaries with retention of 3 months
-	18) Validate Partition Data
-	19) Populate [dbo].[BlitzFirst_WaitStats_Categories]
+	15) Create procedure dbo.usp_extended_results
+	16) Create table [dbo].[resource_consumption]
+	17) Create table [dbo].[resource_consumption_Processed_XEL_Files]
+	18) Add boundaries to partition. 1 boundary per hour
+	19) Remove boundaries with retention of 3 months
+	20) Validate Partition Data
+	21) Populate [dbo].[BlitzFirst_WaitStats_Categories]
 
 */
 
@@ -109,14 +111,14 @@ create table [dbo].[performance_counters]
 	[counter] [varchar](255) NOT NULL,
 	[value] numeric(38,10) NULL,
 	[instance] [varchar](255) NULL
-)
+) 
 go
 
 create clustered index ci_performance_counters on [dbo].[performance_counters] 
-	([collection_time_utc], [host_name], object, counter, [instance], [value])
+	([collection_time_utc], [host_name], object, counter, [instance], [value]) 
 go
 create nonclustered index nci_counter_collection_time_utc
-	on [dbo].[performance_counters] ([counter],[collection_time_utc])
+	on [dbo].[performance_counters] ([counter],[collection_time_utc]) 
 GO
 
 
@@ -146,8 +148,8 @@ CREATE TABLE [dbo].[perfmon_files]
 	(
 		[file_name] ASC,
 		[collection_time_utc] ASC
-	)
-)
+	) 
+) 
 GO
 
 
@@ -166,18 +168,18 @@ CREATE TABLE [dbo].[os_task_list]
 	[cpu_time] [char](14) NOT NULL,
 	[cpu_time_seconds] bigint NOT NULL,
 	[window_title] [nvarchar](2000) NULL
-)
+) 
 go
 
-create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [host_name], [task_name])
+create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [host_name], [task_name]) 
 go
-create nonclustered index nci_user_name on [dbo].[os_task_list] ([collection_time_utc], [host_name], [user_name])
+create nonclustered index nci_user_name on [dbo].[os_task_list] ([collection_time_utc], [host_name], [user_name]) 
 go
-create nonclustered index nci_window_title on [dbo].[os_task_list] ([collection_time_utc], [host_name], [window_title])
+create nonclustered index nci_window_title on [dbo].[os_task_list] ([collection_time_utc], [host_name], [window_title]) 
 go
-create nonclustered index nci_cpu_time_seconds on [dbo].[os_task_list] ([collection_time_utc], [host_name], [cpu_time_seconds])
+create nonclustered index nci_cpu_time_seconds on [dbo].[os_task_list] ([collection_time_utc], [host_name], [cpu_time_seconds]) 
 go
-create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_time_utc], [host_name], [memory_kb])
+create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_time_utc], [host_name], [memory_kb]) 
 go
 
 
@@ -206,10 +208,10 @@ CREATE TABLE [dbo].[wait_stats]
 	[wait_time_ms] [bigint] NOT NULL,
 	[max_wait_time_ms] [bigint] NOT NULL,
 	[signal_wait_time_ms] [bigint] NOT NULL
-)
+) 
 GO
 
-alter table [dbo].[wait_stats] add primary key ([collection_time_utc], [wait_type])
+alter table [dbo].[wait_stats] add primary key ([collection_time_utc], [wait_type]) 
 go
 
 
@@ -306,7 +308,52 @@ end
 go
 
 
-/* ***** 16) Add boundaries to partition. 1 boundary per hour ***************** */
+/* ***** 16) Create table [dbo].[resource_consumption] ***************** */
+-- DROP TABLE [dbo].[resource_consumption]
+CREATE TABLE [dbo].[resource_consumption]
+(
+	[row_id] [bigint] identity(1,1) NOT NULL,
+	[start_time] [datetime2](7) NOT NULL,
+	[event_time] [datetime2](7) NOT NULL,
+	[event_name] [nvarchar](60) NOT NULL,
+	[session_id] [int] NOT NULL,
+	[request_id] [int] NOT NULL,
+	[result] [varchar](50) NULL,
+	[database_name] [varchar](255) NULL,
+	[client_app_name] [varchar](255) NULL,
+	[username] [varchar](255) NULL,
+	[cpu_time] [bigint] NULL,
+	[duration_seconds] [bigint] NULL,
+	[logical_reads] [bigint] NULL,
+	[physical_reads] [bigint] NULL,
+	[row_count] [bigint] NULL,
+	[writes] [bigint] NULL,
+	[spills] [bigint] NULL,
+	[sql_text] [varchar](max) NULL,
+	[query_hash] [varbinary](255) NULL,
+	[query_plan_hash] [varbinary](255) NULL,
+	[client_hostname] [varchar](255) NULL,
+	[session_resource_pool_id] [int] NULL,
+	[session_resource_group_id] [int] NULL,
+	[scheduler_id] [int] NULL
+	,constraint pk_resource_consumption primary key clustered (event_time,start_time,[row_id])
+) on ps_dba ([event_time])
+GO
+
+create unique index uq_resource_consumption on [dbo].[resource_consumption]  ([start_time], [event_time], [row_id])
+GO
+
+/* ***** 17) Create table [dbo].[resource_consumption_Processed_XEL_Files] ***************** */
+-- drop table dbo.resource_consumption_Processed_XEL_Files
+create table dbo.resource_consumption_Processed_XEL_Files
+( file_path varchar(2000) not null, collection_time_utc datetime2 not null default SYSUTCDATETIME(), is_processed bit default 0 not null, is_removed_from_disk bit default 0 not null );
+go
+
+alter table dbo.resource_consumption_Processed_XEL_Files add constraint pk_resource_consumption_Processed_XEL_Files primary key clustered (file_path,  collection_time_utc);
+GO
+
+
+/* ***** 18) Add boundaries to partition. 1 boundary per hour ***************** */
 set nocount on;
 declare @current_boundary_value datetime2;
 declare @target_boundary_value datetime2; /* last day of new quarter */
@@ -326,6 +373,9 @@ end
 
 select [@current_boundary_value] = @current_boundary_value, [@target_boundary_value] = @target_boundary_value;
 
+-- Set current boundary to current time. So that no time waste in creating old partitions
+set @current_boundary_value = dateadd(hour,datediff(hour,convert(date,getutcdate()),getutcdate())-1,cast(convert(date,getutcdate())as datetime2));
+
 while (@current_boundary_value < @target_boundary_value)
 begin
 	set @current_boundary_value = DATEADD(hour,1,@current_boundary_value);
@@ -336,7 +386,7 @@ end
 go
 
 
-/* ***** 17) Remove boundaries with retention of 3 months ***************** */
+/* ***** 19) Remove boundaries with retention of 3 months ***************** */
 set nocount on;
 declare @partition_boundary datetime2;
 declare @target_boundary_value datetime2; /* 3 months back date */
@@ -365,10 +415,10 @@ DEALLOCATE cur_boundaries;
 go
 
 
-/* ***** 18) Validate Partition Data ***************** */
+/* ***** 20) Validate Partition Data ***************** */
 -- Check query 'SQL-Queries\check-table-partitions.sql'
 
-/* ***** 19) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
+/* ***** 21) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
 IF OBJECT_ID('[dbo].[BlitzFirst_WaitStats_Categories]') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM [dbo].[BlitzFirst_WaitStats_Categories])
 BEGIN
 	--TRUNCATE TABLE [dbo].[BlitzFirst_WaitStats_Categories];
