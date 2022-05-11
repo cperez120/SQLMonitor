@@ -44,6 +44,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'[datetim
 		@os_run_priority=0, @subsystem=N'TSQL', 
 		@command=N'set nocount on;
 SET QUOTED_IDENTIFIER ON;
+SET DEADLOCK_PRIORITY HIGH;
 
 declare @current_boundary_value datetime2;
 declare @target_boundary_value datetime2; /* last day of new quarter */
@@ -85,6 +86,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'[datetim
 		@os_run_priority=0, @subsystem=N'TSQL', 
 		@command=N'set nocount on;
 SET QUOTED_IDENTIFIER ON;
+SET DEADLOCK_PRIORITY HIGH;
 
 declare @current_boundary_value datetime;
 declare @target_boundary_value datetime; /* last day of new quarter */

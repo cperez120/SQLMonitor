@@ -1,33 +1,44 @@
 USE DBA
 GO
 
-select	default_domain() as [domain], 
-		[ip] = CONNECTIONPROPERTY('local_net_address'), 
+select @@SERVERNAME, name, recovery_model_desc, collation_name from sys.databases where database_id = db_id();
+go
+use DBA_Admin ;
+--	Find used/free space in Database Files
+select SERVERPROPERTY('MachineName') AS srv_name,
+			DB_NAME() AS [db_name], f.type_desc, fg.name as file_group, f.name, f.physical_name, (f.size*8.0)/1024/1024 as size_GB, f.max_size, f.growth,
+	CAST(FILEPROPERTY(f.name, 'SpaceUsed') as BIGINT)/128.0/1024 AS SpaceUsed_gb
+		,(size/128.0 -CAST(FILEPROPERTY(f.name,'SpaceUsed') AS INT)/128.0)/1024 AS FreeSpace_GB
+		,cast((FILEPROPERTY(f.name,'SpaceUsed')*100.0)/size as decimal(20,2)) as Used_Percentage
+		,CASE WHEN f.type_desc = 'LOG' THEN (select d.log_reuse_wait_desc from sys.databases as d where d.name = DB_NAME()) ELSE NULL END as log_reuse_wait_desc
+--into tempdb..db_size_details
+from sys.database_files f with (nolock) left join sys.filegroups fg with (nolock)  on fg.data_space_id = f.data_space_id
+order by FreeSpace_GB desc;
+go
+select	default_domain() as [domain],
+		[ip] = CONNECTIONPROPERTY('local_net_address'),
 		[sql_instance] = serverproperty('MachineName'),
 		[server_name] = serverproperty('ServerName'),
 		[host_name] = SERVERPROPERTY('ComputerNamePhysicalNetBIOS'),
-		[sql_version] = @@VERSION, 
+		[sql_version] = @@VERSION,
 		[service_name_str] = servicename,
 		[service_name] = case when @@servicename = 'MSSQLSERVER' then @@servicename else 'MSSQL$'+@@servicename end,
 		[instance_name] = @@servicename,
 		service_account,
 		SERVERPROPERTY('Edition') AS Edition,
-		SERVERPROPERTY('ProductVersion') AS ProductVersion,  
-		SERVERPROPERTY('ProductLevel') AS ProductLevel  
-		--,instant_file_initialization_enabled
+		SERVERPROPERTY('ProductVersion') AS ProductVersion,
+		SERVERPROPERTY('ProductLevel') AS ProductLevel
+		,instant_file_initialization_enabled
 		--,*
 from sys.dm_server_services where servicename like 'SQL Server (%)'
-
 select *
 from sys.dm_os_cluster_nodes;
-
-
 DECLARE @Domain NVARCHAR(100)
-EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT;     
+EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT;
 SELECT Cast(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @Domain AS FQDN
 GO
 
-select * from dbo.instance_details with (nolock);
+select getdate() as [getdate()], * from dbo.instance_details with (nolock);
 go
 
 select top 1 'vw_performance_counters' as QueryData, getutcdate() as current_time_utc, collection_time_utc, pc.host_name
@@ -40,12 +51,15 @@ from dbo.vw_os_task_list pc with (nolock)
 order by pc.collection_time_utc desc
 go
 
+select top 1 getdate() as [getdate()], rc.*
+from dbo.resource_consumption rc
+order by event_time desc
+go
+
 -- update statistics dbo.performance_counters with sample 5 percent, all
 -- update statistics dbo.performance_counters with fullscan
-
 /*
 declare @login nvarchar(125) = suser_name();
 exec sp_WhoIsActive @filter_type = 'login', @filter = @login, @get_plans = 2
-
 --performance_counters
 */
