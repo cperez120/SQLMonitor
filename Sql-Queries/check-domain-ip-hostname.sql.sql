@@ -1,9 +1,10 @@
-USE DBA
+USE master
 GO
 
 select @@SERVERNAME, name, recovery_model_desc, collation_name from sys.databases where database_id = db_id();
 go
-use DBA_Admin ;
+
+use [DBA] ;
 --	Find used/free space in Database Files
 select SERVERPROPERTY('MachineName') AS srv_name,
 			DB_NAME() AS [db_name], f.type_desc, fg.name as file_group, f.name, f.physical_name, (f.size*8.0)/1024/1024 as size_GB, f.max_size, f.growth,
@@ -15,6 +16,7 @@ select SERVERPROPERTY('MachineName') AS srv_name,
 from sys.database_files f with (nolock) left join sys.filegroups fg with (nolock)  on fg.data_space_id = f.data_space_id
 order by FreeSpace_GB desc;
 go
+
 select	default_domain() as [domain],
 		[ip] = CONNECTIONPROPERTY('local_net_address'),
 		[sql_instance] = serverproperty('MachineName'),
@@ -31,8 +33,12 @@ select	default_domain() as [domain],
 		,instant_file_initialization_enabled
 		--,*
 from sys.dm_server_services where servicename like 'SQL Server (%)'
+go
+
 select *
 from sys.dm_os_cluster_nodes;
+go
+
 DECLARE @Domain NVARCHAR(100)
 EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT;
 SELECT Cast(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @Domain AS FQDN
@@ -51,7 +57,7 @@ from dbo.vw_os_task_list pc with (nolock)
 order by pc.collection_time_utc desc
 go
 
-select top 1 getdate() as [getdate()], rc.*
+select top 1 'dbo.resource_consumption' as QueryDate, getdate() as [getdate()], rc.*
 from dbo.resource_consumption rc
 order by event_time desc
 go
