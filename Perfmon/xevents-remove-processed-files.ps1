@@ -5,7 +5,10 @@ Param (
     $SqlInstance = 'localhost',
 
     [Parameter(Mandatory=$false)]
-    $Database = 'DBA',
+    $Database = 'DBA',    
+
+    [Parameter(Mandatory=$false)]
+    $HostName = $env:COMPUTERNAME,
 
     [Parameter(Mandatory=$false)]
     $TableName = '[dbo].[resource_consumption_Processed_XEL_Files]'
@@ -34,17 +37,21 @@ $sqlUpdateFileEntry = "update $Tablename set is_removed_from_disk = 1 where file
 foreach($row in $files2Process)
 {
     $file = $row.file_path
-    if (Test-Path $file) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Removing '$file' .."
-        Remove-Item -Path $file
-        if ( -not (Test-Path $file) ) {
+    $fileOnDisk = $file
+    if( -not ($HostName -eq $env:COMPUTERNAME -or $HostName -eq 'localhost') ) {
+        $fileOnDisk = $("\\$HostName\"+$fileOnDisk.Replace(':','$'))
+    }
+    if (Test-Path $fileOnDisk) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Removing '$fileOnDisk' .."
+        Remove-Item -Path $fileOnDisk
+        if ( -not (Test-Path $fileOnDisk) ) {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "File removed. Proceeding to  update flag [is_removed_from_disk].."
             Invoke-DbaQuery -SqlInstance $SqlInstance -Database $Database -Query $sqlUpdateFileEntry -SqlParameter @{ file_path = "$file" } -EnableException
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Flag updated."
         }
     }
     else {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "File '$file' not present on disk."
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "File '$fileOnDisk' not present on disk."
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Proceeding to  update flag [is_removed_from_disk].."
         Invoke-DbaQuery -SqlInstance $SqlInstance -Database $Database -Query $sqlUpdateFileEntry -SqlParameter @{ file_path = "$file" } -EnableException
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Flag updated."

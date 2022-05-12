@@ -88,7 +88,7 @@ foreach($file in $pfCollectorFiles)
         insert dbo.perfmon_files (host_name, file_name, file_path)
         select @host_name, @file_name, @file_path;
 "@
-        Invoke-DbaQuery -SqlInstance $SqlInstance -Database $Database -Query $sqlInsertFile -SqlParameter @{host_name = $computerName; file_name = $file; file_path = "$pfCollectorFolder\$file"}
+        Invoke-DbaQuery -SqlInstance $SqlInstance -Database $Database -Query $sqlInsertFile -SqlParameter @{host_name = $computerName; file_name = $file; file_path = "$pfCollectorFolder\$file"} -EnableException
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Entry made.."
 
         if($CleanupFiles) {
@@ -99,6 +99,12 @@ foreach($file in $pfCollectorFiles)
         }
     }
     catch {
+        $errMessage = $_;
+        #$errMessage.Exception | Select * | fl
+        if($errMessage.Exception.Message -like '*divide by zero*'){
+            $errMessage.Exception.Message
+        }
+
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove file as its generating error.."
         #Remove-Item "$pfCollectorFolder\$file"
         Remove-Item "$("\\$computerName\"+$pfCollectorFolder.Replace(':','$'))\$file"
