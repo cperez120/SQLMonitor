@@ -30,7 +30,7 @@ if($HostName -eq $env:COMPUTERNAME -or $HostName -eq 'localhost') {
 }
 else {
     $taskList += TASKLIST /s $HostName /v /fo csv | ConvertFrom-Csv
-} 
+}
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "OS Processes captured in `$taskList."
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Process raw data in `$taskList.."
