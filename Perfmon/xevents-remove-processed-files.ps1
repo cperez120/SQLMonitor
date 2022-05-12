@@ -5,10 +5,7 @@ Param (
     $SqlInstance = 'localhost',
 
     [Parameter(Mandatory=$false)]
-    $Database = 'DBA',    
-
-    [Parameter(Mandatory=$false)]
-    $HostName = $env:COMPUTERNAME,
+    $Database = 'DBA',
 
     [Parameter(Mandatory=$false)]
     $TableName = '[dbo].[resource_consumption_Processed_XEL_Files]'
@@ -19,6 +16,11 @@ Import-Module dbatools;
 Write-Debug "Here at start of function."
 $ErrorActionPreference = 'Stop'
 $currentTime = Get-Date
+
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetch HostName.."
+$HostName = Invoke-DbaQuery -SqlInstance $SqlInstance -Query "Select SERVERPROPERTY('ComputerNamePhysicalNetBIOS') as HostName" -EnableException | 
+                    Select-Object -ExpandProperty HostName;
+
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Get processed xevent files from $Database.$TableName.."
 
