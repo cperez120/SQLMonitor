@@ -1,4 +1,4 @@
-USE master
+USE DBA
 GO
 
 select @@SERVERNAME, name, recovery_model_desc, collation_name from sys.databases where database_id = db_id();

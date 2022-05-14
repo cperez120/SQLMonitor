@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 Param (
     # Set SQL Server where data should be saved
     [Parameter(Mandatory=$false)]
@@ -83,9 +83,9 @@ foreach($file in $pfCollectorFiles)
 
     
         # If blg file is read successfully, then add file entry into database
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Make entry of file in [$SqlInstance].[$Database].[dbo].[perfmon_files].."
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Make entry of file in [$SqlInstance].[$Database].$TablePerfmonFiles.."
         $sqlInsertFile = @"
-        insert dbo.perfmon_files (host_name, file_name, file_path)
+        insert $TablePerfmonFiles (host_name, file_name, file_path)
         select @host_name, @file_name, @file_path;
 "@
         Invoke-DbaQuery -SqlInstance $SqlInstance -Database $Database -Query $sqlInsertFile -SqlParameter @{host_name = $computerName; file_name = $file; file_path = "$pfCollectorFolder\$file"} -EnableException
@@ -100,16 +100,31 @@ foreach($file in $pfCollectorFiles)
     }
     catch {
         $errMessage = $_;
-        #$errMessage.Exception | Select * | fl
-        if($errMessage.Exception.Message -like '*divide by zero*'){
-            $errMessage.Exception.Message
-        }
+        $errMessage.Exception | Select * | fl
 
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove file as its generating error.."
-        #Remove-Item "$pfCollectorFolder\$file"
-        Remove-Item "$("\\$computerName\"+$pfCollectorFolder.Replace(':','$'))\$file"
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "File removed.."
+        # Handle error "No valid counter paths were found in the files" which happens when OS is restarted, and file becomes invalid
+        if($errMessage.Exception.Message -like '*No valid counter paths were found in the files*')
+        {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Got error '$($errMessage.Exception.Message)' while reading '$file'."
+
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Trying to skip the file.." 
+            $sqlInsertFile = @"
+            insert $TablePerfmonFiles (host_name, file_name, file_path)
+            select @host_name, @file_name, @file_path;
+"@
+            Invoke-DbaQuery -SqlInstance $SqlInstance -Database $Database -Query $sqlInsertFile -SqlParameter @{host_name = $computerName; file_name = $file; file_path = "$pfCollectorFolder\$file"} -EnableException
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Skip Entry made into [$SqlInstance].[$Database].$TablePerfmonFiles.."
+
+            # Try to remove file for which we got error
+            try {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove file as its generating error.."
+                Remove-Item "$("\\$computerName\"+$pfCollectorFolder.Replace(':','$'))\$file"
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "File removed.."
+            }
+            catch {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Failed to remove file due to error '$($_.Exception.Message)'.."
+            }
+        }
     }
 }
 "`n`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'END:', "All files processed.."
-

@@ -2,7 +2,7 @@ USE master
 GO
 
 /*
-SELECT @servername, * FROM sys.master_files where database_id = DB_ID('DBA')
+SELECT @@servername, * FROM sys.master_files where database_id = DB_ID('DBA')
 EXEC xp_create_subdir 'E:\Data\xevents'
 */
 go

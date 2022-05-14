@@ -60,7 +60,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1652030902583,
+  "iteration": 1652564930832,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -539,7 +539,7 @@
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
-        "sort": 0,
+        "sort": 1,
         "type": "query"
       },
       {
@@ -743,6 +743,6 @@
   "timezone": "",
   "title": "Wait Stats",
   "uid": "wait_stats",
-  "version": 5,
+  "version": 6,
   "weekStart": ""
 }
