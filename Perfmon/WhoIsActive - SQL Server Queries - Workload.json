@@ -81,7 +81,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1652030958458,
+  "iteration": 1652564987086,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -1344,6 +1344,6 @@
   "timezone": "browser",
   "title": "WhoIsActive - SQL Server Queries - Workload",
   "uid": "WhoIsActive",
-  "version": 35,
+  "version": 36,
   "weekStart": ""
 }
