@@ -244,8 +244,8 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'(dba) Col
 		@active_start_date=20200820, 
 		@active_end_date=99991231, 
 		@active_start_time=0, 
-		@active_end_time=235959, 
-		@schedule_uid=N'edf61f10-a94c-4a92-b2b4-c0baee7043ff'
+		@active_end_time=235959
+		--,@schedule_uid=N'edf61f10-a94c-4a92-b2b4-c0baee7043ff'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_add_jobserver @job_id = @jobId, @server_name = N'(local)'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
@@ -256,3 +256,5 @@ QuitWithRollback:
 EndSave:
 GO
 
+EXEC msdb.dbo.sp_start_job @job_name='(dba) Collect-WaitStats'
+go

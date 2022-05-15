@@ -106,7 +106,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1652624689438,
+  "iteration": 1652633835363,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -2395,6 +2395,30 @@
                 ]
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Patch_Gap"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "d"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Is MS Supported"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background-solid"
+              }
+            ]
           }
         ]
       },
@@ -2487,7 +2511,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent"
+                    "color": "transparent",
+                    "value": null
                   }
                 ]
               },
@@ -2499,7 +2524,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 14
+            "y": 17
           },
           "id": 16,
           "options": {
@@ -5484,6 +5509,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 130,
+  "version": 137,
   "weekStart": ""
 }
