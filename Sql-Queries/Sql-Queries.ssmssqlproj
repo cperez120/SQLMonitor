@@ -224,8 +224,8 @@
           <FullPath>blocking-time-series.sql</FullPath>
         </FileNode>
         <FileNode Name="check-domain-ip-hostname.sql.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:WORKSTATION:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>WORKSTATION</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQL2012:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SQL2012</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>check-domain-ip-hostname.sql.sql</FullPath>
         </FileNode>

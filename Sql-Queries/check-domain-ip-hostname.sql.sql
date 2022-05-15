@@ -44,7 +44,7 @@ EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\servi
 SELECT Cast(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @Domain AS FQDN
 GO
 
-select getdate() as [getdate()], * from dbo.instance_details with (nolock);
+select 'instance_details' as QueryData, getdate() as [getdate()], * from dbo.instance_details with (nolock);
 go
 
 select top 1 'vw_performance_counters' as QueryData, getutcdate() as current_time_utc, collection_time_utc, pc.host_name
@@ -62,8 +62,8 @@ from dbo.resource_consumption rc
 order by event_time desc
 go
 
--- update statistics dbo.performance_counters with sample 5 percent, all
--- update statistics dbo.performance_counters with fullscan
+-- update dbo.instance_details set sql_instance = 'SQL2014'
+-- delete dbo.instance_details where sql_instance <> 'SQL2012'
 /*
 declare @login nvarchar(125) = suser_name();
 exec sp_WhoIsActive @filter_type = 'login', @filter = @login, @get_plans = 2

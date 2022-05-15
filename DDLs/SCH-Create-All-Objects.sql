@@ -128,11 +128,11 @@ create view dbo.vw_performance_counters
 --with schemabinding
 as
 with cte_counters_local as (select collection_time_utc, host_name, path, object, counter, value, instance from dbo.performance_counters)
---,cte_counters_sql2019 as (select collection_time_utc, host_name, path, object, counter, value, instance from [SQL2019].DBA.dbo.performance_counters)
+,cte_counters_sql2019 as (select collection_time_utc, host_name, path, object, counter, value, instance from [SQL2019].DBA.dbo.performance_counters)
 
 select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_local --with (forceseek)
---union all
---select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_sql2019
+union all
+select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_sql2019
 go
 
 
@@ -189,11 +189,11 @@ create view dbo.vw_os_task_list
 --with schemabinding
 as
 with cte_os_tasks_local as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from dbo.os_task_list)
---,cte_os_tasks_sql2019 as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from [SQL2019].DBA.dbo.os_task_list)
+,cte_os_tasks_sql2019 as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from [SQL2019].DBA.dbo.os_task_list)
 
 select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_local
---union all
---select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_sql2019
+union all
+select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_sql2019
 go
 
 
@@ -368,7 +368,7 @@ order by prv.value desc;
 if(@current_boundary_value is null)
 begin
 	select 'Error - @current_boundary_value is NULL. So set to 2 Days back.';
-	set @current_boundary_value = dateadd(hour,-48,cast(cast(getdate() as date) as datetime))
+	set @current_boundary_value = dateadd(hour,0,cast(cast(getdate() as date) as datetime))
 end
 
 select [@current_boundary_value] = @current_boundary_value, [@target_boundary_value] = @target_boundary_value;
