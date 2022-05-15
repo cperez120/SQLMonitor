@@ -224,8 +224,8 @@
           <FullPath>blocking-time-series.sql</FullPath>
         </FileNode>
         <FileNode Name="check-domain-ip-hostname.sql.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:WORKSTATION:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>WORKSTATION</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>check-domain-ip-hostname.sql.sql</FullPath>
         </FileNode>
@@ -264,6 +264,12 @@
           <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>QRY-resource_consumption.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-SqlServerVersions.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>QRY-SqlServerVersions.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Transaction-to-New-Arch-Queries.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Sql2017:True</AssociatedConnectionMoniker>
