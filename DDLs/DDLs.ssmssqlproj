@@ -284,8 +284,8 @@
           <FullPath>FirstResponderKit-Install-All-Scripts.sql</FullPath>
         </FileNode>
         <FileNode Name="grafana-login.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>grafana-login.sql</FullPath>
         </FileNode>
@@ -360,6 +360,12 @@
           <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Run-WhoIsActive].sql</FullPath>
+        </FileNode>
+        <FileNode Name="SCH-Job-[(dba) Update-SqlServerVersions].sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-Job-[(dba) Update-SqlServerVersions].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Linked-Servers-Sample.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>

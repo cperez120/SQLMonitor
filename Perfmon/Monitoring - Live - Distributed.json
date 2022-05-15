@@ -106,7 +106,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1652562230066,
+  "iteration": 1652624689438,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -311,7 +311,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
+        "h": 2,
         "w": 3,
         "x": 4,
         "y": 1
@@ -758,7 +758,7 @@
       "gridPos": {
         "h": 3,
         "w": 4,
-        "x": 7,
+        "x": 4,
         "y": 3
       },
       "id": 84,
@@ -788,6 +788,67 @@
         }
       ],
       "title": "OS Processes @ ${os_task_list_collection_time_utc:date:YYYY-MM-DD HH.mm}",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 8,
+        "y": 3
+      },
+      "id": 66,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "/.*/",
+          "values": true
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect convert(varchar,osi.cpu_count)+' / '+convert(varchar,osi.scheduler_count)\r\nfrom sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "refId": "A"
+        }
+      ],
+      "title": "CPU (OS / SQL)",
       "type": "stat"
     },
     {
@@ -925,14 +986,29 @@
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "decimals": 2,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "dark-blue",
+                "color": "dark-red",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 300
+              },
+              {
+                "color": "orange",
+                "value": 600
+              },
+              {
+                "color": "light-green",
+                "value": 601
+              },
+              {
+                "color": "dark-green",
+                "value": 1200
               }
             ]
           },
@@ -946,20 +1022,17 @@
         "x": 17,
         "y": 3
       },
-      "id": 66,
+      "id": 15,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
+          "calcs": [],
           "fields": "/.*/",
-          "values": true
+          "values": false
         },
-        "text": {},
         "textMode": "auto"
       },
       "pluginVersion": "8.4.6",
@@ -971,11 +1044,11 @@
             "uid": "${DS_SQLMONITOR}"
           },
           "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\nselect convert(varchar,osi.cpu_count)+' / '+convert(varchar,osi.scheduler_count)\r\nfrom sys.dm_os_sys_info as osi\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "rawSql": "select $ple;",
           "refId": "A"
         }
       ],
-      "title": "CPU (OS / SQL)",
+      "title": "PLE",
       "type": "stat"
     },
     {
@@ -1353,7 +1426,23 @@
           },
           "unit": "none"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "IsClustered"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 3,
@@ -1413,7 +1502,23 @@
           },
           "unit": "none"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "IsHadrEnabled"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 3,
@@ -1947,33 +2052,32 @@
       "description": "",
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "Details",
+              "url": "https://support.microsoft.com/en-us/help/${__data.fields.Url-Current}"
+            }
+          ],
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "dark-red",
+                "color": "green",
                 "value": null
               },
               {
-                "color": "yellow",
-                "value": 300
-              },
-              {
-                "color": "orange",
-                "value": 600
-              },
-              {
-                "color": "light-green",
-                "value": 601
-              },
-              {
-                "color": "dark-green",
-                "value": 1200
+                "color": "red",
+                "value": 0
               }
             ]
           },
-          "unit": "s"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -1983,17 +2087,20 @@
         "x": 15,
         "y": 10
       },
-      "id": 15,
+      "id": 171,
       "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center",
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [],
-          "fields": "/.*/",
-          "values": false
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Is MS Supported$/",
+          "values": true
         },
+        "text": {},
         "textMode": "auto"
       },
       "pluginVersion": "8.4.6",
@@ -2005,11 +2112,11 @@
             "uid": "${DS_SQLMONITOR}"
           },
           "format": "table",
-          "rawSql": "select $ple;",
+          "rawSql": "declare @server_product_version varchar(20);\r\ndeclare @server_major_version_number tinyint;\r\ndeclare @server_minor_version_number smallint;\r\n\r\nSET @server_product_version = '$product_version';\r\nSET @server_major_version_number = $major_version_number;\r\nSET @server_minor_version_number = $minor_version_number;\r\n\r\n;with t_current as\r\n(\r\n\tselect\ttop 1 [MajorVersionNumber]\r\n\t\t\t--,[@server_minor_version_number] = @server_minor_version_number\r\n\t\t\t,[MinorVersionNumber]\r\n\t\t\t,[Branch]\r\n\t\t\t,[Url]\r\n\t\t\t,[ReleaseDate]\r\n\t\t\t,[MainstreamSupportEndDate]\r\n\t\t\t,[ExtendedSupportEndDate]\r\n\t\t\t,[MajorVersionName]\r\n\t\t\t,[MinorVersionName]\t  \r\n\tfrom [master].[dbo].[SqlServerVersions] as c\r\n\twhere [MajorVersionNumber] = @server_major_version_number\r\n\tand [MinorVersionNumber] <= @server_minor_version_number\r\n\torder by [MinorVersionNumber] desc\r\n)\r\n,t_latest as \r\n(\r\n\tselect\ttop 1 [MajorVersionNumber]\r\n\t\t\t--,[@server_minor_version_number] = @server_minor_version_number\r\n\t\t\t,[MinorVersionNumber]\r\n\t\t\t,[Branch]\r\n\t\t\t,[Url]\r\n\t\t\t,[ReleaseDate]\r\n\t\t\t,[MainstreamSupportEndDate]\r\n\t\t\t,[ExtendedSupportEndDate]\r\n\t\t\t,[MajorVersionName]\r\n\t\t\t,[MinorVersionName]\t  \r\n\tfrom [master].[dbo].[SqlServerVersions] as c\r\n\twhere [MajorVersionNumber] = @server_major_version_number\r\n\torder by [MinorVersionNumber] desc\r\n)\r\nselect\t/* [Product Version] = @server_product_version\r\n\t\t,[Major Version] = @server_major_version_number\r\n\t\t,[Minor Version] = @server_minor_version_number\r\n\t\t,[Patch/Update] = c.Branch ,c.ReleaseDate ,c.MainstreamSupportEndDate --,c.ExtendedSupportEndDate\r\n\t\t*/\r\n\t\t[Is MS Supported] = case when c.MainstreamSupportEndDate < getdate() then convert(bit,0) else convert(bit,1) end\r\n\t\t/*\r\n\t\t,[Latest_Patch] = l.Branch\r\n\t\t,[Patch_Gap] = datediff(day,c.ReleaseDate,l.ReleaseDate)\r\n\t\t*/\r\n\t\t,[Url-Current] = REPLACE(c.[Url],'https://support.microsoft.com/en-us/help/','')\r\n\t\t--,[Url-Latest] = REPLACE(l.[Url],'https://support.microsoft.com/en-us/help/','')\r\nfrom t_current c, t_latest l",
           "refId": "A"
         }
       ],
-      "title": "PLE",
+      "title": "Is MS Supported",
       "type": "stat"
     },
     {
@@ -2133,12 +2240,204 @@
       "type": "stat"
     },
     {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          },
+          "links": [],
+          "mappings": [
+            {
+              "options": {
+                "false": {
+                  "color": "red",
+                  "index": 1,
+                  "text": "UnSupported"
+                },
+                "true": {
+                  "color": "#73BF69",
+                  "index": 0,
+                  "text": "Supported"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Product Version"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "Current Patch Details",
+                    "url": "https://support.microsoft.com/en-us/help/${__data.fields.Url-Current}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Major Version"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "Latest Patch Details",
+                    "url": "https://sqlserverupdates.com/"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Minor Version"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "Patch Details",
+                    "url": "https://support.microsoft.com/en-us/help/${__data.fields.Url-Current}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Url-Current"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Url-Latest"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Patch/Update"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "Patch Details",
+                    "url": "https://support.microsoft.com/en-us/help/${__data.fields.Url-Current}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Latest_Patch"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "Latch Patch Details",
+                    "url": "https://support.microsoft.com/en-us/help/${__data.fields.Url-Latest}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 170,
+      "options": {
+        "footer": {
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "declare @server_product_version varchar(20);\r\ndeclare @server_major_version_number tinyint;\r\ndeclare @server_minor_version_number smallint;\r\n\r\nSET @server_product_version = '$product_version';\r\nSET @server_major_version_number = $major_version_number;\r\nSET @server_minor_version_number = $minor_version_number;\r\n\r\n;with t_current as\r\n(\r\n\tselect\ttop 1 [MajorVersionNumber]\r\n\t\t\t--,[@server_minor_version_number] = @server_minor_version_number\r\n\t\t\t,[MinorVersionNumber]\r\n\t\t\t,[Branch]\r\n\t\t\t,[Url]\r\n\t\t\t,[ReleaseDate]\r\n\t\t\t,[MainstreamSupportEndDate]\r\n\t\t\t,[ExtendedSupportEndDate]\r\n\t\t\t,[MajorVersionName]\r\n\t\t\t,[MinorVersionName]\t  \r\n\tfrom [master].[dbo].[SqlServerVersions] as c\r\n\twhere [MajorVersionNumber] = @server_major_version_number\r\n\tand [MinorVersionNumber] <= @server_minor_version_number\r\n\torder by [MinorVersionNumber] desc\r\n)\r\n,t_latest as \r\n(\r\n\tselect\ttop 1 [MajorVersionNumber]\r\n\t\t\t--,[@server_minor_version_number] = @server_minor_version_number\r\n\t\t\t,[MinorVersionNumber]\r\n\t\t\t,[Branch]\r\n\t\t\t,[Url]\r\n\t\t\t,[ReleaseDate]\r\n\t\t\t,[MainstreamSupportEndDate]\r\n\t\t\t,[ExtendedSupportEndDate]\r\n\t\t\t,[MajorVersionName]\r\n\t\t\t,[MinorVersionName]\t  \r\n\tfrom [master].[dbo].[SqlServerVersions] as c\r\n\twhere [MajorVersionNumber] = @server_major_version_number\r\n\torder by [MinorVersionNumber] desc\r\n)\r\nselect\t[Product Version] = @server_product_version\r\n\t\t,[Major Version] = @server_major_version_number\r\n\t\t,[Minor Version] = @server_minor_version_number\r\n\t\t,[Patch/Update] = c.Branch ,c.ReleaseDate ,c.MainstreamSupportEndDate --,c.ExtendedSupportEndDate\r\n\t\t,[Is MS Supported] = case when c.MainstreamSupportEndDate < getdate() then convert(bit,0) else convert(bit,1) end\r\n\t\t,[Latest_Patch] = l.Branch\r\n\t\t,[Patch_Gap] = datediff(day,c.ReleaseDate,l.ReleaseDate)\r\n\t\t,[Url-Current] = REPLACE(c.[Url],'https://support.microsoft.com/en-us/help/','')\r\n\t\t,[Url-Latest] = REPLACE(l.[Url],'https://support.microsoft.com/en-us/help/','')\r\nfrom t_current c, t_latest l\r\n",
+          "refId": "A"
+        }
+      ],
+      "title": "SQL Server Patching Details",
+      "type": "table"
+    },
+    {
       "collapsed": true,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 16
       },
       "id": 33,
       "panels": [
@@ -2245,7 +2544,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 17
       },
       "id": 113,
       "panels": [
@@ -2340,7 +2639,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 18
       },
       "id": 151,
       "panels": [
@@ -2545,7 +2844,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 19
       },
       "id": 59,
       "panels": [
@@ -2659,7 +2958,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 20
       },
       "id": 140,
       "panels": [
@@ -2809,7 +3108,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 21
       },
       "id": 117,
       "panels": [
@@ -2914,7 +3213,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 22
       },
       "id": 29,
       "panels": [
@@ -3023,7 +3322,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 23
       },
       "id": 27,
       "panels": [
@@ -3133,7 +3432,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 24
       },
       "id": 126,
       "panels": [
@@ -3572,7 +3871,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 25
       },
       "id": 79,
       "panels": [
@@ -3822,7 +4121,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 26
       },
       "id": 82,
       "panels": [
@@ -4048,7 +4347,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 27
       },
       "id": 88,
       "panels": [
@@ -4153,7 +4452,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 28
       },
       "id": 103,
       "panels": [
@@ -4258,7 +4557,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 29
       },
       "id": 121,
       "panels": [
@@ -4551,14 +4850,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,SERVERPROPERTY('ProductVersion') ) as [version]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @server_product_version varchar(20);\n\nSET @server_product_version = CONVERT(varchar,SERVERPROPERTY('ProductVersion'));\nSELECT\t[@server_product_version] = @server_product_version\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
         "hide": 2,
         "includeAll": false,
         "label": "Product Version",
         "multi": false,
         "name": "product_version",
         "options": [],
-        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,SERVERPROPERTY('ProductVersion') ) as [version]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @server_product_version varchar(20);\n\nSET @server_product_version = CONVERT(varchar,SERVERPROPERTY('ProductVersion'));\nSELECT\t[@server_product_version] = @server_product_version\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -5123,6 +5422,46 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @server_major_version_number tinyint;\nSET @server_major_version_number = CONVERT(tinyint, SERVERPROPERTY('ProductMajorVersion'))\n\nselect\t[@server_major_version_number] = @server_major_version_number\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Server Major Version Number",
+        "multi": false,
+        "name": "major_version_number",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @server_major_version_number tinyint;\nSET @server_major_version_number = CONVERT(tinyint, SERVERPROPERTY('ProductMajorVersion'))\n\nselect\t[@server_major_version_number] = @server_major_version_number\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @server_product_version varchar(20);\ndeclare @server_major_version_number tinyint;\ndeclare @server_minor_version_number smallint;\n\nSET @server_product_version = CONVERT(varchar,SERVERPROPERTY('ProductVersion'));\nSET @server_major_version_number = CONVERT(tinyint, SERVERPROPERTY('ProductMajorVersion'))\n\ndeclare @server_minor_version_number_intermediate varchar(20);\nset @server_minor_version_number_intermediate = REPLACE(@server_product_version,CONVERT(varchar,@server_major_version_number)+'.'+CONVERT(varchar, SERVERPROPERTY('ProductMinorVersion'))+'.','');\nset @server_minor_version_number = left(@server_minor_version_number_intermediate,charindex('.',@server_minor_version_number_intermediate)-1);\n\nSELECT\t[@server_minor_version_number] = @server_minor_version_number\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Server Minor Version Number",
+        "multi": false,
+        "name": "minor_version_number",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @server_product_version varchar(20);\ndeclare @server_major_version_number tinyint;\ndeclare @server_minor_version_number smallint;\n\nSET @server_product_version = CONVERT(varchar,SERVERPROPERTY('ProductVersion'));\nSET @server_major_version_number = CONVERT(tinyint, SERVERPROPERTY('ProductMajorVersion'))\n\ndeclare @server_minor_version_number_intermediate varchar(20);\nset @server_minor_version_number_intermediate = REPLACE(@server_product_version,CONVERT(varchar,@server_major_version_number)+'.'+CONVERT(varchar, SERVERPROPERTY('ProductMinorVersion'))+'.','');\nset @server_minor_version_number = left(@server_minor_version_number_intermediate,charindex('.',@server_minor_version_number_intermediate)-1);\n\nSELECT\t[@server_minor_version_number] = @server_minor_version_number\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
       }
     ]
   },
@@ -5145,6 +5484,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 99,
+  "version": 130,
   "weekStart": ""
 }

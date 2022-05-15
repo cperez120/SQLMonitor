@@ -9,6 +9,8 @@ grant view any definition to [grafana]
 go
 grant view server state to [grafana]
 go
+grant select on object::dbo.SqlServerVersions to [grafana]
+go
 
 use [DBA]
 go
