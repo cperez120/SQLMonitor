@@ -106,7 +106,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1652692995117,
+  "iteration": 1652693952979,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -2057,8 +2057,8 @@
           "links": [
             {
               "targetBlank": true,
-              "title": "",
-              "url": "d/wait_stats/wait-stats?orgId=1&from=now-30m&to=now&var-datasource=$${datasource:queryparam}&var-server=$${server:queryparam}&var-inventory_db=$${inventory_db:queryparam}"
+              "title": "Wait Stats Dashboard",
+              "url": "d/wait_stats"
             }
           ],
           "mappings": [],
@@ -5567,6 +5567,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 158,
+  "version": 159,
   "weekStart": ""
 }
