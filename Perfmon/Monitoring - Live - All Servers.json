@@ -88,7 +88,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1652781437387,
+  "iteration": 1652788975139,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -687,12 +687,16 @@
                 "value": null
               },
               {
+                "color": "yellow",
+                "value": 800
+              },
+              {
                 "color": "dark-orange",
-                "value": 500
+                "value": 1000
               },
               {
                 "color": "dark-red",
-                "value": 700
+                "value": 1200
               }
             ]
           },
@@ -851,7 +855,7 @@
       "type": "row"
     }
   ],
-  "refresh": "1m",
+  "refresh": "5m",
   "schemaVersion": 35,
   "style": "dark",
   "tags": [
@@ -1791,19 +1795,15 @@
   },
   "timepicker": {
     "refresh_intervals": [
-      "1m",
-      "2m",
       "5m",
+      "10m",
       "15m",
-      "30m",
-      "1h",
-      "2h",
-      "1d"
+      "30m"
     ]
   },
   "timezone": "browser",
   "title": "Monitoring - Live - All Servers",
   "uid": "distributed_live_dashboard_all_servers",
-  "version": 63,
+  "version": 68,
   "weekStart": ""
 }

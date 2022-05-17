@@ -15,7 +15,8 @@ GO
 
 -- DROP PROCEDURE dbo.usp_GetAllServerInfo 
 ALTER PROCEDURE dbo.usp_GetAllServerInfo (@servers varchar(max) = null, @blocked_threshold_seconds int = 60, @output nvarchar(max) = null)
-	WITH RECOMPILE, EXECUTE AS OWNER AS 
+	WITH EXECUTE AS OWNER --,RECOMPILE
+AS
 BEGIN
 
 	/*
@@ -29,9 +30,9 @@ BEGIN
 	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 	SET LOCK_TIMEOUT 60000; -- 60 seconds
 
-	DECLARE @tbl_servers table (srv_name varchar(125));
-	DECLARE @tbl_output_columns table (column_name varchar(125));
-	DECLARE @_retval int;
+	DECLARE @_tbl_servers table (srv_name varchar(125));
+	DECLARE @_tbl_output_columns table (column_name varchar(125));
+	DECLARE @_linked_server_failed bit = 0;
 	DECLARE @_sql NVARCHAR(max);
 	DECLARE @_isLocalHost bit = 0;
 	create table #server_details (
@@ -41,7 +42,7 @@ BEGIN
 			available_physical_memory_kb bigint, system_high_memory_signal_state varchar(20), physical_memory_in_use_kb decimal(20,2),
 			memory_grants_pending int, connection_count int, active_requests_count int, waits_per_core_per_minute decimal(20,2)
 		);
-	declare @_srv_name	varchar (125);
+	declare @_srv_name	nvarchar (125);
 	declare @_ip	varchar (30);
 	declare @_domain	varchar (125);
 	declare @_host_name	varchar (125);
@@ -75,7 +76,7 @@ BEGIN
 		FROM t1
 		WHERE [Servers] > ''	
 	)
-	INSERT @tbl_servers (srv_name)
+	INSERT @_tbl_servers (srv_name)
 	SELECT srv_name
 	FROM t1
 	OPTION (MAXRECURSION 32000);
@@ -93,19 +94,19 @@ BEGIN
 		FROM t1
 		WHERE [Columns] > ''	
 	)
-	INSERT @tbl_output_columns (column_name)
+	INSERT @_tbl_output_columns (column_name)
 	SELECT ltrim(rtrim(column_name))
 	FROM t1
 	OPTION (MAXRECURSION 32000);
 	
 
-	--select '@tbl_servers' as QueryData, * from @tbl_servers;
-	--select '@tbl_output_columns' as QueryData, * from @tbl_output_columns;
+	--select '@_tbl_servers' as QueryData, * from @_tbl_servers;
+	--select '@_tbl_output_columns' as QueryData, * from @_tbl_output_columns;
 
 	DECLARE cur_servers CURSOR LOCAL FORWARD_ONLY FOR
 		select distinct srvname from sys.sysservers 
 		where providername = 'SQLOLEDB' 
-		and (@servers is null or srvname in (select srv_name from @tbl_servers));
+		and (@servers is null or srvname in (select srv_name from @_tbl_servers));
 
 	OPEN cur_servers;
 	FETCH NEXT FROM cur_servers INTO @_srv_name;
@@ -114,21 +115,55 @@ BEGIN
 	WHILE @@FETCH_STATUS = 0
 	BEGIN
 		print char(10)+'***** Looping through '+quotename(@_srv_name)+' *******';
+		set @_linked_server_failed = 0;
+		set @_ip = NULL;
+		set @_domain = NULL;
+		set @_host_name = NULL;
+		set @_product_version = NULL;
+		set @_sqlserver_start_time_utc = NULL;
+		set @_os_cpu = NULL;
+		set @_sql_cpu = NULL;
+		set @_pcnt_kernel_mode = NULL;
+		set @_page_faults_kb = NULL;
+		set @_blocked_counts = NULL;
+		set @_blocked_duration_max_seconds = NULL;
+		set @_total_physical_memory_kb = NULL;
+		set @_available_physical_memory_kb = NULL;
+		set @_system_high_memory_signal_state = NULL;
+		set @_physical_memory_in_use_kb = NULL;
+		set @_memory_grants_pending = NULL;
+		set @_connection_count = NULL;
+		set @_active_requests_count = NULL;
+		set @_waits_per_core_per_minute = NULL;
 
 		-- If not local server
 		if (CONVERT(varchar,SERVERPROPERTY('MachineName')) = @_srv_name)
 			set @_isLocalHost = 1
 		else
+		begin
 			set @_isLocalHost = 0
+			begin try
+				--set @_sql = "SELECT	@@servername as srv_name;";
+				--set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
+				exec sys.sp_testlinkedserver @_srv_name;
+			end try
+			begin catch
+				print '	ERROR => Linked Server '+quotename(@_srv_name)+' not connecting.';
+
+				set @_linked_server_failed = 1;
+				--fetch next from cur_servers into @_srv_name;
+				--continue;
+			end catch;
+		end
 
 		-- [ip] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'ip')
+		if @_linked_server_failed = 0 and (@output is null or exists (select * from @_tbl_output_columns where column_name = 'ip'))
 		begin
 			delete from @_result;
 			set @_sql = "SELECT	[ip] = CONVERT(varchar,  CONNECTIONPROPERTY('local_net_address') )";
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_varchar)
@@ -151,13 +186,13 @@ BEGIN
 
 
 		-- [domain] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'domain')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'domain') )
 		begin
 			delete from @_result;
 			set @_sql = "select default_domain() as [domain];";
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_varchar)
@@ -180,13 +215,13 @@ BEGIN
 
 
 		-- [host_name] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'host_name')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'host_name') )
 		begin
 			delete from @_result;
 			set @_sql = "select CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) as [host_name]";
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_varchar)
@@ -209,13 +244,13 @@ BEGIN
 
 
 		-- [product_version] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'product_version')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'product_version') )
 		begin
 			delete from @_result;
 			set @_sql = "select CONVERT(varchar,SERVERPROPERTY('ProductVersion')) as [product_version]";
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_varchar)
@@ -238,13 +273,13 @@ BEGIN
 
 
 		-- [sqlserver_start_time_utc] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'sqlserver_start_time_utc')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'sqlserver_start_time_utc') )
 		begin
 			delete from @_result;
 			set @_sql = "select [sqlserver_start_time_utc] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), sqlserver_start_time) from sys.dm_os_sys_info as osi";
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_datetime)
@@ -267,7 +302,7 @@ BEGIN
 
 
 		-- [os_cpu] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'os_cpu')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'os_cpu') )
 		begin
 			delete from @_result;
 			set @_sql =  "
@@ -305,7 +340,7 @@ FROM (
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_decimal)
@@ -328,7 +363,7 @@ FROM (
 
 
 		-- [sql_cpu] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'sql_cpu')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'sql_cpu') )
 		begin
 			delete from @_result;
 			set @_sql =  "
@@ -366,7 +401,7 @@ FROM (
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_decimal)
@@ -389,7 +424,7 @@ FROM (
 
 
 		-- [pcnt_kernel_mode] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'pcnt_kernel_mode')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'pcnt_kernel_mode') )
 		begin
 			delete from @_result;
 			set @_sql =  "
@@ -427,7 +462,7 @@ FROM (
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_decimal)
@@ -450,7 +485,7 @@ FROM (
 
 
 		-- [page_faults_kb] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'page_faults_kb')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'page_faults_kb') )
 		begin
 			delete from @_result;
 			set @_sql =  "
@@ -486,7 +521,7 @@ FROM (
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_decimal)
@@ -509,7 +544,7 @@ FROM (
 
 
 		-- [blocked_counts] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'blocked_counts')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'blocked_counts') )
 		begin
 			delete from @_result;
 			set @_sql =  "
@@ -522,7 +557,7 @@ and wait_time >= ("+convert(varchar,@blocked_threshold_seconds)+"*1000) -- Over 
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_int)
@@ -545,7 +580,7 @@ and wait_time >= ("+convert(varchar,@blocked_threshold_seconds)+"*1000) -- Over 
 
 
 		-- [blocked_duration_max_seconds] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'blocked_duration_max_seconds')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'blocked_duration_max_seconds') )
 		begin
 			delete from @_result;
 			set @_sql =  "
@@ -562,7 +597,7 @@ select isnull(@_wait_time_s,0) as [blocked_duration_max_seconds];
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_bigint)
@@ -585,7 +620,7 @@ select isnull(@_wait_time_s,0) as [blocked_duration_max_seconds];
 
 
 		-- [total_physical_memory_kb] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'total_physical_memory_kb')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'total_physical_memory_kb') )
 		begin
 			delete from @_result;
 			set @_sql =  "
@@ -600,7 +635,7 @@ from sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_bigint)
@@ -623,7 +658,7 @@ from sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;
 
 
 		-- [available_physical_memory_kb] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'available_physical_memory_kb')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'available_physical_memory_kb') )
 		begin
 			delete from @_result;
 			set @_sql =  "
@@ -638,7 +673,7 @@ from sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_bigint)
@@ -661,7 +696,7 @@ from sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;
 
 
 		-- [system_high_memory_signal_state] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'system_high_memory_signal_state')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'system_high_memory_signal_state') )
 		begin
 			delete from @_result;
 			set @_sql =  "
@@ -676,7 +711,7 @@ from sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_varchar)
@@ -699,7 +734,7 @@ from sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;
 
 
 		-- [physical_memory_in_use_kb] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'physical_memory_in_use_kb')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'physical_memory_in_use_kb') )
 		begin
 			delete from @_result;
 			set @_sql =  "
@@ -714,7 +749,7 @@ from sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_decimal)
@@ -737,7 +772,7 @@ from sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;
 
 
 		-- [memory_grants_pending] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'memory_grants_pending')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'memory_grants_pending') )
 		begin
 			delete from @_result;
 			set @_sql =  "
@@ -754,7 +789,7 @@ AND counter_name = N'Memory Grants Pending'
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_int)
@@ -777,7 +812,7 @@ AND counter_name = N'Memory Grants Pending'
 
 
 		-- [connection_count] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'connection_count')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'connection_count') )
 		begin
 			delete from @_result;
 			set @_sql =  "
@@ -787,7 +822,7 @@ select count(*) as counts from sys.dm_exec_connections with (nolock)
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_int)
@@ -810,7 +845,7 @@ select count(*) as counts from sys.dm_exec_connections with (nolock)
 
 
 		-- [active_requests_count] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'active_requests_count')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'active_requests_count') )
 		begin
 			delete from @_result;
 			set @_sql =  "
@@ -850,7 +885,7 @@ WHERE	s.session_id != @@SPID
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_int)
@@ -873,7 +908,7 @@ WHERE	s.session_id != @@SPID
 
 
 		-- [waits_per_core_per_minute] => Create SQL Statement to Execute
-		if @output is null or exists (select * from @tbl_output_columns where column_name = 'waits_per_core_per_minute')
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'waits_per_core_per_minute') )
 		begin
 			delete from @_result;
 			set @_sql =  "
@@ -1086,7 +1121,7 @@ from wait_snap1 s1, wait_snap2 s2;
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + @_srv_name + ', "'+ @_sql + '")';
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 		
 			begin try
 				insert @_result (col_decimal)
@@ -1109,32 +1144,35 @@ from wait_snap1 s1, wait_snap2 s2;
 
 
 		-- Populate all details for single server inside loop
-		insert #server_details 
-		(	[srv_name], [ip], [domain], [host_name], [product_version], [sqlserver_start_time_utc], [os_cpu], [sql_cpu], 
-			[pcnt_kernel_mode], [page_faults_kb], [blocked_counts], [blocked_duration_max_seconds], [total_physical_memory_kb], 
-			[available_physical_memory_kb], [system_high_memory_signal_state], [physical_memory_in_use_kb], [memory_grants_pending], 
-			[connection_count], [active_requests_count], [waits_per_core_per_minute]
-		)
-		select	[srv_name] = @_srv_name
-				,[ip] = @_ip
-				,[domain] = @_domain
-				,[host_name] = @_host_name
-				,[product_version] = @_product_version
-				,[sqlserver_start_time_utc] = @_sqlserver_start_time_utc
-				,[os_cpu] = @_os_cpu
-				,[sql_cpu] = @_sql_cpu
-				,[pcnt_kernel_mode] = @_pcnt_kernel_mode
-				,[page_faults_kb] = @_page_faults_kb
-				,[blocked_counts] = @_blocked_counts
-				,[blocked_duration_max_seconds] = @_blocked_duration_max_seconds
-				,[total_physical_memory_kb] = @_total_physical_memory_kb
-				,[available_physical_memory_kb] = @_available_physical_memory_kb
-				,[system_high_memory_signal_state] = @_system_high_memory_signal_state
-				,[physical_memory_in_use_kb] = @_physical_memory_in_use_kb
-				,[memory_grants_pending] = @_memory_grants_pending
-				,[connection_count] = @_connection_count
-				,[active_requests_count] = @_active_requests_count
-				,[waits_per_core_per_minute] = @_waits_per_core_per_minute
+		if @_linked_server_failed = 0
+		begin
+			insert #server_details 
+			(	[srv_name], [ip], [domain], [host_name], [product_version], [sqlserver_start_time_utc], [os_cpu], [sql_cpu], 
+				[pcnt_kernel_mode], [page_faults_kb], [blocked_counts], [blocked_duration_max_seconds], [total_physical_memory_kb], 
+				[available_physical_memory_kb], [system_high_memory_signal_state], [physical_memory_in_use_kb], [memory_grants_pending], 
+				[connection_count], [active_requests_count], [waits_per_core_per_minute]
+			)
+			select	[srv_name] = @_srv_name
+					,[ip] = @_ip
+					,[domain] = @_domain
+					,[host_name] = @_host_name
+					,[product_version] = @_product_version
+					,[sqlserver_start_time_utc] = @_sqlserver_start_time_utc
+					,[os_cpu] = @_os_cpu
+					,[sql_cpu] = @_sql_cpu
+					,[pcnt_kernel_mode] = @_pcnt_kernel_mode
+					,[page_faults_kb] = @_page_faults_kb
+					,[blocked_counts] = @_blocked_counts
+					,[blocked_duration_max_seconds] = @_blocked_duration_max_seconds
+					,[total_physical_memory_kb] = @_total_physical_memory_kb
+					,[available_physical_memory_kb] = @_available_physical_memory_kb
+					,[system_high_memory_signal_state] = @_system_high_memory_signal_state
+					,[physical_memory_in_use_kb] = @_physical_memory_in_use_kb
+					,[memory_grants_pending] = @_memory_grants_pending
+					,[connection_count] = @_connection_count
+					,[active_requests_count] = @_active_requests_count
+					,[waits_per_core_per_minute] = @_waits_per_core_per_minute
+		end
 
 		FETCH NEXT FROM cur_servers INTO @_srv_name;
 	END
@@ -1155,6 +1193,7 @@ set quoted_identifier on;
 GO
 
 --exec dbo.usp_GetAllServerInfo @servers = 'Workstation,SqlPractice,SqlMonitor' ,@output = 'srv_name, ip'
-exec dbo.usp_GetAllServerInfo @servers = 'SQLMONITOR' ,@output = 'system_high_memory_signal_state'
+--exec dbo.usp_GetAllServerInfo @servers = 'SQLMONITOR' ,@output = 'system_high_memory_signal_state'
+exec dbo.usp_GetAllServerInfo 
 go
 
