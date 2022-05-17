@@ -1,0 +1,1809 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_SQLMONITOR",
+      "label": "SqlMonitor",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "mssql",
+      "pluginName": "Microsoft SQL Server"
+    },
+    {
+      "name": "VAR_PERFMON_TABLE_NAME",
+      "type": "constant",
+      "label": "Perfmon Table Name",
+      "value": "dbo.vw_performance_counters",
+      "description": ""
+    },
+    {
+      "name": "VAR_OS_TASK_LIST_TABLE_NAME",
+      "type": "constant",
+      "label": "OS Tasks Table Name",
+      "value": "dbo.vw_os_task_list",
+      "description": ""
+    },
+    {
+      "name": "VAR_WHOISACTIVE_TABLE_NAME",
+      "type": "constant",
+      "label": "WhoIsActive Table Name",
+      "value": "dbo.WhoIsActive",
+      "description": ""
+    },
+    {
+      "name": "VAR_BLOCKED_THRESHOLD_SECONDS",
+      "type": "constant",
+      "label": "Blocking Threshold Seconds",
+      "value": "60",
+      "description": ""
+    }
+  ],
+  "__elements": [],
+  "__requires": [
+    {
+      "type": "panel",
+      "id": "dashlist",
+      "name": "Dashboard list",
+      "version": ""
+    },
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "8.4.6"
+    },
+    {
+      "type": "datasource",
+      "id": "mssql",
+      "name": "Microsoft SQL Server",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Monitor Server Using Live PerfMon Metrics",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "iteration": 1652781437387,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 175,
+      "panels": [],
+      "repeat": "server",
+      "title": "LIVE Metrics - [${server:raw}]",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 0,
+        "y": 1
+      },
+      "id": 177,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [],
+          "fields": "/.*/",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'os_cpu'",
+          "refId": "A"
+        }
+      ],
+      "title": "OS CPU",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 60
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 2,
+        "y": 1
+      },
+      "id": 179,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [],
+          "fields": "/.*/",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'sql_cpu'",
+          "refId": "A"
+        }
+      ],
+      "title": "SQL CPU",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "select count(*) as blocked_counts\nfrom sys.dm_exec_requests r with (nolock) \nwhere r.blocking_session_id <> 0\nand wait_time >= ($blocked_threshold_seconds*1000)",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 1
+              },
+              {
+                "color": "dark-orange",
+                "value": 2
+              },
+              {
+                "color": "dark-red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 4,
+        "y": 1
+      },
+      "id": 181,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'blocked_counts'",
+          "refId": "A"
+        }
+      ],
+      "title": "Blocked Over '$blocked_threshold_seconds' Seconds",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "select max(wait_time)/1000 as wait_time_s\nfrom sys.dm_exec_requests r with (nolock) \nwhere r.blocking_session_id <> 0\nand wait_time >= ($blocked_threshold_seconds*1000)",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 120
+              },
+              {
+                "color": "orange",
+                "value": 300
+              },
+              {
+                "color": "super-light-red",
+                "value": 600
+              },
+              {
+                "color": "light-red",
+                "value": 900
+              },
+              {
+                "color": "red",
+                "value": 1200
+              },
+              {
+                "color": "semi-dark-red",
+                "value": 1800
+              },
+              {
+                "color": "dark-red",
+                "value": 2400
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 7,
+        "y": 1
+      },
+      "id": 183,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'blocked_duration_max_seconds'",
+          "refId": "A"
+        }
+      ],
+      "title": "Longest Blocking",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1048576
+              },
+              {
+                "color": "yellow",
+                "value": 2097152
+              },
+              {
+                "color": "green",
+                "value": 4194304
+              }
+            ]
+          },
+          "unit": "kbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 10,
+        "y": 1
+      },
+      "id": 185,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'available_physical_memory_kb'",
+          "refId": "A"
+        }
+      ],
+      "title": "Available M/r",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "Memory State on OS",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 12,
+        "y": 1
+      },
+      "id": 187,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "/.*/",
+          "values": true
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'system_high_memory_signal_state'",
+          "refId": "A"
+        }
+      ],
+      "title": "Memory Status",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "Total RAM Used by SQL Server Instance Process",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 14,
+        "y": 1
+      },
+      "id": 189,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'physical_memory_in_use_kb'",
+          "refId": "A"
+        }
+      ],
+      "title": "Sql M/r",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "light-yellow",
+                "value": 2
+              },
+              {
+                "color": "dark-orange",
+                "value": 5
+              },
+              {
+                "color": "semi-dark-red",
+                "value": 10
+              },
+              {
+                "color": "dark-red",
+                "value": 25
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 16,
+        "y": 1
+      },
+      "id": 191,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'memory_grants_pending'",
+          "refId": "A"
+        }
+      ],
+      "title": "M/r Grants Pending",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "select * from sys.dm_exec_connections",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "dark-orange",
+                "value": 500
+              },
+              {
+                "color": "dark-red",
+                "value": 700
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 19,
+        "y": 1
+      },
+      "id": 193,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [],
+          "fields": "",
+          "values": true
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'connection_count'",
+          "refId": "A"
+        }
+      ],
+      "title": "Connections",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "thresholds"
+          },
+          "displayName": "Waits Per Core Per Minute",
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "Wait Stats Dashboard",
+              "url": "d/wait_stats"
+            }
+          ],
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 60
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 21,
+        "y": 1
+      },
+      "id": 195,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "text": {},
+        "textMode": "value"
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'waits_per_core_per_minute'",
+          "refId": "A"
+        }
+      ],
+      "title": "Waits Per Core Per Minute",
+      "type": "stat"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "id": 121,
+      "panels": [
+        {
+          "description": "",
+          "gridPos": {
+            "h": 7,
+            "w": 24,
+            "x": 0,
+            "y": 11
+          },
+          "id": 119,
+          "links": [],
+          "options": {
+            "folderId": 1,
+            "maxItems": 10,
+            "query": "",
+            "showHeadings": false,
+            "showRecentlyViewed": false,
+            "showSearch": true,
+            "showStarred": false,
+            "tags": []
+          },
+          "pluginVersion": "8.4.6",
+          "title": "Other Dashboards",
+          "type": "dashlist"
+        }
+      ],
+      "title": "Other Dashboards",
+      "type": "row"
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 35,
+  "style": "dark",
+  "tags": [
+    "mssql",
+    "sqlserver"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "SqlMonitor",
+          "value": "SqlMonitor"
+        },
+        "description": "Inventory Server Name",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Data Source",
+        "multi": false,
+        "name": "datasource",
+        "options": [],
+        "query": "mssql",
+        "queryValue": "",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "select srvname from sys.sysservers where providername = 'SQLOLEDB'",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Sql Instance",
+        "multi": true,
+        "name": "server",
+        "options": [],
+        "query": "select srvname from sys.sysservers where providername = 'SQLOLEDB'",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SELECT DB_NAME() as [db_name]",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Inventory Database",
+        "multi": false,
+        "name": "inventory_db",
+        "options": [],
+        "query": "SELECT DB_NAME() as [db_name]",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "select '$inventory_db'",
+        "hide": 2,
+        "includeAll": false,
+        "label": "DBA Database",
+        "multi": false,
+        "name": "dba_db",
+        "options": [],
+        "query": "select '$inventory_db'",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect host_name \nfrom [$inventory_db].dbo.instance_details\nwhere sql_instance = $server\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Host Name",
+        "multi": false,
+        "name": "perfmon_host_name",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect host_name \nfrom [$inventory_db].dbo.instance_details\nwhere sql_instance = $server\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) as [host_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Host Name",
+        "multi": false,
+        "name": "host_name",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) as [host_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect case when @@servicename = 'MSSQLSERVER' then @@servicename else 'MSSQL$'+@@servicename end;\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Service Name",
+        "multi": false,
+        "name": "perfmon_service_name",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect case when @@servicename = 'MSSQLSERVER' then @@servicename else 'MSSQL$'+@@servicename end;\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "300",
+          "value": "300"
+        },
+        "description": "How many rows to return from resultset",
+        "hide": 0,
+        "label": "Rows Limit",
+        "name": "row_limit",
+        "options": [
+          {
+            "selected": true,
+            "text": "300",
+            "value": "300"
+          }
+        ],
+        "query": "300",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "15",
+          "value": "15"
+        },
+        "description": "Threshold duration in minutes for Long Running Queries",
+        "hide": 0,
+        "label": "Duration (Min)",
+        "name": "duration",
+        "options": [
+          {
+            "selected": true,
+            "text": "15",
+            "value": "15"
+          }
+        ],
+        "query": "15",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect default_domain() as [domain];\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "description": "Domain of Sql Instance",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Domain",
+        "multi": false,
+        "name": "domain",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect default_domain() as [domain];\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,  CONNECTIONPROPERTY('local_net_address') ) as [ip]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "description": "IP Address of Sql Instance",
+        "hide": 2,
+        "includeAll": false,
+        "label": "IP Address",
+        "multi": false,
+        "name": "ip",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,  CONNECTIONPROPERTY('local_net_address') ) as [ip]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,SERVERPROPERTY('MachineName')) as [machine_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Machine Name",
+        "multi": false,
+        "name": "machine_name",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,SERVERPROPERTY('MachineName')) as [machine_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @server_product_version varchar(20);\n\nSET @server_product_version = CONVERT(varchar,SERVERPROPERTY('ProductVersion'));\nSELECT\t[@server_product_version] = @server_product_version\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Product Version",
+        "multi": false,
+        "name": "product_version",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @server_product_version varchar(20);\n\nSET @server_product_version = CONVERT(varchar,SERVERPROPERTY('ProductVersion'));\nSELECT\t[@server_product_version] = @server_product_version\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @fqdn nvarchar(100);\nexec usp_extended_results @fqdn = @fqdn output;\n\nselect case when default_domain() = 'WORKGROUP' then 'WORKGROUP' ELSE @fqdn END\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Fully Qualified Domain Name",
+        "multi": false,
+        "name": "fqdn",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @fqdn nvarchar(100);\nexec usp_extended_results @fqdn = @fqdn output;\n\nselect case when default_domain() = 'WORKGROUP' then 'WORKGROUP' ELSE @fqdn END\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar, @@servicename) as [instance_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Instance Name",
+        "multi": false,
+        "name": "instance_name",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar, @@servicename) as [instance_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "hide": 2,
+        "label": "Perfmon Table Name",
+        "name": "perfmon_table_name",
+        "query": "${VAR_PERFMON_TABLE_NAME}",
+        "skipUrlSync": false,
+        "type": "constant",
+        "current": {
+          "value": "${VAR_PERFMON_TABLE_NAME}",
+          "text": "${VAR_PERFMON_TABLE_NAME}",
+          "selected": false
+        },
+        "options": [
+          {
+            "value": "${VAR_PERFMON_TABLE_NAME}",
+            "text": "${VAR_PERFMON_TABLE_NAME}",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect top 1 collection_time_utc\nfrom [$inventory_db].$perfmon_table_name with (nolock)\nwhere host_name = '$perfmon_host_name'\norder by collection_time_utc desc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Collection Time UTC",
+        "multi": false,
+        "name": "perfmon_collection_time_utc",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect top 1 collection_time_utc\nfrom [$inventory_db].$perfmon_table_name with (nolock)\nwhere host_name = '$perfmon_host_name'\norder by collection_time_utc desc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "hide": 2,
+        "label": "OS Tasks Table Name",
+        "name": "os_task_list_table_name",
+        "query": "${VAR_OS_TASK_LIST_TABLE_NAME}",
+        "skipUrlSync": false,
+        "type": "constant",
+        "current": {
+          "value": "${VAR_OS_TASK_LIST_TABLE_NAME}",
+          "text": "${VAR_OS_TASK_LIST_TABLE_NAME}",
+          "selected": false
+        },
+        "options": [
+          {
+            "value": "${VAR_OS_TASK_LIST_TABLE_NAME}",
+            "text": "${VAR_OS_TASK_LIST_TABLE_NAME}",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect top 1 collection_time_utc\nfrom [$inventory_db].$os_task_list_table_name with (nolock)\nwhere host_name = '$perfmon_host_name'\norder by collection_time_utc desc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Collection Time UTC",
+        "multi": false,
+        "name": "os_task_list_collection_time_utc",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect top 1 collection_time_utc\nfrom [$inventory_db].$os_task_list_table_name with (nolock)\nwhere host_name = '$perfmon_host_name'\norder by collection_time_utc desc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "hide": 2,
+        "label": "WhoIsActive Table Name",
+        "name": "whoisactive_table_name",
+        "query": "${VAR_WHOISACTIVE_TABLE_NAME}",
+        "skipUrlSync": false,
+        "type": "constant",
+        "current": {
+          "value": "${VAR_WHOISACTIVE_TABLE_NAME}",
+          "text": "${VAR_WHOISACTIVE_TABLE_NAME}",
+          "selected": false
+        },
+        "options": [
+          {
+            "value": "${VAR_WHOISACTIVE_TABLE_NAME}",
+            "text": "${VAR_WHOISACTIVE_TABLE_NAME}",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect top 1 DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), collection_time )\nfrom [$inventory_db].$whoisactive_table_name with (nolock)\norder by collection_time desc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "WhoIsActive Collection Time UTC",
+        "multi": false,
+        "name": "whoisactive_collection_time_utc",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect top 1 DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), collection_time )\nfrom [$inventory_db].$whoisactive_table_name with (nolock)\norder by collection_time desc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "declare @start_time datetime = $__timeFrom()\ndeclare @end_time datetime = $__timeTo();\n\ndeclare @_duration_minute int = datediff(minute,@start_time,@end_time);\nselect [@delta_minutes] = (case when @_duration_minute <= 30 then 1 \n                                                           when @_duration_minute <= 60 then 2\n                                                           when @_duration_minute <= 120 then 5\n                                                           when @_duration_minute <= 480 then 10\n                                                           when @_duration_minute <= 1440 then 15\n                                                           when @_duration_minute <= 2880 then 20\n                                                           when @_duration_minute <= 10080 then 30\n                                                           else 60 end);\n",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "cpu_delta_minutes",
+        "options": [],
+        "query": "declare @start_time datetime = $__timeFrom()\ndeclare @end_time datetime = $__timeTo();\n\ndeclare @_duration_minute int = datediff(minute,@start_time,@end_time);\nselect [@delta_minutes] = (case when @_duration_minute <= 30 then 1 \n                                                           when @_duration_minute <= 60 then 2\n                                                           when @_duration_minute <= 120 then 5\n                                                           when @_duration_minute <= 480 then 10\n                                                           when @_duration_minute <= 1440 then 15\n                                                           when @_duration_minute <= 2880 then 20\n                                                           when @_duration_minute <= 10080 then 30\n                                                           else 60 end);\n",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect count(*) as counts from sys.dm_os_schedulers dos where status = 'VISIBLE ONLINE' and is_online = 1;\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "SQL Schedulers",
+        "multi": false,
+        "name": "sql_schedulers",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect count(*) as counts from sys.dm_os_schedulers dos where status = 'VISIBLE ONLINE' and is_online = 1;\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), sqlserver_start_time) from sys.dm_os_sys_info as osi\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "SqlInstance Start Time UTC",
+        "multi": false,
+        "name": "sqlserver_start_time_utc",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), sqlserver_start_time) from sys.dm_os_sys_info as osi\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nSELECT --event_time\n\t\tevent_time_utc\n\t\t/*\n\t\t,system_cpu\n\t\t,sql_cpu\n\t\t,idle_system_cpu\n\t\t,user_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]\n\t\t,kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]\n\t\t,page_faults_kb\n\t\t*/\nFROM (\n\t\tSELECT\tDATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time\n\t\t\t\t,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc\n\t\t\t\t,100-record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS idle_system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/UserModeTime)[1]', 'bigint')/10000 AS user_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/KernelModeTime)[1]', 'bigint')/10000 AS kernel_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/PageFaults)[1]', 'bigint')*8.0 AS page_faults_kb\n\t\t\t\t,record\n\t\tFROM (\tSELECT\tTOP 1 timestamp, CONVERT (xml, record) AS record, cpu_ticks / (cpu_ticks/ms_ticks) as ts_now\n\t\t\t\tFROM sys.dm_os_ring_buffers orb cross apply sys.dm_os_sys_info osi\n\t\t\t\tWHERE ring_buffer_type = 'RING_BUFFER_SCHEDULER_MONITOR'\n\t\t\t\tAND record LIKE '%<SystemHealth>%'\n\t\t\t\tORDER BY [timestamp] DESC\n\t\t) AS rd\n) as t;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Ring Buffer Event Time",
+        "multi": false,
+        "name": "ring_buffer_event_time",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nSELECT --event_time\n\t\tevent_time_utc\n\t\t/*\n\t\t,system_cpu\n\t\t,sql_cpu\n\t\t,idle_system_cpu\n\t\t,user_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]\n\t\t,kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]\n\t\t,page_faults_kb\n\t\t*/\nFROM (\n\t\tSELECT\tDATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time\n\t\t\t\t,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc\n\t\t\t\t,100-record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS idle_system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/UserModeTime)[1]', 'bigint')/10000 AS user_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/KernelModeTime)[1]', 'bigint')/10000 AS kernel_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/PageFaults)[1]', 'bigint')*8.0 AS page_faults_kb\n\t\t\t\t,record\n\t\tFROM (\tSELECT\tTOP 1 timestamp, CONVERT (xml, record) AS record, cpu_ticks / (cpu_ticks/ms_ticks) as ts_now\n\t\t\t\tFROM sys.dm_os_ring_buffers orb cross apply sys.dm_os_sys_info osi\n\t\t\t\tWHERE ring_buffer_type = 'RING_BUFFER_SCHEDULER_MONITOR'\n\t\t\t\tAND record LIKE '%<SystemHealth>%'\n\t\t\t\tORDER BY [timestamp] DESC\n\t\t) AS rd\n) as t;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nSELECT /*\n\t\tevent_time\n\t\tevent_time_utc\n\t\t*/\n\t\tsystem_cpu\n\t\t/*\n\t\t,sql_cpu\n\t\t,idle_system_cpu\n\t\t,user_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]\n\t\t,kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]\n\t\t,page_faults_kb\n\t\t*/\nFROM (\n\t\tSELECT\tDATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time\n\t\t\t\t,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc\n\t\t\t\t,100-record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS idle_system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/UserModeTime)[1]', 'bigint')/10000 AS user_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/KernelModeTime)[1]', 'bigint')/10000 AS kernel_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/PageFaults)[1]', 'bigint')*8.0 AS page_faults_kb\n\t\t\t\t,record\n\t\tFROM (\tSELECT\tTOP 1 timestamp, CONVERT (xml, record) AS record, cpu_ticks / (cpu_ticks/ms_ticks) as ts_now\n\t\t\t\tFROM sys.dm_os_ring_buffers orb cross apply sys.dm_os_sys_info osi\n\t\t\t\tWHERE ring_buffer_type = 'RING_BUFFER_SCHEDULER_MONITOR'\n\t\t\t\tAND record LIKE '%<SystemHealth>%'\n\t\t\t\tORDER BY [timestamp] DESC\n\t\t) AS rd\n) as t;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Ring Buffer OS CPU",
+        "multi": false,
+        "name": "ring_buffer_os_cpu",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nSELECT /*\n\t\tevent_time\n\t\tevent_time_utc\n\t\t*/\n\t\tsystem_cpu\n\t\t/*\n\t\t,sql_cpu\n\t\t,idle_system_cpu\n\t\t,user_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]\n\t\t,kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]\n\t\t,page_faults_kb\n\t\t*/\nFROM (\n\t\tSELECT\tDATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time\n\t\t\t\t,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc\n\t\t\t\t,100-record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS idle_system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/UserModeTime)[1]', 'bigint')/10000 AS user_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/KernelModeTime)[1]', 'bigint')/10000 AS kernel_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/PageFaults)[1]', 'bigint')*8.0 AS page_faults_kb\n\t\t\t\t,record\n\t\tFROM (\tSELECT\tTOP 1 timestamp, CONVERT (xml, record) AS record, cpu_ticks / (cpu_ticks/ms_ticks) as ts_now\n\t\t\t\tFROM sys.dm_os_ring_buffers orb cross apply sys.dm_os_sys_info osi\n\t\t\t\tWHERE ring_buffer_type = 'RING_BUFFER_SCHEDULER_MONITOR'\n\t\t\t\tAND record LIKE '%<SystemHealth>%'\n\t\t\t\tORDER BY [timestamp] DESC\n\t\t) AS rd\n) as t;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nSELECT /*\n\t\tevent_time\n\t\t,event_time_utc\n\t\t,system_cpu\n\t\t*/\n\t\tsql_cpu\n\t\t/*\n\t\t,idle_system_cpu\n\t\t,user_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]\n\t\t,kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]\n\t\t,page_faults_kb\n\t\t*/\nFROM (\n\t\tSELECT\tDATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time\n\t\t\t\t,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc\n\t\t\t\t,100-record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS idle_system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/UserModeTime)[1]', 'bigint')/10000 AS user_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/KernelModeTime)[1]', 'bigint')/10000 AS kernel_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/PageFaults)[1]', 'bigint')*8.0 AS page_faults_kb\n\t\t\t\t,record\n\t\tFROM (\tSELECT\tTOP 1 timestamp, CONVERT (xml, record) AS record, cpu_ticks / (cpu_ticks/ms_ticks) as ts_now\n\t\t\t\tFROM sys.dm_os_ring_buffers orb cross apply sys.dm_os_sys_info osi\n\t\t\t\tWHERE ring_buffer_type = 'RING_BUFFER_SCHEDULER_MONITOR'\n\t\t\t\tAND record LIKE '%<SystemHealth>%'\n\t\t\t\tORDER BY [timestamp] DESC\n\t\t) AS rd\n) as t;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Ring Buffer SQL CPU",
+        "multi": false,
+        "name": "ring_buffer_sql_cpu",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nSELECT /*\n\t\tevent_time\n\t\t,event_time_utc\n\t\t,system_cpu\n\t\t*/\n\t\tsql_cpu\n\t\t/*\n\t\t,idle_system_cpu\n\t\t,user_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]\n\t\t,kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]\n\t\t,page_faults_kb\n\t\t*/\nFROM (\n\t\tSELECT\tDATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time\n\t\t\t\t,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc\n\t\t\t\t,100-record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS idle_system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/UserModeTime)[1]', 'bigint')/10000 AS user_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/KernelModeTime)[1]', 'bigint')/10000 AS kernel_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/PageFaults)[1]', 'bigint')*8.0 AS page_faults_kb\n\t\t\t\t,record\n\t\tFROM (\tSELECT\tTOP 1 timestamp, CONVERT (xml, record) AS record, cpu_ticks / (cpu_ticks/ms_ticks) as ts_now\n\t\t\t\tFROM sys.dm_os_ring_buffers orb cross apply sys.dm_os_sys_info osi\n\t\t\t\tWHERE ring_buffer_type = 'RING_BUFFER_SCHEDULER_MONITOR'\n\t\t\t\tAND record LIKE '%<SystemHealth>%'\n\t\t\t\tORDER BY [timestamp] DESC\n\t\t) AS rd\n) as t;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nSELECT /*\n\t\tevent_time\n\t\t,event_time_utc\n\t\t,system_cpu\n\t\t,sql_cpu\n\t\t*/\n\t\tidle_system_cpu\n\t\t/*\n\t\t,user_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]\n\t\t,kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]\n\t\t,page_faults_kb\n\t\t*/\nFROM (\n\t\tSELECT\tDATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time\n\t\t\t\t,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc\n\t\t\t\t,100-record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS idle_system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/UserModeTime)[1]', 'bigint')/10000 AS user_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/KernelModeTime)[1]', 'bigint')/10000 AS kernel_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/PageFaults)[1]', 'bigint')*8.0 AS page_faults_kb\n\t\t\t\t,record\n\t\tFROM (\tSELECT\tTOP 1 timestamp, CONVERT (xml, record) AS record, cpu_ticks / (cpu_ticks/ms_ticks) as ts_now\n\t\t\t\tFROM sys.dm_os_ring_buffers orb cross apply sys.dm_os_sys_info osi\n\t\t\t\tWHERE ring_buffer_type = 'RING_BUFFER_SCHEDULER_MONITOR'\n\t\t\t\tAND record LIKE '%<SystemHealth>%'\n\t\t\t\tORDER BY [timestamp] DESC\n\t\t) AS rd\n) as t;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Ring Buffer Idle CPU",
+        "multi": false,
+        "name": "ring_buffer_idle_cpu",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nSELECT /*\n\t\tevent_time\n\t\t,event_time_utc\n\t\t,system_cpu\n\t\t,sql_cpu\n\t\t*/\n\t\tidle_system_cpu\n\t\t/*\n\t\t,user_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]\n\t\t,kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]\n\t\t,page_faults_kb\n\t\t*/\nFROM (\n\t\tSELECT\tDATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time\n\t\t\t\t,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc\n\t\t\t\t,100-record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS idle_system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/UserModeTime)[1]', 'bigint')/10000 AS user_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/KernelModeTime)[1]', 'bigint')/10000 AS kernel_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/PageFaults)[1]', 'bigint')*8.0 AS page_faults_kb\n\t\t\t\t,record\n\t\tFROM (\tSELECT\tTOP 1 timestamp, CONVERT (xml, record) AS record, cpu_ticks / (cpu_ticks/ms_ticks) as ts_now\n\t\t\t\tFROM sys.dm_os_ring_buffers orb cross apply sys.dm_os_sys_info osi\n\t\t\t\tWHERE ring_buffer_type = 'RING_BUFFER_SCHEDULER_MONITOR'\n\t\t\t\tAND record LIKE '%<SystemHealth>%'\n\t\t\t\tORDER BY [timestamp] DESC\n\t\t) AS rd\n) as t;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nSELECT /*\n\t\tevent_time\n\t\t,event_time_utc\n\t\t,system_cpu\n\t\t,sql_cpu\n\t\t,idle_system_cpu\n\t\t*/\n\t\tuser_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]\n\t\t/*\n\t\t,kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]\n\t\t,page_faults_kb\n\t\t*/\nFROM (\n\t\tSELECT\tDATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time\n\t\t\t\t,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc\n\t\t\t\t,100-record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS idle_system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/UserModeTime)[1]', 'bigint')/10000 AS user_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/KernelModeTime)[1]', 'bigint')/10000 AS kernel_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/PageFaults)[1]', 'bigint')*8.0 AS page_faults_kb\n\t\t\t\t,record\n\t\tFROM (\tSELECT\tTOP 1 timestamp, CONVERT (xml, record) AS record, cpu_ticks / (cpu_ticks/ms_ticks) as ts_now\n\t\t\t\tFROM sys.dm_os_ring_buffers orb cross apply sys.dm_os_sys_info osi\n\t\t\t\tWHERE ring_buffer_type = 'RING_BUFFER_SCHEDULER_MONITOR'\n\t\t\t\tAND record LIKE '%<SystemHealth>%'\n\t\t\t\tORDER BY [timestamp] DESC\n\t\t) AS rd\n) as t;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Ring Buffer Percent User Mode",
+        "multi": false,
+        "name": "ring_buffer_pcnt_user_mode",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nSELECT /*\n\t\tevent_time\n\t\t,event_time_utc\n\t\t,system_cpu\n\t\t,sql_cpu\n\t\t,idle_system_cpu\n\t\t*/\n\t\tuser_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]\n\t\t/*\n\t\t,kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]\n\t\t,page_faults_kb\n\t\t*/\nFROM (\n\t\tSELECT\tDATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time\n\t\t\t\t,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc\n\t\t\t\t,100-record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS idle_system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/UserModeTime)[1]', 'bigint')/10000 AS user_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/KernelModeTime)[1]', 'bigint')/10000 AS kernel_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/PageFaults)[1]', 'bigint')*8.0 AS page_faults_kb\n\t\t\t\t,record\n\t\tFROM (\tSELECT\tTOP 1 timestamp, CONVERT (xml, record) AS record, cpu_ticks / (cpu_ticks/ms_ticks) as ts_now\n\t\t\t\tFROM sys.dm_os_ring_buffers orb cross apply sys.dm_os_sys_info osi\n\t\t\t\tWHERE ring_buffer_type = 'RING_BUFFER_SCHEDULER_MONITOR'\n\t\t\t\tAND record LIKE '%<SystemHealth>%'\n\t\t\t\tORDER BY [timestamp] DESC\n\t\t) AS rd\n) as t;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nSELECT /*\n\t\tevent_time\n\t\t,event_time_utc\n\t\t,system_cpu\n\t\t,sql_cpu\n\t\t,idle_system_cpu\n\t\t,user_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]\n\t\t*/\n\t\tkernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]\n\t\t/*\n\t\t,page_faults_kb\n\t\t*/\nFROM (\n\t\tSELECT\tDATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time\n\t\t\t\t,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc\n\t\t\t\t,100-record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS idle_system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/UserModeTime)[1]', 'bigint')/10000 AS user_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/KernelModeTime)[1]', 'bigint')/10000 AS kernel_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/PageFaults)[1]', 'bigint')*8.0 AS page_faults_kb\n\t\t\t\t,record\n\t\tFROM (\tSELECT\tTOP 1 timestamp, CONVERT (xml, record) AS record, cpu_ticks / (cpu_ticks/ms_ticks) as ts_now\n\t\t\t\tFROM sys.dm_os_ring_buffers orb cross apply sys.dm_os_sys_info osi\n\t\t\t\tWHERE ring_buffer_type = 'RING_BUFFER_SCHEDULER_MONITOR'\n\t\t\t\tAND record LIKE '%<SystemHealth>%'\n\t\t\t\tORDER BY [timestamp] DESC\n\t\t) AS rd\n) as t;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Ring Buffer Percent Kernel Mode",
+        "multi": false,
+        "name": "ring_buffer_pcnt_kernel_mode",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nSELECT /*\n\t\tevent_time\n\t\t,event_time_utc\n\t\t,system_cpu\n\t\t,sql_cpu\n\t\t,idle_system_cpu\n\t\t,user_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]\n\t\t*/\n\t\tkernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]\n\t\t/*\n\t\t,page_faults_kb\n\t\t*/\nFROM (\n\t\tSELECT\tDATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time\n\t\t\t\t,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc\n\t\t\t\t,100-record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS idle_system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/UserModeTime)[1]', 'bigint')/10000 AS user_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/KernelModeTime)[1]', 'bigint')/10000 AS kernel_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/PageFaults)[1]', 'bigint')*8.0 AS page_faults_kb\n\t\t\t\t,record\n\t\tFROM (\tSELECT\tTOP 1 timestamp, CONVERT (xml, record) AS record, cpu_ticks / (cpu_ticks/ms_ticks) as ts_now\n\t\t\t\tFROM sys.dm_os_ring_buffers orb cross apply sys.dm_os_sys_info osi\n\t\t\t\tWHERE ring_buffer_type = 'RING_BUFFER_SCHEDULER_MONITOR'\n\t\t\t\tAND record LIKE '%<SystemHealth>%'\n\t\t\t\tORDER BY [timestamp] DESC\n\t\t) AS rd\n) as t;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nSELECT /*\n\t\tevent_time\n\t\t,event_time_utc\n\t\t,system_cpu\n\t\t,sql_cpu\n\t\t,idle_system_cpu\n\t\t,user_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]\n\t\t,kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]\n\t\t*/\n\t\tpage_faults_kb\nFROM (\n\t\tSELECT\tDATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time\n\t\t\t\t,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc\n\t\t\t\t,100-record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS idle_system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/UserModeTime)[1]', 'bigint')/10000 AS user_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/KernelModeTime)[1]', 'bigint')/10000 AS kernel_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/PageFaults)[1]', 'bigint')*8.0 AS page_faults_kb\n\t\t\t\t,record\n\t\tFROM (\tSELECT\tTOP 1 timestamp, CONVERT (xml, record) AS record, cpu_ticks / (cpu_ticks/ms_ticks) as ts_now\n\t\t\t\tFROM sys.dm_os_ring_buffers orb cross apply sys.dm_os_sys_info osi\n\t\t\t\tWHERE ring_buffer_type = 'RING_BUFFER_SCHEDULER_MONITOR'\n\t\t\t\tAND record LIKE '%<SystemHealth>%'\n\t\t\t\tORDER BY [timestamp] DESC\n\t\t) AS rd\n) as t;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Ring Buffer Page Faults KB",
+        "multi": false,
+        "name": "ring_buffer_page_faults_kb",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nSELECT /*\n\t\tevent_time\n\t\t,event_time_utc\n\t\t,system_cpu\n\t\t,sql_cpu\n\t\t,idle_system_cpu\n\t\t,user_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]\n\t\t,kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]\n\t\t*/\n\t\tpage_faults_kb\nFROM (\n\t\tSELECT\tDATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time\n\t\t\t\t,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc\n\t\t\t\t,100-record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS idle_system_cpu\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/UserModeTime)[1]', 'bigint')/10000 AS user_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/KernelModeTime)[1]', 'bigint')/10000 AS kernel_mode_time_ms\n\t\t\t\t,record.value('(Record/SchedulerMonitorEvent/SystemHealth/PageFaults)[1]', 'bigint')*8.0 AS page_faults_kb\n\t\t\t\t,record\n\t\tFROM (\tSELECT\tTOP 1 timestamp, CONVERT (xml, record) AS record, cpu_ticks / (cpu_ticks/ms_ticks) as ts_now\n\t\t\t\tFROM sys.dm_os_ring_buffers orb cross apply sys.dm_os_sys_info osi\n\t\t\t\tWHERE ring_buffer_type = 'RING_BUFFER_SCHEDULER_MONITOR'\n\t\t\t\tAND record LIKE '%<SystemHealth>%'\n\t\t\t\tORDER BY [timestamp] DESC\n\t\t) AS rd\n) as t;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "hide": 2,
+        "label": "Blocking Threshold Seconds",
+        "name": "blocked_threshold_seconds",
+        "query": "${VAR_BLOCKED_THRESHOLD_SECONDS}",
+        "skipUrlSync": false,
+        "type": "constant",
+        "current": {
+          "value": "${VAR_BLOCKED_THRESHOLD_SECONDS}",
+          "text": "${VAR_BLOCKED_THRESHOLD_SECONDS}",
+          "selected": false
+        },
+        "options": [
+          {
+            "value": "${VAR_BLOCKED_THRESHOLD_SECONDS}",
+            "text": "${VAR_BLOCKED_THRESHOLD_SECONDS}",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nselect count(*) as blocked_counts --, max(wait_time)/1000 as wait_time_s\nfrom sys.dm_exec_requests r with (nolock) \nwhere r.blocking_session_id <> 0\nand wait_time >= ($blocked_threshold_seconds*1000) -- Over 60 seconds\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Blocked Session Counts",
+        "multi": false,
+        "name": "blocked_counts",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nselect count(*) as blocked_counts --, max(wait_time)/1000 as wait_time_s\nfrom sys.dm_exec_requests r with (nolock) \nwhere r.blocking_session_id <> 0\nand wait_time >= ($blocked_threshold_seconds*1000) -- Over 60 seconds\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nselect  isnull(max(wait_time)/1000,0) as wait_time_s --,count(*) as blocked_counts\nfrom sys.dm_exec_requests r with (nolock) \nwhere r.blocking_session_id <> 0\nand wait_time >= ($blocked_threshold_seconds*1000) -- Over 60 seconds\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Blocked Duration for Longest Session",
+        "multi": false,
+        "name": "blocked_duration_max_seconds",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nselect  isnull(max(wait_time)/1000,0) as wait_time_s --,count(*) as blocked_counts\nfrom sys.dm_exec_requests r with (nolock) \nwhere r.blocking_session_id <> 0\nand wait_time >= ($blocked_threshold_seconds*1000) -- Over 60 seconds\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\n\nselect\tosm.total_physical_memory_kb\n\t\t--,osm.available_physical_memory_kb\n\t\t--,case when system_high_memory_signal_state = 1 then 'High' else 'Low' end as [Memory State]\n\t\t--,opm.physical_memory_in_use_kb\n\t\t--,opm.memory_utilization_percentage\nfrom sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Total Physical Memory KB",
+        "multi": false,
+        "name": "total_physical_memory_kb",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\n\nselect\tosm.total_physical_memory_kb\n\t\t--,osm.available_physical_memory_kb\n\t\t--,case when system_high_memory_signal_state = 1 then 'High' else 'Low' end as [Memory State]\n\t\t--,opm.physical_memory_in_use_kb\n\t\t--,opm.memory_utilization_percentage\nfrom sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nselect\t--osm.total_physical_memory_kb\n\t\tosm.available_physical_memory_kb\n\t\t--,case when system_high_memory_signal_state = 1 then 'High' else 'Low' end as [Memory State]\n\t\t--,opm.physical_memory_in_use_kb\n\t\t--,opm.memory_utilization_percentage\nfrom sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Available Physical Memory KB",
+        "multi": false,
+        "name": "available_physical_memory_kb",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nselect\t--osm.total_physical_memory_kb\n\t\tosm.available_physical_memory_kb\n\t\t--,case when system_high_memory_signal_state = 1 then 'High' else 'Low' end as [Memory State]\n\t\t--,opm.physical_memory_in_use_kb\n\t\t--,opm.memory_utilization_percentage\nfrom sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nselect\t--osm.total_physical_memory_kb\n\t\t--osm.available_physical_memory_kb\n\t\tconvert(int,system_high_memory_signal_state)\n\t\t--,opm.physical_memory_in_use_kb\n\t\t--,opm.memory_utilization_percentage\nfrom sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "System Memory State",
+        "multi": false,
+        "name": "system_high_memory_signal_state",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nselect\t--osm.total_physical_memory_kb\n\t\t--osm.available_physical_memory_kb\n\t\tconvert(int,system_high_memory_signal_state)\n\t\t--,opm.physical_memory_in_use_kb\n\t\t--,opm.memory_utilization_percentage\nfrom sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nselect\t--osm.total_physical_memory_kb\n\t\t--osm.available_physical_memory_kb\n\t\t--case when system_high_memory_signal_state = 1 then 'High' else 'Low' end as [Memory State]\n\t\topm.physical_memory_in_use_kb\n\t\t--,opm.memory_utilization_percentage\nfrom sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "RAM Used",
+        "multi": false,
+        "name": "physical_memory_in_use_kb",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nselect\t--osm.total_physical_memory_kb\n\t\t--osm.available_physical_memory_kb\n\t\t--case when system_high_memory_signal_state = 1 then 'High' else 'Low' end as [Memory State]\n\t\topm.physical_memory_in_use_kb\n\t\t--,opm.memory_utilization_percentage\nfrom sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nselect\t--osm.total_physical_memory_kb\n\t\t--osm.available_physical_memory_kb\n\t\t--case when system_high_memory_signal_state = 1 then 'High' else 'Low' end as [Memory State]\n\t\t--opm.physical_memory_in_use_kb\n\t\topm.memory_utilization_percentage\nfrom sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "RAM Used",
+        "multi": false,
+        "name": "sql_allocated_memory_used_percent",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nselect\t--osm.total_physical_memory_kb\n\t\t--osm.available_physical_memory_kb\n\t\t--case when system_high_memory_signal_state = 1 then 'High' else 'Low' end as [Memory State]\n\t\t--opm.physical_memory_in_use_kb\n\t\topm.memory_utilization_percentage\nfrom sys.dm_os_sys_memory osm, sys.dm_os_process_memory opm;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @object_name varchar(255);\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\n\nSELECT cntr_value\nFROM sys.dm_os_performance_counters WITH (NOLOCK) \nWHERE 1=1\nand [object_name] like (@object_name+':Memory Manager%')\nAND counter_name = N'Memory Grants Pending'\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "RAM Used",
+        "multi": false,
+        "name": "memory_grants_pending",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @object_name varchar(255);\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\n\nSELECT cntr_value\nFROM sys.dm_os_performance_counters WITH (NOLOCK) \nWHERE 1=1\nand [object_name] like (@object_name+':Memory Manager%')\nAND counter_name = N'Memory Grants Pending'\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @object_name varchar(255);\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\n\nSELECT cntr_value \nFROM sys.dm_os_performance_counters WITH (NOLOCK) \nWHERE [object_name] like (@object_name+':Buffer Manager%') AND counter_name = N'Page life expectancy'\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Page Life Expectency",
+        "multi": false,
+        "name": "ple",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @object_name varchar(255);\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\n\nSELECT cntr_value \nFROM sys.dm_os_performance_counters WITH (NOLOCK) \nWHERE [object_name] like (@object_name+':Buffer Manager%') AND counter_name = N'Page life expectancy'\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @server_major_version_number tinyint;\nSET @server_major_version_number = CONVERT(tinyint, SERVERPROPERTY('ProductMajorVersion'))\n\nif @server_major_version_number is null\nbegin\n\t;with t_versions as \n\t( select CONVERT(varchar,SERVERPROPERTY('ProductVersion')) as ProductVersion\n\t\t\t ,LEFT(CONVERT(varchar,SERVERPROPERTY('ProductVersion')), CHARINDEX('.',CONVERT(varchar,SERVERPROPERTY('ProductVersion')))-1) AS MajorVersion\n\t)\n\tselect @server_major_version_number = MajorVersion from t_versions;\nend\n\nselect\t[@server_major_version_number] = @server_major_version_number;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Server Major Version Number",
+        "multi": false,
+        "name": "major_version_number",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @server_major_version_number tinyint;\nSET @server_major_version_number = CONVERT(tinyint, SERVERPROPERTY('ProductMajorVersion'))\n\nif @server_major_version_number is null\nbegin\n\t;with t_versions as \n\t( select CONVERT(varchar,SERVERPROPERTY('ProductVersion')) as ProductVersion\n\t\t\t ,LEFT(CONVERT(varchar,SERVERPROPERTY('ProductVersion')), CHARINDEX('.',CONVERT(varchar,SERVERPROPERTY('ProductVersion')))-1) AS MajorVersion\n\t)\n\tselect @server_major_version_number = MajorVersion from t_versions;\nend\n\nselect\t[@server_major_version_number] = @server_major_version_number;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @server_product_version varchar(20);\ndeclare @server_major_version_number tinyint;\ndeclare @server_minor_version_number smallint;\n\nSET @server_product_version = CONVERT(varchar,SERVERPROPERTY('ProductVersion'));\nSET @server_major_version_number = CONVERT(tinyint, SERVERPROPERTY('ProductMajorVersion'));\n\nif @server_major_version_number is null\nbegin\n\t;with t_versions as \n\t( select CONVERT(varchar,SERVERPROPERTY('ProductVersion')) as ProductVersion\n\t\t\t ,LEFT(CONVERT(varchar,SERVERPROPERTY('ProductVersion')), CHARINDEX('.',CONVERT(varchar,SERVERPROPERTY('ProductVersion')))-1) AS MajorVersion\n\t)\n\tselect @server_major_version_number = MajorVersion from t_versions;\nend\n\ndeclare @server_minor_version_number_intermediate varchar(20);\nset @server_minor_version_number_intermediate = REPLACE(@server_product_version,CONVERT(varchar,@server_major_version_number)+'.'+CONVERT(varchar, SERVERPROPERTY('ProductMinorVersion'))+'.','');\n\nif(@server_minor_version_number_intermediate is null)\nbegin\n\t;with t_versions as\n\t( select replace(@server_product_version,CONVERT(varchar,@server_major_version_number)+'.','') as VrsnString )\n\tselect @server_minor_version_number_intermediate = REPLACE(@server_product_version,CONVERT(varchar,@server_major_version_number)+'.'+LEFT(VrsnString,CHARINDEX('.',VrsnString)-1)+'.','')\n\tfrom t_versions;\nend\n\nset @server_minor_version_number = left(@server_minor_version_number_intermediate,charindex('.',@server_minor_version_number_intermediate)-1);\n\nSELECT\t[@server_minor_version_number] = @server_minor_version_number\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Server Minor Version Number",
+        "multi": false,
+        "name": "minor_version_number",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @server_product_version varchar(20);\ndeclare @server_major_version_number tinyint;\ndeclare @server_minor_version_number smallint;\n\nSET @server_product_version = CONVERT(varchar,SERVERPROPERTY('ProductVersion'));\nSET @server_major_version_number = CONVERT(tinyint, SERVERPROPERTY('ProductMajorVersion'));\n\nif @server_major_version_number is null\nbegin\n\t;with t_versions as \n\t( select CONVERT(varchar,SERVERPROPERTY('ProductVersion')) as ProductVersion\n\t\t\t ,LEFT(CONVERT(varchar,SERVERPROPERTY('ProductVersion')), CHARINDEX('.',CONVERT(varchar,SERVERPROPERTY('ProductVersion')))-1) AS MajorVersion\n\t)\n\tselect @server_major_version_number = MajorVersion from t_versions;\nend\n\ndeclare @server_minor_version_number_intermediate varchar(20);\nset @server_minor_version_number_intermediate = REPLACE(@server_product_version,CONVERT(varchar,@server_major_version_number)+'.'+CONVERT(varchar, SERVERPROPERTY('ProductMinorVersion'))+'.','');\n\nif(@server_minor_version_number_intermediate is null)\nbegin\n\t;with t_versions as\n\t( select replace(@server_product_version,CONVERT(varchar,@server_major_version_number)+'.','') as VrsnString )\n\tselect @server_minor_version_number_intermediate = REPLACE(@server_product_version,CONVERT(varchar,@server_major_version_number)+'.'+LEFT(VrsnString,CHARINDEX('.',VrsnString)-1)+'.','')\n\tfrom t_versions;\nend\n\nset @server_minor_version_number = left(@server_minor_version_number_intermediate,charindex('.',@server_minor_version_number_intermediate)-1);\n\nSELECT\t[@server_minor_version_number] = @server_minor_version_number\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect count(*) as counts from sys.dm_exec_connections with (nolock)\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "SQL Server Connection Count",
+        "multi": false,
+        "name": "connection_count",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect count(*) as counts from sys.dm_exec_connections with (nolock)\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\n--\tQuery to find what's is running on server\nSELECT\tCOUNT(*) as active_request_count\nFROM\tsys.dm_exec_sessions AS s\nLEFT JOIN sys.dm_exec_requests AS r ON r.session_id = s.session_id\nOUTER APPLY sys.dm_exec_sql_text(r.sql_handle) AS st\nOUTER APPLY sys.dm_exec_query_plan(r.plan_handle) AS bqp\nOUTER APPLY sys.dm_exec_text_query_plan(r.plan_handle,r.statement_start_offset, r.statement_end_offset) as sqp\nWHERE\ts.session_id != @@SPID\n\tAND (\t(CASE\tWHEN\ts.session_id IN (select ri.blocking_session_id from sys.dm_exec_requests as ri )\n\t\t\t\t\t--\tGet sessions involved in blocking (including system sessions)\n\t\t\t\t\tTHEN\t1\n\t\t\t\t\tWHEN\tr.blocking_session_id IS NOT NULL AND r.blocking_session_id <> 0\n\t\t\t\t\tTHEN\t1\n\t\t\t\t\tELSE\t0\n\t\t\tEND) = 1\n\t\t\tOR\n\t\t\t(CASE\tWHEN\ts.session_id > 50\n\t\t\t\t\t\t\tAND r.session_id IS NOT NULL -- either some part of session has active request\n\t\t\t\t\t\t\t--AND ISNULL(open_resultset_count,0) > 0 -- some result is open\n\t\t\t\t\t\t\tAND s.status <> 'sleeping'\n\t\t\t\t\tTHEN\t1\n\t\t\t\t\tELSE\t0\n\t\t\tEND) = 1\n\t\t\tOR\n\t\t\t(CASE\tWHEN\ts.session_id > 50\n\t\t\t\t\t\t\tAND ISNULL(r.open_transaction_count,0) > 0\n\t\t\t\t\tTHEN\t1\n\t\t\t\t\tELSE\t0\n\t\t\tEND) = 1\n\t\t);\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "SQL Active Requests Count",
+        "multi": false,
+        "name": "active_requests_count",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\n--\tQuery to find what's is running on server\nSELECT\tCOUNT(*) as active_request_count\nFROM\tsys.dm_exec_sessions AS s\nLEFT JOIN sys.dm_exec_requests AS r ON r.session_id = s.session_id\nOUTER APPLY sys.dm_exec_sql_text(r.sql_handle) AS st\nOUTER APPLY sys.dm_exec_query_plan(r.plan_handle) AS bqp\nOUTER APPLY sys.dm_exec_text_query_plan(r.plan_handle,r.statement_start_offset, r.statement_end_offset) as sqp\nWHERE\ts.session_id != @@SPID\n\tAND (\t(CASE\tWHEN\ts.session_id IN (select ri.blocking_session_id from sys.dm_exec_requests as ri )\n\t\t\t\t\t--\tGet sessions involved in blocking (including system sessions)\n\t\t\t\t\tTHEN\t1\n\t\t\t\t\tWHEN\tr.blocking_session_id IS NOT NULL AND r.blocking_session_id <> 0\n\t\t\t\t\tTHEN\t1\n\t\t\t\t\tELSE\t0\n\t\t\tEND) = 1\n\t\t\tOR\n\t\t\t(CASE\tWHEN\ts.session_id > 50\n\t\t\t\t\t\t\tAND r.session_id IS NOT NULL -- either some part of session has active request\n\t\t\t\t\t\t\t--AND ISNULL(open_resultset_count,0) > 0 -- some result is open\n\t\t\t\t\t\t\tAND s.status <> 'sleeping'\n\t\t\t\t\tTHEN\t1\n\t\t\t\t\tELSE\t0\n\t\t\tEND) = 1\n\t\t\tOR\n\t\t\t(CASE\tWHEN\ts.session_id > 50\n\t\t\t\t\t\t\tAND ISNULL(r.open_transaction_count,0) > 0\n\t\t\t\t\tTHEN\t1\n\t\t\t\t\tELSE\t0\n\t\t\tEND) = 1\n\t\t);\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nset nocount on;\ndeclare @schedulers smallint;\ndeclare @collect_time_utc_snap1 datetime2;\ndeclare @collect_time_utc_snap2 datetime2;\n\nselect @schedulers = count(*) from sys.dm_os_schedulers where status = 'VISIBLE ONLINE' and is_online = 1;\n\nselect top 1 @collect_time_utc_snap2 = collection_time_utc\nfrom dbo.wait_stats s\norder by collection_time_utc desc;\n\nselect top 1 @collect_time_utc_snap1 = collection_time_utc\nfrom dbo.wait_stats s where collection_time_utc < @collect_time_utc_snap2\norder by collection_time_utc desc;\n\n--select @collect_time_utc_snap1, @collect_time_utc_snap2;\n\n;with wait_snap1 as (\n\tselect sum(wait_time_ms)/1000 as wait_time_s\n\tfrom dbo.wait_stats s1\n\twhere s1.collection_time_utc = @collect_time_utc_snap1\n\tand [wait_type] NOT IN (\n        -- These wait types are almost 100% never a problem and so they are\n        -- filtered out to avoid them skewing the results. Click on the URL\n        -- for more information.\n        N'BROKER_EVENTHANDLER', -- https://www.sqlskills.com/help/waits/BROKER_EVENTHANDLER\n        N'BROKER_RECEIVE_WAITFOR', -- https://www.sqlskills.com/help/waits/BROKER_RECEIVE_WAITFOR\n        N'BROKER_TASK_STOP', -- https://www.sqlskills.com/help/waits/BROKER_TASK_STOP\n        N'BROKER_TO_FLUSH', -- https://www.sqlskills.com/help/waits/BROKER_TO_FLUSH\n        N'BROKER_TRANSMITTER', -- https://www.sqlskills.com/help/waits/BROKER_TRANSMITTER\n        N'CHECKPOINT_QUEUE', -- https://www.sqlskills.com/help/waits/CHECKPOINT_QUEUE\n        N'CHKPT', -- https://www.sqlskills.com/help/waits/CHKPT\n        N'CLR_AUTO_EVENT', -- https://www.sqlskills.com/help/waits/CLR_AUTO_EVENT\n        N'CLR_MANUAL_EVENT', -- https://www.sqlskills.com/help/waits/CLR_MANUAL_EVENT\n        N'CLR_SEMAPHORE', -- https://www.sqlskills.com/help/waits/CLR_SEMAPHORE\n \n        -- Maybe comment this out if you have parallelism issues\n        N'CXCONSUMER', -- https://www.sqlskills.com/help/waits/CXCONSUMER\n \n        -- Maybe comment these four out if you have mirroring issues\n        N'DBMIRROR_DBM_EVENT', -- https://www.sqlskills.com/help/waits/DBMIRROR_DBM_EVENT\n        N'DBMIRROR_EVENTS_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_EVENTS_QUEUE\n        N'DBMIRROR_WORKER_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_WORKER_QUEUE\n        N'DBMIRRORING_CMD', -- https://www.sqlskills.com/help/waits/DBMIRRORING_CMD\n        N'DIRTY_PAGE_POLL', -- https://www.sqlskills.com/help/waits/DIRTY_PAGE_POLL\n        N'DISPATCHER_QUEUE_SEMAPHORE', -- https://www.sqlskills.com/help/waits/DISPATCHER_QUEUE_SEMAPHORE\n        N'EXECSYNC', -- https://www.sqlskills.com/help/waits/EXECSYNC\n        N'FSAGENT', -- https://www.sqlskills.com/help/waits/FSAGENT\n        N'FT_IFTS_SCHEDULER_IDLE_WAIT', -- https://www.sqlskills.com/help/waits/FT_IFTS_SCHEDULER_IDLE_WAIT\n        N'FT_IFTSHC_MUTEX', -- https://www.sqlskills.com/help/waits/FT_IFTSHC_MUTEX\n  \n       -- Maybe comment these six out if you have AG issues\n        N'HADR_CLUSAPI_CALL', -- https://www.sqlskills.com/help/waits/HADR_CLUSAPI_CALL\n        N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', -- https://www.sqlskills.com/help/waits/HADR_FILESTREAM_IOMGR_IOCOMPLETION\n        N'HADR_LOGCAPTURE_WAIT', -- https://www.sqlskills.com/help/waits/HADR_LOGCAPTURE_WAIT\n        N'HADR_NOTIFICATION_DEQUEUE', -- https://www.sqlskills.com/help/waits/HADR_NOTIFICATION_DEQUEUE\n        N'HADR_TIMER_TASK', -- https://www.sqlskills.com/help/waits/HADR_TIMER_TASK\n        N'HADR_WORK_QUEUE', -- https://www.sqlskills.com/help/waits/HADR_WORK_QUEUE\n \n        N'KSOURCE_WAKEUP', -- https://www.sqlskills.com/help/waits/KSOURCE_WAKEUP\n        N'LAZYWRITER_SLEEP', -- https://www.sqlskills.com/help/waits/LAZYWRITER_SLEEP\n        N'LOGMGR_QUEUE', -- https://www.sqlskills.com/help/waits/LOGMGR_QUEUE\n        N'MEMORY_ALLOCATION_EXT', -- https://www.sqlskills.com/help/waits/MEMORY_ALLOCATION_EXT\n        N'ONDEMAND_TASK_QUEUE', -- https://www.sqlskills.com/help/waits/ONDEMAND_TASK_QUEUE\n        N'PARALLEL_REDO_DRAIN_WORKER', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_DRAIN_WORKER\n        N'PARALLEL_REDO_LOG_CACHE', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_LOG_CACHE\n        N'PARALLEL_REDO_TRAN_LIST', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_TRAN_LIST\n        N'PARALLEL_REDO_WORKER_SYNC', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_SYNC\n        N'PARALLEL_REDO_WORKER_WAIT_WORK', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_WAIT_WORK\n        N'PREEMPTIVE_OS_FLUSHFILEBUFFERS', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_OS_FLUSHFILEBUFFERS\n        N'PREEMPTIVE_XE_GETTARGETSTATE', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_XE_GETTARGETSTATE\n        N'PVS_PREALLOCATE', -- https://www.sqlskills.com/help/waits/PVS_PREALLOCATE\n        N'PWAIT_ALL_COMPONENTS_INITIALIZED', -- https://www.sqlskills.com/help/waits/PWAIT_ALL_COMPONENTS_INITIALIZED\n        N'PWAIT_DIRECTLOGCONSUMER_GETNEXT', -- https://www.sqlskills.com/help/waits/PWAIT_DIRECTLOGCONSUMER_GETNEXT\n        N'PWAIT_EXTENSIBILITY_CLEANUP_TASK', -- https://www.sqlskills.com/help/waits/PWAIT_EXTENSIBILITY_CLEANUP_TASK\n        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP', -- https://www.sqlskills.com/help/waits/QDS_PERSIST_TASK_MAIN_LOOP_SLEEP\n        N'QDS_ASYNC_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_ASYNC_QUEUE\n        N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP',\n            -- https://www.sqlskills.com/help/waits/QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP\n        N'QDS_SHUTDOWN_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_SHUTDOWN_QUEUE\n        N'REDO_THREAD_PENDING_WORK', -- https://www.sqlskills.com/help/waits/REDO_THREAD_PENDING_WORK\n        N'REQUEST_FOR_DEADLOCK_SEARCH', -- https://www.sqlskills.com/help/waits/REQUEST_FOR_DEADLOCK_SEARCH\n        N'RESOURCE_QUEUE', -- https://www.sqlskills.com/help/waits/RESOURCE_QUEUE\n        N'SERVER_IDLE_CHECK', -- https://www.sqlskills.com/help/waits/SERVER_IDLE_CHECK\n        N'SLEEP_BPOOL_FLUSH', -- https://www.sqlskills.com/help/waits/SLEEP_BPOOL_FLUSH\n        N'SLEEP_DBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DBSTARTUP\n        N'SLEEP_DCOMSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DCOMSTARTUP\n        N'SLEEP_MASTERDBREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERDBREADY\n        N'SLEEP_MASTERMDREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERMDREADY\n        N'SLEEP_MASTERUPGRADED', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERUPGRADED\n        N'SLEEP_MSDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_MSDBSTARTUP\n        N'SLEEP_SYSTEMTASK', -- https://www.sqlskills.com/help/waits/SLEEP_SYSTEMTASK\n        N'SLEEP_TASK', -- https://www.sqlskills.com/help/waits/SLEEP_TASK\n        N'SLEEP_TEMPDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_TEMPDBSTARTUP\n        N'SNI_HTTP_ACCEPT', -- https://www.sqlskills.com/help/waits/SNI_HTTP_ACCEPT\n        N'SOS_WORK_DISPATCHER', -- https://www.sqlskills.com/help/waits/SOS_WORK_DISPATCHER\n        N'SP_SERVER_DIAGNOSTICS_SLEEP', -- https://www.sqlskills.com/help/waits/SP_SERVER_DIAGNOSTICS_SLEEP\n        N'SQLTRACE_BUFFER_FLUSH', -- https://www.sqlskills.com/help/waits/SQLTRACE_BUFFER_FLUSH\n        N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', -- https://www.sqlskills.com/help/waits/SQLTRACE_INCREMENTAL_FLUSH_SLEEP\n        N'SQLTRACE_WAIT_ENTRIES', -- https://www.sqlskills.com/help/waits/SQLTRACE_WAIT_ENTRIES\n        N'VDI_CLIENT_OTHER', -- https://www.sqlskills.com/help/waits/VDI_CLIENT_OTHER\n        N'WAIT_FOR_RESULTS', -- https://www.sqlskills.com/help/waits/WAIT_FOR_RESULTS\n        N'WAITFOR', -- https://www.sqlskills.com/help/waits/WAITFOR\n        N'WAITFOR_TASKSHUTDOWN', -- https://www.sqlskills.com/help/waits/WAITFOR_TASKSHUTDOWN\n        N'WAIT_XTP_RECOVERY', -- https://www.sqlskills.com/help/waits/WAIT_XTP_RECOVERY\n        N'WAIT_XTP_HOST_WAIT', -- https://www.sqlskills.com/help/waits/WAIT_XTP_HOST_WAIT\n        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', -- https://www.sqlskills.com/help/waits/WAIT_XTP_OFFLINE_CKPT_NEW_LOG\n        N'WAIT_XTP_CKPT_CLOSE', -- https://www.sqlskills.com/help/waits/WAIT_XTP_CKPT_CLOSE\n        N'XE_DISPATCHER_JOIN', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_JOIN\n        N'XE_DISPATCHER_WAIT', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_WAIT\n        N'XE_TIMER_EVENT' -- https://www.sqlskills.com/help/waits/XE_TIMER_EVENT\n        )\n    AND [waiting_tasks_count] > 0\n)\n,wait_snap2 as (\n\tselect sum(wait_time_ms)/1000 as wait_time_s\n\tfrom dbo.wait_stats s2\n\twhere s2.collection_time_utc = @collect_time_utc_snap2\n\tand [wait_type] NOT IN (\n        -- These wait types are almost 100% never a problem and so they are\n        -- filtered out to avoid them skewing the results. Click on the URL\n        -- for more information.\n        N'BROKER_EVENTHANDLER', -- https://www.sqlskills.com/help/waits/BROKER_EVENTHANDLER\n        N'BROKER_RECEIVE_WAITFOR', -- https://www.sqlskills.com/help/waits/BROKER_RECEIVE_WAITFOR\n        N'BROKER_TASK_STOP', -- https://www.sqlskills.com/help/waits/BROKER_TASK_STOP\n        N'BROKER_TO_FLUSH', -- https://www.sqlskills.com/help/waits/BROKER_TO_FLUSH\n        N'BROKER_TRANSMITTER', -- https://www.sqlskills.com/help/waits/BROKER_TRANSMITTER\n        N'CHECKPOINT_QUEUE', -- https://www.sqlskills.com/help/waits/CHECKPOINT_QUEUE\n        N'CHKPT', -- https://www.sqlskills.com/help/waits/CHKPT\n        N'CLR_AUTO_EVENT', -- https://www.sqlskills.com/help/waits/CLR_AUTO_EVENT\n        N'CLR_MANUAL_EVENT', -- https://www.sqlskills.com/help/waits/CLR_MANUAL_EVENT\n        N'CLR_SEMAPHORE', -- https://www.sqlskills.com/help/waits/CLR_SEMAPHORE\n \n        -- Maybe comment this out if you have parallelism issues\n        N'CXCONSUMER', -- https://www.sqlskills.com/help/waits/CXCONSUMER\n \n        -- Maybe comment these four out if you have mirroring issues\n        N'DBMIRROR_DBM_EVENT', -- https://www.sqlskills.com/help/waits/DBMIRROR_DBM_EVENT\n        N'DBMIRROR_EVENTS_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_EVENTS_QUEUE\n        N'DBMIRROR_WORKER_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_WORKER_QUEUE\n        N'DBMIRRORING_CMD', -- https://www.sqlskills.com/help/waits/DBMIRRORING_CMD\n        N'DIRTY_PAGE_POLL', -- https://www.sqlskills.com/help/waits/DIRTY_PAGE_POLL\n        N'DISPATCHER_QUEUE_SEMAPHORE', -- https://www.sqlskills.com/help/waits/DISPATCHER_QUEUE_SEMAPHORE\n        N'EXECSYNC', -- https://www.sqlskills.com/help/waits/EXECSYNC\n        N'FSAGENT', -- https://www.sqlskills.com/help/waits/FSAGENT\n        N'FT_IFTS_SCHEDULER_IDLE_WAIT', -- https://www.sqlskills.com/help/waits/FT_IFTS_SCHEDULER_IDLE_WAIT\n        N'FT_IFTSHC_MUTEX', -- https://www.sqlskills.com/help/waits/FT_IFTSHC_MUTEX\n  \n       -- Maybe comment these six out if you have AG issues\n        N'HADR_CLUSAPI_CALL', -- https://www.sqlskills.com/help/waits/HADR_CLUSAPI_CALL\n        N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', -- https://www.sqlskills.com/help/waits/HADR_FILESTREAM_IOMGR_IOCOMPLETION\n        N'HADR_LOGCAPTURE_WAIT', -- https://www.sqlskills.com/help/waits/HADR_LOGCAPTURE_WAIT\n        N'HADR_NOTIFICATION_DEQUEUE', -- https://www.sqlskills.com/help/waits/HADR_NOTIFICATION_DEQUEUE\n        N'HADR_TIMER_TASK', -- https://www.sqlskills.com/help/waits/HADR_TIMER_TASK\n        N'HADR_WORK_QUEUE', -- https://www.sqlskills.com/help/waits/HADR_WORK_QUEUE\n \n        N'KSOURCE_WAKEUP', -- https://www.sqlskills.com/help/waits/KSOURCE_WAKEUP\n        N'LAZYWRITER_SLEEP', -- https://www.sqlskills.com/help/waits/LAZYWRITER_SLEEP\n        N'LOGMGR_QUEUE', -- https://www.sqlskills.com/help/waits/LOGMGR_QUEUE\n        N'MEMORY_ALLOCATION_EXT', -- https://www.sqlskills.com/help/waits/MEMORY_ALLOCATION_EXT\n        N'ONDEMAND_TASK_QUEUE', -- https://www.sqlskills.com/help/waits/ONDEMAND_TASK_QUEUE\n        N'PARALLEL_REDO_DRAIN_WORKER', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_DRAIN_WORKER\n        N'PARALLEL_REDO_LOG_CACHE', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_LOG_CACHE\n        N'PARALLEL_REDO_TRAN_LIST', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_TRAN_LIST\n        N'PARALLEL_REDO_WORKER_SYNC', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_SYNC\n        N'PARALLEL_REDO_WORKER_WAIT_WORK', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_WAIT_WORK\n        N'PREEMPTIVE_OS_FLUSHFILEBUFFERS', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_OS_FLUSHFILEBUFFERS\n        N'PREEMPTIVE_XE_GETTARGETSTATE', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_XE_GETTARGETSTATE\n        N'PVS_PREALLOCATE', -- https://www.sqlskills.com/help/waits/PVS_PREALLOCATE\n        N'PWAIT_ALL_COMPONENTS_INITIALIZED', -- https://www.sqlskills.com/help/waits/PWAIT_ALL_COMPONENTS_INITIALIZED\n        N'PWAIT_DIRECTLOGCONSUMER_GETNEXT', -- https://www.sqlskills.com/help/waits/PWAIT_DIRECTLOGCONSUMER_GETNEXT\n        N'PWAIT_EXTENSIBILITY_CLEANUP_TASK', -- https://www.sqlskills.com/help/waits/PWAIT_EXTENSIBILITY_CLEANUP_TASK\n        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP', -- https://www.sqlskills.com/help/waits/QDS_PERSIST_TASK_MAIN_LOOP_SLEEP\n        N'QDS_ASYNC_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_ASYNC_QUEUE\n        N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP',\n            -- https://www.sqlskills.com/help/waits/QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP\n        N'QDS_SHUTDOWN_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_SHUTDOWN_QUEUE\n        N'REDO_THREAD_PENDING_WORK', -- https://www.sqlskills.com/help/waits/REDO_THREAD_PENDING_WORK\n        N'REQUEST_FOR_DEADLOCK_SEARCH', -- https://www.sqlskills.com/help/waits/REQUEST_FOR_DEADLOCK_SEARCH\n        N'RESOURCE_QUEUE', -- https://www.sqlskills.com/help/waits/RESOURCE_QUEUE\n        N'SERVER_IDLE_CHECK', -- https://www.sqlskills.com/help/waits/SERVER_IDLE_CHECK\n        N'SLEEP_BPOOL_FLUSH', -- https://www.sqlskills.com/help/waits/SLEEP_BPOOL_FLUSH\n        N'SLEEP_DBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DBSTARTUP\n        N'SLEEP_DCOMSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DCOMSTARTUP\n        N'SLEEP_MASTERDBREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERDBREADY\n        N'SLEEP_MASTERMDREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERMDREADY\n        N'SLEEP_MASTERUPGRADED', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERUPGRADED\n        N'SLEEP_MSDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_MSDBSTARTUP\n        N'SLEEP_SYSTEMTASK', -- https://www.sqlskills.com/help/waits/SLEEP_SYSTEMTASK\n        N'SLEEP_TASK', -- https://www.sqlskills.com/help/waits/SLEEP_TASK\n        N'SLEEP_TEMPDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_TEMPDBSTARTUP\n        N'SNI_HTTP_ACCEPT', -- https://www.sqlskills.com/help/waits/SNI_HTTP_ACCEPT\n        N'SOS_WORK_DISPATCHER', -- https://www.sqlskills.com/help/waits/SOS_WORK_DISPATCHER\n        N'SP_SERVER_DIAGNOSTICS_SLEEP', -- https://www.sqlskills.com/help/waits/SP_SERVER_DIAGNOSTICS_SLEEP\n        N'SQLTRACE_BUFFER_FLUSH', -- https://www.sqlskills.com/help/waits/SQLTRACE_BUFFER_FLUSH\n        N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', -- https://www.sqlskills.com/help/waits/SQLTRACE_INCREMENTAL_FLUSH_SLEEP\n        N'SQLTRACE_WAIT_ENTRIES', -- https://www.sqlskills.com/help/waits/SQLTRACE_WAIT_ENTRIES\n        N'VDI_CLIENT_OTHER', -- https://www.sqlskills.com/help/waits/VDI_CLIENT_OTHER\n        N'WAIT_FOR_RESULTS', -- https://www.sqlskills.com/help/waits/WAIT_FOR_RESULTS\n        N'WAITFOR', -- https://www.sqlskills.com/help/waits/WAITFOR\n        N'WAITFOR_TASKSHUTDOWN', -- https://www.sqlskills.com/help/waits/WAITFOR_TASKSHUTDOWN\n        N'WAIT_XTP_RECOVERY', -- https://www.sqlskills.com/help/waits/WAIT_XTP_RECOVERY\n        N'WAIT_XTP_HOST_WAIT', -- https://www.sqlskills.com/help/waits/WAIT_XTP_HOST_WAIT\n        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', -- https://www.sqlskills.com/help/waits/WAIT_XTP_OFFLINE_CKPT_NEW_LOG\n        N'WAIT_XTP_CKPT_CLOSE', -- https://www.sqlskills.com/help/waits/WAIT_XTP_CKPT_CLOSE\n        N'XE_DISPATCHER_JOIN', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_JOIN\n        N'XE_DISPATCHER_WAIT', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_WAIT\n        N'XE_TIMER_EVENT' -- https://www.sqlskills.com/help/waits/XE_TIMER_EVENT\n        )\n    AND [waiting_tasks_count] > 0\n)\nselect --duration_seconds = datediff(second,@collect_time_utc_snap1,@collect_time_utc_snap2)\n\t\t--,[schedulers] = @schedulers\n\t\t--,wait_time_seconds = (s2.wait_time_s - s1.wait_time_s)\n\t\t[wait_time_s__per_core__per_minute] = convert(numeric(20,2), (s2.wait_time_s - s1.wait_time_s)*1.0 / @schedulers / datediff(minute,@collect_time_utc_snap1,@collect_time_utc_snap2))\n\t\t--,s1.*\n\t\t--,s2.*\nfrom wait_snap1 s1, wait_snap2 s2;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Waits (Sec) Per Core Per Minute",
+        "multi": false,
+        "name": "waits_per_core_per_minute",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nset nocount on;\ndeclare @schedulers smallint;\ndeclare @collect_time_utc_snap1 datetime2;\ndeclare @collect_time_utc_snap2 datetime2;\n\nselect @schedulers = count(*) from sys.dm_os_schedulers where status = 'VISIBLE ONLINE' and is_online = 1;\n\nselect top 1 @collect_time_utc_snap2 = collection_time_utc\nfrom dbo.wait_stats s\norder by collection_time_utc desc;\n\nselect top 1 @collect_time_utc_snap1 = collection_time_utc\nfrom dbo.wait_stats s where collection_time_utc < @collect_time_utc_snap2\norder by collection_time_utc desc;\n\n--select @collect_time_utc_snap1, @collect_time_utc_snap2;\n\n;with wait_snap1 as (\n\tselect sum(wait_time_ms)/1000 as wait_time_s\n\tfrom dbo.wait_stats s1\n\twhere s1.collection_time_utc = @collect_time_utc_snap1\n\tand [wait_type] NOT IN (\n        -- These wait types are almost 100% never a problem and so they are\n        -- filtered out to avoid them skewing the results. Click on the URL\n        -- for more information.\n        N'BROKER_EVENTHANDLER', -- https://www.sqlskills.com/help/waits/BROKER_EVENTHANDLER\n        N'BROKER_RECEIVE_WAITFOR', -- https://www.sqlskills.com/help/waits/BROKER_RECEIVE_WAITFOR\n        N'BROKER_TASK_STOP', -- https://www.sqlskills.com/help/waits/BROKER_TASK_STOP\n        N'BROKER_TO_FLUSH', -- https://www.sqlskills.com/help/waits/BROKER_TO_FLUSH\n        N'BROKER_TRANSMITTER', -- https://www.sqlskills.com/help/waits/BROKER_TRANSMITTER\n        N'CHECKPOINT_QUEUE', -- https://www.sqlskills.com/help/waits/CHECKPOINT_QUEUE\n        N'CHKPT', -- https://www.sqlskills.com/help/waits/CHKPT\n        N'CLR_AUTO_EVENT', -- https://www.sqlskills.com/help/waits/CLR_AUTO_EVENT\n        N'CLR_MANUAL_EVENT', -- https://www.sqlskills.com/help/waits/CLR_MANUAL_EVENT\n        N'CLR_SEMAPHORE', -- https://www.sqlskills.com/help/waits/CLR_SEMAPHORE\n \n        -- Maybe comment this out if you have parallelism issues\n        N'CXCONSUMER', -- https://www.sqlskills.com/help/waits/CXCONSUMER\n \n        -- Maybe comment these four out if you have mirroring issues\n        N'DBMIRROR_DBM_EVENT', -- https://www.sqlskills.com/help/waits/DBMIRROR_DBM_EVENT\n        N'DBMIRROR_EVENTS_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_EVENTS_QUEUE\n        N'DBMIRROR_WORKER_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_WORKER_QUEUE\n        N'DBMIRRORING_CMD', -- https://www.sqlskills.com/help/waits/DBMIRRORING_CMD\n        N'DIRTY_PAGE_POLL', -- https://www.sqlskills.com/help/waits/DIRTY_PAGE_POLL\n        N'DISPATCHER_QUEUE_SEMAPHORE', -- https://www.sqlskills.com/help/waits/DISPATCHER_QUEUE_SEMAPHORE\n        N'EXECSYNC', -- https://www.sqlskills.com/help/waits/EXECSYNC\n        N'FSAGENT', -- https://www.sqlskills.com/help/waits/FSAGENT\n        N'FT_IFTS_SCHEDULER_IDLE_WAIT', -- https://www.sqlskills.com/help/waits/FT_IFTS_SCHEDULER_IDLE_WAIT\n        N'FT_IFTSHC_MUTEX', -- https://www.sqlskills.com/help/waits/FT_IFTSHC_MUTEX\n  \n       -- Maybe comment these six out if you have AG issues\n        N'HADR_CLUSAPI_CALL', -- https://www.sqlskills.com/help/waits/HADR_CLUSAPI_CALL\n        N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', -- https://www.sqlskills.com/help/waits/HADR_FILESTREAM_IOMGR_IOCOMPLETION\n        N'HADR_LOGCAPTURE_WAIT', -- https://www.sqlskills.com/help/waits/HADR_LOGCAPTURE_WAIT\n        N'HADR_NOTIFICATION_DEQUEUE', -- https://www.sqlskills.com/help/waits/HADR_NOTIFICATION_DEQUEUE\n        N'HADR_TIMER_TASK', -- https://www.sqlskills.com/help/waits/HADR_TIMER_TASK\n        N'HADR_WORK_QUEUE', -- https://www.sqlskills.com/help/waits/HADR_WORK_QUEUE\n \n        N'KSOURCE_WAKEUP', -- https://www.sqlskills.com/help/waits/KSOURCE_WAKEUP\n        N'LAZYWRITER_SLEEP', -- https://www.sqlskills.com/help/waits/LAZYWRITER_SLEEP\n        N'LOGMGR_QUEUE', -- https://www.sqlskills.com/help/waits/LOGMGR_QUEUE\n        N'MEMORY_ALLOCATION_EXT', -- https://www.sqlskills.com/help/waits/MEMORY_ALLOCATION_EXT\n        N'ONDEMAND_TASK_QUEUE', -- https://www.sqlskills.com/help/waits/ONDEMAND_TASK_QUEUE\n        N'PARALLEL_REDO_DRAIN_WORKER', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_DRAIN_WORKER\n        N'PARALLEL_REDO_LOG_CACHE', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_LOG_CACHE\n        N'PARALLEL_REDO_TRAN_LIST', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_TRAN_LIST\n        N'PARALLEL_REDO_WORKER_SYNC', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_SYNC\n        N'PARALLEL_REDO_WORKER_WAIT_WORK', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_WAIT_WORK\n        N'PREEMPTIVE_OS_FLUSHFILEBUFFERS', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_OS_FLUSHFILEBUFFERS\n        N'PREEMPTIVE_XE_GETTARGETSTATE', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_XE_GETTARGETSTATE\n        N'PVS_PREALLOCATE', -- https://www.sqlskills.com/help/waits/PVS_PREALLOCATE\n        N'PWAIT_ALL_COMPONENTS_INITIALIZED', -- https://www.sqlskills.com/help/waits/PWAIT_ALL_COMPONENTS_INITIALIZED\n        N'PWAIT_DIRECTLOGCONSUMER_GETNEXT', -- https://www.sqlskills.com/help/waits/PWAIT_DIRECTLOGCONSUMER_GETNEXT\n        N'PWAIT_EXTENSIBILITY_CLEANUP_TASK', -- https://www.sqlskills.com/help/waits/PWAIT_EXTENSIBILITY_CLEANUP_TASK\n        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP', -- https://www.sqlskills.com/help/waits/QDS_PERSIST_TASK_MAIN_LOOP_SLEEP\n        N'QDS_ASYNC_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_ASYNC_QUEUE\n        N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP',\n            -- https://www.sqlskills.com/help/waits/QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP\n        N'QDS_SHUTDOWN_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_SHUTDOWN_QUEUE\n        N'REDO_THREAD_PENDING_WORK', -- https://www.sqlskills.com/help/waits/REDO_THREAD_PENDING_WORK\n        N'REQUEST_FOR_DEADLOCK_SEARCH', -- https://www.sqlskills.com/help/waits/REQUEST_FOR_DEADLOCK_SEARCH\n        N'RESOURCE_QUEUE', -- https://www.sqlskills.com/help/waits/RESOURCE_QUEUE\n        N'SERVER_IDLE_CHECK', -- https://www.sqlskills.com/help/waits/SERVER_IDLE_CHECK\n        N'SLEEP_BPOOL_FLUSH', -- https://www.sqlskills.com/help/waits/SLEEP_BPOOL_FLUSH\n        N'SLEEP_DBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DBSTARTUP\n        N'SLEEP_DCOMSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DCOMSTARTUP\n        N'SLEEP_MASTERDBREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERDBREADY\n        N'SLEEP_MASTERMDREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERMDREADY\n        N'SLEEP_MASTERUPGRADED', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERUPGRADED\n        N'SLEEP_MSDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_MSDBSTARTUP\n        N'SLEEP_SYSTEMTASK', -- https://www.sqlskills.com/help/waits/SLEEP_SYSTEMTASK\n        N'SLEEP_TASK', -- https://www.sqlskills.com/help/waits/SLEEP_TASK\n        N'SLEEP_TEMPDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_TEMPDBSTARTUP\n        N'SNI_HTTP_ACCEPT', -- https://www.sqlskills.com/help/waits/SNI_HTTP_ACCEPT\n        N'SOS_WORK_DISPATCHER', -- https://www.sqlskills.com/help/waits/SOS_WORK_DISPATCHER\n        N'SP_SERVER_DIAGNOSTICS_SLEEP', -- https://www.sqlskills.com/help/waits/SP_SERVER_DIAGNOSTICS_SLEEP\n        N'SQLTRACE_BUFFER_FLUSH', -- https://www.sqlskills.com/help/waits/SQLTRACE_BUFFER_FLUSH\n        N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', -- https://www.sqlskills.com/help/waits/SQLTRACE_INCREMENTAL_FLUSH_SLEEP\n        N'SQLTRACE_WAIT_ENTRIES', -- https://www.sqlskills.com/help/waits/SQLTRACE_WAIT_ENTRIES\n        N'VDI_CLIENT_OTHER', -- https://www.sqlskills.com/help/waits/VDI_CLIENT_OTHER\n        N'WAIT_FOR_RESULTS', -- https://www.sqlskills.com/help/waits/WAIT_FOR_RESULTS\n        N'WAITFOR', -- https://www.sqlskills.com/help/waits/WAITFOR\n        N'WAITFOR_TASKSHUTDOWN', -- https://www.sqlskills.com/help/waits/WAITFOR_TASKSHUTDOWN\n        N'WAIT_XTP_RECOVERY', -- https://www.sqlskills.com/help/waits/WAIT_XTP_RECOVERY\n        N'WAIT_XTP_HOST_WAIT', -- https://www.sqlskills.com/help/waits/WAIT_XTP_HOST_WAIT\n        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', -- https://www.sqlskills.com/help/waits/WAIT_XTP_OFFLINE_CKPT_NEW_LOG\n        N'WAIT_XTP_CKPT_CLOSE', -- https://www.sqlskills.com/help/waits/WAIT_XTP_CKPT_CLOSE\n        N'XE_DISPATCHER_JOIN', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_JOIN\n        N'XE_DISPATCHER_WAIT', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_WAIT\n        N'XE_TIMER_EVENT' -- https://www.sqlskills.com/help/waits/XE_TIMER_EVENT\n        )\n    AND [waiting_tasks_count] > 0\n)\n,wait_snap2 as (\n\tselect sum(wait_time_ms)/1000 as wait_time_s\n\tfrom dbo.wait_stats s2\n\twhere s2.collection_time_utc = @collect_time_utc_snap2\n\tand [wait_type] NOT IN (\n        -- These wait types are almost 100% never a problem and so they are\n        -- filtered out to avoid them skewing the results. Click on the URL\n        -- for more information.\n        N'BROKER_EVENTHANDLER', -- https://www.sqlskills.com/help/waits/BROKER_EVENTHANDLER\n        N'BROKER_RECEIVE_WAITFOR', -- https://www.sqlskills.com/help/waits/BROKER_RECEIVE_WAITFOR\n        N'BROKER_TASK_STOP', -- https://www.sqlskills.com/help/waits/BROKER_TASK_STOP\n        N'BROKER_TO_FLUSH', -- https://www.sqlskills.com/help/waits/BROKER_TO_FLUSH\n        N'BROKER_TRANSMITTER', -- https://www.sqlskills.com/help/waits/BROKER_TRANSMITTER\n        N'CHECKPOINT_QUEUE', -- https://www.sqlskills.com/help/waits/CHECKPOINT_QUEUE\n        N'CHKPT', -- https://www.sqlskills.com/help/waits/CHKPT\n        N'CLR_AUTO_EVENT', -- https://www.sqlskills.com/help/waits/CLR_AUTO_EVENT\n        N'CLR_MANUAL_EVENT', -- https://www.sqlskills.com/help/waits/CLR_MANUAL_EVENT\n        N'CLR_SEMAPHORE', -- https://www.sqlskills.com/help/waits/CLR_SEMAPHORE\n \n        -- Maybe comment this out if you have parallelism issues\n        N'CXCONSUMER', -- https://www.sqlskills.com/help/waits/CXCONSUMER\n \n        -- Maybe comment these four out if you have mirroring issues\n        N'DBMIRROR_DBM_EVENT', -- https://www.sqlskills.com/help/waits/DBMIRROR_DBM_EVENT\n        N'DBMIRROR_EVENTS_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_EVENTS_QUEUE\n        N'DBMIRROR_WORKER_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_WORKER_QUEUE\n        N'DBMIRRORING_CMD', -- https://www.sqlskills.com/help/waits/DBMIRRORING_CMD\n        N'DIRTY_PAGE_POLL', -- https://www.sqlskills.com/help/waits/DIRTY_PAGE_POLL\n        N'DISPATCHER_QUEUE_SEMAPHORE', -- https://www.sqlskills.com/help/waits/DISPATCHER_QUEUE_SEMAPHORE\n        N'EXECSYNC', -- https://www.sqlskills.com/help/waits/EXECSYNC\n        N'FSAGENT', -- https://www.sqlskills.com/help/waits/FSAGENT\n        N'FT_IFTS_SCHEDULER_IDLE_WAIT', -- https://www.sqlskills.com/help/waits/FT_IFTS_SCHEDULER_IDLE_WAIT\n        N'FT_IFTSHC_MUTEX', -- https://www.sqlskills.com/help/waits/FT_IFTSHC_MUTEX\n  \n       -- Maybe comment these six out if you have AG issues\n        N'HADR_CLUSAPI_CALL', -- https://www.sqlskills.com/help/waits/HADR_CLUSAPI_CALL\n        N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', -- https://www.sqlskills.com/help/waits/HADR_FILESTREAM_IOMGR_IOCOMPLETION\n        N'HADR_LOGCAPTURE_WAIT', -- https://www.sqlskills.com/help/waits/HADR_LOGCAPTURE_WAIT\n        N'HADR_NOTIFICATION_DEQUEUE', -- https://www.sqlskills.com/help/waits/HADR_NOTIFICATION_DEQUEUE\n        N'HADR_TIMER_TASK', -- https://www.sqlskills.com/help/waits/HADR_TIMER_TASK\n        N'HADR_WORK_QUEUE', -- https://www.sqlskills.com/help/waits/HADR_WORK_QUEUE\n \n        N'KSOURCE_WAKEUP', -- https://www.sqlskills.com/help/waits/KSOURCE_WAKEUP\n        N'LAZYWRITER_SLEEP', -- https://www.sqlskills.com/help/waits/LAZYWRITER_SLEEP\n        N'LOGMGR_QUEUE', -- https://www.sqlskills.com/help/waits/LOGMGR_QUEUE\n        N'MEMORY_ALLOCATION_EXT', -- https://www.sqlskills.com/help/waits/MEMORY_ALLOCATION_EXT\n        N'ONDEMAND_TASK_QUEUE', -- https://www.sqlskills.com/help/waits/ONDEMAND_TASK_QUEUE\n        N'PARALLEL_REDO_DRAIN_WORKER', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_DRAIN_WORKER\n        N'PARALLEL_REDO_LOG_CACHE', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_LOG_CACHE\n        N'PARALLEL_REDO_TRAN_LIST', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_TRAN_LIST\n        N'PARALLEL_REDO_WORKER_SYNC', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_SYNC\n        N'PARALLEL_REDO_WORKER_WAIT_WORK', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_WAIT_WORK\n        N'PREEMPTIVE_OS_FLUSHFILEBUFFERS', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_OS_FLUSHFILEBUFFERS\n        N'PREEMPTIVE_XE_GETTARGETSTATE', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_XE_GETTARGETSTATE\n        N'PVS_PREALLOCATE', -- https://www.sqlskills.com/help/waits/PVS_PREALLOCATE\n        N'PWAIT_ALL_COMPONENTS_INITIALIZED', -- https://www.sqlskills.com/help/waits/PWAIT_ALL_COMPONENTS_INITIALIZED\n        N'PWAIT_DIRECTLOGCONSUMER_GETNEXT', -- https://www.sqlskills.com/help/waits/PWAIT_DIRECTLOGCONSUMER_GETNEXT\n        N'PWAIT_EXTENSIBILITY_CLEANUP_TASK', -- https://www.sqlskills.com/help/waits/PWAIT_EXTENSIBILITY_CLEANUP_TASK\n        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP', -- https://www.sqlskills.com/help/waits/QDS_PERSIST_TASK_MAIN_LOOP_SLEEP\n        N'QDS_ASYNC_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_ASYNC_QUEUE\n        N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP',\n            -- https://www.sqlskills.com/help/waits/QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP\n        N'QDS_SHUTDOWN_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_SHUTDOWN_QUEUE\n        N'REDO_THREAD_PENDING_WORK', -- https://www.sqlskills.com/help/waits/REDO_THREAD_PENDING_WORK\n        N'REQUEST_FOR_DEADLOCK_SEARCH', -- https://www.sqlskills.com/help/waits/REQUEST_FOR_DEADLOCK_SEARCH\n        N'RESOURCE_QUEUE', -- https://www.sqlskills.com/help/waits/RESOURCE_QUEUE\n        N'SERVER_IDLE_CHECK', -- https://www.sqlskills.com/help/waits/SERVER_IDLE_CHECK\n        N'SLEEP_BPOOL_FLUSH', -- https://www.sqlskills.com/help/waits/SLEEP_BPOOL_FLUSH\n        N'SLEEP_DBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DBSTARTUP\n        N'SLEEP_DCOMSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DCOMSTARTUP\n        N'SLEEP_MASTERDBREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERDBREADY\n        N'SLEEP_MASTERMDREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERMDREADY\n        N'SLEEP_MASTERUPGRADED', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERUPGRADED\n        N'SLEEP_MSDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_MSDBSTARTUP\n        N'SLEEP_SYSTEMTASK', -- https://www.sqlskills.com/help/waits/SLEEP_SYSTEMTASK\n        N'SLEEP_TASK', -- https://www.sqlskills.com/help/waits/SLEEP_TASK\n        N'SLEEP_TEMPDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_TEMPDBSTARTUP\n        N'SNI_HTTP_ACCEPT', -- https://www.sqlskills.com/help/waits/SNI_HTTP_ACCEPT\n        N'SOS_WORK_DISPATCHER', -- https://www.sqlskills.com/help/waits/SOS_WORK_DISPATCHER\n        N'SP_SERVER_DIAGNOSTICS_SLEEP', -- https://www.sqlskills.com/help/waits/SP_SERVER_DIAGNOSTICS_SLEEP\n        N'SQLTRACE_BUFFER_FLUSH', -- https://www.sqlskills.com/help/waits/SQLTRACE_BUFFER_FLUSH\n        N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', -- https://www.sqlskills.com/help/waits/SQLTRACE_INCREMENTAL_FLUSH_SLEEP\n        N'SQLTRACE_WAIT_ENTRIES', -- https://www.sqlskills.com/help/waits/SQLTRACE_WAIT_ENTRIES\n        N'VDI_CLIENT_OTHER', -- https://www.sqlskills.com/help/waits/VDI_CLIENT_OTHER\n        N'WAIT_FOR_RESULTS', -- https://www.sqlskills.com/help/waits/WAIT_FOR_RESULTS\n        N'WAITFOR', -- https://www.sqlskills.com/help/waits/WAITFOR\n        N'WAITFOR_TASKSHUTDOWN', -- https://www.sqlskills.com/help/waits/WAITFOR_TASKSHUTDOWN\n        N'WAIT_XTP_RECOVERY', -- https://www.sqlskills.com/help/waits/WAIT_XTP_RECOVERY\n        N'WAIT_XTP_HOST_WAIT', -- https://www.sqlskills.com/help/waits/WAIT_XTP_HOST_WAIT\n        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', -- https://www.sqlskills.com/help/waits/WAIT_XTP_OFFLINE_CKPT_NEW_LOG\n        N'WAIT_XTP_CKPT_CLOSE', -- https://www.sqlskills.com/help/waits/WAIT_XTP_CKPT_CLOSE\n        N'XE_DISPATCHER_JOIN', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_JOIN\n        N'XE_DISPATCHER_WAIT', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_WAIT\n        N'XE_TIMER_EVENT' -- https://www.sqlskills.com/help/waits/XE_TIMER_EVENT\n        )\n    AND [waiting_tasks_count] > 0\n)\nselect --duration_seconds = datediff(second,@collect_time_utc_snap1,@collect_time_utc_snap2)\n\t\t--,[schedulers] = @schedulers\n\t\t--,wait_time_seconds = (s2.wait_time_s - s1.wait_time_s)\n\t\t[wait_time_s__per_core__per_minute] = convert(numeric(20,2), (s2.wait_time_s - s1.wait_time_s)*1.0 / @schedulers / datediff(minute,@collect_time_utc_snap1,@collect_time_utc_snap2))\n\t\t--,s1.*\n\t\t--,s2.*\nfrom wait_snap1 s1, wait_snap2 s2;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ($server = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [${server:csv}];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-10m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "1m",
+      "2m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
+  },
+  "timezone": "browser",
+  "title": "Monitoring - Live - All Servers",
+  "uid": "distributed_live_dashboard_all_servers",
+  "version": 63,
+  "weekStart": ""
+}

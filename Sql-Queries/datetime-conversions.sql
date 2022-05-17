@@ -22,4 +22,8 @@ select	[SYSDATETIMEOFFSET] = SYSDATETIMEOFFSET(),
 Grafana Variables
 $__timeFrom()
 $__timeTo()
+
+https://grafana.com/docs/grafana/latest/variables/advanced-variable-format-options/
+
+
 */

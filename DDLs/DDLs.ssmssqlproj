@@ -278,20 +278,20 @@
           <FullPath>DatabaseMail_Using_GMail.sql</FullPath>
         </FileNode>
         <FileNode Name="FirstResponderKit-Install-All-Scripts.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Sql2019:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Sql2019</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>FirstResponderKit-Install-All-Scripts.sql</FullPath>
         </FileNode>
         <FileNode Name="grafana-login.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQL2012:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>SQL2012</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>grafana-login.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Create-All-Objects.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQL2012:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>SQL2012</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Create-All-Objects.sql</FullPath>
         </FileNode>
@@ -302,8 +302,8 @@
           <FullPath>SCH-Create-All-Objects-NonSupportedVersions.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Create-XEvents.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQL2012:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>SQL2012</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Create-XEvents.sql</FullPath>
         </FileNode>
@@ -374,16 +374,22 @@
           <FullPath>SCH-Linked-Servers-Sample.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-sp_WhatIsRunning.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQL2012:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>SQL2012</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-sp_WhatIsRunning.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-sp_WhoIsActive_v12_00(Modified).sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Sql2019:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Sql2019</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-sp_WhoIsActive_v12_00(Modified).sql</FullPath>
+        </FileNode>
+        <FileNode Name="SCH-usp_GetAllServerInfo.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-usp_GetAllServerInfo.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-WhoIsActive-Partitioning.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQL2012:True</AssociatedConnectionMoniker>
