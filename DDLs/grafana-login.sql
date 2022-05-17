@@ -26,4 +26,5 @@ grant execute on object::dbo.sp_WhatIsRunning to [public]
 go
 grant select on object::dbo.resource_consumption to [grafana]
 go
-
+grant execute on object::dbo.usp_GetAllServerInfo TO [grafana]
+go

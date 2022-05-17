@@ -224,8 +224,8 @@
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
         <FileNode Name="Blocking-Test.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Demo:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Demo</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>Blocking-Test.sql</FullPath>
         </FileNode>
@@ -236,8 +236,8 @@
           <FullPath>blocking-time-series.sql</FullPath>
         </FileNode>
         <FileNode Name="check-domain-ip-hostname.sql.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SQL2012:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>SQL2012</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>check-domain-ip-hostname.sql.sql</FullPath>
         </FileNode>
@@ -276,6 +276,12 @@
           <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>QRY-Estimate-Database-Growth.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-Get-Variables-From-Columns.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>QRY-Get-Variables-From-Columns.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-resource_consumption.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
