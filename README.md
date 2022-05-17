@@ -14,7 +14,7 @@ Navigation
 ## Live Dashboard - Basic Metrics
 You can visit [http://ajaydwivedi.ddns.net:3000](http://ajaydwivedi.ddns.net:3000/d/Fg8Q_wSMz/monitoring-live?orgId=1&refresh=30s&from=now-30m&to=now) for live dashboard for basic real time monitoring.<br><br>
 
-![](https://github.com/imajaydwivedi/Images/blob/33429d24f7ebca45bf0aa1052896462a50ada85e/SqlServer-Baselining-Grafana/Live-Dashboards-All.gif) <br>
+![](https://github.com/imajaydwivedi/Images/blob/master/SqlServer-Baselining-Grafana/Live-Dashboards-All.gif) <br>
 
 
 ## Live Dashboard - Perfmon Counters - Quest Softwares
