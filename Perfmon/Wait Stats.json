@@ -60,12 +60,12 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1652781561214,
+  "iteration": 1652855702895,
   "links": [],
   "liveNow": false,
   "panels": [
     {
-      "collapsed": true,
+      "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -73,249 +73,249 @@
         "y": 0
       },
       "id": 12,
-      "panels": [
+      "panels": [],
+      "title": "Wait Stats since Startup - \"__${sql_schedulers} CPUs__\"  - [$fqdn] - [$ip]",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Wait Time (Sec)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "custom.width",
+                "value": 86
+              },
+              {
+                "id": "displayName",
+                "value": "Wait Time"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time Sampled (Sec)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              },
+              {
+                "id": "displayName",
+                "value": "Time Sampled"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pcnt"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Signal Wait Time (Sec)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "custom.width",
+                "value": 125
+              },
+              {
+                "id": "displayName",
+                "value": "Signal Wait Time"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Waits(Sec) Per Core Per Hour"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "custom.width",
+                "value": 190
+              },
+              {
+                "id": "displayName",
+                "value": "Waits Per Core Per Hour"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "% Signal Waits"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Avg Time (ms) Per Wait"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ms"
+              },
+              {
+                "id": "custom.width",
+                "value": 135
+              },
+              {
+                "id": "displayName",
+                "value": "Avg Time Per Wait"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "WaitType"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "",
+                    "url": "https://www.sqlskills.com/help/waits/${__value.raw}"
+                  }
+                ]
+              },
+              {
+                "id": "custom.minWidth",
+                "value": 300
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Number of Waits"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 130
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pcnt"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 66
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 18,
+        "x": 0,
+        "y": 1
+      },
+      "id": 10,
+      "options": {
+        "footer": {
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
         {
+          "alias": "",
           "datasource": {
             "type": "mssql",
             "uid": "${DS_SQLMONITOR}"
           },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "custom": {
-                "align": "auto",
-                "displayMode": "auto"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  }
-                ]
-              }
-            },
-            "overrides": [
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Wait Time (Sec)"
-                },
-                "properties": [
-                  {
-                    "id": "unit",
-                    "value": "s"
-                  },
-                  {
-                    "id": "custom.width",
-                    "value": 86
-                  },
-                  {
-                    "id": "displayName",
-                    "value": "Wait Time"
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Time Sampled (Sec)"
-                },
-                "properties": [
-                  {
-                    "id": "unit",
-                    "value": "s"
-                  },
-                  {
-                    "id": "custom.width",
-                    "value": 100
-                  },
-                  {
-                    "id": "displayName",
-                    "value": "Time Sampled"
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Pcnt"
-                },
-                "properties": [
-                  {
-                    "id": "unit",
-                    "value": "percent"
-                  },
-                  {
-                    "id": "custom.width",
-                    "value": 90
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Signal Wait Time (Sec)"
-                },
-                "properties": [
-                  {
-                    "id": "unit",
-                    "value": "s"
-                  },
-                  {
-                    "id": "custom.width",
-                    "value": 125
-                  },
-                  {
-                    "id": "displayName",
-                    "value": "Signal Wait Time"
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Waits(Sec) Per Core Per Hour"
-                },
-                "properties": [
-                  {
-                    "id": "unit",
-                    "value": "s"
-                  },
-                  {
-                    "id": "custom.width",
-                    "value": 190
-                  },
-                  {
-                    "id": "displayName",
-                    "value": "Waits Per Core Per Hour"
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "% Signal Waits"
-                },
-                "properties": [
-                  {
-                    "id": "unit",
-                    "value": "percent"
-                  },
-                  {
-                    "id": "custom.width",
-                    "value": 110
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Avg Time (ms) Per Wait"
-                },
-                "properties": [
-                  {
-                    "id": "unit",
-                    "value": "ms"
-                  },
-                  {
-                    "id": "custom.width",
-                    "value": 135
-                  },
-                  {
-                    "id": "displayName",
-                    "value": "Avg Time Per Wait"
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "WaitType"
-                },
-                "properties": [
-                  {
-                    "id": "links",
-                    "value": [
-                      {
-                        "targetBlank": true,
-                        "title": "",
-                        "url": "https://www.sqlskills.com/help/waits/${__value.raw}"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "custom.minWidth",
-                    "value": 300
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Number of Waits"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 130
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Pcnt"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 66
-                  }
-                ]
-              }
-            ]
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 18,
-            "x": 0,
-            "y": 1
-          },
-          "id": 10,
-          "options": {
-            "footer": {
-              "fields": "",
-              "reducer": [
-                "sum"
-              ],
-              "show": false
-            },
-            "showHeader": true,
-            "sortBy": []
-          },
-          "pluginVersion": "8.4.6",
-          "targets": [
-            {
-              "alias": "",
-              "datasource": {
-                "type": "mssql",
-                "uid": "${DS_SQLMONITOR}"
-              },
-              "format": "table",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nset nocount on;\ndeclare @start_time datetime;\ndeclare @schedulers smallint;\ndeclare @cpu_time_min decimal(18,1);\ndeclare @WaitStatsTop tinyint = 5;\ndeclare @WaitsPercentTop int = 95;\n\nselect @start_time = sqlserver_start_time from sys.dm_os_sys_info;\nselect @schedulers = count(*), @cpu_time_min = sum(total_cpu_usage_ms/1000.0)/60.0 from sys.dm_os_schedulers where status = 'VISIBLE ONLINE' and is_online = 1;\n\n-- Last updated October 1, 2021\n;WITH [Waits] AS\n    (SELECT\n        [wait_type],\n        [wait_time_ms] / 1000.0 AS [WaitS],\n\t\t    [wait_time_ms],\n        ([wait_time_ms] - [signal_wait_time_ms]) / 1000.0 AS [ResourceS],\n        [signal_wait_time_ms] / 1000.0 AS [SignalS],\n        [waiting_tasks_count] AS [WaitCount],\n        100.0 * [wait_time_ms] / SUM ([wait_time_ms]) OVER() AS [Percentage],\n        ROW_NUMBER() OVER(ORDER BY [wait_time_ms] DESC) AS [RowNum]\n    FROM sys.dm_os_wait_stats\n    WHERE [wait_type] NOT IN (\n        -- These wait types are almost 100% never a problem and so they are\n        -- filtered out to avoid them skewing the results. Click on the URL\n        -- for more information.\n        N'BROKER_EVENTHANDLER', -- https://www.sqlskills.com/help/waits/BROKER_EVENTHANDLER\n        N'BROKER_RECEIVE_WAITFOR', -- https://www.sqlskills.com/help/waits/BROKER_RECEIVE_WAITFOR\n        N'BROKER_TASK_STOP', -- https://www.sqlskills.com/help/waits/BROKER_TASK_STOP\n        N'BROKER_TO_FLUSH', -- https://www.sqlskills.com/help/waits/BROKER_TO_FLUSH\n        N'BROKER_TRANSMITTER', -- https://www.sqlskills.com/help/waits/BROKER_TRANSMITTER\n        N'CHECKPOINT_QUEUE', -- https://www.sqlskills.com/help/waits/CHECKPOINT_QUEUE\n        N'CHKPT', -- https://www.sqlskills.com/help/waits/CHKPT\n        N'CLR_AUTO_EVENT', -- https://www.sqlskills.com/help/waits/CLR_AUTO_EVENT\n        N'CLR_MANUAL_EVENT', -- https://www.sqlskills.com/help/waits/CLR_MANUAL_EVENT\n        N'CLR_SEMAPHORE', -- https://www.sqlskills.com/help/waits/CLR_SEMAPHORE\n \n        -- Maybe comment this out if you have parallelism issues\n        N'CXCONSUMER', -- https://www.sqlskills.com/help/waits/CXCONSUMER\n \n        -- Maybe comment these four out if you have mirroring issues\n        N'DBMIRROR_DBM_EVENT', -- https://www.sqlskills.com/help/waits/DBMIRROR_DBM_EVENT\n        N'DBMIRROR_EVENTS_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_EVENTS_QUEUE\n        N'DBMIRROR_WORKER_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_WORKER_QUEUE\n        N'DBMIRRORING_CMD', -- https://www.sqlskills.com/help/waits/DBMIRRORING_CMD\n        N'DIRTY_PAGE_POLL', -- https://www.sqlskills.com/help/waits/DIRTY_PAGE_POLL\n        N'DISPATCHER_QUEUE_SEMAPHORE', -- https://www.sqlskills.com/help/waits/DISPATCHER_QUEUE_SEMAPHORE\n        N'EXECSYNC', -- https://www.sqlskills.com/help/waits/EXECSYNC\n        N'FSAGENT', -- https://www.sqlskills.com/help/waits/FSAGENT\n        N'FT_IFTS_SCHEDULER_IDLE_WAIT', -- https://www.sqlskills.com/help/waits/FT_IFTS_SCHEDULER_IDLE_WAIT\n        N'FT_IFTSHC_MUTEX', -- https://www.sqlskills.com/help/waits/FT_IFTSHC_MUTEX\n  \n       -- Maybe comment these six out if you have AG issues\n        N'HADR_CLUSAPI_CALL', -- https://www.sqlskills.com/help/waits/HADR_CLUSAPI_CALL\n        N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', -- https://www.sqlskills.com/help/waits/HADR_FILESTREAM_IOMGR_IOCOMPLETION\n        N'HADR_LOGCAPTURE_WAIT', -- https://www.sqlskills.com/help/waits/HADR_LOGCAPTURE_WAIT\n        N'HADR_NOTIFICATION_DEQUEUE', -- https://www.sqlskills.com/help/waits/HADR_NOTIFICATION_DEQUEUE\n        N'HADR_TIMER_TASK', -- https://www.sqlskills.com/help/waits/HADR_TIMER_TASK\n        N'HADR_WORK_QUEUE', -- https://www.sqlskills.com/help/waits/HADR_WORK_QUEUE\n \n        N'KSOURCE_WAKEUP', -- https://www.sqlskills.com/help/waits/KSOURCE_WAKEUP\n        N'LAZYWRITER_SLEEP', -- https://www.sqlskills.com/help/waits/LAZYWRITER_SLEEP\n        N'LOGMGR_QUEUE', -- https://www.sqlskills.com/help/waits/LOGMGR_QUEUE\n        N'MEMORY_ALLOCATION_EXT', -- https://www.sqlskills.com/help/waits/MEMORY_ALLOCATION_EXT\n        N'ONDEMAND_TASK_QUEUE', -- https://www.sqlskills.com/help/waits/ONDEMAND_TASK_QUEUE\n        N'PARALLEL_REDO_DRAIN_WORKER', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_DRAIN_WORKER\n        N'PARALLEL_REDO_LOG_CACHE', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_LOG_CACHE\n        N'PARALLEL_REDO_TRAN_LIST', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_TRAN_LIST\n        N'PARALLEL_REDO_WORKER_SYNC', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_SYNC\n        N'PARALLEL_REDO_WORKER_WAIT_WORK', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_WAIT_WORK\n        N'PREEMPTIVE_OS_FLUSHFILEBUFFERS', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_OS_FLUSHFILEBUFFERS\n        N'PREEMPTIVE_XE_GETTARGETSTATE', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_XE_GETTARGETSTATE\n        N'PVS_PREALLOCATE', -- https://www.sqlskills.com/help/waits/PVS_PREALLOCATE\n        N'PWAIT_ALL_COMPONENTS_INITIALIZED', -- https://www.sqlskills.com/help/waits/PWAIT_ALL_COMPONENTS_INITIALIZED\n        N'PWAIT_DIRECTLOGCONSUMER_GETNEXT', -- https://www.sqlskills.com/help/waits/PWAIT_DIRECTLOGCONSUMER_GETNEXT\n        N'PWAIT_EXTENSIBILITY_CLEANUP_TASK', -- https://www.sqlskills.com/help/waits/PWAIT_EXTENSIBILITY_CLEANUP_TASK\n        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP', -- https://www.sqlskills.com/help/waits/QDS_PERSIST_TASK_MAIN_LOOP_SLEEP\n        N'QDS_ASYNC_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_ASYNC_QUEUE\n        N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP',\n            -- https://www.sqlskills.com/help/waits/QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP\n        N'QDS_SHUTDOWN_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_SHUTDOWN_QUEUE\n        N'REDO_THREAD_PENDING_WORK', -- https://www.sqlskills.com/help/waits/REDO_THREAD_PENDING_WORK\n        N'REQUEST_FOR_DEADLOCK_SEARCH', -- https://www.sqlskills.com/help/waits/REQUEST_FOR_DEADLOCK_SEARCH\n        N'RESOURCE_QUEUE', -- https://www.sqlskills.com/help/waits/RESOURCE_QUEUE\n        N'SERVER_IDLE_CHECK', -- https://www.sqlskills.com/help/waits/SERVER_IDLE_CHECK\n        N'SLEEP_BPOOL_FLUSH', -- https://www.sqlskills.com/help/waits/SLEEP_BPOOL_FLUSH\n        N'SLEEP_DBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DBSTARTUP\n        N'SLEEP_DCOMSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DCOMSTARTUP\n        N'SLEEP_MASTERDBREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERDBREADY\n        N'SLEEP_MASTERMDREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERMDREADY\n        N'SLEEP_MASTERUPGRADED', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERUPGRADED\n        N'SLEEP_MSDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_MSDBSTARTUP\n        N'SLEEP_SYSTEMTASK', -- https://www.sqlskills.com/help/waits/SLEEP_SYSTEMTASK\n        N'SLEEP_TASK', -- https://www.sqlskills.com/help/waits/SLEEP_TASK\n        N'SLEEP_TEMPDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_TEMPDBSTARTUP\n        N'SNI_HTTP_ACCEPT', -- https://www.sqlskills.com/help/waits/SNI_HTTP_ACCEPT\n        N'SOS_WORK_DISPATCHER', -- https://www.sqlskills.com/help/waits/SOS_WORK_DISPATCHER\n        N'SP_SERVER_DIAGNOSTICS_SLEEP', -- https://www.sqlskills.com/help/waits/SP_SERVER_DIAGNOSTICS_SLEEP\n        N'SQLTRACE_BUFFER_FLUSH', -- https://www.sqlskills.com/help/waits/SQLTRACE_BUFFER_FLUSH\n        N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', -- https://www.sqlskills.com/help/waits/SQLTRACE_INCREMENTAL_FLUSH_SLEEP\n        N'SQLTRACE_WAIT_ENTRIES', -- https://www.sqlskills.com/help/waits/SQLTRACE_WAIT_ENTRIES\n        N'VDI_CLIENT_OTHER', -- https://www.sqlskills.com/help/waits/VDI_CLIENT_OTHER\n        N'WAIT_FOR_RESULTS', -- https://www.sqlskills.com/help/waits/WAIT_FOR_RESULTS\n        N'WAITFOR', -- https://www.sqlskills.com/help/waits/WAITFOR\n        N'WAITFOR_TASKSHUTDOWN', -- https://www.sqlskills.com/help/waits/WAITFOR_TASKSHUTDOWN\n        N'WAIT_XTP_RECOVERY', -- https://www.sqlskills.com/help/waits/WAIT_XTP_RECOVERY\n        N'WAIT_XTP_HOST_WAIT', -- https://www.sqlskills.com/help/waits/WAIT_XTP_HOST_WAIT\n        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', -- https://www.sqlskills.com/help/waits/WAIT_XTP_OFFLINE_CKPT_NEW_LOG\n        N'WAIT_XTP_CKPT_CLOSE', -- https://www.sqlskills.com/help/waits/WAIT_XTP_CKPT_CLOSE\n        N'XE_DISPATCHER_JOIN', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_JOIN\n        N'XE_DISPATCHER_WAIT', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_WAIT\n        N'XE_TIMER_EVENT' -- https://www.sqlskills.com/help/waits/XE_TIMER_EVENT\n        )\n    AND [waiting_tasks_count] > 0\n    )\nSELECT\n\t--@schedulers as [CPUs],\n\t--GETUTCDATE() AS [Sample Ended],\n\t  datediff(second,@start_time,getdate()) AS [Time Sampled (Sec)],\n\t  --convert(DECIMAL(18,1),datediff(minute,@start_time,getdate())/60.0) AS [Hours Sample],\n\t--@cpu_time_min/60.0 AS [Thread Time (Hours)],\n    MAX ([W1].[wait_type]) AS [WaitType],\n    MAX([W1].[Percentage]) AS [Pcnt],\n    --CAST (MAX ([W1].[WaitS])/60.0/60.0 AS DECIMAL (16,1)) AS [Wait Time (Hours)],\n    MAX([W1].[WaitS]) AS [Wait Time (Sec)],\n\t  --CONVERT(DECIMAL(18,1), CAST (MAX ([W1].[WaitS])/60.0/60.0 AS DECIMAL (16,1)) / @schedulers / convert(DECIMAL(18,1),datediff(minute,@start_time,getdate())/60.0)) AS [Per Core Per Hour],\n\t  --MAX([W1].[WaitS]) / @schedulers AS [Waits Per Core],\n\t  MAX([W1].[WaitS]) / @schedulers / (datediff(second,@start_time,getdate())/60.0/60.0) AS [Waits(Sec) Per Core Per Hour],\n    --CAST (MAX ([W1].[SignalS]) / 60.0/60.0 AS DECIMAL (16,1)) AS [Signal Wait Time (Hours)],\n    MAX([W1].[SignalS]) AS [Signal Wait Time (Sec)],\n\t  CONVERT(DECIMAL(18,1), MAX([W1].[SignalS]) * 100.0 / MAX([W1].[WaitS]) ) AS [% Signal Waits],\n\t  MAX([W1].[WaitCount]) AS [Number of Waits],\n\t  CONVERT(DECIMAL(18,1), MAX([W1].[wait_time_ms]) / MAX([W1].[WaitCount]) ) AS [Avg Time (ms) Per Wait]\n\t  --'https://www.sqlskills.com/help/waits/' + MAX ([W1].[wait_type]) AS [URL]\n\n    --CAST (MAX ([W1].[ResourceS]) AS DECIMAL (16,2)) AS [Resource_S],\n    --CAST (MAX ([W1].[SignalS]) AS DECIMAL (16,2)) AS [Signal_S],\n    --MAX ([W1].[WaitCount]) AS [WaitCount],\n    --CAST (MAX ([W1].[Percentage]) AS DECIMAL (5,2)) AS [Percentage],\n    --CAST ((MAX ([W1].[WaitS]) / MAX ([W1].[WaitCount])) AS DECIMAL (16,4)) AS [AvgWait_S],\n    --CAST ((MAX ([W1].[ResourceS]) / MAX ([W1].[WaitCount])) AS DECIMAL (16,4)) AS [AvgRes_S],\n    --CAST ((MAX ([W1].[SignalS]) / MAX ([W1].[WaitCount])) AS DECIMAL (16,4)) AS [AvgSig_S],\n    --CAST ('https://www.sqlskills.com/help/waits/' + MAX ([W1].[wait_type]) as XML) AS [Help/Info URL]\nFROM [Waits] AS [W1]\nINNER JOIN [Waits] AS [W2] ON [W2].[RowNum] <= [W1].[RowNum]\nGROUP BY [W1].[RowNum]\nHAVING (SUM ([W2].[Percentage]) - MAX( [W1].[Percentage] ) < @WaitsPercentTop) -- percentage threshold\nAND ([W1].[RowNum] <= @WaitStatsTop)\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
-              "refId": "A"
-            }
-          ],
-          "title": "Wait Stats with \"__${sql_schedulers} CPUs__\" since Startup",
-          "type": "table"
+          "format": "table",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\nset nocount on;\ndeclare @start_time datetime;\ndeclare @schedulers smallint;\ndeclare @cpu_time_min decimal(18,1);\ndeclare @WaitStatsTop tinyint = 5;\ndeclare @WaitsPercentTop int = 95;\n\nselect @start_time = sqlserver_start_time from sys.dm_os_sys_info;\nselect @schedulers = count(*) from sys.dm_os_schedulers where status = 'VISIBLE ONLINE' and is_online = 1;\n-- @cpu_time_min = sum(total_cpu_usage_ms/1000.0)/60.0\n\n-- Last updated October 1, 2021\n;WITH [Waits] AS\n    (SELECT\n        [wait_type],\n        [wait_time_ms] / 1000.0 AS [WaitS],\n\t\t    [wait_time_ms],\n        ([wait_time_ms] - [signal_wait_time_ms]) / 1000.0 AS [ResourceS],\n        [signal_wait_time_ms] / 1000.0 AS [SignalS],\n        [waiting_tasks_count] AS [WaitCount],\n        100.0 * [wait_time_ms] / SUM ([wait_time_ms]) OVER() AS [Percentage],\n        ROW_NUMBER() OVER(ORDER BY [wait_time_ms] DESC) AS [RowNum]\n    FROM sys.dm_os_wait_stats\n    WHERE [wait_type] NOT IN (\n        -- These wait types are almost 100% never a problem and so they are\n        -- filtered out to avoid them skewing the results. Click on the URL\n        -- for more information.\n        N'BROKER_EVENTHANDLER', -- https://www.sqlskills.com/help/waits/BROKER_EVENTHANDLER\n        N'BROKER_RECEIVE_WAITFOR', -- https://www.sqlskills.com/help/waits/BROKER_RECEIVE_WAITFOR\n        N'BROKER_TASK_STOP', -- https://www.sqlskills.com/help/waits/BROKER_TASK_STOP\n        N'BROKER_TO_FLUSH', -- https://www.sqlskills.com/help/waits/BROKER_TO_FLUSH\n        N'BROKER_TRANSMITTER', -- https://www.sqlskills.com/help/waits/BROKER_TRANSMITTER\n        N'CHECKPOINT_QUEUE', -- https://www.sqlskills.com/help/waits/CHECKPOINT_QUEUE\n        N'CHKPT', -- https://www.sqlskills.com/help/waits/CHKPT\n        N'CLR_AUTO_EVENT', -- https://www.sqlskills.com/help/waits/CLR_AUTO_EVENT\n        N'CLR_MANUAL_EVENT', -- https://www.sqlskills.com/help/waits/CLR_MANUAL_EVENT\n        N'CLR_SEMAPHORE', -- https://www.sqlskills.com/help/waits/CLR_SEMAPHORE\n \n        -- Maybe comment this out if you have parallelism issues\n        N'CXCONSUMER', -- https://www.sqlskills.com/help/waits/CXCONSUMER\n \n        -- Maybe comment these four out if you have mirroring issues\n        N'DBMIRROR_DBM_EVENT', -- https://www.sqlskills.com/help/waits/DBMIRROR_DBM_EVENT\n        N'DBMIRROR_EVENTS_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_EVENTS_QUEUE\n        N'DBMIRROR_WORKER_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_WORKER_QUEUE\n        N'DBMIRRORING_CMD', -- https://www.sqlskills.com/help/waits/DBMIRRORING_CMD\n        N'DIRTY_PAGE_POLL', -- https://www.sqlskills.com/help/waits/DIRTY_PAGE_POLL\n        N'DISPATCHER_QUEUE_SEMAPHORE', -- https://www.sqlskills.com/help/waits/DISPATCHER_QUEUE_SEMAPHORE\n        N'EXECSYNC', -- https://www.sqlskills.com/help/waits/EXECSYNC\n        N'FSAGENT', -- https://www.sqlskills.com/help/waits/FSAGENT\n        N'FT_IFTS_SCHEDULER_IDLE_WAIT', -- https://www.sqlskills.com/help/waits/FT_IFTS_SCHEDULER_IDLE_WAIT\n        N'FT_IFTSHC_MUTEX', -- https://www.sqlskills.com/help/waits/FT_IFTSHC_MUTEX\n  \n       -- Maybe comment these six out if you have AG issues\n        N'HADR_CLUSAPI_CALL', -- https://www.sqlskills.com/help/waits/HADR_CLUSAPI_CALL\n        N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', -- https://www.sqlskills.com/help/waits/HADR_FILESTREAM_IOMGR_IOCOMPLETION\n        N'HADR_LOGCAPTURE_WAIT', -- https://www.sqlskills.com/help/waits/HADR_LOGCAPTURE_WAIT\n        N'HADR_NOTIFICATION_DEQUEUE', -- https://www.sqlskills.com/help/waits/HADR_NOTIFICATION_DEQUEUE\n        N'HADR_TIMER_TASK', -- https://www.sqlskills.com/help/waits/HADR_TIMER_TASK\n        N'HADR_WORK_QUEUE', -- https://www.sqlskills.com/help/waits/HADR_WORK_QUEUE\n \n        N'KSOURCE_WAKEUP', -- https://www.sqlskills.com/help/waits/KSOURCE_WAKEUP\n        N'LAZYWRITER_SLEEP', -- https://www.sqlskills.com/help/waits/LAZYWRITER_SLEEP\n        N'LOGMGR_QUEUE', -- https://www.sqlskills.com/help/waits/LOGMGR_QUEUE\n        N'MEMORY_ALLOCATION_EXT', -- https://www.sqlskills.com/help/waits/MEMORY_ALLOCATION_EXT\n        N'ONDEMAND_TASK_QUEUE', -- https://www.sqlskills.com/help/waits/ONDEMAND_TASK_QUEUE\n        N'PARALLEL_REDO_DRAIN_WORKER', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_DRAIN_WORKER\n        N'PARALLEL_REDO_LOG_CACHE', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_LOG_CACHE\n        N'PARALLEL_REDO_TRAN_LIST', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_TRAN_LIST\n        N'PARALLEL_REDO_WORKER_SYNC', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_SYNC\n        N'PARALLEL_REDO_WORKER_WAIT_WORK', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_WAIT_WORK\n        N'PREEMPTIVE_OS_FLUSHFILEBUFFERS', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_OS_FLUSHFILEBUFFERS\n        N'PREEMPTIVE_XE_GETTARGETSTATE', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_XE_GETTARGETSTATE\n        N'PVS_PREALLOCATE', -- https://www.sqlskills.com/help/waits/PVS_PREALLOCATE\n        N'PWAIT_ALL_COMPONENTS_INITIALIZED', -- https://www.sqlskills.com/help/waits/PWAIT_ALL_COMPONENTS_INITIALIZED\n        N'PWAIT_DIRECTLOGCONSUMER_GETNEXT', -- https://www.sqlskills.com/help/waits/PWAIT_DIRECTLOGCONSUMER_GETNEXT\n        N'PWAIT_EXTENSIBILITY_CLEANUP_TASK', -- https://www.sqlskills.com/help/waits/PWAIT_EXTENSIBILITY_CLEANUP_TASK\n        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP', -- https://www.sqlskills.com/help/waits/QDS_PERSIST_TASK_MAIN_LOOP_SLEEP\n        N'QDS_ASYNC_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_ASYNC_QUEUE\n        N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP',\n            -- https://www.sqlskills.com/help/waits/QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP\n        N'QDS_SHUTDOWN_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_SHUTDOWN_QUEUE\n        N'REDO_THREAD_PENDING_WORK', -- https://www.sqlskills.com/help/waits/REDO_THREAD_PENDING_WORK\n        N'REQUEST_FOR_DEADLOCK_SEARCH', -- https://www.sqlskills.com/help/waits/REQUEST_FOR_DEADLOCK_SEARCH\n        N'RESOURCE_QUEUE', -- https://www.sqlskills.com/help/waits/RESOURCE_QUEUE\n        N'SERVER_IDLE_CHECK', -- https://www.sqlskills.com/help/waits/SERVER_IDLE_CHECK\n        N'SLEEP_BPOOL_FLUSH', -- https://www.sqlskills.com/help/waits/SLEEP_BPOOL_FLUSH\n        N'SLEEP_DBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DBSTARTUP\n        N'SLEEP_DCOMSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DCOMSTARTUP\n        N'SLEEP_MASTERDBREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERDBREADY\n        N'SLEEP_MASTERMDREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERMDREADY\n        N'SLEEP_MASTERUPGRADED', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERUPGRADED\n        N'SLEEP_MSDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_MSDBSTARTUP\n        N'SLEEP_SYSTEMTASK', -- https://www.sqlskills.com/help/waits/SLEEP_SYSTEMTASK\n        N'SLEEP_TASK', -- https://www.sqlskills.com/help/waits/SLEEP_TASK\n        N'SLEEP_TEMPDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_TEMPDBSTARTUP\n        N'SNI_HTTP_ACCEPT', -- https://www.sqlskills.com/help/waits/SNI_HTTP_ACCEPT\n        N'SOS_WORK_DISPATCHER', -- https://www.sqlskills.com/help/waits/SOS_WORK_DISPATCHER\n        N'SP_SERVER_DIAGNOSTICS_SLEEP', -- https://www.sqlskills.com/help/waits/SP_SERVER_DIAGNOSTICS_SLEEP\n        N'SQLTRACE_BUFFER_FLUSH', -- https://www.sqlskills.com/help/waits/SQLTRACE_BUFFER_FLUSH\n        N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', -- https://www.sqlskills.com/help/waits/SQLTRACE_INCREMENTAL_FLUSH_SLEEP\n        N'SQLTRACE_WAIT_ENTRIES', -- https://www.sqlskills.com/help/waits/SQLTRACE_WAIT_ENTRIES\n        N'VDI_CLIENT_OTHER', -- https://www.sqlskills.com/help/waits/VDI_CLIENT_OTHER\n        N'WAIT_FOR_RESULTS', -- https://www.sqlskills.com/help/waits/WAIT_FOR_RESULTS\n        N'WAITFOR', -- https://www.sqlskills.com/help/waits/WAITFOR\n        N'WAITFOR_TASKSHUTDOWN', -- https://www.sqlskills.com/help/waits/WAITFOR_TASKSHUTDOWN\n        N'WAIT_XTP_RECOVERY', -- https://www.sqlskills.com/help/waits/WAIT_XTP_RECOVERY\n        N'WAIT_XTP_HOST_WAIT', -- https://www.sqlskills.com/help/waits/WAIT_XTP_HOST_WAIT\n        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', -- https://www.sqlskills.com/help/waits/WAIT_XTP_OFFLINE_CKPT_NEW_LOG\n        N'WAIT_XTP_CKPT_CLOSE', -- https://www.sqlskills.com/help/waits/WAIT_XTP_CKPT_CLOSE\n        N'XE_DISPATCHER_JOIN', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_JOIN\n        N'XE_DISPATCHER_WAIT', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_WAIT\n        N'XE_TIMER_EVENT' -- https://www.sqlskills.com/help/waits/XE_TIMER_EVENT\n        )\n    AND [waiting_tasks_count] > 0\n    )\nSELECT\n\t--@schedulers as [CPUs],\n\t--GETUTCDATE() AS [Sample Ended],\n\t  datediff(second,@start_time,getdate()) AS [Time Sampled (Sec)],\n\t  --convert(DECIMAL(18,1),datediff(minute,@start_time,getdate())/60.0) AS [Hours Sample],\n\t--@cpu_time_min/60.0 AS [Thread Time (Hours)],\n    MAX ([W1].[wait_type]) AS [WaitType],\n    MAX([W1].[Percentage]) AS [Pcnt],\n    --CAST (MAX ([W1].[WaitS])/60.0/60.0 AS DECIMAL (16,1)) AS [Wait Time (Hours)],\n    MAX([W1].[WaitS]) AS [Wait Time (Sec)],\n\t  --CONVERT(DECIMAL(18,1), CAST (MAX ([W1].[WaitS])/60.0/60.0 AS DECIMAL (16,1)) / @schedulers / convert(DECIMAL(18,1),datediff(minute,@start_time,getdate())/60.0)) AS [Per Core Per Hour],\n\t  --MAX([W1].[WaitS]) / @schedulers AS [Waits Per Core],\n\t  MAX([W1].[WaitS]) / @schedulers / (datediff(second,@start_time,getdate())/60.0/60.0) AS [Waits(Sec) Per Core Per Hour],\n    --CAST (MAX ([W1].[SignalS]) / 60.0/60.0 AS DECIMAL (16,1)) AS [Signal Wait Time (Hours)],\n    MAX([W1].[SignalS]) AS [Signal Wait Time (Sec)],\n\t  CONVERT(DECIMAL(18,1), MAX([W1].[SignalS]) * 100.0 / MAX([W1].[WaitS]) ) AS [% Signal Waits],\n\t  MAX([W1].[WaitCount]) AS [Number of Waits],\n\t  CONVERT(DECIMAL(18,1), MAX([W1].[wait_time_ms])*1.0 / MAX([W1].[WaitCount]) ) AS [Avg Time (ms) Per Wait]\n\t  --'https://www.sqlskills.com/help/waits/' + MAX ([W1].[wait_type]) AS [URL]\n\n    --CAST (MAX ([W1].[ResourceS]) AS DECIMAL (16,2)) AS [Resource_S],\n    --CAST (MAX ([W1].[SignalS]) AS DECIMAL (16,2)) AS [Signal_S],\n    --MAX ([W1].[WaitCount]) AS [WaitCount],\n    --CAST (MAX ([W1].[Percentage]) AS DECIMAL (5,2)) AS [Percentage],\n    --CAST ((MAX ([W1].[WaitS]) / MAX ([W1].[WaitCount])) AS DECIMAL (16,4)) AS [AvgWait_S],\n    --CAST ((MAX ([W1].[ResourceS]) / MAX ([W1].[WaitCount])) AS DECIMAL (16,4)) AS [AvgRes_S],\n    --CAST ((MAX ([W1].[SignalS]) / MAX ([W1].[WaitCount])) AS DECIMAL (16,4)) AS [AvgSig_S],\n    --CAST ('https://www.sqlskills.com/help/waits/' + MAX ([W1].[wait_type]) as XML) AS [Help/Info URL]\nFROM [Waits] AS [W1]\nINNER JOIN [Waits] AS [W2] ON [W2].[RowNum] <= [W1].[RowNum]\nGROUP BY [W1].[RowNum]\nHAVING (SUM ([W2].[Percentage]) - MAX( [W1].[Percentage] ) < @WaitsPercentTop) -- percentage threshold\nAND ([W1].[RowNum] <= @WaitStatsTop)\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+          "refId": "A"
         }
       ],
-      "title": "Wait Stats since Startup - \"__${sql_schedulers} CPUs__\"  - [$fqdn] - [$ip]",
-      "type": "row"
+      "title": "Wait Stats with \"__${sql_schedulers} CPUs__\" since Startup",
+      "type": "table"
     },
     {
       "collapsed": false,
@@ -323,7 +323,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 1
+        "y": 8
       },
       "id": 16,
       "panels": [],
@@ -596,7 +596,7 @@
         "h": 7,
         "w": 18,
         "x": 0,
-        "y": 2
+        "y": 9
       },
       "id": 13,
       "options": {
@@ -619,7 +619,7 @@
             "uid": "${DS_SQLMONITOR}"
           },
           "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\n\r\ndeclare @start_time datetime;\r\ndeclare @end_time datetime = $__timeFrom();\r\ndeclare @schedulers smallint;\r\ndeclare @WaitStatsTop tinyint = 5;\r\ndeclare @WaitsPercentTop int = 99;\r\ndeclare @collect_time_utc_snap1 datetime2;\r\ndeclare @collect_time_utc_snap2 datetime2;\r\n\r\nselect @start_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), sqlserver_start_time) from sys.dm_os_sys_info;\r\nselect @schedulers = count(*) from sys.dm_os_schedulers where status = 'VISIBLE ONLINE' and is_online = 1;\r\n\r\nselect top 1 @collect_time_utc_snap2 = collection_time_utc\r\nfrom dbo.wait_stats s2\r\nwhere s2.collection_time_utc <= @end_time\r\norder by collection_time_utc desc;\r\n\r\nselect top 1 @collect_time_utc_snap1 = collection_time_utc\r\nfrom dbo.wait_stats s1\r\nwhere collection_time_utc >= @start_time\r\norder by collection_time_utc asc;\r\n\r\n--select @collect_time_utc_snap1, @collect_time_utc_snap2;\r\n\r\nWITH [DiffWaits] AS\r\n(\tSELECT\r\n\t-- Waits that weren't in the first snapshot\r\n\t\t\t[ts2].[wait_type],\r\n\t\t\t[ts2].[wait_time_ms],\r\n\t\t\t[ts2].[signal_wait_time_ms],\r\n\t\t\t[ts2].[waiting_tasks_count]\r\n\t\tFROM dbo.wait_stats AS [ts2]\r\n\t\tLEFT OUTER JOIN dbo.wait_stats AS [ts1]\r\n\t\t\tON [ts2].[wait_type] = [ts1].[wait_type]\r\n\t\t\tAND [ts2].collection_time_utc = @collect_time_utc_snap2\r\n\t\t\tAND [ts1].collection_time_utc = @collect_time_utc_snap1\r\n\t\tWHERE [ts1].[wait_type] IS NULL\r\n\t\tAND [ts2].[wait_time_ms] > 0\r\n\t\tAND [ts2].collection_time_utc = @collect_time_utc_snap2\r\n\tUNION\r\n\tSELECT\r\n\t-- Diff of waits in both snapshots\r\n\t\t\t[ts2].[wait_type],\r\n\t\t\t[ts2].[wait_time_ms] - [ts1].[wait_time_ms] AS [wait_time_ms],\r\n\t\t\t[ts2].[signal_wait_time_ms] - [ts1].[signal_wait_time_ms] AS [signal_wait_time_ms],\r\n\t\t\t[ts2].[waiting_tasks_count] - [ts1].[waiting_tasks_count] AS [waiting_tasks_count]\r\n\t\tFROM dbo.wait_stats AS [ts2]\r\n\t\tLEFT OUTER JOIN dbo.wait_stats AS [ts1]\r\n\t\t\tON [ts2].[wait_type] = [ts1].[wait_type]\r\n\t\t\tAND [ts2].collection_time_utc = @collect_time_utc_snap2\r\n\t\t\tAND [ts1].collection_time_utc = @collect_time_utc_snap1\r\n\t\tWHERE [ts1].[wait_type] IS NOT NULL\r\n\t\tAND [ts2].[waiting_tasks_count] - [ts1].[waiting_tasks_count] > 0\r\n\t\tAND [ts2].[wait_time_ms] - [ts1].[wait_time_ms] > 0\r\n\t\tAND [ts2].collection_time_utc = @collect_time_utc_snap2\r\n),\r\n[Waits] AS\r\n    (SELECT\r\n        [wait_type],\r\n        [wait_time_ms] / 1000.0 AS [WaitS],\r\n        ([wait_time_ms] - [signal_wait_time_ms]) / 1000.0 AS [ResourceS],\r\n        [signal_wait_time_ms] / 1000.0 AS [SignalS],\r\n        [waiting_tasks_count] AS [WaitCount],\r\n        100.0 * [wait_time_ms] / SUM ([wait_time_ms]) OVER() AS [Percentage],\r\n        ROW_NUMBER() OVER(ORDER BY [wait_time_ms] DESC) AS [RowNum]\r\n    FROM [DiffWaits]\r\n    WHERE [wait_type] NOT IN (\r\n        -- These wait types are almost 100% never a problem and so they are\r\n        -- filtered out to avoid them skewing the results. Click on the URL\r\n        -- for more information.\r\n        N'BROKER_EVENTHANDLER', -- https://www.sqlskills.com/help/waits/BROKER_EVENTHANDLER\r\n        N'BROKER_RECEIVE_WAITFOR', -- https://www.sqlskills.com/help/waits/BROKER_RECEIVE_WAITFOR\r\n        N'BROKER_TASK_STOP', -- https://www.sqlskills.com/help/waits/BROKER_TASK_STOP\r\n        N'BROKER_TO_FLUSH', -- https://www.sqlskills.com/help/waits/BROKER_TO_FLUSH\r\n        N'BROKER_TRANSMITTER', -- https://www.sqlskills.com/help/waits/BROKER_TRANSMITTER\r\n        N'CHECKPOINT_QUEUE', -- https://www.sqlskills.com/help/waits/CHECKPOINT_QUEUE\r\n        N'CHKPT', -- https://www.sqlskills.com/help/waits/CHKPT\r\n        N'CLR_AUTO_EVENT', -- https://www.sqlskills.com/help/waits/CLR_AUTO_EVENT\r\n        N'CLR_MANUAL_EVENT', -- https://www.sqlskills.com/help/waits/CLR_MANUAL_EVENT\r\n        N'CLR_SEMAPHORE', -- https://www.sqlskills.com/help/waits/CLR_SEMAPHORE\r\n        N'CXCONSUMER', -- https://www.sqlskills.com/help/waits/CXCONSUMER\r\n \r\n        -- Maybe comment these four out if you have mirroring issues\r\n        N'DBMIRROR_DBM_EVENT', -- https://www.sqlskills.com/help/waits/DBMIRROR_DBM_EVENT\r\n        N'DBMIRROR_EVENTS_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_EVENTS_QUEUE\r\n        N'DBMIRROR_WORKER_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_WORKER_QUEUE\r\n        N'DBMIRRORING_CMD', -- https://www.sqlskills.com/help/waits/DBMIRRORING_CMD\r\n \r\n        N'DIRTY_PAGE_POLL', -- https://www.sqlskills.com/help/waits/DIRTY_PAGE_POLL\r\n        N'DISPATCHER_QUEUE_SEMAPHORE', -- https://www.sqlskills.com/help/waits/DISPATCHER_QUEUE_SEMAPHORE\r\n        N'EXECSYNC', -- https://www.sqlskills.com/help/waits/EXECSYNC\r\n        N'FSAGENT', -- https://www.sqlskills.com/help/waits/FSAGENT\r\n        N'FT_IFTS_SCHEDULER_IDLE_WAIT', -- https://www.sqlskills.com/help/waits/FT_IFTS_SCHEDULER_IDLE_WAIT\r\n        N'FT_IFTSHC_MUTEX', -- https://www.sqlskills.com/help/waits/FT_IFTSHC_MUTEX\r\n \r\n        -- Maybe comment these six out if you have AG issues\r\n        N'HADR_CLUSAPI_CALL', -- https://www.sqlskills.com/help/waits/HADR_CLUSAPI_CALL\r\n        N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', -- https://www.sqlskills.com/help/waits/HADR_FILESTREAM_IOMGR_IOCOMPLETION\r\n        N'HADR_LOGCAPTURE_WAIT', -- https://www.sqlskills.com/help/waits/HADR_LOGCAPTURE_WAIT\r\n        N'HADR_NOTIFICATION_DEQUEUE', -- https://www.sqlskills.com/help/waits/HADR_NOTIFICATION_DEQUEUE\r\n        N'HADR_TIMER_TASK', -- https://www.sqlskills.com/help/waits/HADR_TIMER_TASK\r\n        N'HADR_WORK_QUEUE', -- https://www.sqlskills.com/help/waits/HADR_WORK_QUEUE\r\n \r\n        N'KSOURCE_WAKEUP', -- https://www.sqlskills.com/help/waits/KSOURCE_WAKEUP\r\n        N'LAZYWRITER_SLEEP', -- https://www.sqlskills.com/help/waits/LAZYWRITER_SLEEP\r\n        N'LOGMGR_QUEUE', -- https://www.sqlskills.com/help/waits/LOGMGR_QUEUE\r\n        N'MEMORY_ALLOCATION_EXT', -- https://www.sqlskills.com/help/waits/MEMORY_ALLOCATION_EXT\r\n        N'ONDEMAND_TASK_QUEUE', -- https://www.sqlskills.com/help/waits/ONDEMAND_TASK_QUEUE\r\n        N'PARALLEL_REDO_DRAIN_WORKER', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_DRAIN_WORKER\r\n        N'PARALLEL_REDO_LOG_CACHE', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_LOG_CACHE\r\n        N'PARALLEL_REDO_TRAN_LIST', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_TRAN_LIST\r\n        N'PARALLEL_REDO_WORKER_SYNC', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_SYNC\r\n        N'PARALLEL_REDO_WORKER_WAIT_WORK', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_WAIT_WORK\r\n        N'PREEMPTIVE_XE_GETTARGETSTATE', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_XE_GETTARGETSTATE\r\n        N'PWAIT_ALL_COMPONENTS_INITIALIZED', -- https://www.sqlskills.com/help/waits/PWAIT_ALL_COMPONENTS_INITIALIZED\r\n        N'PWAIT_DIRECTLOGCONSUMER_GETNEXT', -- https://www.sqlskills.com/help/waits/PWAIT_DIRECTLOGCONSUMER_GETNEXT\r\n        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP', -- https://www.sqlskills.com/help/waits/QDS_PERSIST_TASK_MAIN_LOOP_SLEEP\r\n        N'QDS_ASYNC_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_ASYNC_QUEUE\r\n        N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP',\r\n            -- https://www.sqlskills.com/help/waits/QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP\r\n        N'QDS_SHUTDOWN_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_SHUTDOWN_QUEUE\r\n        N'REDO_THREAD_PENDING_WORK', -- https://www.sqlskills.com/help/waits/REDO_THREAD_PENDING_WORK\r\n        N'REQUEST_FOR_DEADLOCK_SEARCH', -- https://www.sqlskills.com/help/waits/REQUEST_FOR_DEADLOCK_SEARCH\r\n        N'RESOURCE_QUEUE', -- https://www.sqlskills.com/help/waits/RESOURCE_QUEUE\r\n        N'SERVER_IDLE_CHECK', -- https://www.sqlskills.com/help/waits/SERVER_IDLE_CHECK\r\n        N'SLEEP_BPOOL_FLUSH', -- https://www.sqlskills.com/help/waits/SLEEP_BPOOL_FLUSH\r\n        N'SLEEP_DBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DBSTARTUP\r\n        N'SLEEP_DCOMSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DCOMSTARTUP\r\n        N'SLEEP_MASTERDBREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERDBREADY\r\n        N'SLEEP_MASTERMDREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERMDREADY\r\n        N'SLEEP_MASTERUPGRADED', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERUPGRADED\r\n        N'SLEEP_MSDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_MSDBSTARTUP\r\n        N'SLEEP_SYSTEMTASK', -- https://www.sqlskills.com/help/waits/SLEEP_SYSTEMTASK\r\n        N'SLEEP_TASK', -- https://www.sqlskills.com/help/waits/SLEEP_TASK\r\n        N'SLEEP_TEMPDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_TEMPDBSTARTUP\r\n        N'SNI_HTTP_ACCEPT', -- https://www.sqlskills.com/help/waits/SNI_HTTP_ACCEPT\r\n        N'SOS_WORK_DISPATCHER', -- https://www.sqlskills.com/help/waits/SOS_WORK_DISPATCHER\r\n        N'SP_SERVER_DIAGNOSTICS_SLEEP', -- https://www.sqlskills.com/help/waits/SP_SERVER_DIAGNOSTICS_SLEEP\r\n        N'SQLTRACE_BUFFER_FLUSH', -- https://www.sqlskills.com/help/waits/SQLTRACE_BUFFER_FLUSH\r\n        N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', -- https://www.sqlskills.com/help/waits/SQLTRACE_INCREMENTAL_FLUSH_SLEEP\r\n        N'SQLTRACE_WAIT_ENTRIES', -- https://www.sqlskills.com/help/waits/SQLTRACE_WAIT_ENTRIES\r\n        N'WAIT_FOR_RESULTS', -- https://www.sqlskills.com/help/waits/WAIT_FOR_RESULTS\r\n        N'WAITFOR', -- https://www.sqlskills.com/help/waits/WAITFOR\r\n        N'WAITFOR_TASKSHUTDOWN', -- https://www.sqlskills.com/help/waits/WAITFOR_TASKSHUTDOWN\r\n        N'WAIT_XTP_RECOVERY', -- https://www.sqlskills.com/help/waits/WAIT_XTP_RECOVERY\r\n        N'WAIT_XTP_HOST_WAIT', -- https://www.sqlskills.com/help/waits/WAIT_XTP_HOST_WAIT\r\n        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', -- https://www.sqlskills.com/help/waits/WAIT_XTP_OFFLINE_CKPT_NEW_LOG\r\n        N'WAIT_XTP_CKPT_CLOSE', -- https://www.sqlskills.com/help/waits/WAIT_XTP_CKPT_CLOSE\r\n        N'XE_DISPATCHER_JOIN', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_JOIN\r\n        N'XE_DISPATCHER_WAIT', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_WAIT\r\n        N'XE_TIMER_EVENT' -- https://www.sqlskills.com/help/waits/XE_TIMER_EVENT\r\n    )\r\n    )\r\nSELECT [Duration (Sec)] = datediff(second,@collect_time_utc_snap1,@collect_time_utc_snap2),\r\n        [W1].[wait_type] AS [WaitType],\r\n        CAST ([W1].[Percentage] AS DECIMAL (5, 2)) AS [Percentage],\r\n        CAST ([W1].[WaitS] AS DECIMAL (16, 2)) AS [Wait_S],\r\n\t[Waits(Sec) Per Core Per Minute] = convert(numeric(20,2), [W1].[WaitS]*1.0 / @schedulers / datediff(minute,@collect_time_utc_snap1,@collect_time_utc_snap2)),\r\n    \r\n    CAST ([W1].[ResourceS] AS DECIMAL (16, 2)) AS [Resource_S],\r\n    CAST ([W1].[SignalS] AS DECIMAL (16, 2)) AS [Signal_S],\r\n    CONVERT(DECIMAL(18,1), MAX([W1].[SignalS]) * 100.0 / MAX([W1].[WaitS]) ) AS [% Signal Waits],\r\n    [W1].[WaitCount] AS [WaitCount],\r\n    CONVERT(DECIMAL(18,1), MAX([W1].[WaitS]) / MAX([W1].[WaitCount]) ) AS [Avg Time (ms) Per Wait],\r\n    CAST (([W1].[WaitS] / [W1].[WaitCount]) AS DECIMAL (16, 4)) AS [AvgWait_S],\r\n    CAST (([W1].[ResourceS] / [W1].[WaitCount]) AS DECIMAL (16, 4)) AS [AvgRes_S],\r\n    CAST (([W1].[SignalS] / [W1].[WaitCount]) AS DECIMAL (16, 4)) AS [AvgSig_S]\r\n    --,CAST ('https://www.sqlskills.com/help/waits/' + MAX ([W1].[wait_type]) as XML) AS [Help/Info URL]\r\nFROM [Waits] AS [W1]\r\nINNER JOIN [Waits] AS [W2]\r\n    ON [W2].[RowNum] <= [W1].[RowNum]\r\nGROUP BY [W1].[RowNum], [W1].[wait_type], [W1].[WaitS],\r\n    [W1].[ResourceS], [W1].[SignalS], [W1].[WaitCount], [W1].[Percentage]\r\nHAVING (SUM([W2].[Percentage]) - [W1].[Percentage] < @WaitsPercentTop) -- percentage threshold\r\nAND ([W1].[RowNum] <= @WaitStatsTop)\r\nOPTION(RECOMPILE);\r\n\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\n\r\ndeclare @start_time datetime;\r\ndeclare @end_time datetime = $__timeFrom();\r\ndeclare @schedulers smallint;\r\ndeclare @WaitStatsTop tinyint = 5;\r\ndeclare @WaitsPercentTop int = 99;\r\ndeclare @collect_time_utc_snap1 datetime2;\r\ndeclare @collect_time_utc_snap2 datetime2;\r\n\r\nselect @start_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), sqlserver_start_time) from sys.dm_os_sys_info;\r\nselect @schedulers = count(*) from sys.dm_os_schedulers where status = 'VISIBLE ONLINE' and is_online = 1;\r\n\r\nselect top 1 @collect_time_utc_snap2 = collection_time_utc\r\nfrom dbo.wait_stats s2\r\nwhere s2.collection_time_utc <= @end_time\r\norder by collection_time_utc desc;\r\n\r\nselect top 1 @collect_time_utc_snap1 = collection_time_utc\r\nfrom dbo.wait_stats s1\r\nwhere collection_time_utc >= @start_time\r\norder by collection_time_utc asc;\r\n\r\n--select @collect_time_utc_snap1, @collect_time_utc_snap2;\r\n\r\nWITH [DiffWaits] AS\r\n(\tSELECT\r\n\t-- Waits that weren't in the first snapshot\r\n\t\t\t[ts2].[wait_type],\r\n\t\t\t[ts2].[wait_time_ms],\r\n\t\t\t[ts2].[signal_wait_time_ms],\r\n\t\t\t[ts2].[waiting_tasks_count]\r\n\t\tFROM dbo.wait_stats AS [ts2]\r\n\t\tLEFT OUTER JOIN dbo.wait_stats AS [ts1]\r\n\t\t\tON [ts2].[wait_type] = [ts1].[wait_type]\r\n\t\t\tAND [ts2].collection_time_utc = @collect_time_utc_snap2\r\n\t\t\tAND [ts1].collection_time_utc = @collect_time_utc_snap1\r\n\t\tWHERE [ts1].[wait_type] IS NULL\r\n\t\tAND [ts2].[wait_time_ms] > 0\r\n\t\tAND [ts2].collection_time_utc = @collect_time_utc_snap2\r\n\tUNION\r\n\tSELECT\r\n\t-- Diff of waits in both snapshots\r\n\t\t\t[ts2].[wait_type],\r\n\t\t\t[ts2].[wait_time_ms] - [ts1].[wait_time_ms] AS [wait_time_ms],\r\n\t\t\t[ts2].[signal_wait_time_ms] - [ts1].[signal_wait_time_ms] AS [signal_wait_time_ms],\r\n\t\t\t[ts2].[waiting_tasks_count] - [ts1].[waiting_tasks_count] AS [waiting_tasks_count]\r\n\t\tFROM dbo.wait_stats AS [ts2]\r\n\t\tLEFT OUTER JOIN dbo.wait_stats AS [ts1]\r\n\t\t\tON [ts2].[wait_type] = [ts1].[wait_type]\r\n\t\t\tAND [ts2].collection_time_utc = @collect_time_utc_snap2\r\n\t\t\tAND [ts1].collection_time_utc = @collect_time_utc_snap1\r\n\t\tWHERE [ts1].[wait_type] IS NOT NULL\r\n\t\tAND [ts2].[waiting_tasks_count] - [ts1].[waiting_tasks_count] > 0\r\n\t\tAND [ts2].[wait_time_ms] - [ts1].[wait_time_ms] > 0\r\n\t\tAND [ts2].collection_time_utc = @collect_time_utc_snap2\r\n),\r\n[Waits] AS\r\n    (SELECT\r\n        [wait_type],\r\n        [wait_time_ms] / 1000.0 AS [WaitS],\r\n        [wait_time_ms],\r\n        ([wait_time_ms] - [signal_wait_time_ms]) / 1000.0 AS [ResourceS],\r\n        [signal_wait_time_ms] / 1000.0 AS [SignalS],\r\n        [waiting_tasks_count] AS [WaitCount],\r\n        100.0 * [wait_time_ms] / SUM ([wait_time_ms]) OVER() AS [Percentage],\r\n        ROW_NUMBER() OVER(ORDER BY [wait_time_ms] DESC) AS [RowNum]\r\n    FROM [DiffWaits]\r\n    WHERE [wait_type] NOT IN (\r\n        -- These wait types are almost 100% never a problem and so they are\r\n        -- filtered out to avoid them skewing the results. Click on the URL\r\n        -- for more information.\r\n        N'BROKER_EVENTHANDLER', -- https://www.sqlskills.com/help/waits/BROKER_EVENTHANDLER\r\n        N'BROKER_RECEIVE_WAITFOR', -- https://www.sqlskills.com/help/waits/BROKER_RECEIVE_WAITFOR\r\n        N'BROKER_TASK_STOP', -- https://www.sqlskills.com/help/waits/BROKER_TASK_STOP\r\n        N'BROKER_TO_FLUSH', -- https://www.sqlskills.com/help/waits/BROKER_TO_FLUSH\r\n        N'BROKER_TRANSMITTER', -- https://www.sqlskills.com/help/waits/BROKER_TRANSMITTER\r\n        N'CHECKPOINT_QUEUE', -- https://www.sqlskills.com/help/waits/CHECKPOINT_QUEUE\r\n        N'CHKPT', -- https://www.sqlskills.com/help/waits/CHKPT\r\n        N'CLR_AUTO_EVENT', -- https://www.sqlskills.com/help/waits/CLR_AUTO_EVENT\r\n        N'CLR_MANUAL_EVENT', -- https://www.sqlskills.com/help/waits/CLR_MANUAL_EVENT\r\n        N'CLR_SEMAPHORE', -- https://www.sqlskills.com/help/waits/CLR_SEMAPHORE\r\n        N'CXCONSUMER', -- https://www.sqlskills.com/help/waits/CXCONSUMER\r\n \r\n        -- Maybe comment these four out if you have mirroring issues\r\n        N'DBMIRROR_DBM_EVENT', -- https://www.sqlskills.com/help/waits/DBMIRROR_DBM_EVENT\r\n        N'DBMIRROR_EVENTS_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_EVENTS_QUEUE\r\n        N'DBMIRROR_WORKER_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_WORKER_QUEUE\r\n        N'DBMIRRORING_CMD', -- https://www.sqlskills.com/help/waits/DBMIRRORING_CMD\r\n \r\n        N'DIRTY_PAGE_POLL', -- https://www.sqlskills.com/help/waits/DIRTY_PAGE_POLL\r\n        N'DISPATCHER_QUEUE_SEMAPHORE', -- https://www.sqlskills.com/help/waits/DISPATCHER_QUEUE_SEMAPHORE\r\n        N'EXECSYNC', -- https://www.sqlskills.com/help/waits/EXECSYNC\r\n        N'FSAGENT', -- https://www.sqlskills.com/help/waits/FSAGENT\r\n        N'FT_IFTS_SCHEDULER_IDLE_WAIT', -- https://www.sqlskills.com/help/waits/FT_IFTS_SCHEDULER_IDLE_WAIT\r\n        N'FT_IFTSHC_MUTEX', -- https://www.sqlskills.com/help/waits/FT_IFTSHC_MUTEX\r\n \r\n        -- Maybe comment these six out if you have AG issues\r\n        N'HADR_CLUSAPI_CALL', -- https://www.sqlskills.com/help/waits/HADR_CLUSAPI_CALL\r\n        N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', -- https://www.sqlskills.com/help/waits/HADR_FILESTREAM_IOMGR_IOCOMPLETION\r\n        N'HADR_LOGCAPTURE_WAIT', -- https://www.sqlskills.com/help/waits/HADR_LOGCAPTURE_WAIT\r\n        N'HADR_NOTIFICATION_DEQUEUE', -- https://www.sqlskills.com/help/waits/HADR_NOTIFICATION_DEQUEUE\r\n        N'HADR_TIMER_TASK', -- https://www.sqlskills.com/help/waits/HADR_TIMER_TASK\r\n        N'HADR_WORK_QUEUE', -- https://www.sqlskills.com/help/waits/HADR_WORK_QUEUE\r\n \r\n        N'KSOURCE_WAKEUP', -- https://www.sqlskills.com/help/waits/KSOURCE_WAKEUP\r\n        N'LAZYWRITER_SLEEP', -- https://www.sqlskills.com/help/waits/LAZYWRITER_SLEEP\r\n        N'LOGMGR_QUEUE', -- https://www.sqlskills.com/help/waits/LOGMGR_QUEUE\r\n        N'MEMORY_ALLOCATION_EXT', -- https://www.sqlskills.com/help/waits/MEMORY_ALLOCATION_EXT\r\n        N'ONDEMAND_TASK_QUEUE', -- https://www.sqlskills.com/help/waits/ONDEMAND_TASK_QUEUE\r\n        N'PARALLEL_REDO_DRAIN_WORKER', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_DRAIN_WORKER\r\n        N'PARALLEL_REDO_LOG_CACHE', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_LOG_CACHE\r\n        N'PARALLEL_REDO_TRAN_LIST', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_TRAN_LIST\r\n        N'PARALLEL_REDO_WORKER_SYNC', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_SYNC\r\n        N'PARALLEL_REDO_WORKER_WAIT_WORK', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_WAIT_WORK\r\n        N'PREEMPTIVE_XE_GETTARGETSTATE', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_XE_GETTARGETSTATE\r\n        N'PWAIT_ALL_COMPONENTS_INITIALIZED', -- https://www.sqlskills.com/help/waits/PWAIT_ALL_COMPONENTS_INITIALIZED\r\n        N'PWAIT_DIRECTLOGCONSUMER_GETNEXT', -- https://www.sqlskills.com/help/waits/PWAIT_DIRECTLOGCONSUMER_GETNEXT\r\n        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP', -- https://www.sqlskills.com/help/waits/QDS_PERSIST_TASK_MAIN_LOOP_SLEEP\r\n        N'QDS_ASYNC_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_ASYNC_QUEUE\r\n        N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP',\r\n            -- https://www.sqlskills.com/help/waits/QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP\r\n        N'QDS_SHUTDOWN_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_SHUTDOWN_QUEUE\r\n        N'REDO_THREAD_PENDING_WORK', -- https://www.sqlskills.com/help/waits/REDO_THREAD_PENDING_WORK\r\n        N'REQUEST_FOR_DEADLOCK_SEARCH', -- https://www.sqlskills.com/help/waits/REQUEST_FOR_DEADLOCK_SEARCH\r\n        N'RESOURCE_QUEUE', -- https://www.sqlskills.com/help/waits/RESOURCE_QUEUE\r\n        N'SERVER_IDLE_CHECK', -- https://www.sqlskills.com/help/waits/SERVER_IDLE_CHECK\r\n        N'SLEEP_BPOOL_FLUSH', -- https://www.sqlskills.com/help/waits/SLEEP_BPOOL_FLUSH\r\n        N'SLEEP_DBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DBSTARTUP\r\n        N'SLEEP_DCOMSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DCOMSTARTUP\r\n        N'SLEEP_MASTERDBREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERDBREADY\r\n        N'SLEEP_MASTERMDREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERMDREADY\r\n        N'SLEEP_MASTERUPGRADED', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERUPGRADED\r\n        N'SLEEP_MSDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_MSDBSTARTUP\r\n        N'SLEEP_SYSTEMTASK', -- https://www.sqlskills.com/help/waits/SLEEP_SYSTEMTASK\r\n        N'SLEEP_TASK', -- https://www.sqlskills.com/help/waits/SLEEP_TASK\r\n        N'SLEEP_TEMPDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_TEMPDBSTARTUP\r\n        N'SNI_HTTP_ACCEPT', -- https://www.sqlskills.com/help/waits/SNI_HTTP_ACCEPT\r\n        N'SOS_WORK_DISPATCHER', -- https://www.sqlskills.com/help/waits/SOS_WORK_DISPATCHER\r\n        N'SP_SERVER_DIAGNOSTICS_SLEEP', -- https://www.sqlskills.com/help/waits/SP_SERVER_DIAGNOSTICS_SLEEP\r\n        N'SQLTRACE_BUFFER_FLUSH', -- https://www.sqlskills.com/help/waits/SQLTRACE_BUFFER_FLUSH\r\n        N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', -- https://www.sqlskills.com/help/waits/SQLTRACE_INCREMENTAL_FLUSH_SLEEP\r\n        N'SQLTRACE_WAIT_ENTRIES', -- https://www.sqlskills.com/help/waits/SQLTRACE_WAIT_ENTRIES\r\n        N'WAIT_FOR_RESULTS', -- https://www.sqlskills.com/help/waits/WAIT_FOR_RESULTS\r\n        N'WAITFOR', -- https://www.sqlskills.com/help/waits/WAITFOR\r\n        N'WAITFOR_TASKSHUTDOWN', -- https://www.sqlskills.com/help/waits/WAITFOR_TASKSHUTDOWN\r\n        N'WAIT_XTP_RECOVERY', -- https://www.sqlskills.com/help/waits/WAIT_XTP_RECOVERY\r\n        N'WAIT_XTP_HOST_WAIT', -- https://www.sqlskills.com/help/waits/WAIT_XTP_HOST_WAIT\r\n        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', -- https://www.sqlskills.com/help/waits/WAIT_XTP_OFFLINE_CKPT_NEW_LOG\r\n        N'WAIT_XTP_CKPT_CLOSE', -- https://www.sqlskills.com/help/waits/WAIT_XTP_CKPT_CLOSE\r\n        N'XE_DISPATCHER_JOIN', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_JOIN\r\n        N'XE_DISPATCHER_WAIT', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_WAIT\r\n        N'XE_TIMER_EVENT' -- https://www.sqlskills.com/help/waits/XE_TIMER_EVENT\r\n    )\r\n    )\r\nSELECT [Duration (Sec)] = datediff(second,@collect_time_utc_snap1,@collect_time_utc_snap2),\r\n        [W1].[wait_type] AS [WaitType],\r\n        CAST ([W1].[Percentage] AS DECIMAL (5, 2)) AS [Percentage],\r\n        CAST ([W1].[WaitS] AS DECIMAL (16, 2)) AS [Wait_S],\r\n\t[Waits(Sec) Per Core Per Minute] = convert(numeric(20,2), [W1].[WaitS]*1.0 / @schedulers / datediff(minute,@collect_time_utc_snap1,@collect_time_utc_snap2)),\r\n    \r\n    CAST ([W1].[ResourceS] AS DECIMAL (16, 2)) AS [Resource_S],\r\n    CAST ([W1].[SignalS] AS DECIMAL (16, 2)) AS [Signal_S],\r\n    CONVERT(DECIMAL(18,1), MAX([W1].[SignalS]) * 100.0 / MAX([W1].[WaitS]) ) AS [% Signal Waits],\r\n    [W1].[WaitCount] AS [WaitCount],\r\n    CONVERT(DECIMAL(18,1), MAX([W1].[wait_time_ms])*1.0 / MAX([W1].[WaitCount]) ) AS [Avg Time (ms) Per Wait],\r\n    CAST (([W1].[WaitS] / [W1].[WaitCount]) AS DECIMAL (16, 4)) AS [AvgWait_S],\r\n    CAST (([W1].[ResourceS] / [W1].[WaitCount]) AS DECIMAL (16, 4)) AS [AvgRes_S],\r\n    CAST (([W1].[SignalS] / [W1].[WaitCount]) AS DECIMAL (16, 4)) AS [AvgSig_S]\r\n    --,CAST ('https://www.sqlskills.com/help/waits/' + MAX ([W1].[wait_type]) as XML) AS [Help/Info URL]\r\nFROM [Waits] AS [W1]\r\nINNER JOIN [Waits] AS [W2]\r\n    ON [W2].[RowNum] <= [W1].[RowNum]\r\nGROUP BY [W1].[RowNum], [W1].[wait_type], [W1].[WaitS],\r\n    [W1].[ResourceS], [W1].[SignalS], [W1].[WaitCount], [W1].[Percentage]\r\nHAVING (SUM([W2].[Percentage]) - [W1].[Percentage] < @WaitsPercentTop) -- percentage threshold\r\nAND ([W1].[RowNum] <= @WaitStatsTop)\r\nOPTION(RECOMPILE);\r\n\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
           "refId": "A"
         }
       ],
@@ -892,7 +892,7 @@
         "h": 7,
         "w": 18,
         "x": 0,
-        "y": 9
+        "y": 16
       },
       "id": 14,
       "options": {
@@ -915,7 +915,7 @@
             "uid": "${DS_SQLMONITOR}"
           },
           "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\n\r\n--use DBA\r\ndeclare @start_time datetime = $__timeFrom()\r\n--declare @start_time datetime = dateadd(minute,-30,getutcdate())\r\ndeclare @end_time datetime = $__timeTo()\r\n--declare @end_time datetime = getutcdate()\r\ndeclare @schedulers smallint;\r\ndeclare @WaitStatsTop tinyint = 5;\r\ndeclare @WaitsPercentTop int = 99;\r\ndeclare @collect_time_utc_snap1 datetime2;\r\ndeclare @collect_time_utc_snap2 datetime2;\r\n\r\nselect @schedulers = count(*) from sys.dm_os_schedulers where status = 'VISIBLE ONLINE' and is_online = 1;\r\n\r\nselect top 1 @collect_time_utc_snap2 = collection_time_utc\r\nfrom dbo.wait_stats s2\r\nwhere s2.collection_time_utc <= @end_time\r\norder by collection_time_utc desc;\r\n\r\nselect top 1 @collect_time_utc_snap1 = collection_time_utc\r\nfrom dbo.wait_stats s1\r\nwhere collection_time_utc >= @start_time\r\norder by collection_time_utc asc;\r\n\r\n--select @collect_time_utc_snap1, @collect_time_utc_snap2;\r\n\r\nWITH [DiffWaits] AS\r\n(\tSELECT\r\n\t-- Waits that weren't in the first snapshot\r\n\t\t\t[ts2].[wait_type],\r\n\t\t\t[ts2].[wait_time_ms],\r\n\t\t\t[ts2].[signal_wait_time_ms],\r\n\t\t\t[ts2].[waiting_tasks_count]\r\n\t\tFROM dbo.wait_stats AS [ts2]\r\n\t\tLEFT OUTER JOIN dbo.wait_stats AS [ts1]\r\n\t\t\tON [ts2].[wait_type] = [ts1].[wait_type]\r\n\t\t\tAND [ts2].collection_time_utc = @collect_time_utc_snap2\r\n\t\t\tAND [ts1].collection_time_utc = @collect_time_utc_snap1\r\n\t\tWHERE [ts1].[wait_type] IS NULL\r\n\t\tAND [ts2].[wait_time_ms] > 0\r\n\t\tAND [ts2].collection_time_utc = @collect_time_utc_snap2\r\n\tUNION\r\n\tSELECT\r\n\t-- Diff of waits in both snapshots\r\n\t\t\t[ts2].[wait_type],\r\n\t\t\t[ts2].[wait_time_ms] - [ts1].[wait_time_ms] AS [wait_time_ms],\r\n\t\t\t[ts2].[signal_wait_time_ms] - [ts1].[signal_wait_time_ms] AS [signal_wait_time_ms],\r\n\t\t\t[ts2].[waiting_tasks_count] - [ts1].[waiting_tasks_count] AS [waiting_tasks_count]\r\n\t\tFROM dbo.wait_stats AS [ts2]\r\n\t\tLEFT OUTER JOIN dbo.wait_stats AS [ts1]\r\n\t\t\tON [ts2].[wait_type] = [ts1].[wait_type]\r\n\t\t\tAND [ts2].collection_time_utc = @collect_time_utc_snap2\r\n\t\t\tAND [ts1].collection_time_utc = @collect_time_utc_snap1\r\n\t\tWHERE [ts1].[wait_type] IS NOT NULL\r\n\t\tAND [ts2].[waiting_tasks_count] - [ts1].[waiting_tasks_count] > 0\r\n\t\tAND [ts2].[wait_time_ms] - [ts1].[wait_time_ms] > 0\r\n\t\tAND [ts2].collection_time_utc = @collect_time_utc_snap2\r\n),\r\n[Waits] AS\r\n    (SELECT\r\n        [wait_type],\r\n        [wait_time_ms] / 1000.0 AS [WaitS],\r\n        ([wait_time_ms] - [signal_wait_time_ms]) / 1000.0 AS [ResourceS],\r\n        [signal_wait_time_ms] / 1000.0 AS [SignalS],\r\n        [waiting_tasks_count] AS [WaitCount],\r\n        100.0 * [wait_time_ms] / SUM ([wait_time_ms]) OVER() AS [Percentage],\r\n        ROW_NUMBER() OVER(ORDER BY [wait_time_ms] DESC) AS [RowNum]\r\n    FROM [DiffWaits]\r\n    WHERE [wait_type] NOT IN (\r\n        -- These wait types are almost 100% never a problem and so they are\r\n        -- filtered out to avoid them skewing the results. Click on the URL\r\n        -- for more information.\r\n        N'BROKER_EVENTHANDLER', -- https://www.sqlskills.com/help/waits/BROKER_EVENTHANDLER\r\n        N'BROKER_RECEIVE_WAITFOR', -- https://www.sqlskills.com/help/waits/BROKER_RECEIVE_WAITFOR\r\n        N'BROKER_TASK_STOP', -- https://www.sqlskills.com/help/waits/BROKER_TASK_STOP\r\n        N'BROKER_TO_FLUSH', -- https://www.sqlskills.com/help/waits/BROKER_TO_FLUSH\r\n        N'BROKER_TRANSMITTER', -- https://www.sqlskills.com/help/waits/BROKER_TRANSMITTER\r\n        N'CHECKPOINT_QUEUE', -- https://www.sqlskills.com/help/waits/CHECKPOINT_QUEUE\r\n        N'CHKPT', -- https://www.sqlskills.com/help/waits/CHKPT\r\n        N'CLR_AUTO_EVENT', -- https://www.sqlskills.com/help/waits/CLR_AUTO_EVENT\r\n        N'CLR_MANUAL_EVENT', -- https://www.sqlskills.com/help/waits/CLR_MANUAL_EVENT\r\n        N'CLR_SEMAPHORE', -- https://www.sqlskills.com/help/waits/CLR_SEMAPHORE\r\n        N'CXCONSUMER', -- https://www.sqlskills.com/help/waits/CXCONSUMER\r\n \r\n        -- Maybe comment these four out if you have mirroring issues\r\n        N'DBMIRROR_DBM_EVENT', -- https://www.sqlskills.com/help/waits/DBMIRROR_DBM_EVENT\r\n        N'DBMIRROR_EVENTS_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_EVENTS_QUEUE\r\n        N'DBMIRROR_WORKER_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_WORKER_QUEUE\r\n        N'DBMIRRORING_CMD', -- https://www.sqlskills.com/help/waits/DBMIRRORING_CMD\r\n \r\n        N'DIRTY_PAGE_POLL', -- https://www.sqlskills.com/help/waits/DIRTY_PAGE_POLL\r\n        N'DISPATCHER_QUEUE_SEMAPHORE', -- https://www.sqlskills.com/help/waits/DISPATCHER_QUEUE_SEMAPHORE\r\n        N'EXECSYNC', -- https://www.sqlskills.com/help/waits/EXECSYNC\r\n        N'FSAGENT', -- https://www.sqlskills.com/help/waits/FSAGENT\r\n        N'FT_IFTS_SCHEDULER_IDLE_WAIT', -- https://www.sqlskills.com/help/waits/FT_IFTS_SCHEDULER_IDLE_WAIT\r\n        N'FT_IFTSHC_MUTEX', -- https://www.sqlskills.com/help/waits/FT_IFTSHC_MUTEX\r\n \r\n        -- Maybe comment these six out if you have AG issues\r\n        N'HADR_CLUSAPI_CALL', -- https://www.sqlskills.com/help/waits/HADR_CLUSAPI_CALL\r\n        N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', -- https://www.sqlskills.com/help/waits/HADR_FILESTREAM_IOMGR_IOCOMPLETION\r\n        N'HADR_LOGCAPTURE_WAIT', -- https://www.sqlskills.com/help/waits/HADR_LOGCAPTURE_WAIT\r\n        N'HADR_NOTIFICATION_DEQUEUE', -- https://www.sqlskills.com/help/waits/HADR_NOTIFICATION_DEQUEUE\r\n        N'HADR_TIMER_TASK', -- https://www.sqlskills.com/help/waits/HADR_TIMER_TASK\r\n        N'HADR_WORK_QUEUE', -- https://www.sqlskills.com/help/waits/HADR_WORK_QUEUE\r\n \r\n        N'KSOURCE_WAKEUP', -- https://www.sqlskills.com/help/waits/KSOURCE_WAKEUP\r\n        N'LAZYWRITER_SLEEP', -- https://www.sqlskills.com/help/waits/LAZYWRITER_SLEEP\r\n        N'LOGMGR_QUEUE', -- https://www.sqlskills.com/help/waits/LOGMGR_QUEUE\r\n        N'MEMORY_ALLOCATION_EXT', -- https://www.sqlskills.com/help/waits/MEMORY_ALLOCATION_EXT\r\n        N'ONDEMAND_TASK_QUEUE', -- https://www.sqlskills.com/help/waits/ONDEMAND_TASK_QUEUE\r\n        N'PARALLEL_REDO_DRAIN_WORKER', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_DRAIN_WORKER\r\n        N'PARALLEL_REDO_LOG_CACHE', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_LOG_CACHE\r\n        N'PARALLEL_REDO_TRAN_LIST', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_TRAN_LIST\r\n        N'PARALLEL_REDO_WORKER_SYNC', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_SYNC\r\n        N'PARALLEL_REDO_WORKER_WAIT_WORK', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_WAIT_WORK\r\n        N'PREEMPTIVE_XE_GETTARGETSTATE', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_XE_GETTARGETSTATE\r\n        N'PWAIT_ALL_COMPONENTS_INITIALIZED', -- https://www.sqlskills.com/help/waits/PWAIT_ALL_COMPONENTS_INITIALIZED\r\n        N'PWAIT_DIRECTLOGCONSUMER_GETNEXT', -- https://www.sqlskills.com/help/waits/PWAIT_DIRECTLOGCONSUMER_GETNEXT\r\n        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP', -- https://www.sqlskills.com/help/waits/QDS_PERSIST_TASK_MAIN_LOOP_SLEEP\r\n        N'QDS_ASYNC_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_ASYNC_QUEUE\r\n        N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP',\r\n            -- https://www.sqlskills.com/help/waits/QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP\r\n        N'QDS_SHUTDOWN_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_SHUTDOWN_QUEUE\r\n        N'REDO_THREAD_PENDING_WORK', -- https://www.sqlskills.com/help/waits/REDO_THREAD_PENDING_WORK\r\n        N'REQUEST_FOR_DEADLOCK_SEARCH', -- https://www.sqlskills.com/help/waits/REQUEST_FOR_DEADLOCK_SEARCH\r\n        N'RESOURCE_QUEUE', -- https://www.sqlskills.com/help/waits/RESOURCE_QUEUE\r\n        N'SERVER_IDLE_CHECK', -- https://www.sqlskills.com/help/waits/SERVER_IDLE_CHECK\r\n        N'SLEEP_BPOOL_FLUSH', -- https://www.sqlskills.com/help/waits/SLEEP_BPOOL_FLUSH\r\n        N'SLEEP_DBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DBSTARTUP\r\n        N'SLEEP_DCOMSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DCOMSTARTUP\r\n        N'SLEEP_MASTERDBREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERDBREADY\r\n        N'SLEEP_MASTERMDREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERMDREADY\r\n        N'SLEEP_MASTERUPGRADED', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERUPGRADED\r\n        N'SLEEP_MSDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_MSDBSTARTUP\r\n        N'SLEEP_SYSTEMTASK', -- https://www.sqlskills.com/help/waits/SLEEP_SYSTEMTASK\r\n        N'SLEEP_TASK', -- https://www.sqlskills.com/help/waits/SLEEP_TASK\r\n        N'SLEEP_TEMPDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_TEMPDBSTARTUP\r\n        N'SNI_HTTP_ACCEPT', -- https://www.sqlskills.com/help/waits/SNI_HTTP_ACCEPT\r\n        N'SOS_WORK_DISPATCHER', -- https://www.sqlskills.com/help/waits/SOS_WORK_DISPATCHER\r\n        N'SP_SERVER_DIAGNOSTICS_SLEEP', -- https://www.sqlskills.com/help/waits/SP_SERVER_DIAGNOSTICS_SLEEP\r\n        N'SQLTRACE_BUFFER_FLUSH', -- https://www.sqlskills.com/help/waits/SQLTRACE_BUFFER_FLUSH\r\n        N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', -- https://www.sqlskills.com/help/waits/SQLTRACE_INCREMENTAL_FLUSH_SLEEP\r\n        N'SQLTRACE_WAIT_ENTRIES', -- https://www.sqlskills.com/help/waits/SQLTRACE_WAIT_ENTRIES\r\n        N'WAIT_FOR_RESULTS', -- https://www.sqlskills.com/help/waits/WAIT_FOR_RESULTS\r\n        N'WAITFOR', -- https://www.sqlskills.com/help/waits/WAITFOR\r\n        N'WAITFOR_TASKSHUTDOWN', -- https://www.sqlskills.com/help/waits/WAITFOR_TASKSHUTDOWN\r\n        N'WAIT_XTP_RECOVERY', -- https://www.sqlskills.com/help/waits/WAIT_XTP_RECOVERY\r\n        N'WAIT_XTP_HOST_WAIT', -- https://www.sqlskills.com/help/waits/WAIT_XTP_HOST_WAIT\r\n        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', -- https://www.sqlskills.com/help/waits/WAIT_XTP_OFFLINE_CKPT_NEW_LOG\r\n        N'WAIT_XTP_CKPT_CLOSE', -- https://www.sqlskills.com/help/waits/WAIT_XTP_CKPT_CLOSE\r\n        N'XE_DISPATCHER_JOIN', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_JOIN\r\n        N'XE_DISPATCHER_WAIT', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_WAIT\r\n        N'XE_TIMER_EVENT' -- https://www.sqlskills.com/help/waits/XE_TIMER_EVENT\r\n    )\r\n    )\r\nSELECT [Duration (Sec)] = datediff(second,@collect_time_utc_snap1,@collect_time_utc_snap2),\r\n        [W1].[wait_type] AS [WaitType],\r\n        CAST ([W1].[Percentage] AS DECIMAL (5, 2)) AS [Percentage],\r\n        CAST ([W1].[WaitS] AS DECIMAL (16, 2)) AS [Wait_S],\r\n\t[Waits(Sec) Per Core Per Minute] = convert(numeric(20,2), [W1].[WaitS]*1.0 / @schedulers / datediff(minute,@collect_time_utc_snap1,@collect_time_utc_snap2)),\r\n    \r\n    CAST ([W1].[ResourceS] AS DECIMAL (16, 2)) AS [Resource_S],\r\n    CAST ([W1].[SignalS] AS DECIMAL (16, 2)) AS [Signal_S],\r\n    CONVERT(DECIMAL(18,1), MAX([W1].[SignalS]) * 100.0 / MAX([W1].[WaitS]) ) AS [% Signal Waits],\r\n    [W1].[WaitCount] AS [WaitCount],\r\n    CONVERT(DECIMAL(18,1), MAX([W1].[WaitS]) / MAX([W1].[WaitCount]) ) AS [Avg Time (ms) Per Wait],\r\n    CAST (([W1].[WaitS] / [W1].[WaitCount]) AS DECIMAL (16, 4)) AS [AvgWait_S],\r\n    CAST (([W1].[ResourceS] / [W1].[WaitCount]) AS DECIMAL (16, 4)) AS [AvgRes_S],\r\n    CAST (([W1].[SignalS] / [W1].[WaitCount]) AS DECIMAL (16, 4)) AS [AvgSig_S]\r\n    --,CAST ('https://www.sqlskills.com/help/waits/' + MAX ([W1].[wait_type]) as XML) AS [Help/Info URL]\r\nFROM [Waits] AS [W1]\r\nINNER JOIN [Waits] AS [W2]\r\n    ON [W2].[RowNum] <= [W1].[RowNum]\r\nGROUP BY [W1].[RowNum], [W1].[wait_type], [W1].[WaitS],\r\n    [W1].[ResourceS], [W1].[SignalS], [W1].[WaitCount], [W1].[Percentage]\r\nHAVING (SUM([W2].[Percentage]) - [W1].[Percentage] < @WaitsPercentTop) -- percentage threshold\r\nAND ([W1].[RowNum] <= @WaitStatsTop)\r\nOPTION(RECOMPILE);\r\n\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\r\nSET QUOTED_IDENTIFIER OFF\r\nDECLARE @sql varchar(max) = \"\r\n\r\n--use DBA\r\ndeclare @start_time datetime = $__timeFrom()\r\n--declare @start_time datetime = dateadd(minute,-30,getutcdate())\r\ndeclare @end_time datetime = $__timeTo()\r\n--declare @end_time datetime = getutcdate()\r\ndeclare @schedulers smallint;\r\ndeclare @WaitStatsTop tinyint = 5;\r\ndeclare @WaitsPercentTop int = 99;\r\ndeclare @collect_time_utc_snap1 datetime2;\r\ndeclare @collect_time_utc_snap2 datetime2;\r\n\r\nselect @schedulers = count(*) from sys.dm_os_schedulers where status = 'VISIBLE ONLINE' and is_online = 1;\r\n\r\nselect top 1 @collect_time_utc_snap2 = collection_time_utc\r\nfrom dbo.wait_stats s2\r\nwhere s2.collection_time_utc <= @end_time\r\norder by collection_time_utc desc;\r\n\r\nselect top 1 @collect_time_utc_snap1 = collection_time_utc\r\nfrom dbo.wait_stats s1\r\nwhere collection_time_utc >= @start_time\r\norder by collection_time_utc asc;\r\n\r\n--select @collect_time_utc_snap1, @collect_time_utc_snap2;\r\n\r\nWITH [DiffWaits] AS\r\n(\tSELECT\r\n\t-- Waits that weren't in the first snapshot\r\n\t\t\t[ts2].[wait_type],\r\n\t\t\t[ts2].[wait_time_ms],\r\n\t\t\t[ts2].[signal_wait_time_ms],\r\n\t\t\t[ts2].[waiting_tasks_count]\r\n\t\tFROM dbo.wait_stats AS [ts2]\r\n\t\tLEFT OUTER JOIN dbo.wait_stats AS [ts1]\r\n\t\t\tON [ts2].[wait_type] = [ts1].[wait_type]\r\n\t\t\tAND [ts2].collection_time_utc = @collect_time_utc_snap2\r\n\t\t\tAND [ts1].collection_time_utc = @collect_time_utc_snap1\r\n\t\tWHERE [ts1].[wait_type] IS NULL\r\n\t\tAND [ts2].[wait_time_ms] > 0\r\n\t\tAND [ts2].collection_time_utc = @collect_time_utc_snap2\r\n\tUNION\r\n\tSELECT\r\n\t-- Diff of waits in both snapshots\r\n\t\t\t[ts2].[wait_type],\r\n\t\t\t[ts2].[wait_time_ms] - [ts1].[wait_time_ms] AS [wait_time_ms],\r\n\t\t\t[ts2].[signal_wait_time_ms] - [ts1].[signal_wait_time_ms] AS [signal_wait_time_ms],\r\n\t\t\t[ts2].[waiting_tasks_count] - [ts1].[waiting_tasks_count] AS [waiting_tasks_count]\r\n\t\tFROM dbo.wait_stats AS [ts2]\r\n\t\tLEFT OUTER JOIN dbo.wait_stats AS [ts1]\r\n\t\t\tON [ts2].[wait_type] = [ts1].[wait_type]\r\n\t\t\tAND [ts2].collection_time_utc = @collect_time_utc_snap2\r\n\t\t\tAND [ts1].collection_time_utc = @collect_time_utc_snap1\r\n\t\tWHERE [ts1].[wait_type] IS NOT NULL\r\n\t\tAND [ts2].[waiting_tasks_count] - [ts1].[waiting_tasks_count] > 0\r\n\t\tAND [ts2].[wait_time_ms] - [ts1].[wait_time_ms] > 0\r\n\t\tAND [ts2].collection_time_utc = @collect_time_utc_snap2\r\n),\r\n[Waits] AS\r\n    (SELECT\r\n        [wait_type],\r\n        [wait_time_ms] / 1000.0 AS [WaitS],\r\n        [wait_time_ms],\r\n        ([wait_time_ms] - [signal_wait_time_ms]) / 1000.0 AS [ResourceS],\r\n        [signal_wait_time_ms] / 1000.0 AS [SignalS],\r\n        [waiting_tasks_count] AS [WaitCount],\r\n        100.0 * [wait_time_ms] / SUM ([wait_time_ms]) OVER() AS [Percentage],\r\n        ROW_NUMBER() OVER(ORDER BY [wait_time_ms] DESC) AS [RowNum]\r\n    FROM [DiffWaits]\r\n    WHERE [wait_type] NOT IN (\r\n        -- These wait types are almost 100% never a problem and so they are\r\n        -- filtered out to avoid them skewing the results. Click on the URL\r\n        -- for more information.\r\n        N'BROKER_EVENTHANDLER', -- https://www.sqlskills.com/help/waits/BROKER_EVENTHANDLER\r\n        N'BROKER_RECEIVE_WAITFOR', -- https://www.sqlskills.com/help/waits/BROKER_RECEIVE_WAITFOR\r\n        N'BROKER_TASK_STOP', -- https://www.sqlskills.com/help/waits/BROKER_TASK_STOP\r\n        N'BROKER_TO_FLUSH', -- https://www.sqlskills.com/help/waits/BROKER_TO_FLUSH\r\n        N'BROKER_TRANSMITTER', -- https://www.sqlskills.com/help/waits/BROKER_TRANSMITTER\r\n        N'CHECKPOINT_QUEUE', -- https://www.sqlskills.com/help/waits/CHECKPOINT_QUEUE\r\n        N'CHKPT', -- https://www.sqlskills.com/help/waits/CHKPT\r\n        N'CLR_AUTO_EVENT', -- https://www.sqlskills.com/help/waits/CLR_AUTO_EVENT\r\n        N'CLR_MANUAL_EVENT', -- https://www.sqlskills.com/help/waits/CLR_MANUAL_EVENT\r\n        N'CLR_SEMAPHORE', -- https://www.sqlskills.com/help/waits/CLR_SEMAPHORE\r\n        N'CXCONSUMER', -- https://www.sqlskills.com/help/waits/CXCONSUMER\r\n \r\n        -- Maybe comment these four out if you have mirroring issues\r\n        N'DBMIRROR_DBM_EVENT', -- https://www.sqlskills.com/help/waits/DBMIRROR_DBM_EVENT\r\n        N'DBMIRROR_EVENTS_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_EVENTS_QUEUE\r\n        N'DBMIRROR_WORKER_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_WORKER_QUEUE\r\n        N'DBMIRRORING_CMD', -- https://www.sqlskills.com/help/waits/DBMIRRORING_CMD\r\n \r\n        N'DIRTY_PAGE_POLL', -- https://www.sqlskills.com/help/waits/DIRTY_PAGE_POLL\r\n        N'DISPATCHER_QUEUE_SEMAPHORE', -- https://www.sqlskills.com/help/waits/DISPATCHER_QUEUE_SEMAPHORE\r\n        N'EXECSYNC', -- https://www.sqlskills.com/help/waits/EXECSYNC\r\n        N'FSAGENT', -- https://www.sqlskills.com/help/waits/FSAGENT\r\n        N'FT_IFTS_SCHEDULER_IDLE_WAIT', -- https://www.sqlskills.com/help/waits/FT_IFTS_SCHEDULER_IDLE_WAIT\r\n        N'FT_IFTSHC_MUTEX', -- https://www.sqlskills.com/help/waits/FT_IFTSHC_MUTEX\r\n \r\n        -- Maybe comment these six out if you have AG issues\r\n        N'HADR_CLUSAPI_CALL', -- https://www.sqlskills.com/help/waits/HADR_CLUSAPI_CALL\r\n        N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', -- https://www.sqlskills.com/help/waits/HADR_FILESTREAM_IOMGR_IOCOMPLETION\r\n        N'HADR_LOGCAPTURE_WAIT', -- https://www.sqlskills.com/help/waits/HADR_LOGCAPTURE_WAIT\r\n        N'HADR_NOTIFICATION_DEQUEUE', -- https://www.sqlskills.com/help/waits/HADR_NOTIFICATION_DEQUEUE\r\n        N'HADR_TIMER_TASK', -- https://www.sqlskills.com/help/waits/HADR_TIMER_TASK\r\n        N'HADR_WORK_QUEUE', -- https://www.sqlskills.com/help/waits/HADR_WORK_QUEUE\r\n \r\n        N'KSOURCE_WAKEUP', -- https://www.sqlskills.com/help/waits/KSOURCE_WAKEUP\r\n        N'LAZYWRITER_SLEEP', -- https://www.sqlskills.com/help/waits/LAZYWRITER_SLEEP\r\n        N'LOGMGR_QUEUE', -- https://www.sqlskills.com/help/waits/LOGMGR_QUEUE\r\n        N'MEMORY_ALLOCATION_EXT', -- https://www.sqlskills.com/help/waits/MEMORY_ALLOCATION_EXT\r\n        N'ONDEMAND_TASK_QUEUE', -- https://www.sqlskills.com/help/waits/ONDEMAND_TASK_QUEUE\r\n        N'PARALLEL_REDO_DRAIN_WORKER', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_DRAIN_WORKER\r\n        N'PARALLEL_REDO_LOG_CACHE', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_LOG_CACHE\r\n        N'PARALLEL_REDO_TRAN_LIST', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_TRAN_LIST\r\n        N'PARALLEL_REDO_WORKER_SYNC', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_SYNC\r\n        N'PARALLEL_REDO_WORKER_WAIT_WORK', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_WAIT_WORK\r\n        N'PREEMPTIVE_XE_GETTARGETSTATE', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_XE_GETTARGETSTATE\r\n        N'PWAIT_ALL_COMPONENTS_INITIALIZED', -- https://www.sqlskills.com/help/waits/PWAIT_ALL_COMPONENTS_INITIALIZED\r\n        N'PWAIT_DIRECTLOGCONSUMER_GETNEXT', -- https://www.sqlskills.com/help/waits/PWAIT_DIRECTLOGCONSUMER_GETNEXT\r\n        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP', -- https://www.sqlskills.com/help/waits/QDS_PERSIST_TASK_MAIN_LOOP_SLEEP\r\n        N'QDS_ASYNC_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_ASYNC_QUEUE\r\n        N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP',\r\n            -- https://www.sqlskills.com/help/waits/QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP\r\n        N'QDS_SHUTDOWN_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_SHUTDOWN_QUEUE\r\n        N'REDO_THREAD_PENDING_WORK', -- https://www.sqlskills.com/help/waits/REDO_THREAD_PENDING_WORK\r\n        N'REQUEST_FOR_DEADLOCK_SEARCH', -- https://www.sqlskills.com/help/waits/REQUEST_FOR_DEADLOCK_SEARCH\r\n        N'RESOURCE_QUEUE', -- https://www.sqlskills.com/help/waits/RESOURCE_QUEUE\r\n        N'SERVER_IDLE_CHECK', -- https://www.sqlskills.com/help/waits/SERVER_IDLE_CHECK\r\n        N'SLEEP_BPOOL_FLUSH', -- https://www.sqlskills.com/help/waits/SLEEP_BPOOL_FLUSH\r\n        N'SLEEP_DBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DBSTARTUP\r\n        N'SLEEP_DCOMSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DCOMSTARTUP\r\n        N'SLEEP_MASTERDBREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERDBREADY\r\n        N'SLEEP_MASTERMDREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERMDREADY\r\n        N'SLEEP_MASTERUPGRADED', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERUPGRADED\r\n        N'SLEEP_MSDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_MSDBSTARTUP\r\n        N'SLEEP_SYSTEMTASK', -- https://www.sqlskills.com/help/waits/SLEEP_SYSTEMTASK\r\n        N'SLEEP_TASK', -- https://www.sqlskills.com/help/waits/SLEEP_TASK\r\n        N'SLEEP_TEMPDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_TEMPDBSTARTUP\r\n        N'SNI_HTTP_ACCEPT', -- https://www.sqlskills.com/help/waits/SNI_HTTP_ACCEPT\r\n        N'SOS_WORK_DISPATCHER', -- https://www.sqlskills.com/help/waits/SOS_WORK_DISPATCHER\r\n        N'SP_SERVER_DIAGNOSTICS_SLEEP', -- https://www.sqlskills.com/help/waits/SP_SERVER_DIAGNOSTICS_SLEEP\r\n        N'SQLTRACE_BUFFER_FLUSH', -- https://www.sqlskills.com/help/waits/SQLTRACE_BUFFER_FLUSH\r\n        N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', -- https://www.sqlskills.com/help/waits/SQLTRACE_INCREMENTAL_FLUSH_SLEEP\r\n        N'SQLTRACE_WAIT_ENTRIES', -- https://www.sqlskills.com/help/waits/SQLTRACE_WAIT_ENTRIES\r\n        N'WAIT_FOR_RESULTS', -- https://www.sqlskills.com/help/waits/WAIT_FOR_RESULTS\r\n        N'WAITFOR', -- https://www.sqlskills.com/help/waits/WAITFOR\r\n        N'WAITFOR_TASKSHUTDOWN', -- https://www.sqlskills.com/help/waits/WAITFOR_TASKSHUTDOWN\r\n        N'WAIT_XTP_RECOVERY', -- https://www.sqlskills.com/help/waits/WAIT_XTP_RECOVERY\r\n        N'WAIT_XTP_HOST_WAIT', -- https://www.sqlskills.com/help/waits/WAIT_XTP_HOST_WAIT\r\n        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', -- https://www.sqlskills.com/help/waits/WAIT_XTP_OFFLINE_CKPT_NEW_LOG\r\n        N'WAIT_XTP_CKPT_CLOSE', -- https://www.sqlskills.com/help/waits/WAIT_XTP_CKPT_CLOSE\r\n        N'XE_DISPATCHER_JOIN', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_JOIN\r\n        N'XE_DISPATCHER_WAIT', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_WAIT\r\n        N'XE_TIMER_EVENT' -- https://www.sqlskills.com/help/waits/XE_TIMER_EVENT\r\n    )\r\n    )\r\nSELECT [Duration (Sec)] = datediff(second,@collect_time_utc_snap1,@collect_time_utc_snap2),\r\n        [W1].[wait_type] AS [WaitType],\r\n        CAST ([W1].[Percentage] AS DECIMAL (5, 2)) AS [Percentage],\r\n        CAST ([W1].[WaitS] AS DECIMAL (16, 2)) AS [Wait_S],\r\n\t[Waits(Sec) Per Core Per Minute] = convert(numeric(20,2), [W1].[WaitS]*1.0 / @schedulers / datediff(minute,@collect_time_utc_snap1,@collect_time_utc_snap2)),\r\n    \r\n    CAST ([W1].[ResourceS] AS DECIMAL (16, 2)) AS [Resource_S],\r\n    CAST ([W1].[SignalS] AS DECIMAL (16, 2)) AS [Signal_S],\r\n    CONVERT(DECIMAL(18,1), MAX([W1].[SignalS]) * 100.0 / MAX([W1].[WaitS]) ) AS [% Signal Waits],\r\n    [W1].[WaitCount] AS [WaitCount],\r\n    CONVERT(DECIMAL(18,1), MAX([W1].[wait_time_ms])*1.0 / MAX([W1].[WaitCount]) ) AS [Avg Time (ms) Per Wait],\r\n    CAST (([W1].[WaitS] / [W1].[WaitCount]) AS DECIMAL (16, 4)) AS [AvgWait_S],\r\n    CAST (([W1].[ResourceS] / [W1].[WaitCount]) AS DECIMAL (16, 4)) AS [AvgRes_S],\r\n    CAST (([W1].[SignalS] / [W1].[WaitCount]) AS DECIMAL (16, 4)) AS [AvgSig_S]\r\n    --,CAST ('https://www.sqlskills.com/help/waits/' + MAX ([W1].[wait_type]) as XML) AS [Help/Info URL]\r\nFROM [Waits] AS [W1]\r\nINNER JOIN [Waits] AS [W2]\r\n    ON [W2].[RowNum] <= [W1].[RowNum]\r\nGROUP BY [W1].[RowNum], [W1].[wait_type], [W1].[WaitS],\r\n    [W1].[ResourceS], [W1].[SignalS], [W1].[WaitCount], [W1].[Percentage]\r\nHAVING (SUM([W2].[Percentage]) - [W1].[Percentage] < @WaitsPercentTop) -- percentage threshold\r\nAND ([W1].[RowNum] <= @WaitStatsTop)\r\nOPTION(RECOMPILE);\r\n\r\n\"\r\nSET QUOTED_IDENTIFIER ON\r\nIF ('$server' = SERVERPROPERTY('ServerName'))\r\nBEGIN\r\n  EXEC (@sql);\r\nEND;\r\nELSE\r\nBEGIN\r\n  EXEC (@sql) AT [$server];\r\nEND;",
           "refId": "A"
         }
       ],
@@ -928,7 +928,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 23
       },
       "id": 4,
       "panels": [
@@ -1291,6 +1291,6 @@
   "timezone": "",
   "title": "Wait Stats",
   "uid": "wait_stats",
-  "version": 41,
+  "version": 47,
   "weekStart": ""
 }
