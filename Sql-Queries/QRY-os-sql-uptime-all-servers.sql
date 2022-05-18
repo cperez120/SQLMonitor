@@ -3,7 +3,7 @@ if object_id('tempdb..##AllServerInfoResults') is not null
 
 exec dbo.usp_GetAllServerInfo 
 				@servers = 'SQLMONITOR,SqlPractice,Workstation' 
-				,@output = 'srv_name, domain, host_name, product_version, major_version_number, minor_version_number, cpu_count, scheduler_count, total_physical_memory_kb, os_start_time_utc, sqlserver_start_time_utc'
+				,@output = 'srv_name, domain, host_name, product_version, major_version_number, minor_version_number, cpu_count, scheduler_count,os_start_time_utc, sqlserver_start_time_utc'
 				,@result_to_table = '##AllServerInfoResults';
 
 ;with t_cte as (
@@ -31,10 +31,8 @@ exec dbo.usp_GetAllServerInfo
 			,datediff(day,os_start_time_utc,GETUTCDATE()) as [os_uptime_days]
 	from ##AllServerInfoResults
 )
-select  srv_name, domain, host_name, product_version, major_version_number, minor_version_number
-        ,[CPU (OS / SQL)] = convert(varchar,cpu_count)+' / '+convert(varchar,scheduler_count)
-        ,total_physical_memory_kb ,cpu_count, scheduler_count, [os_uptime_days], os_start_time_utc, sqlserver_start_time_utc, [os_uptime], [sqlserver_uptime]
-		    ,[Is MS Supported] = case when c.MainstreamSupportEndDate < getdate() then convert(bit,0) else convert(bit,1) end
+select srv_name, domain, host_name, product_version, major_version_number, minor_version_number, cpu_count, scheduler_count, [os_uptime_days], os_start_time_utc, sqlserver_start_time_utc, [os_uptime], [sqlserver_uptime]
+		,[Is MS Supported] = case when c.MainstreamSupportEndDate < getdate() then convert(bit,0) else convert(bit,1) end
 from t_cte cte
 outer apply (
 	select	top 1 [MajorVersionNumber]

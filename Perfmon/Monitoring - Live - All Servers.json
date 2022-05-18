@@ -62,6 +62,12 @@
       "id": "stat",
       "name": "Stat",
       "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
+      "version": ""
     }
   ],
   "annotations": {
@@ -88,7 +94,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1652788975139,
+  "iteration": 1652866590485,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -99,6 +105,201 @@
         "w": 24,
         "x": 0,
         "y": 0
+      },
+      "id": 243,
+      "panels": [],
+      "title": "All Servers - Basic Info",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sqlserver_start_time_utc"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "os_uptime"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "major_version_number"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "minor_version_number"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cpu_count"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "scheduler_count"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Is MS Supported"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background-solid"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "false": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "UnSupported"
+                      },
+                      "true": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "Supported"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_physical_memory_kb"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "RAM"
+              },
+              {
+                "id": "unit",
+                "value": "kbytes"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 1
+      },
+      "id": 219,
+      "options": {
+        "footer": {
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "if object_id('tempdb..##AllServerInfoResults') is not null\r\n\tdrop table ##AllServerInfoResults;\r\n\r\nexec dbo.usp_GetAllServerInfo \r\n\t\t\t\t@servers = '${server:raw}' \r\n\t\t\t\t,@output = 'srv_name, domain, host_name, product_version, major_version_number, minor_version_number, cpu_count, scheduler_count, total_physical_memory_kb, os_start_time_utc, sqlserver_start_time_utc'\r\n\t\t\t\t,@result_to_table = '##AllServerInfoResults';\r\n\r\n;with t_cte as (\r\n\tselect\t*\r\n\t\t\t,Concat\r\n\t\t\t(\r\n\t\t\t\tRIGHT('000'+CAST(ISNULL((datediff(second,os_start_time_utc,GETUTCDATE()) / 3600 / 24), 0) AS VARCHAR(3)),3)\r\n\t\t\t\t,' '\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,os_start_time_utc,GETUTCDATE()) / 3600  % 24, 0) AS VARCHAR(2)),2)\r\n\t\t\t\t,':'\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,os_start_time_utc,GETUTCDATE()) / 60 % 60, 0) AS VARCHAR(2)),2)\r\n\t\t\t\t,':'\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,os_start_time_utc,GETUTCDATE()) % 3600 % 60, 0) AS VARCHAR(2)),2)\r\n\t\t\t) as [os_uptime]\r\n\t\t\t,Concat\r\n\t\t\t(\r\n\t\t\t\tRIGHT('000'+CAST(ISNULL((datediff(second,sqlserver_start_time_utc,GETUTCDATE()) / 3600 / 24), 0) AS VARCHAR(3)),3)\r\n\t\t\t\t,' '\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time_utc,GETUTCDATE()) / 3600  % 24, 0) AS VARCHAR(2)),2)\r\n\t\t\t\t,':'\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time_utc,GETUTCDATE()) / 60 % 60, 0) AS VARCHAR(2)),2)\r\n\t\t\t\t,':'\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time_utc,GETUTCDATE()) % 3600 % 60, 0) AS VARCHAR(2)),2)\r\n\t\t\t) as [sqlserver_uptime]\r\n\t\t\t,datediff(day,os_start_time_utc,GETUTCDATE()) as [os_uptime_days]\r\n\tfrom ##AllServerInfoResults\r\n)\r\nselect  srv_name, domain, host_name, product_version, major_version_number, minor_version_number\r\n        ,[CPU (OS / SQL)] = convert(varchar,cpu_count)+' / '+convert(varchar,scheduler_count)\r\n        ,total_physical_memory_kb ,cpu_count, scheduler_count, [os_uptime_days], os_start_time_utc, sqlserver_start_time_utc, [os_uptime], [sqlserver_uptime]\r\n\t\t    ,[Is MS Supported] = case when c.MainstreamSupportEndDate < getdate() then convert(bit,0) else convert(bit,1) end\r\nfrom t_cte cte\r\nouter apply (\r\n\tselect\ttop 1 [MajorVersionNumber]\r\n\t\t\t\t--,[@server_minor_version_number] = @server_minor_version_number\r\n\t\t\t\t,[MinorVersionNumber]\r\n\t\t\t\t,[Branch]\r\n\t\t\t\t,[Url]\r\n\t\t\t\t,[ReleaseDate]\r\n\t\t\t\t,[MainstreamSupportEndDate]\r\n\t\t\t\t,[ExtendedSupportEndDate]\r\n\t\t\t\t,[MajorVersionName]\r\n\t\t\t\t,[MinorVersionName]\t  \r\n\t\tfrom [master].[dbo].[SqlServerVersions] as c\r\n\t\twhere [MajorVersionNumber] = cte.major_version_number\r\n\t\tand [MinorVersionNumber] <= cte.minor_version_number\r\n\t\torder by [MinorVersionNumber] desc\r\n) as c\r\nouter apply (\r\n\tselect\ttop 1 [MajorVersionNumber]\r\n\t\t\t--,[@server_minor_version_number] = @server_minor_version_number\r\n\t\t\t,[MinorVersionNumber]\r\n\t\t\t,[Branch]\r\n\t\t\t,[Url]\r\n\t\t\t,[ReleaseDate]\r\n\t\t\t,[MainstreamSupportEndDate]\r\n\t\t\t,[ExtendedSupportEndDate]\r\n\t\t\t,[MajorVersionName]\r\n\t\t\t,[MinorVersionName]\t  \r\n\tfrom [master].[dbo].[SqlServerVersions] as c\r\n\twhere [MajorVersionNumber] = cte.major_version_number\r\n\torder by [MinorVersionNumber] desc\r\n) as l\r\n\r\nif object_id('tempdb..##AllServerInfoResults') is not null\r\n\tdrop table ##AllServerInfoResults;",
+          "refId": "A"
+        }
+      ],
+      "title": "All Servers - Basic Details",
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 7
       },
       "id": 175,
       "panels": [],
@@ -145,7 +346,7 @@
         "h": 3,
         "w": 2,
         "x": 0,
-        "y": 1
+        "y": 8
       },
       "id": 177,
       "options": {
@@ -215,7 +416,7 @@
         "h": 3,
         "w": 2,
         "x": 2,
-        "y": 1
+        "y": 8
       },
       "id": 179,
       "options": {
@@ -286,7 +487,7 @@
         "h": 3,
         "w": 3,
         "x": 4,
-        "y": 1
+        "y": 8
       },
       "id": 181,
       "options": {
@@ -373,7 +574,7 @@
         "h": 3,
         "w": 3,
         "x": 7,
-        "y": 1
+        "y": 8
       },
       "id": 183,
       "options": {
@@ -442,7 +643,7 @@
         "h": 3,
         "w": 2,
         "x": 10,
-        "y": 1
+        "y": 8
       },
       "id": 185,
       "options": {
@@ -501,7 +702,7 @@
         "h": 3,
         "w": 2,
         "x": 12,
-        "y": 1
+        "y": 8
       },
       "id": 187,
       "options": {
@@ -563,7 +764,7 @@
         "h": 3,
         "w": 2,
         "x": 14,
-        "y": 1
+        "y": 8
       },
       "id": 189,
       "options": {
@@ -636,7 +837,7 @@
         "h": 3,
         "w": 3,
         "x": 16,
-        "y": 1
+        "y": 8
       },
       "id": 191,
       "options": {
@@ -708,7 +909,7 @@
         "h": 3,
         "w": 2,
         "x": 19,
-        "y": 1
+        "y": 8
       },
       "id": 193,
       "options": {
@@ -782,7 +983,7 @@
         "h": 3,
         "w": 3,
         "x": 21,
-        "y": 1
+        "y": 8
       },
       "id": 195,
       "options": {
@@ -822,7 +1023,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 19
       },
       "id": 121,
       "panels": [
@@ -1011,7 +1212,7 @@
           "value": "300"
         },
         "description": "How many rows to return from resultset",
-        "hide": 0,
+        "hide": 2,
         "label": "Rows Limit",
         "name": "row_limit",
         "options": [
@@ -1032,7 +1233,7 @@
           "value": "15"
         },
         "description": "Threshold duration in minutes for Long Running Queries",
-        "hide": 0,
+        "hide": 2,
         "label": "Duration (Min)",
         "name": "duration",
         "options": [
@@ -1804,6 +2005,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - All Servers",
   "uid": "distributed_live_dashboard_all_servers",
-  "version": 68,
+  "version": 85,
   "weekStart": ""
 }
