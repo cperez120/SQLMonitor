@@ -15,6 +15,18 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="SqlMonitor:LAB\adwivedi">
+          <Created>2022-05-19T15:18:11.9715842+05:30</Created>
+          <Type>SQL</Type>
+          <Server>SqlMonitor</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
       </Items>
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
@@ -32,8 +44,8 @@
           <FullPath>FirstResponderKit-Install-All-Scripts.sql</FullPath>
         </FileNode>
         <FileNode Name="grafana-login.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>grafana-login.sql</FullPath>
         </FileNode>
@@ -56,62 +68,62 @@
           <FullPath>SCH-Create-XEvents.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Collect-OSProcesses].sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Collect-OSProcesses].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Collect-PerfmonData].sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Collect-PerfmonData].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Collect-WaitStats].sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Collect-WaitStats].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Collect-XEvents].sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Collect-XEvents].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Partitions-Maintenance].sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Partitions-Maintenance].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Purge-DbaMetrics - Daily].sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Purge-DbaMetrics - Daily].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Remove-XEventFiles].sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Remove-XEventFiles].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Run First-Responder-Kit].sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Run First-Responder-Kit].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Run-WhoIsActive].sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Run-WhoIsActive].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Update-SqlServerVersions].sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Update-SqlServerVersions].sql</FullPath>
         </FileNode>
@@ -134,14 +146,14 @@
           <FullPath>SCH-sp_WhoIsActive_v12_00(Modified).sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-usp_GetAllServerInfo.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-usp_GetAllServerInfo.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-WhoIsActive-Partitioning.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-WhoIsActive-Partitioning.sql</FullPath>
         </FileNode>

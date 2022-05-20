@@ -15,10 +15,40 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="SqlMonitor:LAB\adwivedi">
+          <Created>2022-05-19T09:35:03.9545125+05:30</Created>
+          <Type>SQL</Type>
+          <Server>SqlMonitor</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="WORKSTATION:LAB\adwivedi">
+          <Created>2022-05-19T08:46:41.5053748+05:30</Created>
+          <Type>SQL</Type>
+          <Server>WORKSTATION</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
       </Items>
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
+        <FileNode Name="_Other-Scripts-Links.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:WORKSTATION:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>WORKSTATION</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>_Other-Scripts-Links.sql</FullPath>
+        </FileNode>
         <FileNode Name="Blocking-Test.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -32,8 +62,8 @@
           <FullPath>blocking-time-series.sql</FullPath>
         </FileNode>
         <FileNode Name="check-domain-ip-hostname.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>check-domain-ip-hostname.sql</FullPath>
         </FileNode>
@@ -44,8 +74,8 @@
           <FullPath>check-table-partitions.sql</FullPath>
         </FileNode>
         <FileNode Name="datetime-conversions.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>datetime-conversions.sql</FullPath>
         </FileNode>
@@ -74,14 +104,14 @@
           <FullPath>QRY-Estimate-Database-Growth.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-Get-Variables-From-Columns.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>QRY-Get-Variables-From-Columns.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-os-sql-uptime-all-servers.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>QRY-os-sql-uptime-all-servers.sql</FullPath>
         </FileNode>
@@ -116,8 +146,8 @@
           <FullPath>wait-stats-since-startup.sql</FullPath>
         </FileNode>
         <FileNode Name="what-is-running-whoisactive.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>what-is-running-whoisactive.sql</FullPath>
         </FileNode>
