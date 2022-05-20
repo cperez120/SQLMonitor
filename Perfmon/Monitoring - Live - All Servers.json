@@ -94,12 +94,12 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1652866590485,
+  "iteration": 1653022540875,
   "links": [],
   "liveNow": false,
   "panels": [
     {
-      "collapsed": false,
+      "collapsed": true,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -107,8 +107,203 @@
         "y": 0
       },
       "id": 243,
-      "panels": [],
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto",
+                "filterable": true
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "sqlserver_start_time_utc"
+                },
+                "properties": [
+                  {
+                    "id": "custom.hidden",
+                    "value": true
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "os_uptime"
+                },
+                "properties": [
+                  {
+                    "id": "custom.hidden",
+                    "value": true
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "major_version_number"
+                },
+                "properties": [
+                  {
+                    "id": "custom.hidden",
+                    "value": true
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "minor_version_number"
+                },
+                "properties": [
+                  {
+                    "id": "custom.hidden",
+                    "value": true
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "cpu_count"
+                },
+                "properties": [
+                  {
+                    "id": "custom.hidden",
+                    "value": true
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "scheduler_count"
+                },
+                "properties": [
+                  {
+                    "id": "custom.hidden",
+                    "value": true
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Is MS Supported"
+                },
+                "properties": [
+                  {
+                    "id": "custom.displayMode",
+                    "value": "color-background-solid"
+                  },
+                  {
+                    "id": "mappings",
+                    "value": [
+                      {
+                        "options": {
+                          "false": {
+                            "color": "red",
+                            "index": 1,
+                            "text": "UnSupported"
+                          },
+                          "true": {
+                            "color": "green",
+                            "index": 0,
+                            "text": "Supported"
+                          }
+                        },
+                        "type": "value"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "total_physical_memory_kb"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "RAM"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 2
+          },
+          "id": 219,
+          "options": {
+            "footer": {
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "8.4.6",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLMONITOR}"
+              },
+              "format": "table",
+              "rawSql": "if object_id('tempdb..#AllServerInfoResults') is not null\r\n\tdrop table #AllServerInfoResults;\r\n\r\ncreate table #AllServerInfoResults \r\n(\tsrv_name varchar(125), domain varchar(125), [host_name] varchar(125), product_version varchar(30), major_version_number smallint, \r\n\tminor_version_number smallint, cpu_count smallint, scheduler_count smallint, total_physical_memory_kb bigint,\r\n\tos_start_time_utc datetime2, sqlserver_start_time_utc datetime2\t\r\n\t/* os_cpu decimal(20,2), sql_cpu decimal(20,2), pcnt_kernel_mode decimal(20,2),\r\n\tpage_faults_kb decimal(20,2), blocked_counts int, blocked_duration_max_seconds bigint, \r\n\tavailable_physical_memory_kb bigint, system_high_memory_signal_state varchar(20), physical_memory_in_use_kb decimal(20,2),\r\n\tmemory_grants_pending int, connection_count int, active_requests_count int, waits_per_core_per_minute decimal(20,2),\r\n\t*/\r\n);\r\n\r\nexec dbo.usp_GetAllServerInfo \r\n\t\t\t\t@servers = '${server:raw}' \r\n\t\t\t\t,@output = 'srv_name, domain, host_name, product_version, major_version_number, minor_version_number, cpu_count, scheduler_count, total_physical_memory_kb, os_start_time_utc, sqlserver_start_time_utc'\r\n\t\t\t\t,@result_to_table = '#AllServerInfoResults';\r\n\r\n;with t_cte as (\r\n\tselect\t*\r\n\t\t\t,Concat\r\n\t\t\t(\r\n\t\t\t\tRIGHT('000'+CAST(ISNULL((datediff(second,os_start_time_utc,GETUTCDATE()) / 3600 / 24), 0) AS VARCHAR(3)),3)\r\n\t\t\t\t,' '\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,os_start_time_utc,GETUTCDATE()) / 3600  % 24, 0) AS VARCHAR(2)),2)\r\n\t\t\t\t,':'\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,os_start_time_utc,GETUTCDATE()) / 60 % 60, 0) AS VARCHAR(2)),2)\r\n\t\t\t\t,':'\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,os_start_time_utc,GETUTCDATE()) % 3600 % 60, 0) AS VARCHAR(2)),2)\r\n\t\t\t) as [os_uptime]\r\n\t\t\t,Concat\r\n\t\t\t(\r\n\t\t\t\tRIGHT('000'+CAST(ISNULL((datediff(second,sqlserver_start_time_utc,GETUTCDATE()) / 3600 / 24), 0) AS VARCHAR(3)),3)\r\n\t\t\t\t,' '\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time_utc,GETUTCDATE()) / 3600  % 24, 0) AS VARCHAR(2)),2)\r\n\t\t\t\t,':'\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time_utc,GETUTCDATE()) / 60 % 60, 0) AS VARCHAR(2)),2)\r\n\t\t\t\t,':'\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time_utc,GETUTCDATE()) % 3600 % 60, 0) AS VARCHAR(2)),2)\r\n\t\t\t) as [sqlserver_uptime]\r\n\t\t\t,datediff(day,os_start_time_utc,GETUTCDATE()) as [os_uptime_days]\r\n\tfrom #AllServerInfoResults\r\n)\r\nselect  srv_name, domain, host_name, product_version, major_version_number, minor_version_number\r\n        ,[CPU (OS / SQL)] = convert(varchar,cpu_count)+' / '+convert(varchar,scheduler_count)\r\n        ,total_physical_memory_kb ,cpu_count, scheduler_count, [os_uptime_days], os_start_time_utc, sqlserver_start_time_utc, [os_uptime], [sqlserver_uptime]\r\n\t\t    ,[Is MS Supported] = case when c.MainstreamSupportEndDate < getdate() then convert(bit,0) else convert(bit,1) end\r\nfrom t_cte cte\r\nouter apply (\r\n\tselect\ttop 1 [MajorVersionNumber]\r\n\t\t\t\t--,[@server_minor_version_number] = @server_minor_version_number\r\n\t\t\t\t,[MinorVersionNumber]\r\n\t\t\t\t,[Branch]\r\n\t\t\t\t,[Url]\r\n\t\t\t\t,[ReleaseDate]\r\n\t\t\t\t,[MainstreamSupportEndDate]\r\n\t\t\t\t,[ExtendedSupportEndDate]\r\n\t\t\t\t,[MajorVersionName]\r\n\t\t\t\t,[MinorVersionName]\t  \r\n\t\tfrom [master].[dbo].[SqlServerVersions] as c\r\n\t\twhere [MajorVersionNumber] = cte.major_version_number\r\n\t\tand [MinorVersionNumber] <= cte.minor_version_number\r\n\t\torder by [MinorVersionNumber] desc\r\n) as c\r\nouter apply (\r\n\tselect\ttop 1 [MajorVersionNumber]\r\n\t\t\t--,[@server_minor_version_number] = @server_minor_version_number\r\n\t\t\t,[MinorVersionNumber]\r\n\t\t\t,[Branch]\r\n\t\t\t,[Url]\r\n\t\t\t,[ReleaseDate]\r\n\t\t\t,[MainstreamSupportEndDate]\r\n\t\t\t,[ExtendedSupportEndDate]\r\n\t\t\t,[MajorVersionName]\r\n\t\t\t,[MinorVersionName]\t  \r\n\tfrom [master].[dbo].[SqlServerVersions] as c\r\n\twhere [MajorVersionNumber] = cte.major_version_number\r\n\torder by [MinorVersionNumber] desc\r\n) as l\r\n\r\nif object_id('tempdb..#AllServerInfoResults') is not null\r\n\tdrop table #AllServerInfoResults;",
+              "refId": "A"
+            }
+          ],
+          "title": "All Servers - Basic Details",
+          "type": "table"
+        }
+      ],
       "title": "All Servers - Basic Info",
+      "type": "row"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 1
+      },
+      "id": 245,
+      "panels": [],
+      "title": "All Servers - Health Metrics - Require ATTENTION",
       "type": "row"
     },
     {
@@ -122,7 +317,7 @@
             "mode": "thresholds"
           },
           "custom": {
-            "align": "auto",
+            "align": "center",
             "displayMode": "auto",
             "filterable": true
           },
@@ -135,138 +330,464 @@
                 "value": null
               }
             ]
-          }
+          },
+          "unit": "none"
         },
         "overrides": [
           {
             "matcher": {
               "id": "byName",
-              "options": "sqlserver_start_time_utc"
-            },
-            "properties": [
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "os_uptime"
-            },
-            "properties": [
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "major_version_number"
-            },
-            "properties": [
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "minor_version_number"
-            },
-            "properties": [
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "cpu_count"
-            },
-            "properties": [
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "scheduler_count"
-            },
-            "properties": [
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Is MS Supported"
+              "options": "os_cpu"
             },
             "properties": [
               {
                 "id": "custom.displayMode",
-                "value": "color-background-solid"
+                "value": "color-background"
               },
               {
-                "id": "mappings",
-                "value": [
-                  {
-                    "options": {
-                      "false": {
-                        "color": "red",
-                        "index": 1,
-                        "text": "UnSupported"
-                      },
-                      "true": {
-                        "color": "green",
-                        "index": 0,
-                        "text": "Supported"
-                      }
+                "id": "color"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
                     },
-                    "type": "value"
-                  }
-                ]
+                    {
+                      "color": "yellow",
+                      "value": 70
+                    },
+                    {
+                      "color": "orange",
+                      "value": 80
+                    },
+                    {
+                      "color": "red",
+                      "value": 90
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "OS CPU"
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "total_physical_memory_kb"
+              "options": "sql_cpu"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "color"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "#EAB839",
+                      "value": 65
+                    },
+                    {
+                      "color": "orange",
+                      "value": 70
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "SQL CPU"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "waits_per_core_per_minute"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 60
+                    },
+                    {
+                      "color": "orange",
+                      "value": 120
+                    },
+                    {
+                      "color": "red",
+                      "value": 180
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "Waits Per Core Per Minute"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "blocked_counts"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 1
+                    },
+                    {
+                      "color": "orange",
+                      "value": 5
+                    },
+                    {
+                      "color": "red",
+                      "value": 10
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "Blocked Over '60' Seconds"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "blocked_duration_max_seconds"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "super-light-yellow",
+                      "value": 60
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 120
+                    },
+                    {
+                      "color": "super-light-orange",
+                      "value": 300
+                    },
+                    {
+                      "color": "orange",
+                      "value": 600
+                    },
+                    {
+                      "color": "red",
+                      "value": 1800
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "Longest Blocking"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "available_physical_memory_kb"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "RAM"
+                "value": "Available Memory"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "unit",
+                "value": "kbytes"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 512000
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 2097152
+                    },
+                    {
+                      "color": "green",
+                      "value": 4194304
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "system_high_memory_signal_state"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden"
+              },
+              {
+                "id": "unit",
+                "value": "string"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "displayName",
+                "value": "OS Memory State"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "physical_memory_in_use_kb"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Used SQL Memory"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "purple",
+                      "value": null
+                    }
+                  ]
+                }
               },
               {
                 "id": "unit",
                 "value": "kbytes"
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "memory_grants_pending"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "Memory Grant Pending"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "srv_name"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 127
+              },
+              {
+                "id": "displayName",
+                "value": "Server"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "connection_count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "SQL Connections"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "#EAB839",
+                      "value": 800
+                    },
+                    {
+                      "color": "#EF843C",
+                      "value": 1000
+                    },
+                    {
+                      "color": "red",
+                      "value": 1200
+                    }
+                  ]
+                }
+              }
+            ]
           }
         ]
       },
       "gridPos": {
-        "h": 6,
+        "h": 10,
         "w": 24,
         "x": 0,
-        "y": 1
+        "y": 2
       },
-      "id": 219,
+      "id": 842,
       "options": {
         "footer": {
           "fields": "",
@@ -275,7 +796,8 @@
           ],
           "show": false
         },
-        "showHeader": true
+        "showHeader": true,
+        "sortBy": []
       },
       "pluginVersion": "8.4.6",
       "targets": [
@@ -286,7 +808,7 @@
             "uid": "${DS_SQLMONITOR}"
           },
           "format": "table",
-          "rawSql": "if object_id('tempdb..##AllServerInfoResults') is not null\r\n\tdrop table ##AllServerInfoResults;\r\n\r\nexec dbo.usp_GetAllServerInfo \r\n\t\t\t\t@servers = '${server:raw}' \r\n\t\t\t\t,@output = 'srv_name, domain, host_name, product_version, major_version_number, minor_version_number, cpu_count, scheduler_count, total_physical_memory_kb, os_start_time_utc, sqlserver_start_time_utc'\r\n\t\t\t\t,@result_to_table = '##AllServerInfoResults';\r\n\r\n;with t_cte as (\r\n\tselect\t*\r\n\t\t\t,Concat\r\n\t\t\t(\r\n\t\t\t\tRIGHT('000'+CAST(ISNULL((datediff(second,os_start_time_utc,GETUTCDATE()) / 3600 / 24), 0) AS VARCHAR(3)),3)\r\n\t\t\t\t,' '\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,os_start_time_utc,GETUTCDATE()) / 3600  % 24, 0) AS VARCHAR(2)),2)\r\n\t\t\t\t,':'\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,os_start_time_utc,GETUTCDATE()) / 60 % 60, 0) AS VARCHAR(2)),2)\r\n\t\t\t\t,':'\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,os_start_time_utc,GETUTCDATE()) % 3600 % 60, 0) AS VARCHAR(2)),2)\r\n\t\t\t) as [os_uptime]\r\n\t\t\t,Concat\r\n\t\t\t(\r\n\t\t\t\tRIGHT('000'+CAST(ISNULL((datediff(second,sqlserver_start_time_utc,GETUTCDATE()) / 3600 / 24), 0) AS VARCHAR(3)),3)\r\n\t\t\t\t,' '\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time_utc,GETUTCDATE()) / 3600  % 24, 0) AS VARCHAR(2)),2)\r\n\t\t\t\t,':'\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time_utc,GETUTCDATE()) / 60 % 60, 0) AS VARCHAR(2)),2)\r\n\t\t\t\t,':'\r\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time_utc,GETUTCDATE()) % 3600 % 60, 0) AS VARCHAR(2)),2)\r\n\t\t\t) as [sqlserver_uptime]\r\n\t\t\t,datediff(day,os_start_time_utc,GETUTCDATE()) as [os_uptime_days]\r\n\tfrom ##AllServerInfoResults\r\n)\r\nselect  srv_name, domain, host_name, product_version, major_version_number, minor_version_number\r\n        ,[CPU (OS / SQL)] = convert(varchar,cpu_count)+' / '+convert(varchar,scheduler_count)\r\n        ,total_physical_memory_kb ,cpu_count, scheduler_count, [os_uptime_days], os_start_time_utc, sqlserver_start_time_utc, [os_uptime], [sqlserver_uptime]\r\n\t\t    ,[Is MS Supported] = case when c.MainstreamSupportEndDate < getdate() then convert(bit,0) else convert(bit,1) end\r\nfrom t_cte cte\r\nouter apply (\r\n\tselect\ttop 1 [MajorVersionNumber]\r\n\t\t\t\t--,[@server_minor_version_number] = @server_minor_version_number\r\n\t\t\t\t,[MinorVersionNumber]\r\n\t\t\t\t,[Branch]\r\n\t\t\t\t,[Url]\r\n\t\t\t\t,[ReleaseDate]\r\n\t\t\t\t,[MainstreamSupportEndDate]\r\n\t\t\t\t,[ExtendedSupportEndDate]\r\n\t\t\t\t,[MajorVersionName]\r\n\t\t\t\t,[MinorVersionName]\t  \r\n\t\tfrom [master].[dbo].[SqlServerVersions] as c\r\n\t\twhere [MajorVersionNumber] = cte.major_version_number\r\n\t\tand [MinorVersionNumber] <= cte.minor_version_number\r\n\t\torder by [MinorVersionNumber] desc\r\n) as c\r\nouter apply (\r\n\tselect\ttop 1 [MajorVersionNumber]\r\n\t\t\t--,[@server_minor_version_number] = @server_minor_version_number\r\n\t\t\t,[MinorVersionNumber]\r\n\t\t\t,[Branch]\r\n\t\t\t,[Url]\r\n\t\t\t,[ReleaseDate]\r\n\t\t\t,[MainstreamSupportEndDate]\r\n\t\t\t,[ExtendedSupportEndDate]\r\n\t\t\t,[MajorVersionName]\r\n\t\t\t,[MinorVersionName]\t  \r\n\tfrom [master].[dbo].[SqlServerVersions] as c\r\n\twhere [MajorVersionNumber] = cte.major_version_number\r\n\torder by [MinorVersionNumber] desc\r\n) as l\r\n\r\nif object_id('tempdb..##AllServerInfoResults') is not null\r\n\tdrop table ##AllServerInfoResults;",
+          "rawSql": "declare @os_cpu_threshold decimal(20,2) = 80;\r\ndeclare @sql_cpu_threshold decimal(20,2) = 70;\r\ndeclare @blocked_counts_threshold int = 1;\r\ndeclare @blocked_duration_max_seconds_threshold bigint = 60;\r\ndeclare @available_physical_memory_kb_threshold bigint = (4*1024*1024);\r\ndeclare @system_high_memory_signal_state_threshold varchar(20) = 'Low';\r\ndeclare @physical_memory_in_use_kb_threshold decimal(20,2)\r\ndeclare @memory_grants_pending_threshold int = 1;\r\ndeclare @connection_count_threshold int = 1000;\r\ndeclare @waits_per_core_per_minute_threshold decimal(20,2) = 60;\r\n\r\nif object_id('tempdb..#AllServerInfoResults') is not null\r\n\tdrop table #AllServerInfoResults;\r\n\r\ncreate table #AllServerInfoResults \r\n(\tsrv_name varchar(125), os_cpu decimal(20,2), sql_cpu decimal(20,2), blocked_counts int, blocked_duration_max_seconds bigint, \r\n\tavailable_physical_memory_kb bigint, system_high_memory_signal_state varchar(20), physical_memory_in_use_kb decimal(20,2),\r\n\tmemory_grants_pending int, connection_count int, waits_per_core_per_minute decimal(20,2)\r\n);\r\nexec dbo.usp_GetAllServerInfo \r\n\t\t\t\t@servers = '${server:raw}' \r\n\t\t\t\t,@output = 'srv_name, os_cpu, sql_cpu, blocked_counts, blocked_duration_max_seconds, available_physical_memory_kb, system_high_memory_signal_state, physical_memory_in_use_kb, memory_grants_pending, connection_count, waits_per_core_per_minute'\r\n\t\t\t\t,@result_to_table = '#AllServerInfoResults';\r\n\r\n;with t_cte as (\r\n\tselect\t*\r\n\tfrom #AllServerInfoResults\r\n)\r\nselect  *\r\nfrom t_cte cte\r\nwhere 1=1\r\nand (   os_cpu >= @os_cpu_threshold\r\n    or  sql_cpu >= @sql_cpu_threshold \r\n    or  blocked_counts >= @blocked_counts_threshold\r\n    or  blocked_duration_max_seconds >= @blocked_duration_max_seconds_threshold\r\n    or  available_physical_memory_kb < @available_physical_memory_kb_threshold\r\n    or  system_high_memory_signal_state = @system_high_memory_signal_state_threshold\r\n    or  memory_grants_pending > @memory_grants_pending_threshold\r\n    or  connection_count >= @connection_count_threshold\r\n    or  waits_per_core_per_minute > @waits_per_core_per_minute_threshold\r\n)\r\n\r\nif object_id('tempdb..#AllServerInfoResults') is not null\r\n\tdrop table #AllServerInfoResults;",
           "refId": "A"
         }
       ],
@@ -294,728 +816,719 @@
       "type": "table"
     },
     {
-      "collapsed": false,
+      "collapsed": true,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 12
       },
       "id": 175,
-      "panels": [],
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "decimals": 2,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 70
+                  },
+                  {
+                    "color": "orange",
+                    "value": 80
+                  },
+                  {
+                    "color": "red",
+                    "value": 90
+                  }
+                ]
+              },
+              "unit": "percent"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 2,
+            "x": 0,
+            "y": 8
+          },
+          "id": 177,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [],
+              "fields": "/.*/",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "8.4.6",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLMONITOR}"
+              },
+              "format": "table",
+              "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'os_cpu'",
+              "refId": "A"
+            }
+          ],
+          "title": "OS CPU",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "decimals": 2,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 60
+                  },
+                  {
+                    "color": "orange",
+                    "value": 70
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "percent"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 2,
+            "x": 2,
+            "y": 8
+          },
+          "id": 179,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [],
+              "fields": "/.*/",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "8.4.6",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLMONITOR}"
+              },
+              "format": "table",
+              "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'sql_cpu'",
+              "refId": "A"
+            }
+          ],
+          "title": "SQL CPU",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "description": "select count(*) as blocked_counts\nfrom sys.dm_exec_requests r with (nolock) \nwhere r.blocking_session_id <> 0\nand wait_time >= ($blocked_threshold_seconds*1000)",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "max": 100,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "#EAB839",
+                    "value": 1
+                  },
+                  {
+                    "color": "dark-orange",
+                    "value": 2
+                  },
+                  {
+                    "color": "dark-red",
+                    "value": 5
+                  }
+                ]
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 4,
+            "y": 8
+          },
+          "id": 181,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "8.4.6",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLMONITOR}"
+              },
+              "format": "table",
+              "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'blocked_counts'",
+              "refId": "A"
+            }
+          ],
+          "title": "Blocked Over '$blocked_threshold_seconds' Seconds",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "description": "select max(wait_time)/1000 as wait_time_s\nfrom sys.dm_exec_requests r with (nolock) \nwhere r.blocking_session_id <> 0\nand wait_time >= ($blocked_threshold_seconds*1000)",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "max": 100,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "#EAB839",
+                    "value": 120
+                  },
+                  {
+                    "color": "orange",
+                    "value": 300
+                  },
+                  {
+                    "color": "super-light-red",
+                    "value": 600
+                  },
+                  {
+                    "color": "light-red",
+                    "value": 900
+                  },
+                  {
+                    "color": "red",
+                    "value": 1200
+                  },
+                  {
+                    "color": "semi-dark-red",
+                    "value": 1800
+                  },
+                  {
+                    "color": "dark-red",
+                    "value": 2400
+                  }
+                ]
+              },
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 7,
+            "y": 8
+          },
+          "id": 183,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "8.4.6",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLMONITOR}"
+              },
+              "format": "table",
+              "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'blocked_duration_max_seconds'",
+              "refId": "A"
+            }
+          ],
+          "title": "Longest Blocking",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "decimals": 2,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red"
+                  },
+                  {
+                    "color": "orange",
+                    "value": 1048576
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 2097152
+                  },
+                  {
+                    "color": "green",
+                    "value": 4194304
+                  }
+                ]
+              },
+              "unit": "kbytes"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 2,
+            "x": 10,
+            "y": 8
+          },
+          "id": 185,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "mean"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "8.4.6",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLMONITOR}"
+              },
+              "format": "table",
+              "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'available_physical_memory_kb'",
+              "refId": "A"
+            }
+          ],
+          "title": "Available M/r",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "description": "Memory State on OS",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 2,
+            "x": 12,
+            "y": 8
+          },
+          "id": 187,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "last"
+              ],
+              "fields": "/.*/",
+              "values": true
+            },
+            "text": {},
+            "textMode": "auto"
+          },
+          "pluginVersion": "8.4.6",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLMONITOR}"
+              },
+              "format": "table",
+              "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'system_high_memory_signal_state'",
+              "refId": "A"
+            }
+          ],
+          "title": "Memory Status",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "description": "Total RAM Used by SQL Server Instance Process",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "max": 100,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              },
+              "unit": "kbytes"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 2,
+            "x": 14,
+            "y": 8
+          },
+          "id": 189,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "last"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "8.4.6",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLMONITOR}"
+              },
+              "format": "table",
+              "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'physical_memory_in_use_kb'",
+              "refId": "A"
+            }
+          ],
+          "title": "Sql M/r",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "light-yellow",
+                    "value": 2
+                  },
+                  {
+                    "color": "dark-orange",
+                    "value": 5
+                  },
+                  {
+                    "color": "semi-dark-red",
+                    "value": 10
+                  },
+                  {
+                    "color": "dark-red",
+                    "value": 25
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 16,
+            "y": 8
+          },
+          "id": 191,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "last"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "8.4.6",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLMONITOR}"
+              },
+              "format": "table",
+              "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'memory_grants_pending'",
+              "refId": "A"
+            }
+          ],
+          "title": "M/r Grants Pending",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "description": "select * from sys.dm_exec_connections",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 800
+                  },
+                  {
+                    "color": "dark-orange",
+                    "value": 1000
+                  },
+                  {
+                    "color": "dark-red",
+                    "value": 1200
+                  }
+                ]
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 2,
+            "x": 19,
+            "y": 8
+          },
+          "id": 193,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [],
+              "fields": "",
+              "values": true
+            },
+            "textMode": "auto"
+          },
+          "pluginVersion": "8.4.6",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLMONITOR}"
+              },
+              "format": "table",
+              "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'connection_count'",
+              "refId": "A"
+            }
+          ],
+          "title": "Connections",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "fixedColor": "green",
+                "mode": "thresholds"
+              },
+              "displayName": "Waits Per Core Per Minute",
+              "links": [
+                {
+                  "targetBlank": true,
+                  "title": "Wait Stats Dashboard",
+                  "url": "d/wait_stats"
+                }
+              ],
+              "mappings": [],
+              "noValue": "0",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 60
+                  }
+                ]
+              },
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 3,
+            "x": 21,
+            "y": 8
+          },
+          "id": 195,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": true
+            },
+            "text": {},
+            "textMode": "value"
+          },
+          "pluginVersion": "8.4.6",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLMONITOR}"
+              },
+              "format": "table",
+              "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'waits_per_core_per_minute'",
+              "refId": "A"
+            }
+          ],
+          "title": "Waits Per Core Per Minute",
+          "type": "stat"
+        }
+      ],
       "repeat": "server",
       "title": "LIVE Metrics - [${server:raw}]",
       "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "decimals": 2,
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 70
-              },
-              {
-                "color": "orange",
-                "value": 80
-              },
-              {
-                "color": "red",
-                "value": 90
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 0,
-        "y": 8
-      },
-      "id": 177,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [],
-          "fields": "/.*/",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'os_cpu'",
-          "refId": "A"
-        }
-      ],
-      "title": "OS CPU",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "decimals": 2,
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 60
-              },
-              {
-                "color": "orange",
-                "value": 70
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 2,
-        "y": 8
-      },
-      "id": 179,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [],
-          "fields": "/.*/",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'sql_cpu'",
-          "refId": "A"
-        }
-      ],
-      "title": "SQL CPU",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "select count(*) as blocked_counts\nfrom sys.dm_exec_requests r with (nolock) \nwhere r.blocking_session_id <> 0\nand wait_time >= ($blocked_threshold_seconds*1000)",
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "#EAB839",
-                "value": 1
-              },
-              {
-                "color": "dark-orange",
-                "value": 2
-              },
-              {
-                "color": "dark-red",
-                "value": 5
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 3,
-        "x": 4,
-        "y": 8
-      },
-      "id": 181,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'blocked_counts'",
-          "refId": "A"
-        }
-      ],
-      "title": "Blocked Over '$blocked_threshold_seconds' Seconds",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "select max(wait_time)/1000 as wait_time_s\nfrom sys.dm_exec_requests r with (nolock) \nwhere r.blocking_session_id <> 0\nand wait_time >= ($blocked_threshold_seconds*1000)",
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "#EAB839",
-                "value": 120
-              },
-              {
-                "color": "orange",
-                "value": 300
-              },
-              {
-                "color": "super-light-red",
-                "value": 600
-              },
-              {
-                "color": "light-red",
-                "value": 900
-              },
-              {
-                "color": "red",
-                "value": 1200
-              },
-              {
-                "color": "semi-dark-red",
-                "value": 1800
-              },
-              {
-                "color": "dark-red",
-                "value": 2400
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 3,
-        "x": 7,
-        "y": 8
-      },
-      "id": 183,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'blocked_duration_max_seconds'",
-          "refId": "A"
-        }
-      ],
-      "title": "Longest Blocking",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "decimals": 2,
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 1048576
-              },
-              {
-                "color": "yellow",
-                "value": 2097152
-              },
-              {
-                "color": "green",
-                "value": 4194304
-              }
-            ]
-          },
-          "unit": "kbytes"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 10,
-        "y": 8
-      },
-      "id": 185,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "mean"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'available_physical_memory_kb'",
-          "refId": "A"
-        }
-      ],
-      "title": "Available M/r",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "Memory State on OS",
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 12,
-        "y": 8
-      },
-      "id": 187,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "/.*/",
-          "values": true
-        },
-        "text": {},
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'system_high_memory_signal_state'",
-          "refId": "A"
-        }
-      ],
-      "title": "Memory Status",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "Total RAM Used by SQL Server Instance Process",
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "kbytes"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 14,
-        "y": 8
-      },
-      "id": 189,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'physical_memory_in_use_kb'",
-          "refId": "A"
-        }
-      ],
-      "title": "Sql M/r",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "light-yellow",
-                "value": 2
-              },
-              {
-                "color": "dark-orange",
-                "value": 5
-              },
-              {
-                "color": "semi-dark-red",
-                "value": 10
-              },
-              {
-                "color": "dark-red",
-                "value": 25
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 3,
-        "x": 16,
-        "y": 8
-      },
-      "id": 191,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'memory_grants_pending'",
-          "refId": "A"
-        }
-      ],
-      "title": "M/r Grants Pending",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "select * from sys.dm_exec_connections",
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 800
-              },
-              {
-                "color": "dark-orange",
-                "value": 1000
-              },
-              {
-                "color": "dark-red",
-                "value": 1200
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 19,
-        "y": 8
-      },
-      "id": 193,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [],
-          "fields": "",
-          "values": true
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'connection_count'",
-          "refId": "A"
-        }
-      ],
-      "title": "Connections",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "green",
-            "mode": "thresholds"
-          },
-          "displayName": "Waits Per Core Per Minute",
-          "links": [
-            {
-              "targetBlank": true,
-              "title": "Wait Stats Dashboard",
-              "url": "d/wait_stats"
-            }
-          ],
-          "mappings": [],
-          "noValue": "0",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 60
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 3,
-        "x": 21,
-        "y": 8
-      },
-      "id": 195,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": true
-        },
-        "text": {},
-        "textMode": "value"
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
-          },
-          "format": "table",
-          "rawSql": "exec dbo.usp_GetAllServerInfo @servers = '${server:raw}' ,@output = 'waits_per_core_per_minute'",
-          "refId": "A"
-        }
-      ],
-      "title": "Waits Per Core Per Minute",
-      "type": "stat"
     },
     {
       "collapsed": true,
@@ -1023,7 +1536,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 15
       },
       "id": 121,
       "panels": [
@@ -2005,6 +2518,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - All Servers",
   "uid": "distributed_live_dashboard_all_servers",
-  "version": 85,
+  "version": 88,
   "weekStart": ""
 }

@@ -52,7 +52,7 @@ while @r > 0
 begin
 	delete top (100000) pc
 	from dbo.performance_counters pc
-	where pc.collection_time_utc < dateadd(day,-90,sysutcdatetime())
+	where pc.collection_time_utc < dateadd(day,-30,sysutcdatetime())
 	--option (table hint(h, INDEX(ci_alwayson_synchronization_history_aggregated)))
 
 	set @r = @@ROWCOUNT
@@ -78,7 +78,7 @@ while @r > 0
 begin
 	delete top (100000) pf
 	from dbo.perfmon_files pf
-	where pf.collection_time_utc < dateadd(day,-90,sysutcdatetime())
+	where pf.collection_time_utc < dateadd(day,-10,sysutcdatetime())
 	--option (table hint(h, INDEX(ci_alwayson_synchronization_history_aggregated)))
 
 	set @r = @@ROWCOUNT
@@ -204,8 +204,8 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'(dba) Pur
 		@active_start_date=20220326, 
 		@active_end_date=99991231, 
 		@active_start_time=0, 
-		@active_end_time=235959, 
-		@schedule_uid=N'88003296-9d27-4a85-b0d8-56dd53fcd928'
+		@active_end_time=235959
+		--,@schedule_uid=N'88003296-9d27-4a85-b0d8-56dd53fcd928'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_add_jobserver @job_id = @jobId, @server_name = N'(local)'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
