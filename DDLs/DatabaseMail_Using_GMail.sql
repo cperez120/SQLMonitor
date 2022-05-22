@@ -99,3 +99,14 @@ The mail could not be sent to the recipients because of the mail server failure.
 The mail could not be sent to the recipients because of the mail server failure. (Sending Mail using Account 1 (2016-11-15T13:20:41). Exception Message: Could not connect to mail server. (A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond 74.125.200.108:587).
 )
 */
+
+SELECT p.name as profile_name, p.description as profile_description, a.name as mail_account, 
+		a.email_address, a.display_name, a.replyto_address, s.servername, s.port, s.servername,
+		pp.is_default
+FROM msdb.dbo.sysmail_profile p 
+JOIN msdb.dbo.sysmail_principalprofile pp ON pp.profile_id = p.profile_id AND pp.is_default = 1
+JOIN msdb.dbo.sysmail_profileaccount pa ON p.profile_id = pa.profile_id 
+JOIN msdb.dbo.sysmail_account a ON pa.account_id = a.account_id 
+JOIN msdb.dbo.sysmail_server s ON a.account_id = s.account_id;
+go
+

@@ -29,7 +29,7 @@ select	default_domain() as [domain],
 		SERVERPROPERTY('Edition') AS Edition,
 		SERVERPROPERTY('ProductVersion') AS ProductVersion,
 		SERVERPROPERTY('ProductLevel') AS ProductLevel
-		,instant_file_initialization_enabled
+		--,instant_file_initialization_enabled
 		--,*
 from sys.dm_server_services where servicename like 'SQL Server (%)'
 go

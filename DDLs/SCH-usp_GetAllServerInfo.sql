@@ -1,20 +1,23 @@
-use DBA
-go
+--SET QUOTED_IDENTIFIER OFF;
+--SET ANSI_PADDING ON;
+--SET CONCAT_NULL_YIELDS_NULL ON;
+--SET ANSI_WARNINGS ON;
+--SET NUMERIC_ROUNDABORT OFF;
+--SET ARITHABORT ON;
+--GO
 
-SET QUOTED_IDENTIFIER OFF;
-SET ANSI_PADDING ON;
-SET CONCAT_NULL_YIELDS_NULL ON;
-SET ANSI_WARNINGS ON;
-SET NUMERIC_ROUNDABORT OFF;
-SET ARITHABORT ON;
-GO
+IF DB_NAME() = 'master'
+	raiserror ('Kindly execute all queries in [DBA] database', 20, -1) with log;
+go
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'usp_GetAllServerInfo')
     EXEC ('CREATE PROC dbo.usp_GetAllServerInfo AS SELECT ''stub version, to be replaced''')
 GO
 
--- DROP PROCEDURE dbo.usp_GetAllServerInfo 
-ALTER PROCEDURE dbo.usp_GetAllServerInfo 
+-- DROP PROCEDURE dbo.usp_GetAllServerInfo
+go
+
+ALTER PROCEDURE dbo.usp_GetAllServerInfo
 (	@servers varchar(max) = null, /* comma separated list of servers to query */
 	@blocked_threshold_seconds int = 60, 
 	@output nvarchar(max) = null, /* comma separated list of columns required in output */
@@ -28,7 +31,10 @@ BEGIN
 		Version:		1.0.0
 		Date:			2022-05-16
 
-		exec dbo.usp_GetAllServerInfo
+		declare @srv_name varchar(125) = convert(varchar,serverproperty('MachineName'));
+		exec dbo.usp_GetAllServerInfo @servers = @srv_name
+		--exec dbo.usp_GetAllServerInfo @servers = 'Workstation,SqlPractice,SqlMonitor' ,@output = 'srv_name, os_start_time_utc'
+		--exec dbo.usp_GetAllServerInfo @servers = 'SQLMONITOR' ,@output = 'system_high_memory_signal_state'
 		https://stackoverflow.com/questions/10191193/how-to-test-linkedservers-connectivity-in-tsql
 	*/
 	SET NOCOUNT ON; 
@@ -324,18 +330,7 @@ BEGIN
 			delete from @_result;
 			set @_sql =  "
 SET QUOTED_IDENTIFIER ON;
-SELECT /*
-		event_time
-		event_time_utc
-		*/
-		system_cpu
-		/*
-		,sql_cpu
-		,idle_system_cpu
-		,user_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]
-		,kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]
-		,page_faults_kb
-		*/
+SELECT system_cpu
 FROM (
 		SELECT	DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time
 				,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc
@@ -353,7 +348,6 @@ FROM (
 				ORDER BY [timestamp] DESC
 		) AS rd
 ) as t;
-
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
@@ -385,18 +379,7 @@ FROM (
 			delete from @_result;
 			set @_sql =  "
 SET QUOTED_IDENTIFIER ON;
-SELECT /*
-		event_time
-		event_time_utc
-		system_cpu
-		*/
-		sql_cpu
-		/*
-		,idle_system_cpu
-		,user_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]
-		,kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]
-		,page_faults_kb
-		*/
+SELECT	sql_cpu
 FROM (
 		SELECT	DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time
 				,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc
@@ -446,18 +429,7 @@ FROM (
 			delete from @_result;
 			set @_sql =  "
 SET QUOTED_IDENTIFIER ON;
-SELECT /*
-		event_time
-		event_time_utc
-		system_cpu
-		sql_cpu
-		,idle_system_cpu
-		,user_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]
-		*/
-		kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]
-		/*
-		,page_faults_kb
-		*/
+SELECT	kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]
 FROM (
 		SELECT	DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time
 				,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc
@@ -507,16 +479,7 @@ FROM (
 			delete from @_result;
 			set @_sql =  "
 SET QUOTED_IDENTIFIER ON;
-SELECT /*
-		event_time
-		event_time_utc
-		system_cpu
-		sql_cpu
-		,idle_system_cpu
-		,user_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_user_mode]
-		kernel_mode_time_ms * 100 / (user_mode_time_ms + kernel_mode_time_ms) as [pcnt_kernel_mode]
-		*/
-		page_faults_kb
+SELECT page_faults_kb
 FROM (
 		SELECT	DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS event_time
 				,DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE())) AS event_time_utc
@@ -1432,10 +1395,4 @@ SELECT	[@server_minor_version_number] = @server_minor_version_number
 END
 set quoted_identifier on;
 GO
-
-declare @srv_name varchar(125) = convert(varchar,serverproperty('MachineName'));
-exec dbo.usp_GetAllServerInfo @servers = @srv_name
---exec dbo.usp_GetAllServerInfo @servers = 'Workstation,SqlPractice,SqlMonitor' ,@output = 'srv_name, os_start_time_utc'
---exec dbo.usp_GetAllServerInfo @servers = 'SQLMONITOR' ,@output = 'system_high_memory_signal_state'
-go
 

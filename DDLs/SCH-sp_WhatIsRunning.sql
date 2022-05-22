@@ -1,5 +1,6 @@
-USE [DBA]
-GO
+IF DB_NAME() = 'master'
+	raiserror ('Kindly execute all queries in [DBA] database', 20, -1) with log;
+go
 
 SET QUOTED_IDENTIFIER ON;
 SET ANSI_PADDING ON;

@@ -1,8 +1,9 @@
-USE master
-GO
+IF DB_NAME() <> 'master'
+	raiserror ('Kindly execute all queries in [master] database', 20, -1) with log;
+go
 
 /*
-SELECT @@servername, * FROM sys.master_files where database_id = DB_ID('DBA')
+SELECT top 1 physical_name FROM sys.master_files where database_id = DB_ID('DBA') and type_desc = 'ROWS' and physical_name not like 'C:\%' order by file_id;
 EXEC xp_create_subdir 'E:\Data\xevents'
 */
 go

@@ -1,6 +1,3 @@
-USE [DBA]
-GO
-
 /*
 	Version -> v2.0.0
 	-----------------
@@ -49,82 +46,95 @@ IF DB_NAME() = 'master'
 go
 
 /* ****** 1) Partition function for [datetime2] & [datetime] ******* */
-create partition function pf_dba (datetime2)
-as range right for values ('2022-03-25 00:00:00.0000000')
-go
-create partition function pf_dba_datetime (datetime)
-as range right for values ('2022-03-25 00:00:00.000')
-go
-
 
 /* ****** 2) Partition Scheme for [datetime2] & [datetime] ******* */
-create partition scheme ps_dba as partition pf_dba all to ([primary])
-go
-create partition scheme ps_dba_datetime as partition pf_dba_datetime all to ([primary])
-go
-
 
 /* ***** 3) Create table dbo.instance_hosts ***************************** */
 -- drop table dbo.instance_hosts;
-create table dbo.instance_hosts
-(
-	[host_name] varchar(255) not null,
-	constraint pk_instance_hosts primary key clustered ([host_name])
-)
+if object_id('dbo.instance_hosts') is null
+begin
+	create table dbo.instance_hosts
+	(
+		[host_name] varchar(255) not null,
+		constraint pk_instance_hosts primary key clustered ([host_name])
+	)
+end
 go
 
-insert dbo.instance_hosts
-select [host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS'));
+if not exists (select * from dbo.instance_hosts where host_name = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')))
+begin
+	insert dbo.instance_hosts 
+	select [host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS'));
+end
 go
 
 
 /* ***** 4) Create table dbo.instance_details ***************************** */
 -- drop table dbo.instance_details;
-create table dbo.instance_details
-(
-	[sql_instance] varchar(255) not null,
-	[host_name] varchar(255) not null,
-	[collector_sql_instance] varchar(255) null default convert(varchar,serverproperty('MachineName')),
-	constraint pk_instance_details primary key clustered ([sql_instance], [host_name]), 
-	constraint fk_host_name foreign key ([host_name]) references dbo.instance_hosts ([host_name])
-)
+if object_id('dbo.instance_details') is null
+begin
+	create table dbo.instance_details
+	(
+		[sql_instance] varchar(255) not null,
+		[host_name] varchar(255) not null,
+		[collector_sql_instance] varchar(255) null default convert(varchar,serverproperty('MachineName')),
+		constraint pk_instance_details primary key clustered ([sql_instance], [host_name]), 
+		constraint fk_host_name foreign key ([host_name]) references dbo.instance_hosts ([host_name])
+	)
+end
 go
 
-insert dbo.instance_details ( [sql_instance], [host_name], [collector_sql_instance] )
-select	[sql_instance] = convert(varchar,serverproperty('MachineName')),
-		--[ip] = convert(varchar,CONNECTIONPROPERTY('local_net_address')),
-		[host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')),
-		--[service_name] = case when @@servicename = 'MSSQLSERVER' then @@servicename else 'MSSQL$'+@@servicename end,
-		[collector_sql_instance] = convert(varchar,serverproperty('MachineName'))
-		--[collector_sql_instance] = convert(varchar,CONNECTIONPROPERTY('local_net_address'))
+if not exists (select * from dbo.instance_details where sql_instance = convert(varchar,serverproperty('MachineName')))
+begin
+	insert dbo.instance_details ( [sql_instance], [host_name], [collector_sql_instance] )
+	select	[sql_instance] = convert(varchar,serverproperty('MachineName')),
+			--[ip] = convert(varchar,CONNECTIONPROPERTY('local_net_address')),
+			[host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')),
+			--[service_name] = case when @@servicename = 'MSSQLSERVER' then @@servicename else 'MSSQL$'+@@servicename end,
+			[collector_sql_instance] = convert(varchar,serverproperty('MachineName'))
+			--[collector_sql_instance] = convert(varchar,CONNECTIONPROPERTY('local_net_address'))
+end
 go
 
 
 /* ***** 5) Create table [dbo].[performance_counters] using Partition scheme ***************** */
 -- drop table [dbo].[performance_counters]
-create table [dbo].[performance_counters]
-(
-	[collection_time_utc] [datetime2](7) NOT NULL,
-	[host_name] [varchar](255) NOT NULL,
-	[path] [nvarchar](2000) NOT NULL,
-	[object] [varchar](255) NOT NULL,
-	[counter] [varchar](255) NOT NULL,
-	[value] numeric(38,10) NULL,
-	[instance] [varchar](255) NULL
-) 
+if object_id('[dbo].[performance_counters]') is null
+begin
+	create table [dbo].[performance_counters]
+	(
+		[collection_time_utc] [datetime2](7) NOT NULL,
+		[host_name] [varchar](255) NOT NULL,
+		[path] [nvarchar](2000) NOT NULL,
+		[object] [varchar](255) NOT NULL,
+		[counter] [varchar](255) NOT NULL,
+		[value] numeric(38,10) NULL,
+		[instance] [varchar](255) NULL
+	) --on ps_dba ([collection_time_utc])
+end
 go
 
-create clustered index ci_performance_counters on [dbo].[performance_counters] 
-	([collection_time_utc], [host_name], object, counter, [instance], [value]) 
+if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[performance_counters]') and name = 'ci_performance_counters')
+begin
+	create clustered index ci_performance_counters on [dbo].[performance_counters] 
+	([collection_time_utc], [host_name], object, counter, [instance], [value]) --on ps_dba ([collection_time_utc])
+end
 go
-create nonclustered index nci_counter_collection_time_utc
-	on [dbo].[performance_counters] ([counter],[collection_time_utc]) 
+if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[performance_counters]') and name = 'nci_counter_collection_time_utc')
+begin
+	create nonclustered index nci_counter_collection_time_utc
+	on [dbo].[performance_counters] ([counter],[collection_time_utc]) --on ps_dba ([collection_time_utc])
+end
 GO
 
 
 /* ***** 6) Create View [dbo].[vw_performance_counters] for Multi SqlCluster on same nodes Architecture */
 -- drop view dbo.vw_performance_counters
-create view dbo.vw_performance_counters
+if OBJECT_ID('dbo.vw_performance_counters') is null
+	exec ('create view dbo.vw_performance_counters as select 1 as dummy;');
+go
+
+alter view dbo.vw_performance_counters
 --with schemabinding
 as
 with cte_counters_local as (select collection_time_utc, host_name, path, object, counter, value, instance from dbo.performance_counters)
@@ -138,54 +148,78 @@ go
 
 /* ***** 7) Create dbo.perfmon_files table using Partition scheme ***************** */
 -- drop table [dbo].[perfmon_files]
-CREATE TABLE [dbo].[perfmon_files]
-(
-	[host_name] [varchar](255) NOT NULL,
-	[file_name] [varchar](255) NOT NULL,
-	[file_path] [varchar](255) NOT NULL,
-	[collection_time_utc] [datetime2](7) NOT NULL default sysutcdatetime(),
-	CONSTRAINT [pk_perfmon_files] PRIMARY KEY CLUSTERED 
+if OBJECT_ID('[dbo].[perfmon_files]') is null
+begin
+	CREATE TABLE [dbo].[perfmon_files]
 	(
-		[file_name] ASC,
-		[collection_time_utc] ASC
-	) 
-) 
+		[host_name] [varchar](255) NOT NULL,
+		[file_name] [varchar](255) NOT NULL,
+		[file_path] [varchar](255) NOT NULL,
+		[collection_time_utc] [datetime2](7) NOT NULL default sysutcdatetime(),
+		CONSTRAINT [pk_perfmon_files] PRIMARY KEY CLUSTERED 
+		(
+			[file_name] ASC,
+			[collection_time_utc] ASC
+		) --on ps_dba ([collection_time_utc])
+	) --on ps_dba ([collection_time_utc])
+end
 GO
 
 
 /* ***** 8) Create table [dbo].[os_task_list] using Partition scheme ***************** */
 -- drop table [dbo].[os_task_list]
-CREATE TABLE [dbo].[os_task_list]
-(	
-	[collection_time_utc] [datetime2](7) NOT NULL,
-	[host_name] [varchar](255) NOT NULL,
-	[task_name] [nvarchar](100) not null,
-	[pid] bigint not null,
-	[session_name] [varchar](20) null,
-	[memory_kb] bigint NULL,
-	[status] [varchar](30) NULL,
-	[user_name] [varchar](200) NOT NULL,
-	[cpu_time] [char](14) NOT NULL,
-	[cpu_time_seconds] bigint NOT NULL,
-	[window_title] [nvarchar](2000) NULL
-) 
+if OBJECT_ID('[dbo].[os_task_list]') is null
+begin
+	CREATE TABLE [dbo].[os_task_list]
+	(	
+		[collection_time_utc] [datetime2](7) NOT NULL,
+		[host_name] [varchar](255) NOT NULL,
+		[task_name] [nvarchar](100) not null,
+		[pid] bigint not null,
+		[session_name] [varchar](20) null,
+		[memory_kb] bigint NULL,
+		[status] [varchar](30) NULL,
+		[user_name] [varchar](200) NOT NULL,
+		[cpu_time] [char](14) NOT NULL,
+		[cpu_time_seconds] bigint NOT NULL,
+		[window_title] [nvarchar](2000) NULL
+	) --on ps_dba ([collection_time_utc])
+end
 go
 
-create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [host_name], [task_name]) 
+if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'ci_os_task_list')
+begin
+	create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [host_name], [task_name]) --on ps_dba ([collection_time_utc])
+end
 go
-create nonclustered index nci_user_name on [dbo].[os_task_list] ([collection_time_utc], [host_name], [user_name]) 
+if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'nci_user_name')
+begin
+	create nonclustered index nci_user_name on [dbo].[os_task_list] ([collection_time_utc], [host_name], [user_name]) --on ps_dba ([collection_time_utc])
+end
 go
-create nonclustered index nci_window_title on [dbo].[os_task_list] ([collection_time_utc], [host_name], [window_title]) 
+if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'nci_window_title')
+begin
+	create nonclustered index nci_window_title on [dbo].[os_task_list] ([collection_time_utc], [host_name], [window_title]) --on ps_dba ([collection_time_utc])
+end
 go
-create nonclustered index nci_cpu_time_seconds on [dbo].[os_task_list] ([collection_time_utc], [host_name], [cpu_time_seconds]) 
+if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'nci_cpu_time_seconds')
+begin
+	create nonclustered index nci_cpu_time_seconds on [dbo].[os_task_list] ([collection_time_utc], [host_name], [cpu_time_seconds]) --on ps_dba ([collection_time_utc])
+end
 go
-create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_time_utc], [host_name], [memory_kb]) 
+if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'nci_memory_kb')
+begin
+	create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_time_utc], [host_name], [memory_kb]) --on ps_dba ([collection_time_utc])
+end
 go
 
 
 /* ***** 9) Create View [dbo].[vw_os_task_list] for Multi SqlCluster on same nodes Architecture */
 -- drop view dbo.vw_os_task_list
-create view dbo.vw_os_task_list
+if OBJECT_ID('') is null
+	exec ('create view dbo.vw_os_task_list as select 1 as dummy;')
+go
+alter view dbo.vw_os_task_list
 --with schemabinding
 as
 with cte_os_tasks_local as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from dbo.os_task_list)
@@ -200,39 +234,49 @@ go
 
 /* ***** 10) Create table  [dbo].[wait_stats] using Partition scheme ***************** */
 -- drop table [dbo].[wait_stats]
-CREATE TABLE [dbo].[wait_stats]
-(
-	[collection_time_utc] datetime2 not null,
-	[wait_type] [nvarchar](60) NOT NULL,
-	[waiting_tasks_count] [bigint] NOT NULL,
-	[wait_time_ms] [bigint] NOT NULL,
-	[max_wait_time_ms] [bigint] NOT NULL,
-	[signal_wait_time_ms] [bigint] NOT NULL
-) 
+if OBJECT_ID('[dbo].[wait_stats]') is null
+begin
+	CREATE TABLE [dbo].[wait_stats]
+	(
+		[collection_time_utc] datetime2 not null,
+		[wait_type] [nvarchar](60) NOT NULL,
+		[waiting_tasks_count] [bigint] NOT NULL,
+		[wait_time_ms] [bigint] NOT NULL,
+		[max_wait_time_ms] [bigint] NOT NULL,
+		[signal_wait_time_ms] [bigint] NOT NULL
+	) --on ps_dba ([collection_time_utc])
+end
 GO
 
-alter table [dbo].[wait_stats] add primary key ([collection_time_utc], [wait_type]) 
+if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'nci_memory_kb')
+begin
+	alter table [dbo].[wait_stats] add primary key ([collection_time_utc], [wait_type]) --on ps_dba ([collection_time_utc])
+end
 go
 
 
 
 /* ***** 11) Create table  [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
 -- drop table [dbo].[BlitzFirst_WaitStats_Categories]
-CREATE TABLE [dbo].[BlitzFirst_WaitStats_Categories]
-(
-	[WaitType] [nvarchar](60) NOT NULL,
-	[WaitCategory] [nvarchar](128) NOT NULL,
-	[Ignorable] [bit] NULL,
-	PRIMARY KEY CLUSTERED (	[WaitType] ASC )
-)
+if OBJECT_ID('[dbo].[BlitzFirst_WaitStats_Categories]') is null
+begin
+	CREATE TABLE [dbo].[BlitzFirst_WaitStats_Categories]
+	(
+		[WaitType] [nvarchar](60) NOT NULL,
+		[WaitCategory] [nvarchar](128) NOT NULL,
+		[Ignorable] [bit] NULL default 0,
+		PRIMARY KEY CLUSTERED (	[WaitType] ASC )
+	)
+end
 GO
 
-ALTER TABLE [dbo].[BlitzFirst_WaitStats_Categories] ADD  DEFAULT ((0)) FOR [Ignorable]
-GO
 
 /* ***** 12) Create view  [dbo].[wait_stats] ***************** */
 -- DROP VIEW [dbo].[vw_wait_stats_deltas];
-CREATE VIEW [dbo].[vw_wait_stats_deltas] 
+if OBJECT_ID('[dbo].[vw_wait_stats_deltas]') is null
+	exec ('CREATE VIEW [dbo].[vw_wait_stats_deltas] AS SELECT 1 as Dummy');
+go
+ALTER VIEW [dbo].[vw_wait_stats_deltas]
 WITH SCHEMABINDING 
 AS
 WITH RowDates as ( 
@@ -267,28 +311,44 @@ GO
 
 
 /* ***** 13) Create required schemas ***************** */
-CREATE SCHEMA [bkp]
+if not exists (select * from sys.schemas where name = 'bkp')
+	exec ('CREATE SCHEMA [bkp]')
 GO
-CREATE SCHEMA [poc]
+if not exists (select * from sys.schemas where name = 'poc')
+	exec ('CREATE SCHEMA [poc]')
 GO
-CREATE SCHEMA [stg]
+if not exists (select * from sys.schemas where name = 'stg')
+	exec ('CREATE SCHEMA [stg]')
 GO
-CREATE SCHEMA [tst]
+if not exists (select * from sys.schemas where name = 'tst')
+	exec ('CREATE SCHEMA [tst]')
 GO
 
+select * from sys.databases where name = DB_NAME() and is_trustworthy_on = 1
 
 /* ***** 14) Set DBA database trustworthy & [sa] owner ***************** */
 declare @dbname nvarchar(255);
 set @dbname=quotename(db_name());
 
-exec('alter database '+@dbname+' set trustworthy on');
-exec('alter authorization on database::'+@dbname+' to [sa]');
+if not exists (select * from sys.databases where name = DB_NAME() and is_trustworthy_on = 1)
+begin
+	print 'Set '+quotename(@dbname)+' trustworthy on';
+	exec('alter database '+@dbname+' set trustworthy on');
+end
+if not exists (select * from sys.databases where name = DB_NAME() and owner_sid = SUSER_SID('sa'))
+begin
+	print 'Set '+quotename(@dbname)+' owner to [sa]';
+	exec('alter authorization on database::'+@dbname+' to [sa]');
+end
 go
 
 
 /* ***** 15) Create procedure dbo.usp_extended_results ***************** */
 -- drop procedure usp_extended_results
-create procedure dbo.usp_extended_results @processor_name nvarchar(500) = null output, @host_distribution nvarchar(500) = null output, @fqdn nvarchar(100) = null output
+if OBJECT_ID('dbo.usp_extended_results') is null
+	exec('create procedure dbo.usp_extended_results as select 1 as dummy;')
+go
+alter procedure dbo.usp_extended_results @processor_name nvarchar(500) = null output, @host_distribution nvarchar(500) = null output, @fqdn nvarchar(100) = null output
 with execute as owner
 as
 begin
@@ -303,124 +363,77 @@ begin
 	-- FQDN
 	EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain', @fqdn OUTPUT;     
 	SET @fqdn = Cast(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @fqdn;
-	
 end
 go
 
 
 /* ***** 16) Create table [dbo].[resource_consumption] ***************** */
 -- DROP TABLE [dbo].[resource_consumption]
-CREATE TABLE [dbo].[resource_consumption]
-(
-	[row_id] [bigint] identity(1,1) NOT NULL,
-	[start_time] [datetime2](7) NOT NULL,
-	[event_time] [datetime2](7) NOT NULL,
-	[event_name] [nvarchar](60) NOT NULL,
-	[session_id] [int] NOT NULL,
-	[request_id] [int] NOT NULL,
-	[result] [varchar](50) NULL,
-	[database_name] [varchar](255) NULL,
-	[client_app_name] [varchar](255) NULL,
-	[username] [varchar](255) NULL,
-	[cpu_time] [bigint] NULL,
-	[duration_seconds] [bigint] NULL,
-	[logical_reads] [bigint] NULL,
-	[physical_reads] [bigint] NULL,
-	[row_count] [bigint] NULL,
-	[writes] [bigint] NULL,
-	[spills] [bigint] NULL,
-	[sql_text] [varchar](max) NULL,
-	[query_hash] [varbinary](255) NULL,
-	[query_plan_hash] [varbinary](255) NULL,
-	[client_hostname] [varchar](255) NULL,
-	[session_resource_pool_id] [int] NULL,
-	[session_resource_group_id] [int] NULL,
-	[scheduler_id] [int] NULL
-	,constraint pk_resource_consumption primary key clustered (event_time,start_time,[row_id])
-) on ps_dba ([event_time])
+IF OBJECT_ID('[dbo].[resource_consumption]') IS NULL
+BEGIN
+	CREATE TABLE [dbo].[resource_consumption]
+	(
+		[row_id] [bigint] identity(1,1) NOT NULL,
+		[start_time] [datetime2](7) NOT NULL,
+		[event_time] [datetime2](7) NOT NULL,
+		[event_name] [nvarchar](60) NOT NULL,
+		[session_id] [int] NOT NULL,
+		[request_id] [int] NOT NULL,
+		[result] [varchar](50) NULL,
+		[database_name] [varchar](255) NULL,
+		[client_app_name] [varchar](255) NULL,
+		[username] [varchar](255) NULL,
+		[cpu_time] [bigint] NULL,
+		[duration_seconds] [bigint] NULL,
+		[logical_reads] [bigint] NULL,
+		[physical_reads] [bigint] NULL,
+		[row_count] [bigint] NULL,
+		[writes] [bigint] NULL,
+		[spills] [bigint] NULL,
+		[sql_text] [varchar](max) NULL,
+		[query_hash] [varbinary](255) NULL,
+		[query_plan_hash] [varbinary](255) NULL,
+		[client_hostname] [varchar](255) NULL,
+		[session_resource_pool_id] [int] NULL,
+		[session_resource_group_id] [int] NULL,
+		[scheduler_id] [int] NULL
+		,constraint pk_resource_consumption primary key clustered (event_time,start_time,[row_id]) --on ps_dba ([event_time])
+	) --on ps_dba ([event_time])
+END
 GO
 
-create unique index uq_resource_consumption on [dbo].[resource_consumption]  ([start_time], [event_time], [row_id])
+if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[resource_consumption]') and name = 'uq_resource_consumption')
+begin
+	create unique index uq_resource_consumption on [dbo].[resource_consumption]  ([start_time], [event_time], [row_id]) --on ps_dba ([start_time])
+end
 GO
 
 /* ***** 17) Create table [dbo].[resource_consumption_Processed_XEL_Files] ***************** */
 -- drop table dbo.resource_consumption_Processed_XEL_Files
-create table dbo.resource_consumption_Processed_XEL_Files
-( file_path varchar(2000) not null, collection_time_utc datetime2 not null default SYSUTCDATETIME(), is_processed bit default 0 not null, is_removed_from_disk bit default 0 not null );
+if OBJECT_ID('dbo.resource_consumption_Processed_XEL_Files') is null
+begin
+	create table dbo.resource_consumption_Processed_XEL_Files
+	( file_path varchar(2000) not null, collection_time_utc datetime2 not null default SYSUTCDATETIME(), is_processed bit default 0 not null, is_removed_from_disk bit default 0 not null );
+end
 go
 
-alter table dbo.resource_consumption_Processed_XEL_Files add constraint pk_resource_consumption_Processed_XEL_Files primary key clustered (file_path,  collection_time_utc);
+if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[resource_consumption_Processed_XEL_Files]') and name = 'pk_resource_consumption_Processed_XEL_Files')
+begin
+	alter table dbo.resource_consumption_Processed_XEL_Files add constraint pk_resource_consumption_Processed_XEL_Files primary key clustered (file_path,  collection_time_utc);
+end
 GO
 
 
 /* ***** 18) Add boundaries to partition. 1 boundary per hour ***************** */
-set nocount on;
-declare @current_boundary_value datetime2;
-declare @target_boundary_value datetime2; /* last day of new quarter */
-set @target_boundary_value = DATEADD (dd, -1, DATEADD(qq, DATEDIFF(qq, 0, GETDATE()) +2, 0));
-
-select top 1 @current_boundary_value = convert(datetime2,prv.value)
-from sys.partition_range_values prv
-join sys.partition_functions pf on pf.function_id = prv.function_id
-where pf.name = 'pf_dba'
-order by prv.value desc;
-
-if(@current_boundary_value is null)
-begin
-	select 'Error - @current_boundary_value is NULL. So set to 2 Days back.';
-	set @current_boundary_value = dateadd(hour,-48,cast(cast(getdate() as date) as datetime))
-end
-
-select [@current_boundary_value] = @current_boundary_value, [@target_boundary_value] = @target_boundary_value;
-
--- Set current boundary to current time. So that no time waste in creating old partitions
-set @current_boundary_value = dateadd(hour,datediff(hour,convert(date,getutcdate()),getutcdate())-1,cast(convert(date,getutcdate())as datetime2));
-
-while (@current_boundary_value < @target_boundary_value)
-begin
-	set @current_boundary_value = DATEADD(hour,1,@current_boundary_value);
-	--print @current_boundary_value
-	alter partition scheme ps_dba next used [primary];
-	alter partition function pf_dba() split range (@current_boundary_value);	
-end
-go
-
 
 /* ***** 19) Remove boundaries with retention of 3 months ***************** */
-set nocount on;
-declare @partition_boundary datetime2;
-declare @target_boundary_value datetime2; /* 3 months back date */
-set @target_boundary_value = DATEADD(mm,DATEDIFF(mm,0,GETDATE())-3,0);
-
-select @target_boundary_value as [@target_boundary_value];
-
-declare cur_boundaries cursor local fast_forward for
-		select convert(datetime2,prv.value) as boundary_value
-		from sys.partition_range_values prv
-		join sys.partition_functions pf on pf.function_id = prv.function_id
-		where pf.name = 'pf_dba' and convert(datetime2,prv.value) < @target_boundary_value
-		order by prv.value asc;
-
-open cur_boundaries;
-fetch next from cur_boundaries into @partition_boundary;
-while @@FETCH_STATUS = 0
-begin
-	--print @partition_boundary
-	alter partition function pf_dba() merge range (@partition_boundary);
-
-	fetch next from cur_boundaries into @partition_boundary;
-end
-CLOSE cur_boundaries
-DEALLOCATE cur_boundaries;
-go
-
 
 /* ***** 20) Validate Partition Data ***************** */
 -- Check query 'SQL-Queries\check-table-partitions.sql'
 
 /* ***** 21) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
 IF OBJECT_ID('[dbo].[BlitzFirst_WaitStats_Categories]') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM [dbo].[BlitzFirst_WaitStats_Categories])
-BEGIN
+BEGIN TRAN
 	--TRUNCATE TABLE [dbo].[BlitzFirst_WaitStats_Categories];
 	INSERT INTO [dbo].[BlitzFirst_WaitStats_Categories](WaitType, WaitCategory, Ignorable) VALUES ('ASYNC_IO_COMPLETION','Other Disk IO',0);
 	INSERT INTO [dbo].[BlitzFirst_WaitStats_Categories](WaitType, WaitCategory, Ignorable) VALUES ('ASYNC_NETWORK_IO','Network IO',0);
@@ -949,5 +962,5 @@ BEGIN
 	INSERT INTO [dbo].[BlitzFirst_WaitStats_Categories](WaitType, WaitCategory, Ignorable) VALUES ('XE_DISPATCHER_WAIT','Idle',1);
 	INSERT INTO [dbo].[BlitzFirst_WaitStats_Categories](WaitType, WaitCategory, Ignorable) VALUES ('XE_LIVE_TARGET_TVF','Other',1);
 	INSERT INTO [dbo].[BlitzFirst_WaitStats_Categories](WaitType, WaitCategory, Ignorable) VALUES ('XE_TIMER_EVENT','Idle',1);
-END
+COMMIT TRAN
 GO
