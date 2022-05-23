@@ -68,5 +68,6 @@ QuitWithRollback:
 EndSave:
 GO
 
-EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Update-SqlServerVersions';
+IF APP_NAME() = 'Microsoft SQL Server Management Studio - Query'
+	EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Update-SqlServerVersions';
 GO

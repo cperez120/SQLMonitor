@@ -71,3 +71,6 @@ QuitWithRollback:
 EndSave:
 GO
 
+IF APP_NAME() = 'Microsoft SQL Server Management Studio - Query'
+	EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Collect-PerfmonData'
+GO
