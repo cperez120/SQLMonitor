@@ -3,6 +3,18 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
+        <ConnectionNode Name="Demo\SQL2019:sa">
+          <Created>2022-05-23T23:44:05.6404714+05:30</Created>
+          <Type>SQL</Type>
+          <Server>Demo\SQL2019</Server>
+          <UserName>sa</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="Localhost:LAB\adwivedi">
           <Created>2022-04-22T22:49:27.0461072+05:30</Created>
           <Type>SQL</Type>
@@ -62,9 +74,9 @@
           <FullPath>blocking-time-series.sql</FullPath>
         </FileNode>
         <FileNode Name="check-domain-ip-hostname.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
-          <AssociatedConnUserName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Demo\SQL2019:False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Demo\SQL2019</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
           <FullPath>check-domain-ip-hostname.sql</FullPath>
         </FileNode>
         <FileNode Name="check-table-partitions.sql">

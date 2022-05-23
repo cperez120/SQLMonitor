@@ -79,7 +79,8 @@ begin
 end
 go
 
-if not exists (select * from dbo.instance_hosts where host_name = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')))
+
+if ( (APP_NAME() = 'Microsoft SQL Server Management Studio - Query') and (not exists (select * from dbo.instance_hosts where host_name = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')))) )
 begin
 	insert dbo.instance_hosts 
 	select [host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS'));
@@ -102,7 +103,7 @@ begin
 end
 go
 
-if not exists (select * from dbo.instance_details where sql_instance = convert(varchar,serverproperty('MachineName')))
+if ( (APP_NAME() = 'Microsoft SQL Server Management Studio - Query') and (not exists (select * from dbo.instance_details where sql_instance = convert(varchar,serverproperty('MachineName')))) )
 begin
 	insert dbo.instance_details ( [sql_instance], [host_name], [collector_sql_instance] )
 	select	[sql_instance] = convert(varchar,serverproperty('MachineName')),
