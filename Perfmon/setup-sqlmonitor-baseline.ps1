@@ -4,7 +4,7 @@ Param (
     $SqlInstanceToBaseline,
 
     [Parameter(Mandatory=$false)]
-    $DbaDatabase = 'DBA',
+    $DbaDatabase,
 
     [Parameter(Mandatory=$false)]
     $SqlInstanceAsDataDestination,
@@ -13,7 +13,7 @@ Param (
     $SqlInstanceForDataCollectionJobs,
 
     [Parameter(Mandatory=$false)]
-    $InventoryServer = 'SQLMonitor',
+    $InventoryServer,
 
     [Parameter(Mandatory=$false)]
     $HostName,
@@ -21,7 +21,7 @@ Param (
     [Switch]$IsNonPartitioned,
 
     [Parameter(Mandatory=$false)]
-    [String]$SQLMonitorPath = "F:\GitHub\SQLMonitor",
+    [String]$SQLMonitorPath,
 
     [Parameter(Mandatory=$true)]
     [String]$DbaToolsFolderPath,
@@ -86,34 +86,34 @@ Param (
     [Parameter(Mandatory=$false)]
     [ValidateSet("1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
                 "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__OlaHallengrenSolutionObjects",
-                "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__GrafanaLogin", 
-                "10__CopyDbaToolsModule2Host", "11__CopyPerfmonFolder2Host", "12__SetupPerfmonDataCollector",
-                "13__CreateJobCollectOSProcesses", "14__CreateJobCollectPerfmonData", "15__CreateJobCollectWaitStats",
-                "16__CreateJobCollectXEvents", "17__CreateJobPartitionsMaintenance", "18__CreateJobPurgeDbaMetrics",
-                "19__CreateJobRemoveXEventFiles", "20__CreateJobRunWhoIsActive", "21__CreateJobUpdateSqlServerVersions",
-                "22__LinkedServerOnInventory", "23__WhoIsActivePartition")]
+                "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
+                "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses",
+                "13__CreateJobCollectPerfmonData", "14__CreateJobCollectWaitStats", "15__CreateJobCollectXEvents",
+                "16__CreateJobPartitionsMaintenance", "17__CreateJobPurgeDbaMetrics", "18__CreateJobRemoveXEventFiles",
+                "19__CreateJobRunWhoIsActive", "20__CreateJobUpdateSqlServerVersions", "21__WhoIsActivePartition",
+                "22__GrafanaLogin", "23__LinkedServerOnInventory")]
     [String]$StartAtStep = "1__sp_WhoIsActive",
 
     [Parameter(Mandatory=$false)]
     [ValidateSet("1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
                 "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__OlaHallengrenSolutionObjects",
-                "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__GrafanaLogin", 
-                "10__CopyDbaToolsModule2Host", "11__CopyPerfmonFolder2Host", "12__SetupPerfmonDataCollector",
-                "13__CreateJobCollectOSProcesses", "14__CreateJobCollectPerfmonData", "15__CreateJobCollectWaitStats",
-                "16__CreateJobCollectXEvents", "17__CreateJobPartitionsMaintenance", "18__CreateJobPurgeDbaMetrics",
-                "19__CreateJobRemoveXEventFiles", "20__CreateJobRunWhoIsActive", "21__CreateJobUpdateSqlServerVersions",
-                "22__LinkedServerOnInventory", "23__WhoIsActivePartition")]
+                "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
+                "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses",
+                "13__CreateJobCollectPerfmonData", "14__CreateJobCollectWaitStats", "15__CreateJobCollectXEvents",
+                "16__CreateJobPartitionsMaintenance", "17__CreateJobPurgeDbaMetrics", "18__CreateJobRemoveXEventFiles",
+                "19__CreateJobRunWhoIsActive", "20__CreateJobUpdateSqlServerVersions", "21__WhoIsActivePartition",
+                "22__GrafanaLogin", "23__LinkedServerOnInventory")]
     [String[]]$SkipSteps,
 
     [Parameter(Mandatory=$false)]
     [ValidateSet("1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
                 "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__OlaHallengrenSolutionObjects",
-                "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__GrafanaLogin", 
-                "10__CopyDbaToolsModule2Host", "11__CopyPerfmonFolder2Host", "12__SetupPerfmonDataCollector",
-                "13__CreateJobCollectOSProcesses", "14__CreateJobCollectPerfmonData", "15__CreateJobCollectWaitStats",
-                "16__CreateJobCollectXEvents", "17__CreateJobPartitionsMaintenance", "18__CreateJobPurgeDbaMetrics",
-                "19__CreateJobRemoveXEventFiles", "20__CreateJobRunWhoIsActive", "21__CreateJobUpdateSqlServerVersions",
-                "22__LinkedServerOnInventory", "23__WhoIsActivePartition")]
+                "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
+                "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses",
+                "13__CreateJobCollectPerfmonData", "14__CreateJobCollectWaitStats", "15__CreateJobCollectXEvents",
+                "16__CreateJobPartitionsMaintenance", "17__CreateJobPurgeDbaMetrics", "18__CreateJobRemoveXEventFiles",
+                "19__CreateJobRunWhoIsActive", "20__CreateJobUpdateSqlServerVersions", "21__WhoIsActivePartition",
+                "22__GrafanaLogin", "23__LinkedServerOnInventory")]
     [String]$StopAtStep,
 
     [Parameter(Mandatory=$false)]
@@ -127,12 +127,12 @@ Param (
 # All Steps
 $AllSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
                 "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__OlaHallengrenSolutionObjects",
-                "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__GrafanaLogin", 
-                "10__CopyDbaToolsModule2Host", "11__CopyPerfmonFolder2Host", "12__SetupPerfmonDataCollector",
-                "13__CreateJobCollectOSProcesses", "14__CreateJobCollectPerfmonData", "15__CreateJobCollectWaitStats",
-                "16__CreateJobCollectXEvents", "17__CreateJobPartitionsMaintenance", "18__CreateJobPurgeDbaMetrics",
-                "19__CreateJobRemoveXEventFiles", "20__CreateJobRunWhoIsActive", "21__CreateJobUpdateSqlServerVersions",
-                "22__LinkedServerOnInventory", "23__WhoIsActivePartition")
+                "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
+                "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses",
+                "13__CreateJobCollectPerfmonData", "14__CreateJobCollectWaitStats", "15__CreateJobCollectXEvents",
+                "16__CreateJobPartitionsMaintenance", "17__CreateJobPurgeDbaMetrics", "18__CreateJobRemoveXEventFiles",
+                "19__CreateJobRunWhoIsActive", "20__CreateJobUpdateSqlServerVersions", "21__WhoIsActivePartition",
+                "22__GrafanaLogin", "23__LinkedServerOnInventory")
 
 cls
 $startTime = Get-Date
@@ -163,7 +163,6 @@ if([String]::IsNullOrEmpty($SqlInstanceForDataCollectionJobs)) {
 }
 
 # Set windows credential
-Write-Debug "Set windows credential"
 if( [String]::IsNullOrEmpty($WindowsCredential) -and (-not [String]::IsNullOrEmpty($SqlCredential)) -and $SqlCredential.UserName -like "*\*" ) {
     $WindowsCredential = $SqlCredential
 }
@@ -180,6 +179,7 @@ $WindowsCredential | ft -AutoSize
 # Construct File Path Variables
 $ddlPath = Join-Path $SQLMonitorPath "DDLs"
 $perfmonPath = Join-Path $SQLMonitorPath "Perfmon"
+
 $mailProfileFilePath = "$ddlPath\$MailProfileFileName"
 $WhoIsActiveFilePath = "$ddlPath\$WhoIsActiveFileName"
 $AllDatabaseObjectsFilePath = "$ddlPath\$AllDatabaseObjectsFileName"
@@ -198,6 +198,7 @@ $RemoveXEventFilesFilePath = "$ddlPath\$RemoveXEventFilesFileName"
 $RunWhoIsActiveFilePath = "$ddlPath\$RunWhoIsActiveFileName"
 $UpdateSqlServerVersionsFilePath = "$ddlPath\$UpdateSqlServerVersionsFileName"
 $LinkedServerOnInventoryFilePath = "$ddlPath\$LinkedServerOnInventoryFileName"
+$WhoIsActivePartitionFilePath = "$ddlPath\$WhoIsActivePartitionFileName"
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ddlPath = '$ddlPath'"
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$perfmonPath = '$perfmonPath'"
@@ -232,6 +233,7 @@ $Steps2Execute += $Steps2ExecuteRaw | ForEach-Object {
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Total steps to execute -> $($Steps2Execute.Count)."
 
 
+Write-Debug "Hi There"
 # Get Server Info
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching basic server info.."
 $sqlServerInfo = @"
@@ -249,13 +251,18 @@ select	default_domain() as [domain],
 		SERVERPROPERTY('ProductLevel') AS ProductLevel
 		--,instant_file_initialization_enabled
 		--,*
-from sys.dm_server_services where servicename like 'SQL Server (%)'
+from sys.dm_server_services 
+where servicename like 'SQL Server (%)'
+or servicename like 'SQL Server Agent (%)'
 "@
-$sqlServerInfo = Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Query $sqlServerInfo -SqlCredential $SqlCredential -EnableException
+$sqlServerServicesInfo = Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Query $sqlServerInfo -SqlCredential $SqlCredential -EnableException
+$sqlServerInfo = $sqlServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server (*)"}
+$sqlServerAgentInfo = $sqlServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server Agent (*)"}
 $sqlServerInfo | Format-Table -AutoSize
+$sqlServerAgentInfo | Format-Table -AutoSize
 
 $requireProxy = $false
-if ($sqlServerInfo.service_account -like 'NT Service*') {
+if ($sqlServerAgentInfo.service_account -like 'NT Service*') {
     $requireProxy = $true
 }
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$requireProxy = $requireProxy"
@@ -269,9 +276,9 @@ if($sqlServerInfo.domain -eq 'WORKGROUP' -and [String]::IsNullOrEmpty($SqlCreden
 
 # Service Account & Access Validation
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validate for WindowsCredential if SQL Service Accounts are local.."
-if( ($sqlServerInfo.service_account -like 'NT Service*') -and ([String]::IsNullOrEmpty($WindowsCredential)) ) {
+if( ($sqlServerAgentInfo.service_account -like 'NT Service*') -and ([String]::IsNullOrEmpty($WindowsCredential)) ) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "SQL Service account is local account." | Write-Host -ForegroundColor Red
-    "Kindly provide WindowsCre that is admin on OS & SQL Server." | Write-Host -ForegroundColor Red
+    "Kindly provide WindowsCredential that is admin on OS & SQL Server." | Write-Host -ForegroundColor Red
     Write-Error "Stop here. Fix above issue."
 }
 
@@ -303,7 +310,15 @@ if([String]::IsNullOrEmpty($HostName)) {
 
 # Setup PSSession on Host
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Create PSSession for host [$HostName].."
-$ssn = New-PSSession -ComputerName $HostName -Credential $WindowsCredential
+$ssnHostName = $HostName
+if (-not (Test-Connection -ComputerName $HostName -Quiet -Count 1)) {
+    $ssnHostName = $SqlInstanceToBaseline
+}
+if($env:USERDOMAIN -eq $sqlServerInfo.domain) {
+    $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential
+} else {
+    $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential -Authentication Negotiate
+}
 
 # Validate mail profile
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking for default global mail profile.."
@@ -393,8 +408,15 @@ if($stepName -in $Steps2Execute) {
     and physical_name not like 'C:\%' order by file_id;
 "@
     $dbaDatabasePath = Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -SqlCredential $SqlCredential -Query $sqlDbaDatabasePath -EnableException | Select-Object -ExpandProperty physical_name
-    
-    $xEventTargetPathDirectory = Join-Path $(Split-Path (Split-Path $dbaDatabasePath -Parent)) "xevents"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$dbaDatabasePath => '$dbaDatabasePath'.."
+
+    $xEventTargetPathParentDirectory = (Split-Path (Split-Path $dbaDatabasePath -Parent))
+    if($xEventTargetPathParentDirectory.Length -eq 3) {
+        $xEventTargetPathDirectory = "${xEventTargetPathParentDirectory}xevents"
+    } else {
+        $xEventTargetPathDirectory = Join-Path -Path $xEventTargetPathParentDirectory -ChildPath "xevents"
+    }
+
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Computed XEvent files directory -> '$xEventTargetPathDirectory'.."
     if(-not (Test-Path $($xEventTargetPathDirectory))) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Create directory '$xEventTargetPathDirectory' for XEvent files.."
@@ -455,21 +477,8 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
 }
 
 
-# 9__GrafanaLogin
-$stepName = '9__GrafanaLogin'
-if($stepName -in $Steps2Execute) {
-    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$GrafanaLoginFilePath = '$GrafanaLoginFilePath'"
-    #"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating All Objects in [$DbaDatabase] database.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Create [grafana] login & user with permissions on objects.."
-    $sqlGrafanaLogin = [System.IO.File]::ReadAllText($GrafanaLoginFilePath).Replace('[DBA]', "[$DbaDatabase]")
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -Query $sqlGrafanaLogin -SqlCredential $SqlCredential -EnableException
-}
-
-
-# 10__CopyDbaToolsModule2Host
-$stepName = '10__CopyDbaToolsModule2Host'
-Write-Debug $stepName
+# 9__CopyDbaToolsModule2Host
+$stepName = '9__CopyDbaToolsModule2Host'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$DbaToolsFolderPath = '$DbaToolsFolderPath'"
@@ -497,8 +506,8 @@ if($stepName -in $Steps2Execute) {
 }
 
 
-# 11__CopyPerfmonFolder2Host
-$stepName = '11__CopyPerfmonFolder2Host'
+# 10__CopyPerfmonFolder2Host
+$stepName = '10__CopyPerfmonFolder2Host'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$perfmonPath = '$perfmonPath'"
@@ -512,8 +521,8 @@ if($stepName -in $Steps2Execute) {
 }
 
 
-# 12__SetupPerfmonDataCollector
-$stepName = '12__SetupPerfmonDataCollector'
+# 11__SetupPerfmonDataCollector
+$stepName = '11__SetupPerfmonDataCollector'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Setup Data Collector set 'DBA' on host '$HostName'.."
@@ -525,8 +534,9 @@ if($stepName -in $Steps2Execute) {
 }
 
 
-# Create Credential & Proxy on SQL Server. If Instance being baselined is same as data collector job owner
-if( $SqlInstanceForDataCollectionJobs -eq $SqlInstanceToBaseline -and $requireProxy ) {
+# 12__CreateCredentialProxy. Create Credential & Proxy on SQL Server. If Instance being baselined is same as data collector job owner
+$stepName = '12__CreateCredentialProxy'
+if( $SqlInstanceForDataCollectionJobs -eq $SqlInstanceToBaseline -and $requireProxy) {
     $credentialName = $WindowsCredential.UserName
     $credentialPassword = $WindowsCredential.Password
 
@@ -548,8 +558,8 @@ if( $SqlInstanceForDataCollectionJobs -eq $SqlInstanceToBaseline -and $requirePr
 }
 
 
-# 13__CreateJobCollectOSProcesses
-$stepName = '13__CreateJobCollectOSProcesses'
+# 12__CreateJobCollectOSProcesses
+$stepName = '12__CreateJobCollectOSProcesses'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectOSProcessesFilePath = '$CollectOSProcessesFilePath'"
@@ -572,8 +582,8 @@ if($stepName -in $Steps2Execute) {
 }
 
 
-# 14__CreateJobCollectPerfmonData
-$stepName = '14__CreateJobCollectPerfmonData'
+# 13__CreateJobCollectPerfmonData
+$stepName = '13__CreateJobCollectPerfmonData'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectPerfmonDataFilePath = '$CollectPerfmonDataFilePath'"
@@ -596,8 +606,8 @@ if($stepName -in $Steps2Execute) {
 }
 
 
-# 15__CreateJobCollectWaitStats
-$stepName = '15__CreateJobCollectWaitStats'
+# 14__CreateJobCollectWaitStats
+$stepName = '14__CreateJobCollectWaitStats'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectWaitStatsFilePath = '$CollectWaitStatsFilePath'"
@@ -607,8 +617,8 @@ if($stepName -in $Steps2Execute) {
 }
 
 
-# 16__CreateJobCollectXEvents
-$stepName = '16__CreateJobCollectXEvents'
+# 15__CreateJobCollectXEvents
+$stepName = '15__CreateJobCollectXEvents'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectXEventsFilePath = '$CollectXEventsFilePath'"
@@ -618,8 +628,8 @@ if($stepName -in $Steps2Execute) {
 }
 
 
-# 17__CreateJobPartitionsMaintenance
-$stepName = '17__CreateJobPartitionsMaintenance'
+# 16__CreateJobPartitionsMaintenance
+$stepName = '16__CreateJobPartitionsMaintenance'
 if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$PartitionsMaintenanceFilePath = '$PartitionsMaintenanceFilePath'"
@@ -629,8 +639,8 @@ if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) {
 }
 
 
-# 18__CreateJobPurgeDbaMetrics
-$stepName = '18__CreateJobPurgeDbaMetrics'
+# 17__CreateJobPurgeDbaMetrics
+$stepName = '17__CreateJobPurgeDbaMetrics'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$PurgeDbaMetricsFilePath = '$PurgeDbaMetricsFilePath'"
@@ -640,8 +650,8 @@ if($stepName -in $Steps2Execute) {
 }
 
 
-# 19__CreateJobRemoveXEventFiles
-$stepName = '19__CreateJobRemoveXEventFiles'
+# 18__CreateJobRemoveXEventFiles
+$stepName = '18__CreateJobRemoveXEventFiles'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$RemoveXEventFilesFilePath = '$RemoveXEventFilesFilePath'"
@@ -663,8 +673,8 @@ if($stepName -in $Steps2Execute) {
 }
 
 
-# 20__CreateJobRunWhoIsActive
-$stepName = '20__CreateJobRunWhoIsActive'
+# 19__CreateJobRunWhoIsActive
+$stepName = '19__CreateJobRunWhoIsActive'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$RunWhoIsActiveFilePath = '$RunWhoIsActiveFilePath'"
@@ -674,8 +684,8 @@ if($stepName -in $Steps2Execute) {
 }
 
 
-# 21__CreateJobUpdateSqlServerVersions
-$stepName = '21__CreateJobUpdateSqlServerVersions'
+# 20__CreateJobUpdateSqlServerVersions
+$stepName = '20__CreateJobUpdateSqlServerVersions'
 if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UpdateSqlServerVersionsFilePath = '$UpdateSqlServerVersionsFilePath'"
@@ -696,13 +706,57 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
 }
 
 
-# 22__LinkedServerOnInventory
-$stepName = '22__LinkedServerOnInventory'
+
+# 21__WhoIsActivePartition
+$stepName = '21__WhoIsActivePartition'
+if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) {
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$WhoIsActivePartitionFilePath = '$WhoIsActivePartitionFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "ALTER [dbo].[WhoIsActive] table to partitioned table on [$SqlInstanceToBaseline].."
+    $sqlPartitionWhoIsActive = [System.IO.File]::ReadAllText($WhoIsActivePartitionFilePath).Replace("[DBA]", "[$DbaDatabase]")
+    
+    $whoIsActiveExists = @()
+    $loopStartTime = Get-Date
+    $sleepDurationSeconds = 30
+    $loopTotalDurationThresholdSeconds = 300
+    
+    while ($whoIsActiveExists.Count -eq 0 -and $( (New-TimeSpan $loopStartTime $(Get-Date)).TotalSeconds -le $loopTotalDurationThresholdSeconds ) )
+    {
+        $whoIsActiveExists += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -SqlCredential $SqlCredential `
+                                    -Query "select OBJECT_ID('dbo.WhoIsActive') as WhoIsActiveObjectID" -EnableException
+        
+        if($whoIsActiveExists.Count -eq 0) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Wait for $sleepDurationSeconds seconds as table dbo.WhoIsActive still does not exist.."
+            Start-Sleep -Seconds $sleepDurationSeconds
+        }
+    }
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlPartitionWhoIsActive -SqlCredential $SqlCredential -EnableException
+}
+
+
+
+# 22__GrafanaLogin
+$stepName = '22__GrafanaLogin'
+if($stepName -in $Steps2Execute) {
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$GrafanaLoginFilePath = '$GrafanaLoginFilePath'"
+    #"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating All Objects in [$DbaDatabase] database.."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Create [grafana] login & user with permissions on objects.."
+    $sqlGrafanaLogin = [System.IO.File]::ReadAllText($GrafanaLoginFilePath).Replace("[DBA]", "[$DbaDatabase]")
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -Query $sqlGrafanaLogin -SqlCredential $SqlCredential -EnableException
+}
+
+
+
+# 23__LinkedServerOnInventory
+$stepName = '23__LinkedServerOnInventory'
 if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -ne $InventoryServer) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$LinkedServerOnInventoryFilePath = '$LinkedServerOnInventoryFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating linked server for [$SqlInstanceToBaseline] on [$InventoryServer].."
     $sqlLinkedServerOnInventory = [System.IO.File]::ReadAllText($LinkedServerOnInventoryFilePath).Replace("'YourSqlInstanceNameHere'", "'$SqlInstanceToBaseline'")
+    $sqlLinkedServerOnInventory = $sqlLinkedServerOnInventory.Replace("@catalog=N'DBA'", "@catalog=N'$DbaDatabase'")
+    
     $dbaLinkedServer = @()
     $dbaLinkedServer += Get-DbaLinkedServer -SqlInstance $InventoryServer -LinkedServer $SqlInstanceToBaseline
     if($dbaLinkedServer.Count -eq 0) {
@@ -714,30 +768,7 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -ne $InventoryServer
 
 
 
-# 23__WhoIsActivePartition
-$stepName = '23__WhoIsActivePartition'
-if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) {
-    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$RunWhoIsActiveFilePath = '$RunWhoIsActiveFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "ALTER [dbo].[WhoIsActive] table to partitioned table on [$SqlInstanceToBaseline].."
-    $sqlPartitionWhoIsActive = [System.IO.File]::ReadAllText($RunWhoIsActiveFilePath).Replace("[DBA]", "[$DbaDatabase]")
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlPartitionWhoIsActive -SqlCredential $SqlCredential -EnableException
-}
-
-
 "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Baselining of [$SqlInstanceToBaseline] completed."
 
 $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Execution completed in $($timeTaken.TotalSeconds) seconds."
-
-<#
-#$personal = Get-Credential -UserName 'Lab\adwivedi' -Message 'SQL'
-cls
-F:\GitHub\SQLMonitor\Perfmon\setup-sqlmonitor-baseline.ps1 `
-    -SqlInstanceToBaseline 'Demo\SQL2019' `
-    -DbaToolsFolderPath 'F:\GitHub\dbatools' `
-    -SqlCredential $personal `
-    -StartAtStep '10__CopyDbaToolsModule2Host' `
-    -StopAtStep '11__CopyPerfmonFolder2Host' `
-    -Debug
-#>

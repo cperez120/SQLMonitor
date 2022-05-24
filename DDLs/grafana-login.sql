@@ -11,7 +11,7 @@ go
 grant view server state to [grafana]
 go
 if object_id('dbo.SqlServerVersions') is not null
-	grant select on object::dbo.SqlServerVersions to [grafana]
+	exec ('grant select on object::dbo.SqlServerVersions to [grafana]')
 go
 
 use [DBA]
@@ -24,14 +24,14 @@ go
 grant view database state to [grafana]
 go
 if OBJECT_ID('dbo.usp_extended_results') is not null
-	grant execute on object::dbo.usp_extended_results to [grafana]
+	exec ('grant execute on object::dbo.usp_extended_results to [grafana]')
 go
 if OBJECT_ID('dbo.sp_WhatIsRunning') is not null
-	grant execute on object::dbo.sp_WhatIsRunning to [public]
+	exec ('grant execute on object::dbo.sp_WhatIsRunning to [public]')
 go
 if OBJECT_ID('dbo.resource_consumption') is not null
-	grant select on object::dbo.resource_consumption to [grafana]
+	exec ('grant select on object::dbo.resource_consumption to [grafana]')
 go
 if OBJECT_ID('dbo.usp_GetAllServerInfo') is not null
-	grant execute on object::dbo.usp_GetAllServerInfo TO [grafana]
+	exec ('grant execute on object::dbo.usp_GetAllServerInfo TO [grafana]')
 go

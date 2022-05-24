@@ -31,7 +31,9 @@ select	default_domain() as [domain],
 		SERVERPROPERTY('ProductLevel') AS ProductLevel
 		--,instant_file_initialization_enabled
 		--,*
-from sys.dm_server_services where servicename like 'SQL Server (%)'
+from sys.dm_server_services 
+where servicename like 'SQL Server (%)'
+--or servicename like 'SQL Server Agent (%)'
 go
 
 select *
