@@ -233,7 +233,6 @@ $Steps2Execute += $Steps2ExecuteRaw | ForEach-Object {
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Total steps to execute -> $($Steps2Execute.Count)."
 
 
-Write-Debug "Hi There"
 # Get Server Info
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching basic server info.."
 $sqlServerInfo = @"
@@ -262,7 +261,7 @@ $sqlServerInfo | Format-Table -AutoSize
 $sqlServerAgentInfo | Format-Table -AutoSize
 
 $requireProxy = $false
-if ($sqlServerAgentInfo.service_account -like 'NT Service*') {
+if ($sqlServerAgentInfo.service_account -like 'NT Service*' -or $sqlServerAgentInfo.service_account -eq 'LocalSystem') {
     $requireProxy = $true
 }
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$requireProxy = $requireProxy"
@@ -425,7 +424,18 @@ if($stepName -in $Steps2Execute) {
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Create XEvent session named [resource_consumption].."
     $sqlXEventSession = [System.IO.File]::ReadAllText($XEventSessionFilePath).Replace('E:\Data\xevents', "$xEventTargetPathDirectory")
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -Query $sqlXEventSession -SqlCredential $SqlCredential -EnableException | Format-Table -AutoSize
+    try {
+        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -Query $sqlXEventSession -SqlCredential $SqlCredential -EnableException | Format-Table -AutoSize
+    }
+    catch {
+        #Write-Debug "Inside catch"
+        $errMessage = $_
+        $errMessage | gm
+        if($errMessage.Exception.Message -like "The value specified for event attribute or predicate source*") {
+            $sqlXEventSession = $sqlXEventSession.Replace("WHERE ( ([duration]>=5000000) OR ([result]<>('OK')) ))", "WHERE ( ([duration]>=5000000) ))")
+        }
+        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -Query $sqlXEventSession -SqlCredential $SqlCredential -EnableException | Format-Table -AutoSize
+    }
 }
 
 

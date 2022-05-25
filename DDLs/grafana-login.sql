@@ -15,23 +15,28 @@ if object_id('dbo.SqlServerVersions') is not null
 go
 
 use [DBA]
-go
 if not exists (select * from sys.sysusers where name = 'grafana')
 	create user [grafana] for login [grafana]
 go
+use [DBA]
 alter role [db_datareader] add member [grafana]
 go
+use [DBA]
 grant view database state to [grafana]
 go
+use [DBA]
 if OBJECT_ID('dbo.usp_extended_results') is not null
 	exec ('grant execute on object::dbo.usp_extended_results to [grafana]')
 go
+use [DBA]
 if OBJECT_ID('dbo.sp_WhatIsRunning') is not null
 	exec ('grant execute on object::dbo.sp_WhatIsRunning to [public]')
 go
+use [DBA]
 if OBJECT_ID('dbo.resource_consumption') is not null
 	exec ('grant select on object::dbo.resource_consumption to [grafana]')
 go
+use [DBA]
 if OBJECT_ID('dbo.usp_GetAllServerInfo') is not null
 	exec ('grant execute on object::dbo.usp_GetAllServerInfo TO [grafana]')
 go

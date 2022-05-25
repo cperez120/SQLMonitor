@@ -1,4 +1,4 @@
-USE DBA
+USE DBA_Admin
 GO
 
 select @@SERVERNAME, name, recovery_model_desc, collation_name from sys.databases where database_id = db_id();
@@ -33,7 +33,7 @@ select	default_domain() as [domain],
 		--,*
 from sys.dm_server_services 
 where servicename like 'SQL Server (%)'
---or servicename like 'SQL Server Agent (%)'
+or servicename like 'SQL Server Agent (%)'
 go
 
 select *
@@ -64,7 +64,7 @@ order by event_time desc
 go
 
 -- update dbo.instance_details set sql_instance = 'SQL2014'
--- delete dbo.instance_details where sql_instance <> 'SQL2012'
+-- delete dbo.instance_details where sql_instance = 'ABCSONBFC'
 /*
 declare @login nvarchar(125) = suser_name();
 exec sp_WhoIsActive @filter_type = 'login', @filter = @login, @get_plans = 2
