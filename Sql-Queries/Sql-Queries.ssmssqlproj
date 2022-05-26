@@ -51,6 +51,18 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="Demo\SQL2019:LAB\adwivedi">
+          <Created>2022-05-25T21:03:07.4495467+05:30</Created>
+          <Type>SQL</Type>
+          <Server>Demo\SQL2019</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="Demo\SQL2019:sa">
           <Created>2022-05-23T23:44:05.6404714+05:30</Created>
           <Type>SQL</Type>
@@ -63,7 +75,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="Localhost:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="Localhost:LAB\adwivedi">
           <Created>2022-04-22T22:49:27.0461072+05:30</Created>
           <Type>SQL</Type>
           <Server>Localhost</Server>
@@ -75,7 +87,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="SqlMonitor:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="SqlMonitor:LAB\adwivedi">
           <Created>2022-05-19T09:35:03.9545125+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlMonitor</Server>
@@ -87,7 +99,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="WORKSTATION:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="WORKSTATION:LAB\adwivedi">
           <Created>2022-05-19T08:46:41.5053748+05:30</Created>
           <Type>SQL</Type>
           <Server>WORKSTATION</Server>
@@ -122,9 +134,9 @@
           <FullPath>blocking-time-series.sql</FullPath>
         </FileNode>
         <FileNode Name="check-domain-ip-hostname.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.248:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>196.1.115.248</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Demo\SQL2019:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Demo\SQL2019</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>check-domain-ip-hostname.sql</FullPath>
         </FileNode>
         <FileNode Name="check-table-partitions.sql">
