@@ -313,9 +313,17 @@ $ssnHostName = $HostName
 if (-not (Test-Connection -ComputerName $HostName -Quiet -Count 1)) {
     $ssnHostName = $SqlInstanceToBaseline
 }
-if($env:USERDOMAIN -eq $sqlServerInfo.domain) {
-    $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ssnHostName => '$ssnHostName'"
+if($env:USERDOMAIN -eq $sqlServerInfo.domain -and $sqlServerInfo.domain -ne 'WORKGROUP') {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[$ssnHostName] belongs to same domain '$($env:USERDOMAIN)'."
+    if([String]::IsNullOrEmpty($WindowsCredential)) {
+        $ssn = New-PSSession -ComputerName $ssnHostName
+    } else {
+        $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential
+    }
+    
 } else {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[$ssnHostName] is in '$($sqlServerInfo.domain)' domain where current server belong to domain '$($env:USERDOMAIN)'."
     $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential -Authentication Negotiate
 }
 
