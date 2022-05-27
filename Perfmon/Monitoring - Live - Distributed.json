@@ -106,7 +106,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1652855629507,
+  "iteration": 1653650604607,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -4614,7 +4614,7 @@
       "type": "row"
     }
   ],
-  "refresh": "1m",
+  "refresh": "2m",
   "schemaVersion": 35,
   "style": "dark",
   "tags": [
@@ -4709,15 +4709,15 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect host_name \nfrom [$inventory_db].dbo.instance_details\nwhere sql_instance = '$server'\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect host_name \nfrom dbo.instance_details\nwhere sql_instance = '$server'\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
         "hide": 0,
         "includeAll": false,
         "label": "Host Name",
         "multi": false,
         "name": "perfmon_host_name",
         "options": [],
-        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect host_name \nfrom [$inventory_db].dbo.instance_details\nwhere sql_instance = '$server'\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
-        "refresh": 1,
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect host_name \nfrom dbo.instance_details\nwhere sql_instance = '$server'\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
@@ -4737,7 +4737,7 @@
         "name": "host_name",
         "options": [],
         "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) as [host_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
-        "refresh": 1,
+        "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 0,
@@ -5412,14 +5412,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @object_name varchar(255);\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\n\nSELECT cntr_value\nFROM sys.dm_os_performance_counters WITH (NOLOCK) \nWHERE 1=1\nand [object_name] like (@object_name+':Memory Manager%')\nAND counter_name = N'Memory Grants Pending'\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "definition": "exec dbo.usp_GetAllServerInfo \n\t\t\t\t@servers = '$server'\n\t\t\t\t,@output = 'memory_grants_pending'",
         "hide": 2,
         "includeAll": false,
         "label": "RAM Used",
         "multi": false,
         "name": "memory_grants_pending",
         "options": [],
-        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @object_name varchar(255);\nset @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);\n\nSELECT cntr_value\nFROM sys.dm_os_performance_counters WITH (NOLOCK) \nWHERE 1=1\nand [object_name] like (@object_name+':Memory Manager%')\nAND counter_name = N'Memory Grants Pending'\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "query": "exec dbo.usp_GetAllServerInfo \n\t\t\t\t@servers = '$server'\n\t\t\t\t,@output = 'memory_grants_pending'",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -5549,7 +5549,7 @@
     ]
   },
   "time": {
-    "from": "now-10m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -5567,6 +5567,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 159,
+  "version": 172,
   "weekStart": ""
 }

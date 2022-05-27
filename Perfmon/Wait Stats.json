@@ -60,7 +60,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1652866661689,
+  "iteration": 1653650610993,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -1273,7 +1273,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {
@@ -1291,6 +1291,6 @@
   "timezone": "",
   "title": "Wait Stats",
   "uid": "wait_stats",
-  "version": 47,
+  "version": 48,
   "weekStart": ""
 }
