@@ -1,6 +1,9 @@
-USE [msdb]
+USE [msdb];
+if exists (select * from dbo.sysjobs_view where name = '(dba) Test-WindowsAdminAccess')
+	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Test-WindowsAdminAccess'
 GO
 
+USE [msdb];
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0

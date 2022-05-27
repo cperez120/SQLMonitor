@@ -1,17 +1,18 @@
 ﻿#$LabCredential = Get-Credential -UserName 'Lab\SQLServices' -Message 'AD Account'
 #$saAdmin = Get-Credential -UserName 'sa' -Message 'sa'
-#$localAdmin = Get-Credential -UserName 'DEMO\Administrator' -Message 'Local Admin'
-
+#$localAdmin = Get-Credential -UserName 'DEMO\SQL2019\Administrator' -Message 'Local Admin'
+#Pa$$w0rd
 cls
 $params = @{
     SqlInstanceToBaseline = 'DEMO\SQL2014'
-    DbaDatabase = 'DBA_Admin'
+    DbaDatabase = '_AdminUtility'
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
     InventoryServer = 'SQLMonitor'
-    SqlCredential = $LabCredential
+    DbaGroupMailId = 'ajay.dwivedi2007@gmail.com','sqlagentservice@gmail.com'
+    #SqlCredential = $saAdmin
     #WindowsCredential = $LabCredential
-    #SkipSteps = @('11__SetupPerfmonDataCollector','12__CreateJobCollectOSProcesses','13__CreateJobCollectPerfmonData')
-    #StartAtStep = '21__WhoIsActivePartition'
+    SkipSteps = @('11__SetupPerfmonDataCollector','12__CreateJobCollectOSProcesses','13__CreateJobCollectPerfmonData')
+    #StartAtStep = '18__CreateJobRemoveXEventFiles'
     #StopAtStep = '21__WhoIsActivePartition'
 }
 F:\GitHub\SQLMonitor\Perfmon\setup-sqlmonitor-baseline.ps1 @Params #-Debug

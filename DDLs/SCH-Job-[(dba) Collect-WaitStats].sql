@@ -54,7 +54,7 @@ DECLARE @threshold_continous_failure tinyint = 3;
 DECLARE @notification_delay_minutes tinyint = 10;
 DECLARE @is_test_alert bit = 0;
 DECLARE @verbose tinyint = 0; /* 0 - no messages, 1 - debug messages, 2 = debug messages + table results */
-DECLARE @recipients varchar(500) = ''sqlagentservice@gmail.com'' --''some_dba_mail_id@gmail.com'';
+DECLARE @recipients varchar(500) = ''some_dba_mail_id@gmail.com'';
 DECLARE @alert_key varchar(100) = ''Collect-WaitStats'';
 
 /* Additional Requirements

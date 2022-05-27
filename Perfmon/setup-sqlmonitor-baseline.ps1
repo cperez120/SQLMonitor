@@ -86,6 +86,9 @@ Param (
     [Parameter(Mandatory=$false)]
     [String]$TestWindowsAdminAccessFileName = "SCH-Job-[(dba) Test-WindowsAdminAccess].sql",
 
+    [Parameter(Mandatory=$true)]
+    [String[]]$DbaGroupMailId,
+
     [Parameter(Mandatory=$false)]
     [ValidateSet("1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
                 "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__OlaHallengrenSolutionObjects",
@@ -278,22 +281,45 @@ if($sqlServerInfo.domain -eq 'WORKGROUP' -and [String]::IsNullOrEmpty($SqlCreden
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating & executing job [(dba) Test-WindowsAdminAccess] on [$SqlInstanceForDataCollectionJobs].."
 $sqlTestWindowsAdminAccessFilePath = [System.IO.File]::ReadAllText($TestWindowsAdminAccessFilePath)
 Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlTestWindowsAdminAccessFilePath -SqlCredential $SqlCredential -EnableException
-Start-Sleep -Seconds 5;
+
 
 $testWindowsAdminAccessJobHistory = @()
-$testWindowsAdminAccessJobHistory += Get-DbaAgentJobHistory -SqlInstance $SqlInstanceForDataCollectionJobs -Job '(dba) Test-WindowsAdminAccess' -ExcludeJobSteps -OutcomeType Failed -EnableException
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[(dba) Test-WindowsAdminAccess] Job history =>."
-$testWindowsAdminAccessJobHistory | Format-Table -AutoSize
+$loopStartTime = Get-Date
+$sleepDurationSeconds = 5
+$loopTotalDurationThresholdSeconds = 300    
+    
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching execution history for job [(dba) Test-WindowsAdminAccess] on [$SqlInstanceForDataCollectionJobs].."
+while ($testWindowsAdminAccessJobHistory.Count -eq 0 -and $( (New-TimeSpan $loopStartTime $(Get-Date)).TotalSeconds -le $loopTotalDurationThresholdSeconds ) )
+{
+    $testWindowsAdminAccessJobHistory += Get-DbaAgentJobHistory -SqlInstance $SqlInstanceForDataCollectionJobs -Job '(dba) Test-WindowsAdminAccess' `
+                                                -ExcludeJobSteps -SqlCredential $SqlCredential -EnableException
 
-$hasWindowsAdminAccess = $false
-if($testWindowsAdminAccessJobHistory.Count -eq 0) {
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "SQL Agent service account [$($sqlServerAgentInfo.service_account)] has admin access at windows."
-    $hasWindowsAdminAccess = $true
-} else {
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "SQL Agent service account [$($sqlServerAgentInfo.service_account)] DO NOT have admin access at windows."
+    if($testWindowsAdminAccessJobHistory.Count -eq 0) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Wait for $sleepDurationSeconds seconds as the job might be running.."
+        Start-Sleep -Seconds $sleepDurationSeconds
+    }
 }
 
+if($testWindowsAdminAccessJobHistory.Count -eq 0) {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Status of job [(dba) Test-WindowsAdminAccess] on [$SqlInstanceForDataCollectionJobs] could not be fetched on time. Kindly validate." | Write-Host -ForegroundColor Red
+    "STOP and check above error message" | Write-Error
+}
+else {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[(dba) Test-WindowsAdminAccess] Job history => '$($testWindowsAdminAccessJobHistory.Message)'."
+    $testWindowsAdminAccessJobHistory | Format-Table -AutoSize
+}
+
+$hasWindowsAdminAccess = $false
+if($testWindowsAdminAccessJobHistory.Status -ne 'Succeeded') {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "SQL Agent service account [$($sqlServerAgentInfo.service_account)] DO NOT have admin access at windows."
+} else {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "SQL Agent service account [$($sqlServerAgentInfo.service_account)] has admin access at windows."
+    $hasWindowsAdminAccess = $true
+}
+
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remmove test job [(dba) Test-WindowsAdminAccess].."
 Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query "EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Test-WindowsAdminAccess'" -SqlCredential $SqlCredential -EnableException
+
 
 $requireProxy = $(-not $hasWindowsAdminAccess)
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$hasWindowsAdminAccess = $hasWindowsAdminAccess"
@@ -384,7 +410,7 @@ if ( [String]::IsNullOrEmpty($ssn) ) {
 $sqlDbCollation = @"
 select name as [db_name], collation_name from sys.databases 
 where collation_name not in ('SQL_Latin1_General_CP1_CI_AS') 
-and name in ('master','msdb','tempdb','Admin_Utility')
+and name in ('master','msdb','tempdb','$DbaDatabase')
 "@
 $dbCollationResult = @()
 $dbCollationResult += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Query $sqlDbCollation -EnableException -SqlCredential $SqlCredential
@@ -421,6 +447,7 @@ if($mailProfile.Count -lt 1) {
     $mailProfile += Get-DbaDbMailProfile -SqlInstance $SqlInstanceToBaseline -SqlCredential $SqlCredential
     if($mailProfile.Count -ne 0) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Below mail profile(s) exists.`nOne of them can be set to default global profile." | Write-Host -ForegroundColor Red
+        $mailProfile | Format-Table -AutoSize
     }
 
     Write-Error "Stop here. Fix above issue."
@@ -663,14 +690,11 @@ if($stepName -in $Steps2Execute) {
 
     if($requireProxy) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [(dba) Collect-OSProcesses] to run under proxy [$credentialName].."
-        $sqlUpdateJob = @"
-        EXEC msdb.dbo.sp_update_jobstep @job_name=N'(dba) Collect-OSProcesses', @step_id=1 ,@proxy_name=N'$credentialName';
-        GO
-        EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Collect-OSProcesses';
-        GO
-"@
+        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'(dba) Collect-OSProcesses', @step_id=1 ,@proxy_name=N'$credentialName';"
         Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlUpdateJob -SqlCredential $SqlCredential -EnableException
     }
+    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Collect-OSProcesses';"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlStartJob -SqlCredential $SqlCredential -EnableException
 }
 
 
@@ -687,14 +711,11 @@ if($stepName -in $Steps2Execute) {
 
     if($requireProxy) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [(dba) Collect-PerfmonData] to run under proxy [$credentialName].."
-        $sqlUpdateJob = @"
-        EXEC msdb.dbo.sp_update_jobstep @job_name=N'(dba) Collect-PerfmonData', @step_id=1 ,@proxy_name=N'$credentialName';
-        GO
-        EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Collect-PerfmonData';
-        GO
-"@
+        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'(dba) Collect-PerfmonData', @step_id=1 ,@proxy_name=N'$credentialName';"
         Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlUpdateJob -SqlCredential $SqlCredential -EnableException
     }
+    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Collect-PerfmonData';"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlStartJob -SqlCredential $SqlCredential -EnableException
 }
 
 
@@ -705,6 +726,7 @@ if($stepName -in $Steps2Execute) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectWaitStatsFilePath = '$CollectWaitStatsFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Collect-WaitStats] on [$SqlInstanceToBaseline].."
     $sqlCreateJobCollectWaitStats = [System.IO.File]::ReadAllText($CollectWaitStatsFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
+    $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace("varchar(500) = ''some_dba_mail_id@gmail.com'';", "varchar(500) = ''$($DbaGroupMailId -join ';')'';"   )
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlCreateJobCollectWaitStats -SqlCredential $SqlCredential -EnableException
 }
 
@@ -754,14 +776,11 @@ if($stepName -in $Steps2Execute) {
 
     if($requireProxy) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [(dba) Remove-XEventFiles] to run under proxy [$credentialName].."
-        $sqlUpdateJob = @"
-        EXEC msdb.dbo.sp_update_jobstep @job_name=N'(dba) Remove-XEventFiles', @step_id=1 ,@proxy_name=N'$credentialName';
-        GO
-        EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Remove-XEventFiles';
-        GO
-"@
+        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'(dba) Remove-XEventFiles', @step_id=1 ,@proxy_name=N'$credentialName';"
         Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlUpdateJob -SqlCredential $SqlCredential -EnableException
     }
+    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Remove-XEventFiles';"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlStartJob -SqlCredential $SqlCredential -EnableException
 }
 
 
@@ -772,6 +791,7 @@ if($stepName -in $Steps2Execute) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$RunWhoIsActiveFilePath = '$RunWhoIsActiveFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Run-WhoIsActive] on [$SqlInstanceToBaseline].."
     $sqlRunWhoIsActive = [System.IO.File]::ReadAllText($RunWhoIsActiveFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
+    $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace("varchar(500) = ''some_dba_mail_id@gmail.com'';", "varchar(500) = ''$($DbaGroupMailId -join ';')'';"   )
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlRunWhoIsActive -SqlCredential $SqlCredential -EnableException
 }
 
@@ -811,19 +831,21 @@ if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) {
     $sleepDurationSeconds = 30
     $loopTotalDurationThresholdSeconds = 300    
     
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Check for existance of table [dbo].[WhoIsActive] on [$SqlInstanceToBaseline].."
     while ($whoIsActiveExists.Count -eq 0 -and $( (New-TimeSpan $loopStartTime $(Get-Date)).TotalSeconds -le $loopTotalDurationThresholdSeconds ) )
     {
         $whoIsActiveExists += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -SqlCredential $SqlCredential `
-                                    -Query "select OBJECT_ID('dbo.WhoIsActive') as WhoIsActiveObjectID" -EnableException
-        
+                                    -Query "if OBJECT_ID('dbo.WhoIsActive') is not null select OBJECT_ID('dbo.WhoIsActive') as WhoIsActiveObjectID" -EnableException
+
         if($whoIsActiveExists.Count -eq 0) {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Wait for $sleepDurationSeconds seconds as table dbo.WhoIsActive still does not exist.."
             Start-Sleep -Seconds $sleepDurationSeconds
         }
     }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Seems table exists now. Convert [dbo].[WhoIsActive] into partitioned table.."
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlPartitionWhoIsActive -SqlCredential $SqlCredential -EnableException
 }
-
 
 
 # 22__GrafanaLogin
@@ -836,7 +858,6 @@ if($stepName -in $Steps2Execute) {
     $sqlGrafanaLogin = [System.IO.File]::ReadAllText($GrafanaLoginFilePath).Replace("[DBA]", "[$DbaDatabase]")
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -Query $sqlGrafanaLogin -SqlCredential $SqlCredential -EnableException
 }
-
 
 
 # 23__LinkedServerOnInventory
