@@ -18,12 +18,17 @@ go
 
 select	default_domain() as [domain],
 		[ip] = CONNECTIONPROPERTY('local_net_address'),
-		[sql_instance] = serverproperty('MachineName'),
-		[server_name] = serverproperty('ServerName'),
+		[@@SERVERNAME] = @@SERVERNAME,
+		[MachineName] = serverproperty('MachineName'),
+		[ServerName] = serverproperty('ServerName'),
 		[host_name] = SERVERPROPERTY('ComputerNamePhysicalNetBIOS'),
 		[sql_version] = @@VERSION,
 		[service_name_str] = servicename,
-		[service_name] = case when @@servicename = 'MSSQLSERVER' then @@servicename else 'MSSQL$'+@@servicename end,
+		[service_name] = case	when @@servicename = 'MSSQLSERVER' and servicename like 'SQL Server (%)' then 'MSSQLSERVER'
+								when @@servicename = 'MSSQLSERVER' and servicename like 'SQL Server Agent (%)' then 'SQLSERVERAGENT'
+								when @@servicename <> 'MSSQLSERVER' and servicename like 'SQL Server (%)' then 'MSSQL$'+@@servicename
+								when @@servicename <> 'MSSQLSERVER' and servicename like 'SQL Server Agent (%)' then 'SQLAgent'+@@servicename
+								else 'MSSQL$'+@@servicename end,
 		[instance_name] = @@servicename,
 		service_account,
 		SERVERPROPERTY('Edition') AS Edition,
@@ -63,8 +68,10 @@ from dbo.resource_consumption rc
 order by event_time desc
 go
 
+-- select srvname from sys.sysservers where providername = 'SQLOLEDB' and srvname like (convert(varchar,SERVERPROPERTY('MachineName'))+'%')
+
 -- update dbo.instance_details set sql_instance = 'SQL2014'
--- delete dbo.instance_details where sql_instance = 'ABCSONBFC'
+-- delete dbo.instance_details where sql_instance = 'SQL2014'
 /*
 declare @login nvarchar(125) = suser_name();
 exec sp_WhoIsActive @filter_type = 'login', @filter = @login, @get_plans = 2

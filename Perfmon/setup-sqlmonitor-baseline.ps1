@@ -84,6 +84,9 @@ Param (
     [String]$LinkedServerOnInventoryFileName = "SCH-Linked-Servers-Sample.sql",
 
     [Parameter(Mandatory=$false)]
+    [String]$TestWindowsAdminAccessFileName = "SCH-Job-[(dba) Test-WindowsAdminAccess].sql",
+
+    [Parameter(Mandatory=$false)]
     [ValidateSet("1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
                 "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__OlaHallengrenSolutionObjects",
                 "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
@@ -162,14 +165,14 @@ if([String]::IsNullOrEmpty($SqlInstanceForDataCollectionJobs)) {
     $SqlInstanceForDataCollectionJobs = $SqlInstanceToBaseline
 }
 
-# Set windows credential
+# Set windows credential if valid AD credential is provided as SqlCredential
 if( [String]::IsNullOrEmpty($WindowsCredential) -and (-not [String]::IsNullOrEmpty($SqlCredential)) -and $SqlCredential.UserName -like "*\*" ) {
     $WindowsCredential = $SqlCredential
 }
 
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceToBaseline = $SqlInstanceToBaseline"
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceForDataCollectionJobs = $SqlInstanceForDataCollectionJobs"
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceAsDataDestination = $SqlInstanceAsDataDestination"
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceToBaseline = [$SqlInstanceToBaseline]"
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceForDataCollectionJobs = [$SqlInstanceForDataCollectionJobs]"
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceAsDataDestination = [$SqlInstanceAsDataDestination]"
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlCredential => "
 $SqlCredential | ft -AutoSize
@@ -199,6 +202,7 @@ $RunWhoIsActiveFilePath = "$ddlPath\$RunWhoIsActiveFileName"
 $UpdateSqlServerVersionsFilePath = "$ddlPath\$UpdateSqlServerVersionsFileName"
 $LinkedServerOnInventoryFilePath = "$ddlPath\$LinkedServerOnInventoryFileName"
 $WhoIsActivePartitionFilePath = "$ddlPath\$WhoIsActivePartitionFileName"
+$TestWindowsAdminAccessFilePath = "$ddlPath\$TestWindowsAdminAccessFileName"
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ddlPath = '$ddlPath'"
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$perfmonPath = '$perfmonPath'"
@@ -237,19 +241,20 @@ $Steps2Execute += $Steps2ExecuteRaw | ForEach-Object {
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching basic server info.."
 $sqlServerInfo = @"
 select	default_domain() as [domain],
-		[ip] = CONNECTIONPROPERTY('local_net_address'),
-		[sql_instance] = serverproperty('MachineName'),
-		[server_name] = serverproperty('ServerName'),
+		--[ip] = CONNECTIONPROPERTY('local_net_address'),
+		[@@SERVERNAME] = @@SERVERNAME,
+		[MachineName] = serverproperty('MachineName'),
+		[ServerName] = serverproperty('ServerName'),
 		[host_name] = SERVERPROPERTY('ComputerNamePhysicalNetBIOS'),
-		[service_name_str] = servicename,
-		[service_name] = case when @@servicename = 'MSSQLSERVER' then @@servicename else 'MSSQL$'+@@servicename end,
-		[instance_name] = @@servicename,
-		service_account,
-		SERVERPROPERTY('Edition') AS Edition,
 		SERVERPROPERTY('ProductVersion') AS ProductVersion,
-		SERVERPROPERTY('ProductLevel') AS ProductLevel
-		--,instant_file_initialization_enabled
-		--,*
+		[service_name_str] = servicename,
+		[service_name] = case	when @@servicename = 'MSSQLSERVER' and servicename like 'SQL Server (%)' then 'MSSQLSERVER'
+								when @@servicename = 'MSSQLSERVER' and servicename like 'SQL Server Agent (%)' then 'SQLSERVERAGENT'
+								when @@servicename <> 'MSSQLSERVER' and servicename like 'SQL Server (%)' then 'MSSQL$'+@@servicename
+								when @@servicename <> 'MSSQLSERVER' and servicename like 'SQL Server Agent (%)' then 'SQLAgent'+@@servicename
+								else 'MSSQL$'+@@servicename end,
+        service_account,
+		SERVERPROPERTY('Edition') AS Edition
 from sys.dm_server_services 
 where servicename like 'SQL Server (%)'
 or servicename like 'SQL Server Agent (%)'
@@ -257,14 +262,8 @@ or servicename like 'SQL Server Agent (%)'
 $sqlServerServicesInfo = Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Query $sqlServerInfo -SqlCredential $SqlCredential -EnableException
 $sqlServerInfo = $sqlServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server (*)"}
 $sqlServerAgentInfo = $sqlServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server Agent (*)"}
-$sqlServerInfo | Format-Table -AutoSize
-$sqlServerAgentInfo | Format-Table -AutoSize
+$sqlServerServicesInfo | Format-Table -AutoSize
 
-$requireProxy = $false
-if ($sqlServerAgentInfo.service_account -like 'NT Service*' -or $sqlServerAgentInfo.service_account -eq 'LocalSystem') {
-    $requireProxy = $true
-}
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$requireProxy = $requireProxy"
 
 # Domain & Access Validation
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validate for SqlCredentials if Host is not in domain.."
@@ -273,12 +272,36 @@ if($sqlServerInfo.domain -eq 'WORKGROUP' -and [String]::IsNullOrEmpty($SqlCreden
     Write-Error "Stop here. Fix above issue."
 }
 
-# Service Account & Access Validation
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validate for WindowsCredential if SQL Service Accounts are local.."
-if( ($sqlServerAgentInfo.service_account -like 'NT Service*') -and ([String]::IsNullOrEmpty($WindowsCredential)) ) {
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "SQL Service account is local account." | Write-Host -ForegroundColor Red
-    "Kindly provide WindowsCredential that is admin on OS & SQL Server." | Write-Host -ForegroundColor Red
-    Write-Error "Stop here. Fix above issue."
+# Service Account and Access Validation
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validate for WindowsCredential if SQL Service Accounts are non-priviledged.."
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$TestWindowsAdminAccessFilePath = '$TestWindowsAdminAccessFilePath'"
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating & executing job [(dba) Test-WindowsAdminAccess] on [$SqlInstanceForDataCollectionJobs].."
+$sqlTestWindowsAdminAccessFilePath = [System.IO.File]::ReadAllText($TestWindowsAdminAccessFilePath)
+Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlTestWindowsAdminAccessFilePath -SqlCredential $SqlCredential -EnableException
+Start-Sleep -Seconds 5;
+
+$testWindowsAdminAccessJobHistory = @()
+$testWindowsAdminAccessJobHistory += Get-DbaAgentJobHistory -SqlInstance $SqlInstanceForDataCollectionJobs -Job '(dba) Test-WindowsAdminAccess' -ExcludeJobSteps -OutcomeType Failed -EnableException
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[(dba) Test-WindowsAdminAccess] Job history =>."
+$testWindowsAdminAccessJobHistory | Format-Table -AutoSize
+
+$hasWindowsAdminAccess = $false
+if($testWindowsAdminAccessJobHistory.Count -eq 0) {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "SQL Agent service account [$($sqlServerAgentInfo.service_account)] has admin access at windows."
+    $hasWindowsAdminAccess = $true
+} else {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "SQL Agent service account [$($sqlServerAgentInfo.service_account)] DO NOT have admin access at windows."
+}
+
+Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query "EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Test-WindowsAdminAccess'" -SqlCredential $SqlCredential -EnableException
+
+$requireProxy = $(-not $hasWindowsAdminAccess)
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$hasWindowsAdminAccess = $hasWindowsAdminAccess"
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$requireProxy = $requireProxy"
+
+if($requireProxy -and [String]::IsNullOrEmpty($WindowsCredential)) {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide WindowsCredential to create SQL Agent Job Proxy." | Write-Host -ForegroundColor Red
+    "STOP and check above error message" | Write-Error
 }
 
 # Set Partition Flag
@@ -314,18 +337,64 @@ if (-not (Test-Connection -ComputerName $HostName -Quiet -Count 1)) {
     $ssnHostName = $SqlInstanceToBaseline
 }
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ssnHostName => '$ssnHostName'"
-if($env:USERDOMAIN -eq $sqlServerInfo.domain -and $sqlServerInfo.domain -ne 'WORKGROUP') {
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[$ssnHostName] belongs to same domain '$($env:USERDOMAIN)'."
-    if([String]::IsNullOrEmpty($WindowsCredential)) {
-        $ssn = New-PSSession -ComputerName $ssnHostName
-    } else {
-        $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Domain of SqlInstance being baselined => [$($sqlServerInfo.domain)]"
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Domain of current host => [$($env:USERDOMAIN)]"
+
+$ssn = $null
+$errVariables = @()
+
+# First Attempt without Any credentials
+try {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Trying for PSSession on [$ssnHostName] normally.."
+        $ssn = New-PSSession -ComputerName $ssnHostName 
     }
-    
-} else {
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[$ssnHostName] is in '$($sqlServerInfo.domain)' domain where current server belong to domain '$($env:USERDOMAIN)'."
-    $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential -Authentication Negotiate
+catch { $errVariables += $_ }
+
+# Second Attempt for Trusted Cross Domains
+if( [String]::IsNullOrEmpty($ssn) ) {
+    try { 
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Trying for PSSession on [$ssnHostName] assuming cross domain.."
+        $ssn = New-PSSession -ComputerName $ssnHostName -Authentication Negotiate 
+    }
+    catch { $errVariables += $_ }
 }
+
+# 3rd Attempt with Credentials
+if( [String]::IsNullOrEmpty($ssn) -and (-not [String]::IsNullOrEmpty($WindowsCredential)) ) {
+    try {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Attemping PSSession for [$ssnHostName] using provided WindowsCredentials.."
+        $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential    
+    }
+    catch { $errVariables += $_ }
+
+    if( [String]::IsNullOrEmpty($ssn) ) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Attemping PSSession for [$ssnHostName] using provided WindowsCredentials with Negotiate attribute.."
+        $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential -Authentication Negotiate
+    }
+}
+
+if ( [String]::IsNullOrEmpty($ssn) ) {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provide WindowsCredential for accessing server [$ssnHostName] of domain '$($sqlServerInfo.domain)'." | Write-Host -ForegroundColor Red
+    "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+}
+
+
+# Validate database collation
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validating Collation of databases.."
+$sqlDbCollation = @"
+select name as [db_name], collation_name from sys.databases 
+where collation_name not in ('SQL_Latin1_General_CP1_CI_AS') 
+and name in ('master','msdb','tempdb','Admin_Utility')
+"@
+$dbCollationResult = @()
+$dbCollationResult += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Query $sqlDbCollation -EnableException -SqlCredential $SqlCredential
+if($dbCollationResult.Count -ne 0) {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Collation of below databases is not [SQL_Latin1_General_CP1_CI_AS]." | Write-Host -ForegroundColor Red
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly rectify this collation problem." | Write-Host -ForegroundColor Red
+    $dbCollationResult | Format-Table -AutoSize | Write-Host -ForegroundColor Red
+    Write-Error "Stop here. Fix above issue."
+}
+
 
 # Validate mail profile
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking for default global mail profile.."
@@ -344,10 +413,16 @@ WHERE pp.is_default = 1
 $mailProfile = @()
 $mailProfile += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlMailProfile -EnableException -SqlCredential $SqlCredential
 if($mailProfile.Count -lt 1) {
-    "Kindly create default global mail profile." | Write-Host -ForegroundColor Red
-    "Kindly utilize '$mailProfileFilePath." | Write-Host -ForegroundColor Red
-    "Opening the file '$mailProfileFilePath' in notepad.." | Write-Host -ForegroundColor Red
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Kindly create default global mail profile." | Write-Host -ForegroundColor Red
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Kindly utilize '$mailProfileFilePath." | Write-Host -ForegroundColor Red
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Opening the file '$mailProfileFilePath' in notepad.." | Write-Host -ForegroundColor Red
     notepad "$mailProfileFilePath"
+
+    $mailProfile += Get-DbaDbMailProfile -SqlInstance $SqlInstanceToBaseline -SqlCredential $SqlCredential
+    if($mailProfile.Count -ne 0) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Below mail profile(s) exists.`nOne of them can be set to default global profile." | Write-Host -ForegroundColor Red
+    }
+
     Write-Error "Stop here. Fix above issue."
 }
 
@@ -436,7 +511,6 @@ if($stepName -in $Steps2Execute) {
         Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -Query $sqlXEventSession -SqlCredential $SqlCredential -EnableException | Format-Table -AutoSize
     }
     catch {
-        #Write-Debug "Inside catch"
         $errMessage = $_
         $errMessage | gm
         if($errMessage.Exception.Message -like "The value specified for event attribute or predicate source*") {
@@ -724,7 +798,6 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
 }
 
 
-
 # 21__WhoIsActivePartition
 $stepName = '21__WhoIsActivePartition'
 if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) {
@@ -736,7 +809,7 @@ if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) {
     $whoIsActiveExists = @()
     $loopStartTime = Get-Date
     $sleepDurationSeconds = 30
-    $loopTotalDurationThresholdSeconds = 300
+    $loopTotalDurationThresholdSeconds = 300    
     
     while ($whoIsActiveExists.Count -eq 0 -and $( (New-TimeSpan $loopStartTime $(Get-Date)).TotalSeconds -le $loopTotalDurationThresholdSeconds ) )
     {
