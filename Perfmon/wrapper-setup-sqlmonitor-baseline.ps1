@@ -1,25 +1,26 @@
 ﻿#$LabCredential = Get-Credential -UserName 'Lab\SQLServices' -Message 'AD Account'
 #$saAdmin = Get-Credential -UserName 'sa' -Message 'sa'
 #$localAdmin = Get-Credential -UserName 'DEMO\Administrator' -Message 'Local Admin'
-#Pa$$w0rd
+
 cls
 $params = @{
-    SqlInstanceToBaseline = 'DEMO\SQL2019'
-    DbaDatabase = 'DBA'
+    SqlInstanceToBaseline = 'DEMO\SQL2014'
+    DbaDatabase = 'DBA_Admin'
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
     InventoryServer = 'SQLMonitor'
-    #SqlCredential = $saAdmin
+    SqlCredential = $LabCredential
     #WindowsCredential = $LabCredential
     #SkipSteps = @('11__SetupPerfmonDataCollector','12__CreateJobCollectOSProcesses','13__CreateJobCollectPerfmonData')
-    #StartAtStep = '8__usp_GetAllServerInfo'
-    #StopAtStep = '22__GrafanaLogin'
+    #StartAtStep = '21__WhoIsActivePartition'
+    #StopAtStep = '21__WhoIsActivePartition'
 }
 F:\GitHub\SQLMonitor\Perfmon\setup-sqlmonitor-baseline.ps1 @Params #-Debug
 
+
 #Get-DbaDbMailProfile -SqlInstance '192.168.56.31' -SqlCredential $personalCredential
 #Copy-DbaDbMail -Source '192.168.56.15' -Destination '192.168.56.31' -SourceSqlCredential $personalCredential -DestinationSqlCredential $personalCredential # Lab
-#Remove-DbaDbMailProfile -SqlInstance '192.168.56.31' -SqlCredential $personalCredential -Profile @('DBA')
-#Remove-DbaDbMailAccount -SqlInstance '192.168.56.31' -SqlCredential $personalCredential -Account @('DBA')
+#New-DbaCredential -SqlInstance 'xy' -Identity $LabCredential.UserName -SecurePassword $LabCredential.Password -Force # -SqlCredential $SqlCredential -EnableException
+#New-DbaAgentProxy -SqlInstance 'xy' -Name $LabCredential.UserName -ProxyCredential $LabCredential.UserName -SubSystem PowerShell,CmdExec
 <#
 
 Enable-PSRemoting -Force # run on remote machine

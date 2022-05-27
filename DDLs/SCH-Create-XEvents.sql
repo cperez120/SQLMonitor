@@ -4,8 +4,9 @@ go
 
 /*
 SELECT top 1 physical_name FROM sys.master_files where database_id = DB_ID('DBA') and type_desc = 'ROWS' and physical_name not like 'C:\%' order by file_id;
-EXEC xp_create_subdir 'E:\Data\xevents'
 */
+IF APP_NAME() <> 'Microsoft SQL Server Management Studio - Query'
+	EXEC xp_create_subdir 'E:\Data\xevents'
 go
 
 --	Drop and Re-create Extended Event Session
