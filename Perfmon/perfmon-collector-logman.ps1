@@ -12,8 +12,8 @@ Param (
 # Find Perfmon data collection logs folder path
 $collector_root_directory = Split-Path $TemplatePath -Parent
 $log_file_path = "$collector_root_directory\$CollectorSetName"
-$file_rotation_time = '00:30:00'
-$sample_interval = '00:00:10'
+$file_rotation_time = '00:05:00'
+$sample_interval = '00:00:30'
 
 # Get named instances installed on box
 "Finding sql instances on host.." | Write-Host -ForegroundColor Cyan
