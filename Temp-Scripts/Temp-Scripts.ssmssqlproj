@@ -62,9 +62,9 @@
           <FullPath>grafana-variable-replacement.sql</FullPath>
         </FileNode>
         <FileNode Name="inventory.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:172.31.25.106:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>172.31.25.106</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>inventory.sql</FullPath>
         </FileNode>
         <FileNode Name="performance_counters.sql">
