@@ -3,7 +3,19 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="DEMO\SQL2014:LAB\adwivedi">
+        <ConnectionNode Name="172.31.25.106:E84947">
+          <Created>2022-05-30T16:15:28.729228+05:30</Created>
+          <Type>SQL</Type>
+          <Server>172.31.25.106</Server>
+          <UserName>E84947</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB>DBA_Inventory</InitialDB>
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="DEMO\SQL2014:21L-LTPABL-1187\Ajay">
           <Created>2022-05-22T05:15:52.0538838+05:30</Created>
           <Type>SQL</Type>
           <Server>DEMO\SQL2014</Server>
@@ -15,7 +27,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="Demo\SQL2019:LAB\adwivedi">
+        <ConnectionNode Name="Demo\SQL2019:21L-LTPABL-1187\Ajay">
           <Created>2022-05-22T21:31:39.0513462+05:30</Created>
           <Type>SQL</Type>
           <Server>Demo\SQL2019</Server>
@@ -27,7 +39,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="LOCALHOST:LAB\adwivedi">
+        <ConnectionNode Name="LOCALHOST:21L-LTPABL-1187\Ajay">
           <Created>2020-10-18T21:11:28.7072242+05:30</Created>
           <Type>SQL</Type>
           <Server>LOCALHOST</Server>
@@ -39,7 +51,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="SqlMonitor:LAB\adwivedi">
+        <ConnectionNode Name="SqlMonitor:21L-LTPABL-1187\Ajay">
           <Created>2022-05-19T15:18:11.9715842+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlMonitor</Server>
@@ -72,6 +84,12 @@
           <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>grafana-login.sql</FullPath>
+        </FileNode>
+        <FileNode Name="SCH-[dbo].[credential_manager].sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-[dbo].[credential_manager].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Create-All-Objects.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>

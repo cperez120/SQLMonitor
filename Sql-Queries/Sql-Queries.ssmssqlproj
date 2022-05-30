@@ -51,7 +51,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="Demo\SQL2019:LAB\adwivedi">
+        <ConnectionNode Name="Demo\SQL2019:21L-LTPABL-1187\Ajay">
           <Created>2022-05-25T21:03:07.4495467+05:30</Created>
           <Type>SQL</Type>
           <Server>Demo\SQL2019</Server>
@@ -87,7 +87,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="Localhost:LAB\adwivedi">
+        <ConnectionNode Name="Localhost:21L-LTPABL-1187\Ajay">
           <Created>2022-04-22T22:49:27.0461072+05:30</Created>
           <Type>SQL</Type>
           <Server>Localhost</Server>
@@ -99,7 +99,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="SqlMonitor:LAB\adwivedi">
+        <ConnectionNode Name="SqlMonitor:21L-LTPABL-1187\Ajay">
           <Created>2022-05-19T09:35:03.9545125+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlMonitor</Server>
@@ -111,7 +111,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="WORKSTATION:LAB\adwivedi">
+        <ConnectionNode Name="WORKSTATION:21L-LTPABL-1187\Ajay">
           <Created>2022-05-19T08:46:41.5053748+05:30</Created>
           <Type>SQL</Type>
           <Server>WORKSTATION</Server>
@@ -146,9 +146,9 @@
           <FullPath>blocking-time-series.sql</FullPath>
         </FileNode>
         <FileNode Name="check-domain-ip-hostname.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Experiment:False:sa</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Experiment</AssociatedConnSrvName>
-          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>check-domain-ip-hostname.sql</FullPath>
         </FileNode>
         <FileNode Name="check-table-partitions.sql">
