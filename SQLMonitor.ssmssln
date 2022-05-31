@@ -19,8 +19,6 @@ Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "replication-latency-infra",
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Sql-Queries", "Sql-Queries\Sql-Queries.ssmssqlproj", "{56209732-6D7E-48B0-8B12-60542A46533C}"
 EndProject
-Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Org-Project-Credential-Manager", "Org-Project-Credential-Manager\Org-Project-Credential-Manager.ssmssqlproj", "{A6880EC5-AE94-4901-A200-4DDEB8247F82}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Default|Default = Default|Default
@@ -34,8 +32,7 @@ Global
 		{1A68E3D2-F61D-496F-90F1-9CD990B3B52F}.Default|Default.ActiveCfg = Default
 		{C0977F35-60B1-4E4F-8205-95B982CCC5D8}.Default|Default.ActiveCfg = Default
 		{56209732-6D7E-48B0-8B12-60542A46533C}.Default|Default.ActiveCfg = Default
-		{34D26EEB-C008-440D-9B76-952A34E659D5}.Default|Default.ActiveCfg = Default
-		{A6880EC5-AE94-4901-A200-4DDEB8247F82}.Default|Default.ActiveCfg = Default
+		{B4C738EF-7ECE-4AE1-806E-E623965554D0}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
