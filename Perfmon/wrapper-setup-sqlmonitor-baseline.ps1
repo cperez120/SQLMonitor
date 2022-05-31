@@ -11,7 +11,7 @@ $params = @{
     DbaGroupMailId = 'sqlagentservice@gmail.com'
     #SqlCredential = $saAdmin
     #WindowsCredential = $LabCredential
-    #SkipSteps = @('11__SetupPerfmonDataCollector','12__CreateJobCollectOSProcesses','13__CreateJobCollectPerfmonData')
+    SkipSteps = @("11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
     #StartAtStep = '18__CreateJobRemoveXEventFiles'
     #StopAtStep = '21__WhoIsActivePartition'
 }
