@@ -69,7 +69,7 @@ Param (
     [String]$PartitionsMaintenanceFileName = "SCH-Job-[(dba) Partitions-Maintenance].sql",
 
     [Parameter(Mandatory=$false)]
-    [String]$PurgeDbaMetricsFileName = "SCH-Job-[(dba) Purge-DbaMetrics - Daily].sql",
+    [String]$PurgeTablesFileName = "SCH-Job-[(dba) Purge-Tables].sql",
 
     [Parameter(Mandatory=$false)]
     [String]$RemoveXEventFilesFileName = "SCH-Job-[(dba) Remove-XEventFiles].sql",
@@ -95,7 +95,7 @@ Param (
                 "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
                 "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses",
                 "13__CreateJobCollectPerfmonData", "14__CreateJobCollectWaitStats", "15__CreateJobCollectXEvents",
-                "16__CreateJobPartitionsMaintenance", "17__CreateJobPurgeDbaMetrics", "18__CreateJobRemoveXEventFiles",
+                "16__CreateJobPartitionsMaintenance", "17__CreateJobPurgeTables", "18__CreateJobRemoveXEventFiles",
                 "19__CreateJobRunWhoIsActive", "20__CreateJobUpdateSqlServerVersions", "21__WhoIsActivePartition",
                 "22__GrafanaLogin", "23__LinkedServerOnInventory")]
     [String]$StartAtStep = "1__sp_WhoIsActive",
@@ -106,7 +106,7 @@ Param (
                 "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
                 "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses",
                 "13__CreateJobCollectPerfmonData", "14__CreateJobCollectWaitStats", "15__CreateJobCollectXEvents",
-                "16__CreateJobPartitionsMaintenance", "17__CreateJobPurgeDbaMetrics", "18__CreateJobRemoveXEventFiles",
+                "16__CreateJobPartitionsMaintenance", "17__CreateJobPurgeTables", "18__CreateJobRemoveXEventFiles",
                 "19__CreateJobRunWhoIsActive", "20__CreateJobUpdateSqlServerVersions", "21__WhoIsActivePartition",
                 "22__GrafanaLogin", "23__LinkedServerOnInventory")]
     [String[]]$SkipSteps,
@@ -117,7 +117,7 @@ Param (
                 "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
                 "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses",
                 "13__CreateJobCollectPerfmonData", "14__CreateJobCollectWaitStats", "15__CreateJobCollectXEvents",
-                "16__CreateJobPartitionsMaintenance", "17__CreateJobPurgeDbaMetrics", "18__CreateJobRemoveXEventFiles",
+                "16__CreateJobPartitionsMaintenance", "17__CreateJobPurgeTables", "18__CreateJobRemoveXEventFiles",
                 "19__CreateJobRunWhoIsActive", "20__CreateJobUpdateSqlServerVersions", "21__WhoIsActivePartition",
                 "22__GrafanaLogin", "23__LinkedServerOnInventory")]
     [String]$StopAtStep,
@@ -136,7 +136,7 @@ $AllSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession"
                 "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
                 "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses",
                 "13__CreateJobCollectPerfmonData", "14__CreateJobCollectWaitStats", "15__CreateJobCollectXEvents",
-                "16__CreateJobPartitionsMaintenance", "17__CreateJobPurgeDbaMetrics", "18__CreateJobRemoveXEventFiles",
+                "16__CreateJobPartitionsMaintenance", "17__CreateJobPurgeTables", "18__CreateJobRemoveXEventFiles",
                 "19__CreateJobRunWhoIsActive", "20__CreateJobUpdateSqlServerVersions", "21__WhoIsActivePartition",
                 "22__GrafanaLogin", "23__LinkedServerOnInventory")
 
@@ -199,7 +199,7 @@ $CollectPerfmonDataFilePath = "$ddlPath\$CollectPerfmonDataFileName"
 $CollectWaitStatsFilePath = "$ddlPath\$CollectWaitStatsFileName"
 $CollectXEventsFilePath = "$ddlPath\$CollectXEventsFileName"
 $PartitionsMaintenanceFilePath = "$ddlPath\$PartitionsMaintenanceFileName"
-$PurgeDbaMetricsFilePath = "$ddlPath\$PurgeDbaMetricsFileName"
+$PurgeTablesFilePath = "$ddlPath\$PurgeTablesFileName"
 $RemoveXEventFilesFilePath = "$ddlPath\$RemoveXEventFilesFileName"
 $RunWhoIsActiveFilePath = "$ddlPath\$RunWhoIsActiveFileName"
 $UpdateSqlServerVersionsFilePath = "$ddlPath\$UpdateSqlServerVersionsFileName"
@@ -753,13 +753,13 @@ if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) {
 }
 
 
-# 17__CreateJobPurgeDbaMetrics
-$stepName = '17__CreateJobPurgeDbaMetrics'
+# 17__CreateJobPurgeTables
+$stepName = '17__CreateJobPurgeTables'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$PurgeDbaMetricsFilePath = '$PurgeDbaMetricsFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$PurgeTablesFilePath = '$PurgeTablesFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Purge-DbaMetrics - Daily] on [$SqlInstanceToBaseline].."
-    $sqlPurgeDbaMetrics = [System.IO.File]::ReadAllText($PurgeDbaMetricsFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
+    $sqlPurgeDbaMetrics = [System.IO.File]::ReadAllText($PurgeTablesFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlPurgeDbaMetrics -SqlCredential $SqlCredential -EnableException
 }
 

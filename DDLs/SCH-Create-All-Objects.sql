@@ -19,25 +19,26 @@
 	-----------------------------
 	1) Create Partition function for [datetime2] & [datetime]
 	2) Create Partition Scheme for [datetime2] & [datetime]
-	3) Create table dbo.instance_hosts
-	4) Create table dbo.instance_details
-	5) Create table [dbo].[performance_counters] using Partition scheme
-	6) Create View [dbo].[vw_performance_counters] for Multi SqlCluster on same nodes Architecture
-	7) Create dbo.perfmon_files table using Partition scheme
-	8) Create table [dbo].[os_task_list] using Partition scheme
-	9) Create View [dbo].[vw_os_task_list] for Multi SqlCluster on same nodes Architecture
-	10) Create table  [dbo].[wait_stats] using Partition scheme
-	11) Create table  [dbo].[BlitzFirst_WaitStats_Categories]
-	12) Create view  [dbo].[wait_stats]
-	13) Create required schemas
-	14) Set DBA database trustworthy & [sa] owner
-	15) Create procedure dbo.usp_extended_results
-	16) Create table [dbo].[resource_consumption]
-	17) Create table [dbo].[resource_consumption_Processed_XEL_Files]
-	18) Add boundaries to partition. 1 boundary per hour
-	19) Remove boundaries with retention of 3 months
-	20) Validate Partition Data
-	21) Populate [dbo].[BlitzFirst_WaitStats_Categories]
+	3) Create table dbo.purge_table
+	4) Create table dbo.instance_hosts
+	5) Create table dbo.instance_details
+	6) Create table [dbo].[performance_counters] using Partition scheme
+	7) Create View [dbo].[vw_performance_counters] for Multi SqlCluster on same nodes Architecture
+	8) Create dbo.perfmon_files table using Partition scheme
+	9) Create table [dbo].[os_task_list] using Partition scheme
+	10) Create View [dbo].[vw_os_task_list] for Multi SqlCluster on same nodes Architecture
+	11) Create table  [dbo].[wait_stats] using Partition scheme
+	12) Create table  [dbo].[BlitzFirst_WaitStats_Categories]
+	13) Create view  [dbo].[wait_stats]
+	15) Create required schemas
+	15) Set DBA database trustworthy & [sa] owner
+	16) Create procedure dbo.usp_extended_results
+	17) Create table [dbo].[resource_consumption]
+	18) Create table [dbo].[resource_consumption_Processed_XEL_Files]
+	19) Add boundaries to partition. 1 boundary per hour
+	20) Remove boundaries with retention of 3 months
+	21) Validate Partition Data
+	22) Populate [dbo].[BlitzFirst_WaitStats_Categories]
 
 */
 
@@ -67,7 +68,27 @@ if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime
 go
 
 
-/* ***** 3) Create table dbo.instance_hosts ***************************** */
+/* ***** 3) Create table dbo.purge_table ***************************** */
+-- drop table dbo.purge_table;
+if object_id('dbo.purge_table') is null
+begin
+	create table dbo.purge_table
+	(
+		table_name sysname not null,
+		date_key sysname not null,
+		retention_days smallint not null default 15,
+		purge_row_size int not null default 100000,
+		created_by sysname not null default suser_name(),
+		created_date datetime2 not null default sysdatetime(),
+		reference varchar(255) null,
+		latest_purge_datetime datetime2 null,
+		constraint pk_purge_table primary key (table_name)
+	);
+end
+go
+
+
+/* ***** 4) Create table dbo.instance_hosts ***************************** */
 -- drop table dbo.instance_hosts;
 if object_id('dbo.instance_hosts') is null
 begin
@@ -88,7 +109,7 @@ end
 go
 
 
-/* ***** 4) Create table dbo.instance_details ***************************** */
+/* ***** 5) Create table dbo.instance_details ***************************** */
 -- drop table dbo.instance_details;
 if object_id('dbo.instance_details') is null
 begin
@@ -116,7 +137,7 @@ end
 go
 
 
-/* ***** 5) Create table [dbo].[performance_counters] using Partition scheme ***************** */
+/* ***** 6) Create table [dbo].[performance_counters] using Partition scheme ***************** */
 -- drop table [dbo].[performance_counters]
 if object_id('[dbo].[performance_counters]') is null
 begin
@@ -146,8 +167,20 @@ begin
 end
 GO
 
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.performance_counters')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.performance_counters', 
+			date_key = 'collection_time_utc', 
+			retention_days = 15, 
+			purge_row_size = 100000,
+			reference = 'SQLMonitor Data Collection'
+end
+go
 
-/* ***** 6) Create View [dbo].[vw_performance_counters] for Multi SqlCluster on same nodes Architecture */
+
+/* ***** 7) Create View [dbo].[vw_performance_counters] for Multi SqlCluster on same nodes Architecture */
 -- drop view dbo.vw_performance_counters
 if OBJECT_ID('dbo.vw_performance_counters') is null
 	exec ('create view dbo.vw_performance_counters as select 1 as dummy;');
@@ -165,7 +198,7 @@ select collection_time_utc, host_name, path, object, counter, value, instance fr
 go
 
 
-/* ***** 7) Create dbo.perfmon_files table using Partition scheme ***************** */
+/* ***** 8) Create dbo.perfmon_files table using Partition scheme ***************** */
 -- drop table [dbo].[perfmon_files]
 if OBJECT_ID('[dbo].[perfmon_files]') is null
 begin
@@ -184,8 +217,20 @@ begin
 end
 GO
 
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.perfmon_files')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.perfmon_files', 
+			date_key = 'collection_time_utc', 
+			retention_days = 15, 
+			purge_row_size = 100000,
+			reference = 'SQLMonitor Data Collection'
+end
+go
 
-/* ***** 8) Create table [dbo].[os_task_list] using Partition scheme ***************** */
+
+/* ***** 9) Create table [dbo].[os_task_list] using Partition scheme ***************** */
 -- drop table [dbo].[os_task_list]
 if OBJECT_ID('[dbo].[os_task_list]') is null
 begin
@@ -232,8 +277,20 @@ begin
 end
 go
 
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.os_task_list')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.os_task_list', 
+			date_key = 'collection_time_utc', 
+			retention_days = 15, 
+			purge_row_size = 100000,
+			reference = 'SQLMonitor Data Collection'
+end
+go
 
-/* ***** 9) Create View [dbo].[vw_os_task_list] for Multi SqlCluster on same nodes Architecture */
+
+/* ***** 10) Create View [dbo].[vw_os_task_list] for Multi SqlCluster on same nodes Architecture */
 -- drop view dbo.vw_os_task_list
 if OBJECT_ID('dbo.vw_os_task_list') is null
 	exec ('create view dbo.vw_os_task_list as select 1 as dummy;')
@@ -251,7 +308,7 @@ go
 
 
 
-/* ***** 10) Create table  [dbo].[wait_stats] using Partition scheme ***************** */
+/* ***** 11) Create table  [dbo].[wait_stats] using Partition scheme ***************** */
 -- drop table [dbo].[wait_stats]
 if OBJECT_ID('[dbo].[wait_stats]') is null
 begin
@@ -262,20 +319,33 @@ begin
 		[waiting_tasks_count] [bigint] NOT NULL,
 		[wait_time_ms] [bigint] NOT NULL,
 		[max_wait_time_ms] [bigint] NOT NULL,
-		[signal_wait_time_ms] [bigint] NOT NULL
+		[signal_wait_time_ms] [bigint] NOT NULL,
+		constraint pk_wait_stats primary key ([collection_time_utc], [wait_type]) on ps_dba ([collection_time_utc])
 	) on ps_dba ([collection_time_utc])
 end
 GO
 
-if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'nci_memory_kb')
+if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[wait_stats]') and type_desc = 'CLUSTERED')
 begin
-	alter table [dbo].[wait_stats] add primary key ([collection_time_utc], [wait_type]) on ps_dba ([collection_time_utc])
+	alter table [dbo].[wait_stats] add constraint pk_wait_stats primary key ([collection_time_utc], [wait_type]) on ps_dba ([collection_time_utc])
+end
+go
+
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.wait_stats')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.wait_stats', 
+			date_key = 'collection_time_utc', 
+			retention_days = 15, 
+			purge_row_size = 100000,
+			reference = 'SQLMonitor Data Collection'
 end
 go
 
 
 
-/* ***** 11) Create table  [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
+/* ***** 12) Create table  [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
 -- drop table [dbo].[BlitzFirst_WaitStats_Categories]
 if OBJECT_ID('[dbo].[BlitzFirst_WaitStats_Categories]') is null
 begin
@@ -290,7 +360,7 @@ end
 GO
 
 
-/* ***** 12) Create view  [dbo].[wait_stats] ***************** */
+/* ***** 13) Create view  [dbo].[wait_stats] ***************** */
 -- DROP VIEW [dbo].[vw_wait_stats_deltas];
 if OBJECT_ID('[dbo].[vw_wait_stats_deltas]') is null
 	exec ('CREATE VIEW [dbo].[vw_wait_stats_deltas] AS SELECT 1 as Dummy');
@@ -329,7 +399,7 @@ WHERE [w].[wait_time_ms] >= [wPrior].[wait_time_ms]
 GO
 
 
-/* ***** 13) Create required schemas ***************** */
+/* ***** 14) Create required schemas ***************** */
 if not exists (select * from sys.schemas where name = 'bkp')
 	exec ('CREATE SCHEMA [bkp]')
 GO
@@ -343,7 +413,7 @@ if not exists (select * from sys.schemas where name = 'tst')
 	exec ('CREATE SCHEMA [tst]')
 GO
 
-/* ***** 14) Set DBA database trustworthy & [sa] owner ***************** */
+/* ***** 15) Set DBA database trustworthy & [sa] owner ***************** */
 declare @dbname nvarchar(255);
 set @dbname=quotename(db_name());
 
@@ -384,7 +454,7 @@ end
 go
 
 
-/* ***** 16) Create table [dbo].[resource_consumption] ***************** */
+/* ***** 17) Create table [dbo].[resource_consumption] ***************** */
 -- DROP TABLE [dbo].[resource_consumption]
 IF OBJECT_ID('[dbo].[resource_consumption]') IS NULL
 BEGIN
@@ -425,7 +495,19 @@ begin
 end
 GO
 
-/* ***** 17) Create table [dbo].[resource_consumption_Processed_XEL_Files] ***************** */
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.resource_consumption')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.resource_consumption', 
+			date_key = 'event_time', 
+			retention_days = 90, 
+			purge_row_size = 100000,
+			reference = 'SQLMonitor Data Collection'
+end
+go
+
+/* ***** 18) Create table [dbo].[resource_consumption_Processed_XEL_Files] ***************** */
 -- drop table dbo.resource_consumption_Processed_XEL_Files
 if OBJECT_ID('dbo.resource_consumption_Processed_XEL_Files') is null
 begin
@@ -440,8 +522,21 @@ begin
 end
 GO
 
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.resource_consumption_Processed_XEL_Files')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.resource_consumption_Processed_XEL_Files', 
+			date_key = 'collection_time_utc', 
+			retention_days = 7, 
+			purge_row_size = 100000,
+			reference = 'SQLMonitor Data Collection'
+end
+go
 
-/* ***** 18) Add boundaries to partition. 1 boundary per hour ***************** */
+
+
+/* ***** 19) Add boundaries to partition. 1 boundary per hour ***************** */
 set nocount on;
 declare @current_boundary_value datetime2;
 declare @target_boundary_value datetime2; /* last day of new quarter */
@@ -479,7 +574,7 @@ end
 go
 
 
-/* ***** 19) Remove boundaries with retention of 3 months ***************** */
+/* ***** 20) Remove boundaries with retention of 3 months ***************** */
 set nocount on;
 declare @partition_boundary datetime2;
 declare @target_boundary_value datetime2; /* 3 months back date */
@@ -508,10 +603,10 @@ DEALLOCATE cur_boundaries;
 go
 
 
-/* ***** 20) Validate Partition Data ***************** */
+/* ***** 21) Validate Partition Data ***************** */
 -- Check query 'SQL-Queries\check-table-partitions.sql'
 
-/* ***** 21) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
+/* ***** 22) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
 IF OBJECT_ID('[dbo].[BlitzFirst_WaitStats_Categories]') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM [dbo].[BlitzFirst_WaitStats_Categories])
 BEGIN
 	--TRUNCATE TABLE [dbo].[BlitzFirst_WaitStats_Categories];
