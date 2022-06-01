@@ -262,16 +262,21 @@ from sys.dm_server_services
 where servicename like 'SQL Server (%)'
 or servicename like 'SQL Server Agent (%)'
 "@
-$sqlServerServicesInfo = Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Query $sqlServerInfo -SqlCredential $SqlCredential -EnableException
-$sqlServerInfo = $sqlServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server (*)"}
-$sqlServerAgentInfo = $sqlServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server Agent (*)"}
-$sqlServerServicesInfo | Format-Table -AutoSize
-
-
-# Domain & Access Validation
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validate for SqlCredentials if Host is not in domain.."
-if($sqlServerInfo.domain -eq 'WORKGROUP' -and [String]::IsNullOrEmpty($SqlCredential)) {
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide SqlCredentials." | Write-Host -ForegroundColor Red
+try {
+    $sqlServerServicesInfo = Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Query $sqlServerInfo -SqlCredential $SqlCredential -EnableException
+    $sqlServerInfo = $sqlServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server (*)"}
+    $sqlServerAgentInfo = $sqlServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server Agent (*)"}
+    $sqlServerServicesInfo | Format-Table -AutoSize
+}
+catch {
+    $errMessage = $_
+    
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "SQL Connection to [$SqlInstanceToBaseline] failed."
+    if([String]::IsNullOrEmpty($SqlCredential)) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide SqlCredentials." | Write-Host -ForegroundColor Red
+    } else {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provided SqlCredentials seems to be NOT working." | Write-Host -ForegroundColor Red
+    }
     Write-Error "Stop here. Fix above issue."
 }
 
@@ -591,8 +596,13 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$GetAllServerInfoFilePath = '$GetAllServerInfoFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating usp_GetAllServerInfo procedure in [$DbaDatabase] database.."
+    if([String]::IsNullOrEmpty($SqlCredential)) {
+        Invoke-Sqlcmd -ServerInstance $InventoryServer -Database $DbaDatabase -InputFile $GetAllServerInfoFilePath
+    }
+    else {
+        Invoke-Sqlcmd -ServerInstance $InventoryServer -Database $DbaDatabase -InputFile $GetAllServerInfoFilePath -Credential $SqlCredential
+    }
     #Invoke-DbaQuery -SqlInstance $InventoryServer -Database $DbaDatabase -File $GetAllServerInfoFilePath -EnableException
-    Invoke-Sqlcmd -ServerInstance $InventoryServer -Database $DbaDatabase -InputFile $GetAllServerInfoFilePath -Credential $SqlCredential
 }
 
 
