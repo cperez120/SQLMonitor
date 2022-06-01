@@ -1,12 +1,12 @@
 ﻿[CmdletBinding()]
 Param (
-    $DistributorIP = '196.168.1.228',
+    $DistributorIP = 'db_repl_distributor',
     $DistributionDb = 'distribution',
-    $DbaDatabase = 'DBA',
+    $DbaDatabase = 'DBA_Admin',
     $ReplTokenTableName = '[dbo].[repl_token_header]',
     $ReplTokenErrorTableName = '[dbo].[repl_token_insert_log]'
 )
-
+Import-Module dbatools
 <# ****************************************************************************#
 ## ************** Validate Replication Health using Tracer Tokens *************#
 ## *************************************************************************** #>
@@ -80,10 +80,15 @@ foreach($srv in $publishers)
 {
     "{0} {1,-7} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Post token on Publications of [$srv]" | Write-Output
     $srvPublications = $resultGetPublications | Where-Object {$_.publisher -eq $srv}
-    #$pubSrvObj = Connect-DbaInstance -SqlInstance $srv -SqlCredential $sqlCredential
-    $pubSrvObj = Get-DbaRegisteredServer -Name $srv | Connect-DbaInstance
+    
+    $pubSrvObj = Get-DbaRegisteredServer -Name $srv | Select-Object -First 1  | Connect-DbaInstance
+    if([String]::IsNullOrEmpty($pubSrvObj)) {
+        $pubSrvObj = Connect-DbaInstance -SqlInstance $srv -SqlCredential $sqlCredential
+    }
     foreach($pub in $srvPublications)
     {
+        $resultInsertToken = @()
+        "`t{0} {1,-7} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Insert token for [$srv].[$($pub.publisher_db)].[$($pub.publication)].." | Write-Output
         $params = @{ p_distributor = $DistributorIP;
                      p_publisher = $srv;
                      p_publication = $($pub.publication); 
@@ -91,9 +96,18 @@ foreach($srv in $publishers)
                    }
 
         try {
-            $resultInsertToken = Invoke-DbaQuery -SqlInstance $pubSrvObj -Database $pub.publisher_db -Query $tsqlInsertToken `
+            $resultInsertToken += Invoke-DbaQuery -SqlInstance $pubSrvObj -Database $pub.publisher_db -Query $tsqlInsertToken `
                                             -SqlParameters $params -EnableException
-            $tokenInserted.Add($resultInsertToken) | Out-Null
+            if($resultInsertToken.Count -eq 0) {
+                Write-Debug "Here before inserting tracer tokens"
+                $msg = "Result of sp_posttracertoken is blank for [$srv].[$($pub.publisher_db)].[$($pub.publication)]. Kindly validate."
+                "`t{0} {1,-7} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)",$msg | Write-Host -ForegroundColor Red
+                $msg | Write-Error
+            }
+            else {
+                $tokenInserted.Add($resultInsertToken) | Out-Null
+                #$tokenInserted += $resultInsertToken
+            }
         }
         catch {
             $err = $_
@@ -102,6 +116,7 @@ foreach($srv in $publishers)
         }
     }
 }
+
 
 "{0} {1,-7} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Populate [$DistributorIP].[$DbaDatabase].$ReplTokenTableName with tokens.." | Write-Output
 #$tokenInserted | ogv -Title "Tokens inserted"
