@@ -1,3 +1,7 @@
+IF DB_NAME() = 'master'
+	raiserror ('Kindly execute all queries in [DBA] database', 20, -1) with log;
+go
+
 use DBA
 go
 
@@ -73,7 +77,7 @@ exec DBA.dbo.usp_add_credential
 go
 
 
---drop procedure dbo.usp_add_credential
+--drop procedure dbo.usp_get_credential
 create or alter procedure dbo.usp_get_credential
 	@server_ip char(15) = null, 
 	@server_name varchar(125) = null, 
@@ -127,8 +131,8 @@ begin
 		begin
 			select server_ip, server_name, [user_name], is_sql_user, is_rdp_user,
 				[password] = case when @passphrase_string is null 
-									then cast(DecryptByPassPhrase(cast(salt as varchar),password_hash ,1, @server_ip) as varchar)
-									else cast(DecryptByPassPhrase(@passphrase_string,password_hash ,1, @server_ip) as varchar)
+									then cast(DecryptByPassPhrase(cast(salt as varchar),password_hash ,1, isnull(@server_ip,server_ip)) as varchar)
+									else cast(DecryptByPassPhrase(@passphrase_string,password_hash ,1, isnull(@server_ip,server_ip)) as varchar)
 									end,
 				created_date, created_by, updated_date, updated_by, remarks
 			from #matched_credentials
@@ -147,7 +151,7 @@ go
 
 -- Fetch password
 declare @password varchar(256);
-exec DBA.dbo.usp_get_credential 
+exec dbo.usp_get_credential 
 		--@server_ip = '*',
 		--@user_name = 'Lab\SQLServices',
 		@password = @password output;
@@ -158,10 +162,10 @@ go
 /*
 declare @server_ip char(15) = '*'
 select server_ip, server_name, [user_name], is_sql_user, is_rdp_user, 
-		password_hash, [password] = cast(DecryptByPassPhrase(cast(salt as varchar),password_hash ,1, @server_ip) as varchar),
-		salt, salt_raw = cast(salt as varchar),		
-		created_date, created_by, updated_date, updated_by, remarks 
+		password_hash, [password] = cast(DecryptByPassPhrase(cast(salt as varchar),password_hash ,1, isnull(@server_ip,server_ip)) as varchar),
+		salt, salt_raw = cast(salt as varchar),	created_date, created_by, updated_date, updated_by, 
+		delegate_login_01, delegate_login_02, remarks 
 from dbo.credential_manager
-where server_ip = @server_ip
+where @server_ip is null or server_ip = @server_ip
 go
 */
