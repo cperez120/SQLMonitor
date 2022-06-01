@@ -1,6 +1,6 @@
 ﻿[CmdletBinding()]
 Param (
-    $DistributorIP = 'db_repl_distributor',
+    $DistributorIP = 'repl_distributor_server',
     $DistributionDb = 'distribution',
     $DbaDatabase = 'DBA_Admin',
     $ReplTokenTableName = '[dbo].[repl_token_header]',
@@ -85,6 +85,11 @@ foreach($srv in $publishers)
     if([String]::IsNullOrEmpty($pubSrvObj)) {
         $pubSrvObj = Connect-DbaInstance -SqlInstance $srv -SqlCredential $sqlCredential
     }
+    if([String]::IsNullOrEmpty($pubSrvObj)) {
+        $msg = "`$pubSrvObj is null. Means, registered server for publisher [$srv] not found with proper credentials."
+        "`t{0} {1,-7} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)",$msg | Write-Host -ForegroundColor Red
+        $msg | Write-Error
+    }
     foreach($pub in $srvPublications)
     {
         $resultInsertToken = @()
@@ -99,7 +104,6 @@ foreach($srv in $publishers)
             $resultInsertToken += Invoke-DbaQuery -SqlInstance $pubSrvObj -Database $pub.publisher_db -Query $tsqlInsertToken `
                                             -SqlParameters $params -EnableException
             if($resultInsertToken.Count -eq 0) {
-                Write-Debug "Here before inserting tracer tokens"
                 $msg = "Result of sp_posttracertoken is blank for [$srv].[$($pub.publisher_db)].[$($pub.publication)]. Kindly validate."
                 "`t{0} {1,-7} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)",$msg | Write-Host -ForegroundColor Red
                 $msg | Write-Error
