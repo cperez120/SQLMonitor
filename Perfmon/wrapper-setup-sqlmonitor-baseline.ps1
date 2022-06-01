@@ -4,18 +4,18 @@
 
 cls
 $params = @{
-    SqlInstanceToBaseline = 'Workstation\SQL2014'
+    SqlInstanceToBaseline = 'localhost'
     DbaDatabase = 'DBA'
-    DbaToolsFolderPath = 'F:\GitHub\dbatools'
-    InventoryServer = 'SQLMonitor'
+    DbaToolsFolderPath = 'D:\Softwares\dbatools'
+    InventoryServer = 'localhost'
     DbaGroupMailId = 'sqlagentservice@gmail.com'
     #SqlCredential = $saAdmin
     #WindowsCredential = $LabCredential
-    SkipSteps = @("11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
-    #StartAtStep = '18__CreateJobRemoveXEventFiles'
+    #SkipSteps = @("11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
+    StartAtStep = '8__usp_GetAllServerInfo'
     #StopAtStep = '21__WhoIsActivePartition'
 }
-F:\GitHub\SQLMonitor\Perfmon\setup-sqlmonitor-baseline.ps1 @Params #-Debug
+D:\GitHub-Personal\SQLMonitor\Perfmon\setup-sqlmonitor-baseline.ps1 @Params #-Debug
 
 
 #Get-DbaDbMailProfile -SqlInstance '192.168.56.31' -SqlCredential $personalCredential
