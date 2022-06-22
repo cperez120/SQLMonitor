@@ -19,6 +19,8 @@ Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "replication-latency-infra",
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Sql-Queries", "Sql-Queries\Sql-Queries.ssmssqlproj", "{56209732-6D7E-48B0-8B12-60542A46533C}"
 EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "SQLDBATools", "SQLDBATools\SQLDBATools.ssmssqlproj", "{747B93D0-331E-4FD2-9E47-8DDF2C8C1DBE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Default|Default = Default|Default
@@ -32,7 +34,8 @@ Global
 		{1A68E3D2-F61D-496F-90F1-9CD990B3B52F}.Default|Default.ActiveCfg = Default
 		{C0977F35-60B1-4E4F-8205-95B982CCC5D8}.Default|Default.ActiveCfg = Default
 		{56209732-6D7E-48B0-8B12-60542A46533C}.Default|Default.ActiveCfg = Default
-		{B4C738EF-7ECE-4AE1-806E-E623965554D0}.Default|Default.ActiveCfg = Default
+		{8B69B769-2D04-4D9C-BAC9-9426DDCD1C27}.Default|Default.ActiveCfg = Default
+		{747B93D0-331E-4FD2-9E47-8DDF2C8C1DBE}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -833,6 +833,8 @@ select count(*) as counts from sys.dm_exec_connections with (nolock)
 			delete from @_result;
 			set @_sql =  "
 --SET QUOTED_IDENTIFIER ON;
+SET NOCOUNT ON; 
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
 --	Query to find what's is running on server
 SELECT	COUNT(*) as active_request_count

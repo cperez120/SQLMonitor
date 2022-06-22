@@ -64,7 +64,7 @@ begin
 end
 go
 
-exec DBA.dbo.usp_add_credential
+exec dbo.usp_add_credential
 			@server_ip = '*',
 			--@server_name = '<server_name>',
 			@user_name = 'Lab\SQLServices',
