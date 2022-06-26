@@ -21,6 +21,10 @@ Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Sql-Queries", "Sql-Queries\
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "SQLDBATools", "SQLDBATools\SQLDBATools.ssmssqlproj", "{747B93D0-331E-4FD2-9E47-8DDF2C8C1DBE}"
 EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Credential-Manager", "Credential-Manager\Credential-Manager.ssmssqlproj", "{0A5FBE5B-9E8D-4BF2-8A45-E2F2F54E5DF6}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Grafana-Dashboards", "Grafana-Dashboards\Grafana-Dashboards.ssmssqlproj", "{B8709E4E-F033-4E1C-A108-A3F52F522622}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Default|Default = Default|Default
@@ -34,8 +38,10 @@ Global
 		{1A68E3D2-F61D-496F-90F1-9CD990B3B52F}.Default|Default.ActiveCfg = Default
 		{C0977F35-60B1-4E4F-8205-95B982CCC5D8}.Default|Default.ActiveCfg = Default
 		{56209732-6D7E-48B0-8B12-60542A46533C}.Default|Default.ActiveCfg = Default
-		{8B69B769-2D04-4D9C-BAC9-9426DDCD1C27}.Default|Default.ActiveCfg = Default
 		{747B93D0-331E-4FD2-9E47-8DDF2C8C1DBE}.Default|Default.ActiveCfg = Default
+		{0A5FBE5B-9E8D-4BF2-8A45-E2F2F54E5DF6}.Default|Default.ActiveCfg = Default
+		{1CE8958C-7E26-48EF-A216-82789BF5D445}.Default|Default.ActiveCfg = Default
+		{B8709E4E-F033-4E1C-A108-A3F52F522622}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

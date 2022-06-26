@@ -106,7 +106,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1654018681209,
+  "iteration": 1656227634593,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -2510,8 +2510,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent",
-                    "value": null
+                    "color": "transparent"
                   }
                 ]
               },
@@ -2593,8 +2592,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               }
@@ -2716,8 +2714,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -2812,8 +2809,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -4398,7 +4394,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -4438,7 +4435,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 13
+            "y": 28
           },
           "id": 86,
           "options": {
@@ -4461,7 +4458,7 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "table",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeFrom())\n\t\t,@end_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeTo());\n\n;with t_sessions as (\n\tselect command = additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), *\n\tfrom $whoisactive_table_name w\n\twhere w.collection_time = (select top 1 collection_time from $whoisactive_table_name order by collection_time desc)\n)\nselect  [start_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), w.start_time),w.[dd hh:mm:ss.mss],  \n        w.command, w.percent_complete, w.session_id, w.login_name,\n\t\t    sql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n\t\t\t\t\t\t\telse left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n\t\t\t\tw.database_name, w.program_name, w.host_name, w.status, w.CPU, w.used_memory, w.open_tran_count, w.wait_info, \n\t\t    w.blocked_session_count, w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, w.tasks\nfrom t_sessions w\nwhere (\tw.command in ('DBCC', 'RESTORE HEADERONLY','BACKUP LOG','BACKUP DATABASE','RESTORE DATABASE','UPDATE STATISTICS') )\nor    ( w.program_name like 'SQL Job%' )\norder by w.collection_time DESC, w.start_time ASC\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeFrom())\n\t\t,@end_time datetime = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), $__timeTo());\n\n;with t_sessions as (\n\tselect command = additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), *\n\tfrom $whoisactive_table_name w\n\twhere w.collection_time = (select top 1 collection_time from $whoisactive_table_name order by collection_time desc)\n)\nselect  [start_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), w.start_time),w.[dd hh:mm:ss.mss],  \n        w.command, w.percent_complete, w.session_id, w.login_name,\n\t\t    sql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n\t\t\t\t\t\t\telse left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n\t\t\t\tw.database_name, w.program_name, w.host_name, w.status, w.CPU, w.used_memory, w.open_tran_count, w.wait_info, \n\t\t    w.blocked_session_count, w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, w.tasks\nfrom t_sessions w\nwhere (\tw.command in ('DBCC', 'RESTORE HEADERONLY','BACKUP LOG','BACKUP DATABASE','RESTORE DATABASE','UPDATE STATISTICS') )\nor    ( w.program_name like 'SQL Job%' or w.program_name like 'SQLAgent%' )\norder by w.collection_time DESC, w.start_time ASC\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
               "refId": "A"
             }
           ],
@@ -4594,7 +4591,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 32
+            "y": 30
           },
           "id": 119,
           "links": [],
@@ -5571,6 +5568,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 178,
+  "version": 180,
   "weekStart": ""
 }
