@@ -50,7 +50,8 @@ BEGIN
 	DECLARE @_sql NVARCHAR(max);
 	DECLARE @_isLocalHost bit = 0;
 	create table #server_details (
-			srv_name varchar(125), ip varchar(30), domain varchar(125), host_name varchar(125), product_version varchar(30),
+			srv_name varchar(125), at_server_name varchar(125), machine_name varchar(125), server_name varchar(125), ip varchar(30), 
+			domain varchar(125), host_name varchar(125), product_version varchar(30),
 			sqlserver_start_time_utc datetime2, os_cpu decimal(20,2), sql_cpu decimal(20,2), pcnt_kernel_mode decimal(20,2),
 			page_faults_kb decimal(20,2), blocked_counts int, blocked_duration_max_seconds bigint, total_physical_memory_kb bigint,
 			available_physical_memory_kb bigint, system_high_memory_signal_state varchar(20), physical_memory_in_use_kb decimal(20,2),
@@ -59,6 +60,9 @@ BEGIN
 		);
 
 	declare @_srv_name	nvarchar (125);
+	declare @_at_server_name	varchar (125);
+	declare @_machine_name	varchar (125);
+	declare @_server_name	varchar (125);
 	declare @_ip	varchar (30);
 	declare @_domain	varchar (125);
 	declare @_host_name	varchar (125);
@@ -137,6 +141,9 @@ BEGIN
 	BEGIN
 		print char(10)+'***** Looping through '+quotename(@_srv_name)+' *******';
 		set @_linked_server_failed = 0;
+		set @_at_server_name = NULL;
+		set @_machine_name = NULL;
+		set @_server_name = NULL;
 		set @_ip = NULL;
 		set @_domain = NULL;
 		set @_host_name = NULL;
@@ -181,6 +188,94 @@ BEGIN
 				--continue;
 			end catch;
 		end
+
+
+		-- [@@SERVERNAME] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and (@output is null or exists (select * from @_tbl_output_columns where column_name = 'at_server_name'))
+		begin
+			delete from @_result;
+			set @_sql = "SELECT	[at_server_name] = CONVERT(varchar,  @@SERVERNAME )";
+			-- Decorate for remote query if LinkedServer
+			if @_isLocalHost = 0
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
+		
+			begin try
+				insert @_result (col_varchar)
+				exec (@_sql);
+
+				-- set @_ip
+				select @_at_server_name = col_varchar from @_result;
+			end try
+			begin catch
+				-- print @_sql;
+				print char(10)+char(13)+'Error occurred while executing below query on '+quotename(@_srv_name)+char(10)+'     '+@_sql;
+				print  '	ErrorNumber => '+convert(varchar,ERROR_NUMBER());
+				print  '	ErrorSeverity => '+convert(varchar,ERROR_SEVERITY());
+				print  '	ErrorState => '+convert(varchar,ERROR_STATE());
+				--print  '	ErrorProcedure => '+ERROR_PROCEDURE();
+				print  '	ErrorLine => '+convert(varchar,ERROR_LINE());
+				print  '	ErrorMessage => '+ERROR_MESSAGE();
+			end catch
+		end
+
+
+		-- [machine_name] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and (@output is null or exists (select * from @_tbl_output_columns where column_name = 'machine_name'))
+		begin
+			delete from @_result;
+			set @_sql = "select CONVERT(varchar,SERVERPROPERTY('MachineName')) as [machine_name]";
+			-- Decorate for remote query if LinkedServer
+			if @_isLocalHost = 0
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
+		
+			begin try
+				insert @_result (col_varchar)
+				exec (@_sql);
+
+				-- set @_ip
+				select @_machine_name = col_varchar from @_result;
+			end try
+			begin catch
+				-- print @_sql;
+				print char(10)+char(13)+'Error occurred while executing below query on '+quotename(@_srv_name)+char(10)+'     '+@_sql;
+				print  '	ErrorNumber => '+convert(varchar,ERROR_NUMBER());
+				print  '	ErrorSeverity => '+convert(varchar,ERROR_SEVERITY());
+				print  '	ErrorState => '+convert(varchar,ERROR_STATE());
+				--print  '	ErrorProcedure => '+ERROR_PROCEDURE();
+				print  '	ErrorLine => '+convert(varchar,ERROR_LINE());
+				print  '	ErrorMessage => '+ERROR_MESSAGE();
+			end catch
+		end
+
+
+		-- [server_name] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and (@output is null or exists (select * from @_tbl_output_columns where column_name = 'server_name'))
+		begin
+			delete from @_result;
+			set @_sql = "select CONVERT(varchar,SERVERPROPERTY('ServerName')) as [server_name]";
+			-- Decorate for remote query if LinkedServer
+			if @_isLocalHost = 0
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
+		
+			begin try
+				insert @_result (col_varchar)
+				exec (@_sql);
+
+				-- set @_ip
+				select @_server_name = col_varchar from @_result;
+			end try
+			begin catch
+				-- print @_sql;
+				print char(10)+char(13)+'Error occurred while executing below query on '+quotename(@_srv_name)+char(10)+'     '+@_sql;
+				print  '	ErrorNumber => '+convert(varchar,ERROR_NUMBER());
+				print  '	ErrorSeverity => '+convert(varchar,ERROR_SEVERITY());
+				print  '	ErrorState => '+convert(varchar,ERROR_STATE());
+				--print  '	ErrorProcedure => '+ERROR_PROCEDURE();
+				print  '	ErrorLine => '+convert(varchar,ERROR_LINE());
+				print  '	ErrorMessage => '+ERROR_MESSAGE();
+			end catch
+		end
+
 
 		-- [ip] => Create SQL Statement to Execute
 		if @_linked_server_failed = 0 and (@output is null or exists (select * from @_tbl_output_columns where column_name = 'ip'))
@@ -833,6 +928,8 @@ select count(*) as counts from sys.dm_exec_connections with (nolock)
 			delete from @_result;
 			set @_sql =  "
 --SET QUOTED_IDENTIFIER ON;
+SET NOCOUNT ON; 
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
 --	Query to find what's is running on server
 SELECT	COUNT(*) as active_request_count
@@ -1325,13 +1422,16 @@ SELECT	[@server_minor_version_number] = @server_minor_version_number
 		if @_linked_server_failed = 0
 		begin
 			insert #server_details 
-			(	[srv_name], [ip], [domain], [host_name], [product_version], [sqlserver_start_time_utc], [os_cpu], [sql_cpu], 
+			(	[srv_name], [at_server_name], [machine_name], [server_name], [ip], [domain], [host_name], [product_version], [sqlserver_start_time_utc], [os_cpu], [sql_cpu], 
 				[pcnt_kernel_mode], [page_faults_kb], [blocked_counts], [blocked_duration_max_seconds], [total_physical_memory_kb], 
 				[available_physical_memory_kb], [system_high_memory_signal_state], [physical_memory_in_use_kb], [memory_grants_pending], 
 				[connection_count], [active_requests_count], [waits_per_core_per_minute], [os_start_time_utc], [cpu_count], 
 				[scheduler_count], [major_version_number], [minor_version_number]
 			)
 			select	[srv_name] = @_srv_name
+					,[@@servername] = @_at_server_name
+					,[machine_name] = @_machine_name
+					,[server_name] = @_server_name
 					,[ip] = @_ip
 					,[domain] = @_domain
 					,[host_name] = @_host_name
