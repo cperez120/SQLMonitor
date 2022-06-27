@@ -43,6 +43,16 @@ exec dbo.usp_delete_credential
 go
 
 
+/* Update Credential */
+exec dbo.usp_update_credential
+	@server_ip = '*',
+	@user_name = 'Test',
+	--@password = 'Pa$$w0rd',
+	@confirm_forgot_password = 1,
+	@remarks = 'Testing update'
+go
+
+
 /* Get All Credential for Specific Server */
 declare @server_ip char(15) = '*'
 select server_ip, server_name, [user_name], is_sql_user, is_rdp_user, 
