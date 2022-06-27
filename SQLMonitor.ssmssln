@@ -13,8 +13,6 @@ Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "XEvent", "XEvent\XEvent.ssm
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "NoteBooks", "NoteBooks\NoteBooks.ssmssqlproj", "{717474F2-2815-4233-893F-AC2A0B0043F3}"
 EndProject
-Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Perfmon", "Perfmon\Perfmon.ssmssqlproj", "{1A68E3D2-F61D-496F-90F1-9CD990B3B52F}"
-EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "replication-latency-infra", "replication-latency-infra\replication-latency-infra.ssmssqlproj", "{C0977F35-60B1-4E4F-8205-95B982CCC5D8}"
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Sql-Queries", "Sql-Queries\Sql-Queries.ssmssqlproj", "{56209732-6D7E-48B0-8B12-60542A46533C}"
@@ -24,6 +22,12 @@ EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Credential-Manager", "Credential-Manager\Credential-Manager.ssmssqlproj", "{0A5FBE5B-9E8D-4BF2-8A45-E2F2F54E5DF6}"
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Grafana-Dashboards", "Grafana-Dashboards\Grafana-Dashboards.ssmssqlproj", "{B8709E4E-F033-4E1C-A108-A3F52F522622}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Alerting", "Alerting\Alerting.ssmssqlproj", "{FD50C689-B82C-4567-A1B8-FD20792E9A73}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Inventory", "Inventory\Inventory.ssmssqlproj", "{D2134DE5-7115-43EF-828C-15557CAEF230}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "SQLMonitor-PS-Scripts", "SQLMonitor-PS-Scripts\SQLMonitor-PS-Scripts.ssmssqlproj", "{59FFBFCC-B837-458D-AB58-C01BCE70491F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,13 +39,15 @@ Global
 		{7ED3B209-76A3-48A5-8C31-4760BBDAA192}.Default|Default.ActiveCfg = Default
 		{346471F8-E161-47CB-AE5D-A766BE2B21E5}.Default|Default.ActiveCfg = Default
 		{717474F2-2815-4233-893F-AC2A0B0043F3}.Default|Default.ActiveCfg = Default
-		{1A68E3D2-F61D-496F-90F1-9CD990B3B52F}.Default|Default.ActiveCfg = Default
 		{C0977F35-60B1-4E4F-8205-95B982CCC5D8}.Default|Default.ActiveCfg = Default
 		{56209732-6D7E-48B0-8B12-60542A46533C}.Default|Default.ActiveCfg = Default
 		{747B93D0-331E-4FD2-9E47-8DDF2C8C1DBE}.Default|Default.ActiveCfg = Default
 		{0A5FBE5B-9E8D-4BF2-8A45-E2F2F54E5DF6}.Default|Default.ActiveCfg = Default
-		{1CE8958C-7E26-48EF-A216-82789BF5D445}.Default|Default.ActiveCfg = Default
 		{B8709E4E-F033-4E1C-A108-A3F52F522622}.Default|Default.ActiveCfg = Default
+		{B493A5C1-664A-4A38-A7BE-37803B0F3583}.Default|Default.ActiveCfg = Default
+		{FD50C689-B82C-4567-A1B8-FD20792E9A73}.Default|Default.ActiveCfg = Default
+		{D2134DE5-7115-43EF-828C-15557CAEF230}.Default|Default.ActiveCfg = Default
+		{59FFBFCC-B837-458D-AB58-C01BCE70491F}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
