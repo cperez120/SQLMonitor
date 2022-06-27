@@ -27,7 +27,7 @@ Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Alerting", "Alerting\Alerti
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Inventory", "Inventory\Inventory.ssmssqlproj", "{D2134DE5-7115-43EF-828C-15557CAEF230}"
 EndProject
-Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "SQLMonitor-PS-Scripts", "SQLMonitor-PS-Scripts\SQLMonitor-PS-Scripts.ssmssqlproj", "{59FFBFCC-B837-458D-AB58-C01BCE70491F}"
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "SQLMonitor", "SQLMonitor\SQLMonitor.ssmssqlproj", "{A2809BF5-2DC1-4625-8138-85BD21CCC063}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,7 +47,7 @@ Global
 		{B493A5C1-664A-4A38-A7BE-37803B0F3583}.Default|Default.ActiveCfg = Default
 		{FD50C689-B82C-4567-A1B8-FD20792E9A73}.Default|Default.ActiveCfg = Default
 		{D2134DE5-7115-43EF-828C-15557CAEF230}.Default|Default.ActiveCfg = Default
-		{59FFBFCC-B837-458D-AB58-C01BCE70491F}.Default|Default.ActiveCfg = Default
+		{A2809BF5-2DC1-4625-8138-85BD21CCC063}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

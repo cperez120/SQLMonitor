@@ -4,18 +4,18 @@
 
 cls
 $params = @{
-    SqlInstanceToBaseline = 'localhost'
-    DbaDatabase = 'DBA'
-    DbaToolsFolderPath = 'D:\Softwares\dbatools'
-    InventoryServer = 'localhost'
+    SqlInstanceToBaseline = 'Demo\SQL2019'
+    DbaDatabase = 'DBA_Admin'
+    DbaToolsFolderPath = 'F:\GitHub\dbatools'
+    InventoryServer = 'SQLMonitor'
     DbaGroupMailId = 'sqlagentservice@gmail.com'
     #SqlCredential = $saAdmin
     #WindowsCredential = $LabCredential
     #SkipSteps = @("11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
-    StartAtStep = '8__usp_GetAllServerInfo'
+    #StartAtStep = '8__usp_GetAllServerInfo'
     #StopAtStep = '21__WhoIsActivePartition'
 }
-D:\GitHub-Personal\SQLMonitor\Perfmon\setup-sqlmonitor-baseline.ps1 @Params #-Debug
+F:\GitHub\SQLMonitor\SQLMonitor\setup-sqlmonitor-baseline.ps1 @Params #-Debug
 
 
 #Get-DbaDbMailProfile -SqlInstance '192.168.56.31' -SqlCredential $personalCredential
