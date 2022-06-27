@@ -1,3 +1,0 @@
-﻿CREATE LOGIN [grafana]
-    WITH PASSWORD = N'uvbumvpyfttzPgl9f~fJa{xqmsFT7_&#$!~<w=wt{~g!zw69', SID = 0xE579C094FA695A48808BCD4E3B58D134, DEFAULT_DATABASE = [DBA], DEFAULT_LANGUAGE = [us_english], CHECK_POLICY = OFF;
-
