@@ -1,7 +1,7 @@
 ﻿[CmdletBinding()]
 Param (
     [Parameter(Mandatory=$false)]
-    $TemplatePath = “C:\Perfmon\DBA_PerfMon_All_Counters_Template.xml”,
+    $TemplatePath = “C:\SQLMonitor\DBA_PerfMon_All_Counters_Template.xml”,
     [Parameter(Mandatory=$false)]
     $CollectorSetName = "DBA",
     [Parameter(Mandatory=$false)]
@@ -11,7 +11,7 @@ Param (
 
 # Find Perfmon data collection logs folder path
 $collector_root_directory = Split-Path $TemplatePath -Parent
-$log_file_path = "$collector_root_directory\$CollectorSetName"
+$log_file_path = "$collector_root_directory\Perfmon-Files\$CollectorSetName"
 $file_rotation_time = '00:05:00'
 $sample_interval = '00:00:30'
 

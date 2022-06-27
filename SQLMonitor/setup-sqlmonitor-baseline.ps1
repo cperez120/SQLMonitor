@@ -184,7 +184,7 @@ $WindowsCredential | ft -AutoSize
 
 # Construct File Path Variables
 $ddlPath = Join-Path $SQLMonitorPath "DDLs"
-$perfmonPath = Join-Path $SQLMonitorPath "Perfmon"
+$psScriptPath = Join-Path $SQLMonitorPath "SQLMonitor"
 
 $mailProfileFilePath = "$ddlPath\$MailProfileFileName"
 $WhoIsActiveFilePath = "$ddlPath\$WhoIsActiveFileName"
@@ -208,7 +208,7 @@ $WhoIsActivePartitionFilePath = "$ddlPath\$WhoIsActivePartitionFileName"
 $TestWindowsAdminAccessFilePath = "$ddlPath\$TestWindowsAdminAccessFileName"
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ddlPath = '$ddlPath'"
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$perfmonPath = '$perfmonPath'"
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$psScriptPath = '$psScriptPath'"
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Import dbatools module.."
 Import-Module dbatools
@@ -639,13 +639,13 @@ if($stepName -in $Steps2Execute) {
 $stepName = '10__CopyPerfmonFolder2Host'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$perfmonPath = '$perfmonPath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$psScriptPath = '$psScriptPath'"
     
-    if( (Invoke-Command -Session $ssn -ScriptBlock {Test-Path 'C:\Perfmon'}) ) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$perfmonPath' already exists on host [$HostName]."
+    if( (Invoke-Command -Session $ssn -ScriptBlock {Test-Path 'C:\SQLMonitor'}) ) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$psScriptPath' already exists on host [$HostName]."
     }
     else {
-        Copy-Item $perfmonPath -Destination "C:\Perfmon" -ToSession $ssn -Recurse
+        Copy-Item $psScriptPath -Destination "C:\SQLMonitor" -ToSession $ssn -Recurse
     }
 }
 
@@ -658,7 +658,7 @@ if($stepName -in $Steps2Execute) {
     Invoke-Command -Session $ssn -ScriptBlock {
         # Set execution policy
         Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy Unrestricted -Force 
-        & "C:\Perfmon\perfmon-collector-logman.ps1" -TemplatePath "C:\Perfmon\DBA_PerfMon_All_Counters_Template.xml"
+        & "C:\SQLMonitor\perfmon-collector-logman.ps1" -TemplatePath "C:\SQLMonitor\DBA_PerfMon_All_Counters_Template.xml"
     }
 }
 
