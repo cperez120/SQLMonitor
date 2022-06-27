@@ -16,13 +16,13 @@ go
 exec dbo.usp_add_credential
 			@server_ip = '*',
 			--@server_name = '<server_name>',
-			@user_name = 'Lab\SQLServices',
+			@user_name = 'Test',
 			@password_string = 'Pa$$w0rd',
 			--@passphrase_string = '421',
 			--@is_sql_user = 1,
 			--@is_rdp_user = 1,
 			--@save_passphrase = 1,
-			@remarks = 'DBA Service Account';
+			@remarks = 'Test Credential';
 go
 
 /* Fetch Credentials */
@@ -32,6 +32,14 @@ exec dbo.usp_get_credential
 		--@user_name = 'Lab\SQLServices',
 		@password = @password output;
 select @password as [@password];
+go
+
+
+/* Remove Credential */
+exec dbo.usp_delete_credential
+	@server_ip = '*',
+	@user_name = 'Test',
+	@password = 'Pa$$w0rd'
 go
 
 
