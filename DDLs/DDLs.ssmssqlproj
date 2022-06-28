@@ -187,11 +187,35 @@
           <AssociatedConnUserName />
           <FullPath>SCH-sp_WhoIsActive_v12_00(Modified).sql</FullPath>
         </FileNode>
+        <FileNode Name="SCH-usp_collect_wait_stats.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-usp_collect_wait_stats.sql</FullPath>
+        </FileNode>
+        <FileNode Name="SCH-usp_collect_xevents_resource_consumption.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-usp_collect_xevents_resource_consumption.sql</FullPath>
+        </FileNode>
         <FileNode Name="SCH-usp_GetAllServerInfo.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-usp_GetAllServerInfo.sql</FullPath>
+        </FileNode>
+        <FileNode Name="SCH-usp_purge_tables.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-usp_purge_tables.sql</FullPath>
+        </FileNode>
+        <FileNode Name="SCH-usp_run_WhoIsActive.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-usp_run_WhoIsActive.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-WhoIsActive-Partitioning.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
