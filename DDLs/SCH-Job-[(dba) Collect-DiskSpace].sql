@@ -1,11 +1,11 @@
 USE [msdb]
 GO
 
-if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Collect-OSProcesses')
-	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Collect-OSProcesses', @delete_unused_schedule=1
+if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Collect-DiskSpace')
+	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Collect-DiskSpace', @delete_unused_schedule=1
 GO
 
-/****** Object:  Job [(dba) Collect-OSProcesses]    Script Date: 4/30/2022 9:06:35 PM ******/
+/****** Object:  Job [(dba) Collect-DiskSpace]    Script Date: 4/30/2022 9:06:35 PM ******/
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
@@ -18,7 +18,7 @@ IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 END
 
 DECLARE @jobId BINARY(16)
-EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Collect-OSProcesses', 
+EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Collect-DiskSpace', 
 		@enabled=1, 
 		@notify_level_eventlog=0, 
 		@notify_level_email=0, 
@@ -30,7 +30,7 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Collect-OSProcesses',
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 /****** Object:  Step [Import-TaskList]    Script Date: 4/30/2022 9:06:35 PM ******/
-EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Import-TaskList', 
+EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Collect-DiskSpace', 
 		@step_id=1, 
 		@cmdexec_success_code=0, 
 		@on_success_action=1, 
@@ -40,12 +40,12 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Import-T
 		@retry_attempts=0, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'CmdExec', 
-		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  C:\SQLMonitor\tasklist-push-to-sqlserver.ps1 -HostName localhost -SqlInstance localhost -Database DBA', 
+		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  C:\SQLMonitor\disk-space-collector.ps1 -HostName localhost -SqlInstance localhost -Database DBA', 
 		@flags=40
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_update_job @job_id = @jobId, @start_step_id = 1
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'(dba) Collect-OSProcesses', 
+EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'(dba) Collect-DiskSpace', 
 		@enabled=1, 
 		@freq_type=4, 
 		@freq_interval=1, 
@@ -69,5 +69,5 @@ EndSave:
 GO
 
 IF APP_NAME() = 'Microsoft SQL Server Management Studio - Query'
-	EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Collect-OSProcesses'
+	EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Collect-DiskSpace'
 GO

@@ -35,6 +35,13 @@
       "label": "Blocking Threshold Seconds",
       "value": "60",
       "description": ""
+    },
+    {
+      "name": "VAR_DISKSPACE_TABLE_NAME",
+      "type": "constant",
+      "label": "DiskSpaceTableName",
+      "value": "[dbo].[disk_space]",
+      "description": ""
     }
   ],
   "__elements": [],
@@ -106,7 +113,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1656227634593,
+  "iteration": 1656388341715,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -3155,7 +3162,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -3195,7 +3203,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 7
+            "y": 22
           },
           "id": 115,
           "options": {
@@ -3942,7 +3950,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   }
                 ]
               },
@@ -3967,7 +3976,7 @@
             "h": 15,
             "w": 24,
             "x": 0,
-            "y": 23
+            "y": 26
           },
           "id": 144,
           "options": {
@@ -4049,7 +4058,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   }
                 ]
               },
@@ -4098,7 +4108,7 @@
             "h": 15,
             "w": 24,
             "x": 0,
-            "y": 38
+            "y": 41
           },
           "id": 145,
           "options": {
@@ -4471,12 +4481,219 @@
       "type": "row"
     },
     {
-      "collapsed": true,
+      "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 28
+      },
+      "id": 175,
+      "panels": [],
+      "title": "Disk Space - [$host_name] @ ${diskspace_collection_time_utc:date:YYYY-MM-DD HH.mm}",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "free_mb"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "free"
+              },
+              {
+                "id": "unit",
+                "value": "mbytes"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "capacity_mb"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "capacity"
+              },
+              {
+                "id": "unit",
+                "value": "mbytes"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "free %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background-solid"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 20
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "used %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background-solid"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "#EAB839",
+                      "value": 70
+                    },
+                    {
+                      "color": "orange",
+                      "value": 80
+                    },
+                    {
+                      "color": "light-red",
+                      "value": 90
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 95
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "block_size"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "id": 173,
+      "options": {
+        "footer": {
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "8.4.6",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = $__timeFrom()\n\t\t    ,@end_time datetime = $__timeTo();\n\nselect  collection_time_utc as collection_time, disk_volume, label, capacity_mb, free_mb\n        ,[free %] = (free_mb * 100.0)/capacity_mb\n        ,[used %] = ((capacity_mb - free_mb) * 100.0)/capacity_mb\n        ,block_size, filesystem\nfrom $diskspace_table_name ds with (nolock)\nwhere ds.collection_time_utc = (select top 1 collection_time_utc from $diskspace_table_name with (nolock) order by collection_time_utc desc)\norder by collection_time_utc DESC, host_name, disk_volume\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+          "refId": "A"
+        }
+      ],
+      "title": "Disk Space Utilization",
+      "type": "table"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 37
       },
       "id": 103,
       "panels": [
@@ -4581,7 +4798,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 38
       },
       "id": 121,
       "panels": [
@@ -5546,6 +5763,46 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "hide": 2,
+        "label": "DiskSpaceTableName",
+        "name": "diskspace_table_name",
+        "query": "${VAR_DISKSPACE_TABLE_NAME}",
+        "skipUrlSync": false,
+        "type": "constant",
+        "current": {
+          "value": "${VAR_DISKSPACE_TABLE_NAME}",
+          "text": "${VAR_DISKSPACE_TABLE_NAME}",
+          "selected": false
+        },
+        "options": [
+          {
+            "value": "${VAR_DISKSPACE_TABLE_NAME}",
+            "text": "${VAR_DISKSPACE_TABLE_NAME}",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect top 1 collection_time_utc\nfrom [$inventory_db].$diskspace_table_name with (nolock)\norder by collection_time_utc desc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "DiskSpace Collection Time UTC",
+        "multi": false,
+        "name": "diskspace_collection_time_utc",
+        "options": [],
+        "query": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect top 1 collection_time_utc\nfrom [$inventory_db].$diskspace_table_name with (nolock)\norder by collection_time_utc desc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
       }
     ]
   },
@@ -5568,6 +5825,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 180,
+  "version": 185,
   "weekStart": ""
 }

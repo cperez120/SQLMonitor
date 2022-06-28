@@ -16,13 +16,13 @@ go
 exec dbo.usp_add_credential
 			@server_ip = '*',
 			--@server_name = '<server_name>',
-			@user_name = 'Test',
+			@user_name = 'sa',
 			@password_string = 'Pa$$w0rd',
 			--@passphrase_string = '421',
 			--@is_sql_user = 1,
 			--@is_rdp_user = 1,
 			--@save_passphrase = 1,
-			@remarks = 'Test Credential';
+			@remarks = 'sa Credential';
 go
 
 /* Fetch Credentials */
