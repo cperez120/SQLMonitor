@@ -38,7 +38,8 @@
 	19) Add boundaries to partition. 1 boundary per hour
 	20) Remove boundaries with retention of 3 months
 	21) Validate Partition Data
-	22) Populate [dbo].[BlitzFirst_WaitStats_Categories]
+	22) Create table [dbo].[disk_space] using Partition scheme
+	23) Populate [dbo].[BlitzFirst_WaitStats_Categories]
 
 */
 
@@ -525,7 +526,38 @@ go
 /* ***** 21) Validate Partition Data ***************** */
 -- Check query 'SQL-Queries\check-table-partitions.sql'
 
-/* ***** 22) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
+/* ***** 22) Create table [dbo].[disk_space] using Partition scheme *********** */
+if OBJECT_ID('[dbo].[disk_space]') is null
+begin
+	CREATE TABLE [dbo].[disk_space]
+	(
+		[collection_time_utc] [datetime2](7) NOT NULL,
+		[host_name] [varchar](125) NOT NULL,
+		[disk_volume] [varchar](255) NOT NULL,
+		[label] [varchar](125) NULL,
+		[capacity_mb] [decimal](20,2) NOT NULL,
+		[free_mb] [decimal](20,2) NOT NULL,
+		[block_size] [int] NULL,
+		[filesystem] [varchar](125) NULL,
+
+		constraint pk_disk_space primary key ([collection_time_utc],[host_name],[disk_volume])
+	);
+end
+go
+
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.disk_space')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.disk_space', 
+			date_key = 'collection_time_utc', 
+			retention_days = 90, 
+			purge_row_size = 100000,
+			reference = 'SQLMonitor Data Collection'
+end
+go
+
+/* ***** 23) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
 IF OBJECT_ID('[dbo].[BlitzFirst_WaitStats_Categories]') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM [dbo].[BlitzFirst_WaitStats_Categories])
 BEGIN
 	--TRUNCATE TABLE [dbo].[BlitzFirst_WaitStats_Categories];

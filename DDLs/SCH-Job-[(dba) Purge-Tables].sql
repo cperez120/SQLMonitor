@@ -29,7 +29,7 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Purge-Tables',
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 
-EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.purge_table', 
+EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.usp_purge_tables', 
 		@step_id=1, 
 		@cmdexec_success_code=0, 
 		@on_success_action=1, 
@@ -39,50 +39,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.purg
 		@retry_attempts=0, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'TSQL', 
-		@command=N'declare @c_table_name sysname;
-declare @c_date_key sysname;
-declare @c_retention_days smallint;
-declare @c_purge_row_size int;
-declare @sql nvarchar(max);
-declare @err_message nvarchar(2000);
-
-declare cur_purge_tables cursor local forward_only for
-	select table_name, date_key, retention_days, purge_row_size from dbo.purge_table;
-
-open cur_purge_tables;
-fetch next from cur_purge_tables into @c_table_name, @c_date_key, @c_retention_days, @c_purge_row_size;
-
-while @@FETCH_STATUS = 0
-begin
-	print ''Processing table ''+@c_table_name;
-
-	set @sql = ''
-	DECLARE @r INT;
-	
-	SET @r = 1;
-	while @r > 0
-	begin
-		delete top (''+convert(varchar,@c_purge_row_size)+'') pt
-		from ''+@c_table_name+'' pt
-		where ''+@c_date_key+'' < dateadd(day,-''+convert(varchar,@c_retention_days)+'',cast(getdate() as date));
-
-		set @r = @@ROWCOUNT;
-	end
-	''
-	begin try
-		exec (@sql);
-		update dbo.purge_table set latest_purge_datetime = SYSDATETIME() where table_name = @c_table_name;
-	end try
-	begin catch
-		set @err_message = isnull(@err_message,'''') + char(10) + ''Error while purging table ''+@c_table_name+''.''+char(10)+ ERROR_MESSAGE()+char(10);
-	end catch
-	fetch next from cur_purge_tables into @c_table_name, @c_date_key, @c_retention_days, @c_purge_row_size;
-end
-close cur_purge_tables;
-deallocate cur_purge_tables;
-
-if @err_message is not null
-	throw 50000, @err_message, 1;', 
+		@command=N'EXEC dbo.usp_purge_tables', 
 		@database_name=N'DBA', 
 		@flags=12
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
