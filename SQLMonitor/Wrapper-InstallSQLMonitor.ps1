@@ -15,7 +15,7 @@ $params = @{
     #StartAtStep = '8__usp_GetAllServerInfo'
     #StopAtStep = '21__WhoIsActivePartition'
 }
-F:\GitHub\SQLMonitor\SQLMonitor\setup-sqlmonitor-baseline.ps1 @Params #-Debug
+F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params #-Debug
 
 
 #Get-DbaDbMailProfile -SqlInstance '192.168.56.31' -SqlCredential $personalCredential
