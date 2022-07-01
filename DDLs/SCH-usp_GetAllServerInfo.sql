@@ -103,7 +103,7 @@ BEGIN
 		WHERE [Servers] > ''	
 	)
 	INSERT @_tbl_servers (srv_name)
-	SELECT srv_name
+	SELECT ltrim(rtrim(srv_name))
 	FROM t1
 	OPTION (MAXRECURSION 32000);
 

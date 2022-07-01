@@ -34,16 +34,7 @@ BEGIN
 	*/
 	SET NOCOUNT ON; 
 	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
-	SET LOCK_TIMEOUT 60000; -- 60 seconds  
-
-	--declare @program_name nvarchar(1000);
-	--declare @login_name nvarchar(255);
-	--declare @database_name varchar(255);
-	--declare @session_id int;
-	--declare @session_host_name nvarchar(255);
-
-	--declare @query_pattern nvarchar(200) --= 'usp_Q952'
-	--declare @get_plans bit = 0;
+	SET LOCK_TIMEOUT 60000; -- 60 seconds
 
 	--	Query to find what's is running on server
 	;WITH T_Requests AS 
