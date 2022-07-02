@@ -10,10 +10,10 @@ GO
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
-/****** Object:  JobCategory [(dba) Monitoring & Alerting]    Script Date: 4/30/2022 9:05:21 PM ******/
-IF NOT EXISTS (SELECT name FROM msdb.dbo.syscategories WHERE name=N'(dba) Monitoring & Alerting' AND category_class=1)
+/****** Object:  JobCategory [(dba) SQLMonitor]    Script Date: 4/30/2022 9:05:21 PM ******/
+IF NOT EXISTS (SELECT name FROM msdb.dbo.syscategories WHERE name=N'(dba) SQLMonitor' AND category_class=1)
 BEGIN
-EXEC @ReturnCode = msdb.dbo.sp_add_category @class=N'JOB', @type=N'LOCAL', @name=N'(dba) Monitoring & Alerting'
+EXEC @ReturnCode = msdb.dbo.sp_add_category @class=N'JOB', @type=N'LOCAL', @name=N'(dba) SQLMonitor'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 
 END
@@ -29,7 +29,7 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Collect-PerfmonData',
 		@description=N'This job captures Perfmon data as per template 
 
 https://github.com/imajaydwivedi/SqlServer-Baselining-Grafana/blob/master/NonSql-Files/DBA_PerfMon_All_Counters_Template.xml', 
-		@category_name=N'(dba) Monitoring & Alerting', 
+		@category_name=N'(dba) SQLMonitor', 
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 /****** Object:  Step [Import-PerfmonData]    Script Date: 4/30/2022 9:05:22 PM ******/
