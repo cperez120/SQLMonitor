@@ -88,6 +88,7 @@ begin
 end
 go
 
+select * from sys.extended_properties 
 
 /* ***** 4) Create table dbo.instance_hosts ***************************** */
 -- drop table dbo.instance_hosts;
