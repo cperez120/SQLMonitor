@@ -1,7 +1,7 @@
 ﻿[CmdletBinding()]
 Param (
     [Parameter(Mandatory=$false)]
-    [String]$NewStepName = "24__SomeNewStepHere",
+    [String]$NewStepName = "2__SomeNewStepInBetween",
     
     [Parameter(Mandatory=$false)]
     [String[]]$AllSteps = @(  "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
@@ -26,7 +26,7 @@ Param (
     [Bool]$PrintUserFriendlyFormat = $true,
 
     [Parameter(Mandatory=$false)]
-    [String]$ScriptFile
+    [String]$ScriptFile = 'F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1'
 )
 
 cls
@@ -69,4 +69,21 @@ else {
 
 if([String]::IsNullOrEmpty($ScriptFile)) {
     "`n`nNo file provided to replace the content."
+} else {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Read file content.."
+    $fileContent = [System.IO.File]::ReadAllText($ScriptFile)
+    foreach($index in $($postStep..$($AllSteps.Count-1))) {
+        #"Replace '$($AllSteps[$index])' with '$($newSteps[$index])'"
+        $fileContent = $fileContent.Replace($AllSteps[$index],$newSteps[$index+1]);
+    }
+    $newScriptFile = $ScriptFile.Replace('.ps1',' __bak.ps1')
+    $fileContent | Out-File -FilePath $newScriptFile
+    notepad $newScriptFile
+    "Updated data saved into file '$newScriptFile'." | Write-Host -ForegroundColor Green
+    "Opening saved file '$newScriptFile'." | Write-Host -ForegroundColor Green
 }
+
+
+
+
+

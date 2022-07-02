@@ -202,22 +202,7 @@ if($WhatIf) {
     "`n`n" | Write-Host
     $Steps2Execute
     "`n`n" | Write-Host
-    return
 }
-
-<#
-[Parameter(Mandatory=$false)]
-    [bool]$SkipDropTable = $false,
-
-    [Parameter(Mandatory=$false)]
-    [bool]$SkipRemoveJob = $false,
-
-    [Parameter(Mandatory=$false)]
-    [bool]$SkipDropProcedure = $false,
-
-    [Parameter(Mandatory=$false)]
-    [bool]$SkipDropView = $false,
-#>
 
 # Get Server Info
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching basic server info.."
@@ -325,7 +310,24 @@ if($stepName -in $Steps2Execute) {
 }
 
 
+# 2__RemoveJob_CollectOSProcesses
+$stepName = '2__RemoveJob_CollectOSProcesses'
+if($stepName -in $Steps2Execute) {
+    $jobName = '(dba) Collect-OSProcesses'
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Find & remove job '$jobName'.."
+    #Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -File $WhoIsActiveFilePath -SqlCredential $SqlCredential -EnableException
+}
 
+
+# 3__RemoveJob_CollectPerfmonData
+$stepName = '3__RemoveJob_CollectPerfmonData'
+if($stepName -in $Steps2Execute) {
+    $jobName = '(dba) Collect-PerfmonData'
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Find & remove job '$jobName'.."
+    #Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -File $WhoIsActiveFilePath -SqlCredential $SqlCredential -EnableException
+}
 
 
 
