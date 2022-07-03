@@ -708,7 +708,7 @@ if($stepName -in $Steps2Execute) {
     {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
         $sqlRemoveObject = @"
-if exists (select * from sys.procedures where name = N'$objName')
+if exists (select * from sys.objects where is_ms_shipped= 0 and name = N'$objName')
 begin
 	DROP PROCEDURE [dbo].[$objName]
     select 1 as object_exists;
@@ -747,7 +747,7 @@ if($stepName -in $Steps2Execute) {
     {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
         $sqlRemoveObject = @"
-if exists (select * from sys.procedures where name = N'$objName')
+if exists (select * from sys.objects where is_ms_shipped= 0 and name = N'$objName')
 begin
 	DROP PROCEDURE [dbo].[$objName]
     select 1 as object_exists;
@@ -786,7 +786,7 @@ if($stepName -in $Steps2Execute) {
     {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
         $sqlRemoveObject = @"
-if exists (select * from sys.procedures where name = N'$objName')
+if exists (select * from sys.objects where is_ms_shipped= 0 and name = N'$objName')
 begin
 	DROP PROCEDURE [dbo].[$objName]
     select 1 as object_exists;
@@ -825,7 +825,7 @@ if($stepName -in $Steps2Execute) {
     {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
         $sqlRemoveObject = @"
-if exists (select * from sys.procedures where name = N'$objName')
+if exists (select * from sys.objects where is_ms_shipped= 0 and name = N'$objName')
 begin
 	DROP PROCEDURE [dbo].[$objName]
     select 1 as object_exists;
@@ -864,7 +864,7 @@ if($stepName -in $Steps2Execute) {
     {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
         $sqlRemoveObject = @"
-if exists (select * from sys.procedures where name = N'$objName')
+if exists (select * from sys.objects where is_ms_shipped= 0 and name = N'$objName')
 begin
 	DROP PROCEDURE [dbo].[$objName]
     select 1 as object_exists;
@@ -903,9 +903,126 @@ if($stepName -in $Steps2Execute) {
     {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
         $sqlRemoveObject = @"
-if exists (select * from sys.procedures where name = N'$objName')
+if exists (select * from sys.objects where is_ms_shipped= 0 and name = N'$objName')
 begin
 	DROP PROCEDURE [dbo].[$objName]
+    select 1 as object_exists;
+end
+else
+    select 0 as object_exists;
+"@
+        $resultRemoveObject = @()
+        $resultRemoveObject += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlRemoveObject -SqlCredential $SqlCredential -EnableException
+        if($resultRemoveObject.Count -gt 0) 
+        {
+            $result = $resultRemoveObject | Select-Object -ExpandProperty object_exists;
+            if($result -eq 1) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objName' found and removed."
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objName' not found."
+            }
+        }
+    }
+}
+
+
+# 17__DropView_VwPerformanceCounters
+$stepName = '17__DropView_VwPerformanceCounters'
+if($stepName -in $Steps2Execute) {
+    $objName = 'vw_performance_counters'
+    $objType = 'view'
+    $objTypeTitleCase = (Get-Culture).TextInfo.ToTitleCase("$objType")
+
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType '$objName'.."
+    }
+    else 
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
+        $sqlRemoveObject = @"
+if exists (select * from sys.objects where is_ms_shipped= 0 and name = N'$objName')
+begin
+	DROP VIEW [dbo].[$objName]
+    select 1 as object_exists;
+end
+else
+    select 0 as object_exists;
+"@
+        $resultRemoveObject = @()
+        $resultRemoveObject += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlRemoveObject -SqlCredential $SqlCredential -EnableException
+        if($resultRemoveObject.Count -gt 0) 
+        {
+            $result = $resultRemoveObject | Select-Object -ExpandProperty object_exists;
+            if($result -eq 1) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objName' found and removed."
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objName' not found."
+            }
+        }
+    }
+}
+
+
+# 18__DropView_VwOsTaskList
+$stepName = '18__DropView_VwOsTaskList'
+if($stepName -in $Steps2Execute) {
+    $objName = 'vw_os_task_list'
+    $objType = 'view'
+    $objTypeTitleCase = (Get-Culture).TextInfo.ToTitleCase("$objType")
+
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType '$objName'.."
+    }
+    else 
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
+        $sqlRemoveObject = @"
+if exists (select * from sys.objects where is_ms_shipped= 0 and name = N'$objName')
+begin
+	DROP VIEW [dbo].[$objName]
+    select 1 as object_exists;
+end
+else
+    select 0 as object_exists;
+"@
+        $resultRemoveObject = @()
+        $resultRemoveObject += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlRemoveObject -SqlCredential $SqlCredential -EnableException
+        if($resultRemoveObject.Count -gt 0) 
+        {
+            $result = $resultRemoveObject | Select-Object -ExpandProperty object_exists;
+            if($result -eq 1) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objName' found and removed."
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objName' not found."
+            }
+        }
+    }
+}
+
+
+# 19__DropView_VwWaitStatsDeltas
+$stepName = '19__DropView_VwWaitStatsDeltas'
+if($stepName -in $Steps2Execute) {
+    $objName = 'vw_wait_stats_deltas'
+    $objType = 'view'
+    $objTypeTitleCase = (Get-Culture).TextInfo.ToTitleCase("$objType")
+
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType '$objName'.."
+    }
+    else 
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
+        $sqlRemoveObject = @"
+if exists (select * from sys.objects where is_ms_shipped= 0 and name = N'$objName')
+begin
+	DROP VIEW [dbo].[$objName]
     select 1 as object_exists;
 end
 else
