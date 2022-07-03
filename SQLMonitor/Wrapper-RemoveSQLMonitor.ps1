@@ -12,11 +12,12 @@ $params = @{
     #WindowsCredential = $LabCredential
     #SkipSteps = @("11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
     #StartAtStep = '8__usp_GetAllServerInfo'
-    #StopAtStep = '21__WhoIsActivePartition'
+    #StopAtStep = '1__RemoveJob_CollectDiskSpace'
     #SkipDropTable = $true
     #SkipRemoveJob = $true
     #SkipDropProc = $true
     #SkipDropView = $true
+    DryRun = $true
 }
 F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1 @Params #-Debug
 

@@ -27,7 +27,7 @@ Param (
     [Parameter(Mandatory=$false)]
     [ValidateSet("1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
                 "4__RemoveJob_CollectWaitStats", "5__RemoveJob_CollectXEvents", "6__RemoveJob_PartitionsMaintenance",
-                "7__RemoveJob_PurgeTables", "8__RemoveJob_RemoveXEvents", "9__RemoveJob_RunWhoIsActive",
+                "7__RemoveJob_PurgeTables", "8__RemoveJob_RemoveXEventFiles", "9__RemoveJob_RunWhoIsActive",
                 "10__RemoveJob_UpdateSqlServerVersions", "11__DropProc_UspExtendedResults", "12__DropProc_UspCollectWaitStats",
                 "13__DropProc_UspRunWhoIsActive", "14__DropProc_UspCollectXEventsResourceConsumption", "15__DropProc_UspPurgeTables",
                 "16__DropProc_SpWhatIsRunning", "17__DropView_VwPerformanceCounters", "18__DropView_VwOsTaskList",
@@ -46,7 +46,7 @@ Param (
     [Parameter(Mandatory=$false)]
     [ValidateSet("1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
                 "4__RemoveJob_CollectWaitStats", "5__RemoveJob_CollectXEvents", "6__RemoveJob_PartitionsMaintenance",
-                "7__RemoveJob_PurgeTables", "8__RemoveJob_RemoveXEvents", "9__RemoveJob_RunWhoIsActive",
+                "7__RemoveJob_PurgeTables", "8__RemoveJob_RemoveXEventFiles", "9__RemoveJob_RunWhoIsActive",
                 "10__RemoveJob_UpdateSqlServerVersions", "11__DropProc_UspExtendedResults", "12__DropProc_UspCollectWaitStats",
                 "13__DropProc_UspRunWhoIsActive", "14__DropProc_UspCollectXEventsResourceConsumption", "15__DropProc_UspPurgeTables",
                 "16__DropProc_SpWhatIsRunning", "17__DropView_VwPerformanceCounters", "18__DropView_VwOsTaskList",
@@ -65,7 +65,7 @@ Param (
     [Parameter(Mandatory=$false)]
     [ValidateSet("1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
                 "4__RemoveJob_CollectWaitStats", "5__RemoveJob_CollectXEvents", "6__RemoveJob_PartitionsMaintenance",
-                "7__RemoveJob_PurgeTables", "8__RemoveJob_RemoveXEvents", "9__RemoveJob_RunWhoIsActive",
+                "7__RemoveJob_PurgeTables", "8__RemoveJob_RemoveXEventFiles", "9__RemoveJob_RunWhoIsActive",
                 "10__RemoveJob_UpdateSqlServerVersions", "11__DropProc_UspExtendedResults", "12__DropProc_UspCollectWaitStats",
                 "13__DropProc_UspRunWhoIsActive", "14__DropProc_UspCollectXEventsResourceConsumption", "15__DropProc_UspPurgeTables",
                 "16__DropProc_SpWhatIsRunning", "17__DropView_VwPerformanceCounters", "18__DropView_VwOsTaskList",
@@ -100,14 +100,14 @@ Param (
     [PSCredential]$WindowsCredential,
 
     [Parameter(Mandatory=$false)]
-    [bool]$WhatIf = $true
+    [bool]$DryRun = $true
 
 )
 
 # All Steps
 $AllSteps = @(  "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
                 "4__RemoveJob_CollectWaitStats", "5__RemoveJob_CollectXEvents", "6__RemoveJob_PartitionsMaintenance",
-                "7__RemoveJob_PurgeTables", "8__RemoveJob_RemoveXEvents", "9__RemoveJob_RunWhoIsActive",
+                "7__RemoveJob_PurgeTables", "8__RemoveJob_RemoveXEventFiles", "9__RemoveJob_RunWhoIsActive",
                 "10__RemoveJob_UpdateSqlServerVersions", "11__DropProc_UspExtendedResults", "12__DropProc_UspCollectWaitStats",
                 "13__DropProc_UspRunWhoIsActive", "14__DropProc_UspCollectXEventsResourceConsumption", "15__DropProc_UspPurgeTables",
                 "16__DropProc_SpWhatIsRunning", "17__DropView_VwPerformanceCounters", "18__DropView_VwOsTaskList",
@@ -148,6 +148,7 @@ if( [String]::IsNullOrEmpty($WindowsCredential) -and (-not [String]::IsNullOrEmp
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceToBaseline = [$SqlInstanceToBaseline]"
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceForDataCollectionJobs = [$SqlInstanceForDataCollectionJobs]"
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceAsDataDestination = [$SqlInstanceAsDataDestination]"
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$DryRun = $DryRun" | Write-Host -ForegroundColor Cyan
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlCredential => "
 $SqlCredential | ft -AutoSize
@@ -198,11 +199,13 @@ $Steps2Execute += $Steps2ExecuteRaw | ForEach-Object {
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$StopAtStep -> $StopAtStep.."
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Total steps to execute -> $($Steps2Execute.Count)."
 
-if($WhatIf) {
+<#
+if($DryRun) {
     "`n`n" | Write-Host
     $Steps2Execute
     "`n`n" | Write-Host
 }
+#>
 
 # Get Server Info
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching basic server info.."
@@ -305,8 +308,34 @@ $stepName = '1__RemoveJob_CollectDiskSpace'
 if($stepName -in $Steps2Execute) {
     $jobName = '(dba) Collect-DiskSpace'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Find & remove job '$jobName'.."
-    #Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -File $WhoIsActiveFilePath -SqlCredential $SqlCredential -EnableException
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove job '$jobName'.."
+    }
+    else 
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove job '$jobName'.."
+        $sqlRemoveJob = @"
+if exists (select * from msdb.dbo.sysjobs_view where name = N'$jobName')
+begin
+	EXEC msdb.dbo.sp_delete_job @job_name=N'$jobName', @delete_unused_schedule=1;
+    select 1 as job_exists;
+end
+else
+    select 0 as job_exists;
+"@
+        $resultRemoveJob = @()
+        $resultRemoveJob += Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlRemoveJob -SqlCredential $SqlCredential -EnableException
+        if($resultRemoveJob.Count -gt 0) 
+        {
+            $result = $resultRemoveJob | Select-Object -ExpandProperty job_exists;
+            if($result -eq 1) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Job '$jobName' found and removed."
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Job '$jobName' not found."
+            }
+        }
+    }
 }
 
 
@@ -315,8 +344,34 @@ $stepName = '2__RemoveJob_CollectOSProcesses'
 if($stepName -in $Steps2Execute) {
     $jobName = '(dba) Collect-OSProcesses'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Find & remove job '$jobName'.."
-    #Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -File $WhoIsActiveFilePath -SqlCredential $SqlCredential -EnableException
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove job '$jobName'.."
+    }
+    else 
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove job '$jobName'.."
+        $sqlRemoveJob = @"
+if exists (select * from msdb.dbo.sysjobs_view where name = N'$jobName')
+begin
+	EXEC msdb.dbo.sp_delete_job @job_name=N'$jobName', @delete_unused_schedule=1;
+    select 1 as job_exists;
+end
+else
+    select 0 as job_exists;
+"@
+        $resultRemoveJob = @()
+        $resultRemoveJob += Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlRemoveJob -SqlCredential $SqlCredential -EnableException
+        if($resultRemoveJob.Count -gt 0) 
+        {
+            $result = $resultRemoveJob | Select-Object -ExpandProperty job_exists;
+            if($result -eq 1) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Job '$jobName' found and removed."
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Job '$jobName' not found."
+            }
+        }
+    }
 }
 
 
@@ -325,9 +380,288 @@ $stepName = '3__RemoveJob_CollectPerfmonData'
 if($stepName -in $Steps2Execute) {
     $jobName = '(dba) Collect-PerfmonData'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Find & remove job '$jobName'.."
-    #Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -File $WhoIsActiveFilePath -SqlCredential $SqlCredential -EnableException
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove job '$jobName'.."
+    }
+    else 
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove job '$jobName'.."
+        $sqlRemoveJob = @"
+if exists (select * from msdb.dbo.sysjobs_view where name = N'$jobName')
+begin
+	EXEC msdb.dbo.sp_delete_job @job_name=N'$jobName', @delete_unused_schedule=1;
+    select 1 as job_exists;
+end
+else
+    select 0 as job_exists;
+"@
+        $resultRemoveJob = @()
+        $resultRemoveJob += Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlRemoveJob -SqlCredential $SqlCredential -EnableException
+        if($resultRemoveJob.Count -gt 0) 
+        {
+            $result = $resultRemoveJob | Select-Object -ExpandProperty job_exists;
+            if($result -eq 1) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Job '$jobName' found and removed."
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Job '$jobName' not found."
+            }
+        }
+    }
 }
+
+
+# 4__RemoveJob_CollectWaitStats
+$stepName = '4__RemoveJob_CollectWaitStats'
+if($stepName -in $Steps2Execute) {
+    $jobName = '(dba) Collect-WaitStats'
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove job '$jobName'.."
+    }
+    else 
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove job '$jobName'.."
+        $sqlRemoveJob = @"
+if exists (select * from msdb.dbo.sysjobs_view where name = N'$jobName')
+begin
+	EXEC msdb.dbo.sp_delete_job @job_name=N'$jobName', @delete_unused_schedule=1;
+    select 1 as job_exists;
+end
+else
+    select 0 as job_exists;
+"@
+        $resultRemoveJob = @()
+        $resultRemoveJob += Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlRemoveJob -SqlCredential $SqlCredential -EnableException
+        if($resultRemoveJob.Count -gt 0) 
+        {
+            $result = $resultRemoveJob | Select-Object -ExpandProperty job_exists;
+            if($result -eq 1) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Job '$jobName' found and removed."
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Job '$jobName' not found."
+            }
+        }
+    }
+}
+
+
+# 5__RemoveJob_CollectXEvents
+$stepName = '5__RemoveJob_CollectXEvents'
+if($stepName -in $Steps2Execute) {
+    $jobName = '(dba) Collect-XEvents'
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove job '$jobName'.."
+    }
+    else 
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove job '$jobName'.."
+        $sqlRemoveJob = @"
+if exists (select * from msdb.dbo.sysjobs_view where name = N'$jobName')
+begin
+	EXEC msdb.dbo.sp_delete_job @job_name=N'$jobName', @delete_unused_schedule=1;
+    select 1 as job_exists;
+end
+else
+    select 0 as job_exists;
+"@
+        $resultRemoveJob = @()
+        $resultRemoveJob += Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlRemoveJob -SqlCredential $SqlCredential -EnableException
+        if($resultRemoveJob.Count -gt 0) 
+        {
+            $result = $resultRemoveJob | Select-Object -ExpandProperty job_exists;
+            if($result -eq 1) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Job '$jobName' found and removed."
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Job '$jobName' not found."
+            }
+        }
+    }
+}
+
+
+# 6__RemoveJob_PartitionsMaintenance
+$stepName = '6__RemoveJob_PartitionsMaintenance'
+if($stepName -in $Steps2Execute) {
+    $jobName = '(dba) Partitions-Maintenance'
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove job '$jobName'.."
+    }
+    else 
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove job '$jobName'.."
+        $sqlRemoveJob = @"
+if exists (select * from msdb.dbo.sysjobs_view where name = N'$jobName')
+begin
+	EXEC msdb.dbo.sp_delete_job @job_name=N'$jobName', @delete_unused_schedule=1;
+    select 1 as job_exists;
+end
+else
+    select 0 as job_exists;
+"@
+        $resultRemoveJob = @()
+        $resultRemoveJob += Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlRemoveJob -SqlCredential $SqlCredential -EnableException
+        if($resultRemoveJob.Count -gt 0) 
+        {
+            $result = $resultRemoveJob | Select-Object -ExpandProperty job_exists;
+            if($result -eq 1) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Job '$jobName' found and removed."
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Job '$jobName' not found."
+            }
+        }
+    }
+}
+
+
+# 7__RemoveJob_PurgeTables
+$stepName = '7__RemoveJob_PurgeTables'
+if($stepName -in $Steps2Execute) {
+    $jobName = '(dba) Purge-Tables'
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove job '$jobName'.."
+    }
+    else 
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove job '$jobName'.."
+        $sqlRemoveJob = @"
+if exists (select * from msdb.dbo.sysjobs_view where name = N'$jobName')
+begin
+	EXEC msdb.dbo.sp_delete_job @job_name=N'$jobName', @delete_unused_schedule=1;
+    select 1 as job_exists;
+end
+else
+    select 0 as job_exists;
+"@
+        $resultRemoveJob = @()
+        $resultRemoveJob += Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlRemoveJob -SqlCredential $SqlCredential -EnableException
+        if($resultRemoveJob.Count -gt 0) 
+        {
+            $result = $resultRemoveJob | Select-Object -ExpandProperty job_exists;
+            if($result -eq 1) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Job '$jobName' found and removed."
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Job '$jobName' not found."
+            }
+        }
+    }
+}
+
+
+# 8__RemoveJob_RemoveXEventFiles
+$stepName = '8__RemoveJob_RemoveXEventFiles'
+if($stepName -in $Steps2Execute) {
+    $jobName = '(dba) Remove-XEventFiles'
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove job '$jobName'.."
+    }
+    else 
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove job '$jobName'.."
+        $sqlRemoveJob = @"
+if exists (select * from msdb.dbo.sysjobs_view where name = N'$jobName')
+begin
+	EXEC msdb.dbo.sp_delete_job @job_name=N'$jobName', @delete_unused_schedule=1;
+    select 1 as job_exists;
+end
+else
+    select 0 as job_exists;
+"@
+        $resultRemoveJob = @()
+        $resultRemoveJob += Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlRemoveJob -SqlCredential $SqlCredential -EnableException
+        if($resultRemoveJob.Count -gt 0) 
+        {
+            $result = $resultRemoveJob | Select-Object -ExpandProperty job_exists;
+            if($result -eq 1) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Job '$jobName' found and removed."
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Job '$jobName' not found."
+            }
+        }
+    }
+}
+
+
+# 9__RemoveJob_RunWhoIsActive
+$stepName = '9__RemoveJob_RunWhoIsActive'
+if($stepName -in $Steps2Execute) {
+    $jobName = '(dba) Run-WhoIsActive'
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove job '$jobName'.."
+    }
+    else 
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove job '$jobName'.."
+        $sqlRemoveJob = @"
+if exists (select * from msdb.dbo.sysjobs_view where name = N'$jobName')
+begin
+	EXEC msdb.dbo.sp_delete_job @job_name=N'$jobName', @delete_unused_schedule=1;
+    select 1 as job_exists;
+end
+else
+    select 0 as job_exists;
+"@
+        $resultRemoveJob = @()
+        $resultRemoveJob += Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlRemoveJob -SqlCredential $SqlCredential -EnableException
+        if($resultRemoveJob.Count -gt 0) 
+        {
+            $result = $resultRemoveJob | Select-Object -ExpandProperty job_exists;
+            if($result -eq 1) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Job '$jobName' found and removed."
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Job '$jobName' not found."
+            }
+        }
+    }
+}
+
+
+# 10__RemoveJob_UpdateSqlServerVersions
+$stepName = '10__RemoveJob_UpdateSqlServerVersions'
+if($stepName -in $Steps2Execute) {
+    $jobName = '(dba) Update-SqlServerVersions'
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove job '$jobName'.."
+    }
+    else 
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove job '$jobName'.."
+        $sqlRemoveJob = @"
+if exists (select * from msdb.dbo.sysjobs_view where name = N'$jobName')
+begin
+	EXEC msdb.dbo.sp_delete_job @job_name=N'$jobName', @delete_unused_schedule=1;
+    select 1 as job_exists;
+end
+else
+    select 0 as job_exists;
+"@
+        $resultRemoveJob = @()
+        $resultRemoveJob += Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlRemoveJob -SqlCredential $SqlCredential -EnableException
+        if($resultRemoveJob.Count -gt 0) 
+        {
+            $result = $resultRemoveJob | Select-Object -ExpandProperty job_exists;
+            if($result -eq 1) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Job '$jobName' found and removed."
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Job '$jobName' not found."
+            }
+        }
+    }
+}
+
 
 
 
