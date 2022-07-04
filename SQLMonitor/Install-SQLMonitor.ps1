@@ -48,6 +48,18 @@ Param (
     [String]$GetAllServerInfoFileName = "SCH-usp_GetAllServerInfo.sql",
 
     [Parameter(Mandatory=$false)]
+    [String]$UspCollectWaitStatsFileName = "SCH-usp_collect_wait_stats.sql",
+
+    [Parameter(Mandatory=$false)]
+    [String]$UspCollectXeventsResourceConsumptionFileName = "SCH-usp_collect_xevents_resource_consumption.sql",
+
+    [Parameter(Mandatory=$false)]
+    [String]$UspPurgeTablesFileName = "SCH-usp_purge_tables.sql",
+
+    [Parameter(Mandatory=$false)]
+    [String]$UspRunWhoIsActiveFileName = "SCH-usp_run_WhoIsActive.sql",
+
+    [Parameter(Mandatory=$false)]
     [String]$WhoIsActivePartitionFileName = "SCH-WhoIsActive-Partitioning.sql",
 
     [Parameter(Mandatory=$false)]
@@ -135,6 +147,9 @@ Param (
     [bool]$SkipPowerShellJobs = $false,
 
     [Parameter(Mandatory=$false)]
+    [bool]$SkipAllJobs = $false,
+
+    [Parameter(Mandatory=$false)]
     [bool]$SkipRDPSessionSteps = $false,
 
     [Parameter(Mandatory=$false)]
@@ -158,6 +173,7 @@ $PowerShellJobSteps = @(
 
 # RDPSessionSteps
 $RDPSessionSteps = @("9__CopyDbaToolsModule2Host", "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector")
+
 
 # Add $PowerShellJobSteps to Skip Jobs
 if($SkipPowerShellJobs) {
@@ -231,6 +247,10 @@ $AllDatabaseObjectsFilePath = "$ddlPath\$AllDatabaseObjectsFileName"
 $XEventSessionFilePath = "$ddlPath\$XEventSessionFileName"
 $WhatIsRunningFilePath = "$ddlPath\$WhatIsRunningFileName"
 $GetAllServerInfoFilePath = "$ddlPath\$GetAllServerInfoFileName"
+$UspCollectWaitStatsFilePath = "$ddlPath\$UspCollectWaitStatsFileName"
+$UspCollectXeventsResourceConsumptionFilePath = "$ddlPath\$UspCollectXeventsResourceConsumptionFileName"
+$UspPurgeTablesFilePath = "$ddlPath\$UspPurgeTablesFileName"
+$UspRunWhoIsActiveFilePath = "$ddlPath\$UspRunWhoIsActiveFileName"
 $WhoIsActivePartitionFilePath = "$ddlPath\$WhoIsActivePartitionFileName"
 $GrafanaLoginFilePath = "$ddlPath\$GrafanaLoginFileName"
 $CollectOSProcessesFilePath = "$ddlPath\$CollectOSProcessesFileName"
@@ -273,10 +293,17 @@ else {
 }
 
 $Steps2Execute += $Steps2ExecuteRaw | ForEach-Object { 
-                            $currentStepNumber = [int]$($_ -replace "__\w+", ''); 
-                            if($currentStepNumber -ge $StartAtStepNumber -and $currentStepNumber -le $StopAtStepNumber) {
-                                $_}
+                            $currentStepNumber = [int]$($_ -replace "__\w+", '');
+                            $passThrough = $true;
+                            if( -not ($currentStepNumber -ge $StartAtStepNumber -and $currentStepNumber -le $StopAtStepNumber) ) {
+                                $passThrough = $false
+                            }
+                            if( $passThrough -and ($SkipAllJobs -and $_ -like '*__CreateJob*') ) {
+                                $passThrough = $false
+                            }
+                            if($passThrough) {$_}
                         }
+
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$StartAtStep -> $StartAtStep.."
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$StopAtStep -> $StopAtStep.."
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Total steps to execute -> $($Steps2Execute.Count)."
@@ -525,6 +552,18 @@ if($stepName -in $Steps2Execute) {
     }
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$AllDatabaseObjectsFilePath = '$AllDatabaseObjectsFilePath'"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $AllDatabaseObjectsFilePath -SqlCredential $SqlCredential -EnableException
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspCollectWaitStatsFilePath = '$UspCollectWaitStatsFilePath'"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspCollectWaitStatsFilePath -SqlCredential $SqlCredential -EnableException
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspCollectXeventsResourceConsumptionFilePath = '$UspCollectXeventsResourceConsumptionFilePath'"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspCollectXeventsResourceConsumptionFilePath -SqlCredential $SqlCredential -EnableException
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspPurgeTablesFilePath = '$UspPurgeTablesFilePath'"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspPurgeTablesFilePath -SqlCredential $SqlCredential -EnableException
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspRunWhoIsActiveFilePath = '$UspRunWhoIsActiveFilePath'"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspRunWhoIsActiveFilePath -SqlCredential $SqlCredential -EnableException
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [dbo].[instance_hosts].."
     $sqlAddInstanceHost = @"
@@ -796,7 +835,7 @@ if($stepName -in $Steps2Execute) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectWaitStatsFilePath = '$CollectWaitStatsFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Collect-WaitStats] on [$SqlInstanceToBaseline].."
     $sqlCreateJobCollectWaitStats = [System.IO.File]::ReadAllText($CollectWaitStatsFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
-    $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace("varchar(500) = ''some_dba_mail_id@gmail.com'';", "varchar(500) = ''$($DbaGroupMailId -join ';')'';"   )
+    $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace("''some_dba_mail_id@gmail.com''", "''$($DbaGroupMailId -join ';')'';" )
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlCreateJobCollectWaitStats -SqlCredential $SqlCredential -EnableException
 }
 
@@ -808,6 +847,7 @@ if($stepName -in $Steps2Execute) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectXEventsFilePath = '$CollectXEventsFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Collect-XEvents] on [$SqlInstanceToBaseline].."
     $sqlCreateJobCollectXEvents = [System.IO.File]::ReadAllText($CollectXEventsFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
+    $sqlCreateJobCollectXEvents = $sqlCreateJobCollectXEvents.Replace("varchar(500) = ''some_dba_mail_id@gmail.com'';", "varchar(500) = ''$($DbaGroupMailId -join ';')'';"   )
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlCreateJobCollectXEvents -SqlCredential $SqlCredential -EnableException
 }
 
@@ -830,6 +870,7 @@ if($stepName -in $Steps2Execute) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$PurgeTablesFilePath = '$PurgeTablesFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Purge-DbaMetrics - Daily] on [$SqlInstanceToBaseline].."
     $sqlPurgeDbaMetrics = [System.IO.File]::ReadAllText($PurgeTablesFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
+    $sqlPurgeDbaMetrics = $sqlPurgeDbaMetrics.Replace("varchar(500) = ''some_dba_mail_id@gmail.com'';", "varchar(500) = ''$($DbaGroupMailId -join ';')'';"   )
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlPurgeDbaMetrics -SqlCredential $SqlCredential -EnableException
 }
 
@@ -869,7 +910,7 @@ if($stepName -in $Steps2Execute) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$RunWhoIsActiveFilePath = '$RunWhoIsActiveFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Run-WhoIsActive] on [$SqlInstanceToBaseline].."
     $sqlRunWhoIsActive = [System.IO.File]::ReadAllText($RunWhoIsActiveFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
-    $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace("varchar(500) = ''some_dba_mail_id@gmail.com'';", "varchar(500) = ''$($DbaGroupMailId -join ';')'';"   )
+    $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace("''some_dba_mail_id@gmail.com''", "''$($DbaGroupMailId -join ';')'';" )
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlRunWhoIsActive -SqlCredential $SqlCredential -EnableException
 }
 
@@ -963,7 +1004,6 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -ne $InventoryServer
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Linked server for [$SqlInstanceToBaseline] on [$InventoryServer] already exists.."
     }
 }
-
 
 
 "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Baselining of [$SqlInstanceToBaseline] completed."

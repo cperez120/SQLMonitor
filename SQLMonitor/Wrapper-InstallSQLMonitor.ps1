@@ -4,7 +4,7 @@
 
 cls
 $params = @{
-    SqlInstanceToBaseline = 'Workstation'
+    SqlInstanceToBaseline = 'SqlPractice'
     DbaDatabase = 'DBA'
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
     RemoteSQLMonitorPath = 'C:\SQLMonitor'
@@ -17,7 +17,9 @@ $params = @{
     #StopAtStep = '21__WhoIsActivePartition'
     #DropCreatePowerShellJobs = $true
     #DryRun = $false
-    SkipPowerShellJobs = $true
+    #SkipRDPSessionSteps = $true
+    #SkipPowerShellJobs = $true
+    #SkipAllJobs = $true
 }
 F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params #-Debug
 

@@ -2024,24 +2024,35 @@ if($stepName -in $Steps2Execute)
         if( (Invoke-Command -Session $ssn -ScriptBlock {Test-Path $Using:RemoteSQLMonitorPath}) ) 
         {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$RemoteSQLMonitorPath' exists on remote [$ssnHostName]."
-            if($DryRun) {
-                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "'$RemoteSQLMonitorPath' removed."
-            }
-            else {
-                Invoke-Command -Session $ssn -ScriptBlock {
-                    $pfCollector = @()
-                    $pfCollector += Get-DbaPfDataCollector -CollectorSet DBA
-                    if($pfCollector.Count -gt 0) {
+
+            Invoke-Command -Session $ssn -ScriptBlock {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking for [DBA] data collector set existence.."
+                $pfCollector = @()
+                $pfCollector += Get-DbaPfDataCollector -CollectorSet DBA
+                if($pfCollector.Count -gt 0) 
+                {
+                    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector [DBA] exists."
+                    if($Using:DryRun) {
+                        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Data Collector Set [DBA] removed."
+                    }
+                    else {
                         logman stop -name “DBA”
                         logman delete -name “DBA”
+                        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector Set [DBA] removed."
                     }
-                    Remove-Item $Using:RemoteSQLMonitorPath -Recurse -Force
-                } -ErrorAction Stop            
-                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$RemoteSQLMonitorPath' removed."
+                }
+
+                if($Using:DryRun) {
+                    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "'$Using:RemoteSQLMonitorPath' removed."
+                }
+                else {
+                    Remove-Item $Using:RemoteSQLMonitorPath -Recurse -Force -ErrorAction Stop
+                    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$Using:RemoteSQLMonitorPath' removed."
+                }
             }
         }
         else {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "'$RemoteSQLMonitorPath' exists on host [$($env:COMPUTERNAME)]."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "'$RemoteSQLMonitorPath' does not exist on host [$ssnHostName]."
         }
     }
 }
