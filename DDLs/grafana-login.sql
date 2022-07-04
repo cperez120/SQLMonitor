@@ -3,8 +3,11 @@ go
 if not exists (select * from sys.syslogins where name = 'grafana')
 	create login [grafana] with password=N'grafana', default_database=[DBA], check_expiration=off, check_policy=off
 go
-if not exists (select * from sys.sysusers where name = 'grafana')
-	create user [grafana] for login [grafana]
+if exists (select * from sys.sysusers where name = 'grafana')
+	drop user [grafana]
+go
+use [master];
+create user [grafana] for login [grafana]
 go
 grant view any definition to [grafana]
 go

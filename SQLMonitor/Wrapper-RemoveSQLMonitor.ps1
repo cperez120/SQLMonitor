@@ -4,7 +4,7 @@
 
 cls
 $params = @{
-    SqlInstanceToBaseline = 'SqlPractice'
+    SqlInstanceToBaseline = 'SQLMonitor'
     DbaDatabase = 'DBA'
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
     InventoryServer = 'SQLMonitor'
@@ -12,13 +12,13 @@ $params = @{
     #SqlCredential = $saAdmin
     #WindowsCredential = $LabCredential
     #SkipSteps = @("11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
-    #StartAtStep = '8__usp_GetAllServerInfo'
+    #StartAtStep = '22__DropLogin_Grafana'
     #StopAtStep = '10__RemoveJob_UpdateSqlServerVersions'
     SkipDropTable = $true
     #SkipRemoveJob = $true
     #SkipDropProc = $true
     #SkipDropView = $true
-    DryRun = $true
+    DryRun = $false
 }
 F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1 @Params
 
