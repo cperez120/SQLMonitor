@@ -26,8 +26,8 @@ Param (
     [Parameter(Mandatory=$true)]
     [String]$DbaToolsFolderPath,
 
-    [Parameter(Mandatory=$false)]
-    [bool]$WhatIf = $false,
+    [Parameter(Mandatory=$true)]
+    [String]$RemoteSQLMonitorPath,
 
     [Parameter(Mandatory=$false)]
     [String]$MailProfileFileName = "DatabaseMail_Using_GMail.sql",
@@ -126,8 +126,13 @@ Param (
     [PSCredential]$SqlCredential,
 
     [Parameter(Mandatory=$false)]
-    [PSCredential]$WindowsCredential
+    [PSCredential]$WindowsCredential,
 
+    [Parameter(Mandatory=$false)]
+    [bool]$DropCreatePowerShellJobs = $false,
+
+    [Parameter(Mandatory=$false)]
+    [bool]$DryRun = $false
 )
 
 # All Steps
@@ -143,6 +148,11 @@ $AllSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession"
 cls
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
+
+if($SqlInstanceToBaseline -eq '.' -or $SqlInstanceToBaseline -eq 'localhost') {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "'localhost' or '.' are not validate SQLInstance names." | Write-Host -ForegroundColor Red
+    Write-Error "Stop here. Fix above issue."
+}
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline] with [$DbaDatabase] database.`n" | Write-Host -ForegroundColor Yellow
 
@@ -171,6 +181,11 @@ if([String]::IsNullOrEmpty($SqlInstanceForDataCollectionJobs)) {
 # Set windows credential if valid AD credential is provided as SqlCredential
 if( [String]::IsNullOrEmpty($WindowsCredential) -and (-not [String]::IsNullOrEmpty($SqlCredential)) -and $SqlCredential.UserName -like "*\*" ) {
     $WindowsCredential = $SqlCredential
+}
+
+# Remove end trailer of '\'
+if($RemoteSQLMonitorPath.EndsWith('\')) {
+    $RemoteSQLMonitorPath = $RemoteSQLMonitorPath.TrimEnd('\')
 }
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceToBaseline = [$SqlInstanceToBaseline]"
@@ -641,11 +656,11 @@ if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$psScriptPath = '$psScriptPath'"
     
-    if( (Invoke-Command -Session $ssn -ScriptBlock {Test-Path 'C:\SQLMonitor'}) ) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$psScriptPath' already exists on host [$HostName]."
+    if( (Invoke-Command -Session $ssn -ScriptBlock {Test-Path $Using:RemoteSQLMonitorPath}) ) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$RemoteSQLMonitorPath' already exists on host [$HostName]."
     }
     else {
-        Copy-Item $psScriptPath -Destination "C:\SQLMonitor" -ToSession $ssn -Recurse
+        Copy-Item $psScriptPath -Destination $RemoteSQLMonitorPath -ToSession $ssn -Recurse
     }
 }
 
@@ -658,7 +673,7 @@ if($stepName -in $Steps2Execute) {
     Invoke-Command -Session $ssn -ScriptBlock {
         # Set execution policy
         Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy Unrestricted -Force 
-        & "C:\SQLMonitor\perfmon-collector-logman.ps1" -TemplatePath "C:\SQLMonitor\DBA_PerfMon_All_Counters_Template.xml"
+        & "$Using:RemoteSQLMonitorPath\perfmon-collector-logman.ps1" -TemplatePath "$Using:RemoteSQLMonitorPath\DBA_PerfMon_All_Counters_Template.xml"
     }
 }
 
@@ -696,6 +711,13 @@ if($stepName -in $Steps2Execute) {
     $sqlCreateJobCollectOSProcesses = [System.IO.File]::ReadAllText($CollectOSProcessesFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceAsDataDestination`"")
     $sqlCreateJobCollectOSProcesses = $sqlCreateJobCollectOSProcesses.Replace('-Database DBA', "-Database `"$DbaDatabase`"")
     $sqlCreateJobCollectOSProcesses = $sqlCreateJobCollectOSProcesses.Replace('-HostName localhost', "-HostName `"$HostName`"")
+    if($RemoteSQLMonitorPath -ne 'C:\SQLMonitor') {
+        $sqlCreateJobCollectOSProcesses = $sqlCreateJobCollectOSProcesses.Replace('C:\SQLMonitor', $RemoteSQLMonitorPath)
+    }
+    if($DropCreatePowerShellJobs) {
+        $tsqlSSMSValidation = "and APP_NAME() = 'Microsoft SQL Server Management Studio - Query'"
+        $sqlCreateJobCollectOSProcesses = $sqlCreateJobCollectOSProcesses.Replace($tsqlSSMSValidation, "--$tsqlSSMSValidation")
+    }
     Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlCreateJobCollectOSProcesses -SqlCredential $SqlCredential -EnableException
 
     if($requireProxy) {
@@ -717,6 +739,14 @@ if($stepName -in $Steps2Execute) {
     $sqlCreateJobCollectPerfmonData = [System.IO.File]::ReadAllText($CollectPerfmonDataFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceAsDataDestination`"")
     $sqlCreateJobCollectPerfmonData = $sqlCreateJobCollectPerfmonData.Replace('-Database DBA', "-Database `"$DbaDatabase`"")
     $sqlCreateJobCollectPerfmonData = $sqlCreateJobCollectPerfmonData.Replace('-HostName localhost', "-HostName `"$HostName`"")
+    
+    if($RemoteSQLMonitorPath -ne 'C:\SQLMonitor') {
+        $sqlCreateJobCollectPerfmonData = $sqlCreateJobCollectPerfmonData.Replace('C:\SQLMonitor', $RemoteSQLMonitorPath)
+    }
+    if($DropCreatePowerShellJobs) {
+        $tsqlSSMSValidation = "and APP_NAME() = 'Microsoft SQL Server Management Studio - Query'"
+        $sqlCreateJobCollectPerfmonData = $sqlCreateJobCollectPerfmonData.Replace($tsqlSSMSValidation, "--$tsqlSSMSValidation")
+    }
     Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlCreateJobCollectPerfmonData -SqlCredential $SqlCredential -EnableException
 
     if($requireProxy) {
@@ -782,6 +812,14 @@ if($stepName -in $Steps2Execute) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Remove-XEventFiles] on [$SqlInstanceToBaseline].."
     $sqlCreateJobRemoveXEventFiles = [System.IO.File]::ReadAllText($RemoveXEventFilesFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceToBaseline`"")
     $sqlCreateJobRemoveXEventFiles = $sqlCreateJobRemoveXEventFiles.Replace('-Database DBA', "-Database `"$DbaDatabase`"")
+
+    if($RemoteSQLMonitorPath -ne 'C:\SQLMonitor') {
+        $sqlCreateJobRemoveXEventFiles = $sqlCreateJobRemoveXEventFiles.Replace('C:\SQLMonitor', $RemoteSQLMonitorPath)
+    }
+    if($DropCreatePowerShellJobs) {
+        $tsqlSSMSValidation = "and APP_NAME() = 'Microsoft SQL Server Management Studio - Query'"
+        $sqlCreateJobRemoveXEventFiles = $sqlCreateJobRemoveXEventFiles.Replace($tsqlSSMSValidation, "--$tsqlSSMSValidation")
+    }
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlCreateJobRemoveXEventFiles -SqlCredential $SqlCredential -EnableException
 
     if($requireProxy) {
@@ -813,6 +851,14 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UpdateSqlServerVersionsFilePath = '$UpdateSqlServerVersionsFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Update-SqlServerVersions] on [$SqlInstanceToBaseline].."
     $sqlUpdateSqlServerVersions = [System.IO.File]::ReadAllText($UpdateSqlServerVersionsFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceToBaseline`"")
+
+    if($RemoteSQLMonitorPath -ne 'C:\SQLMonitor') {
+        $sqlUpdateSqlServerVersions = $sqlUpdateSqlServerVersions.Replace('C:\SQLMonitor', $RemoteSQLMonitorPath)
+    }
+    if($DropCreatePowerShellJobs) {
+        $tsqlSSMSValidation = "and APP_NAME() = 'Microsoft SQL Server Management Studio - Query'"
+        $sqlUpdateSqlServerVersions = $sqlUpdateSqlServerVersions.Replace($tsqlSSMSValidation, "--$tsqlSSMSValidation")
+    }
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlUpdateSqlServerVersions -SqlCredential $SqlCredential -EnableException
 
     if($requireProxy) {

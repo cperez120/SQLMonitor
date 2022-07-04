@@ -4,9 +4,10 @@
 
 cls
 $params = @{
-    SqlInstanceToBaseline = 'Demo\SQL2019'
+    SqlInstanceToBaseline = 'Workstation'
     DbaDatabase = 'DBA_Admin'
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
+    RemoteSQLMonitorPath = 'C:\SQLMonitor'
     InventoryServer = 'SQLMonitor'
     DbaGroupMailId = 'sqlagentservice@gmail.com'
     #SqlCredential = $saAdmin
@@ -14,6 +15,8 @@ $params = @{
     #SkipSteps = @("11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
     #StartAtStep = '8__usp_GetAllServerInfo'
     #StopAtStep = '21__WhoIsActivePartition'
+    #DropCreatePowerShellJobs = $true
+    #DryRun = $false
 }
 F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params #-Debug
 

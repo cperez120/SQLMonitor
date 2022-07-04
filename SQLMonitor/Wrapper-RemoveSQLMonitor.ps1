@@ -2,23 +2,25 @@
 #$saAdmin = Get-Credential -UserName 'sa' -Message 'sa'
 #$localAdmin = Get-Credential -UserName 'DEMO\SQL2019\Administrator' -Message 'Local Admin'
 
-cls
+#cls
 $params = @{
-    SqlInstanceToBaseline = 'localhost'
+    SqlInstanceToBaseline = 'Workstation'
     DbaDatabase = 'DBA'
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
     InventoryServer = 'SQLMonitor'
+    RemoteSQLMonitorPath = 'C:\SQLMonitor'
     #SqlCredential = $saAdmin
     #WindowsCredential = $LabCredential
     #SkipSteps = @("11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
     #StartAtStep = '8__usp_GetAllServerInfo'
-    #StopAtStep = '21__WhoIsActivePartition'
-    #SkipDropTable = $true
+    #StopAtStep = '10__RemoveJob_UpdateSqlServerVersions'
+    SkipDropTable = $true
     #SkipRemoveJob = $true
     #SkipDropProc = $true
     #SkipDropView = $true
+    DryRun = $false
 }
-F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1 @Params #-Debug
+F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1 @Params
 
 
 #Get-DbaDbMailProfile -SqlInstance '192.168.56.31' -SqlCredential $personalCredential
