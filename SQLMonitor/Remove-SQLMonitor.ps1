@@ -18,8 +18,8 @@ Param (
     [Parameter(Mandatory=$false)]
     $HostName,
 
-    [Parameter(Mandatory=$false)]
-    [String]$SQLMonitorPathOnRemote,
+    [Parameter(Mandatory=$true)]
+    [String]$RemoteSQLMonitorPath,
 
     [Parameter(Mandatory=$true)]
     [String]$DbaToolsFolderPath,    
@@ -151,6 +151,7 @@ if( [String]::IsNullOrEmpty($WindowsCredential) -and (-not [String]::IsNullOrEmp
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceToBaseline = [$SqlInstanceToBaseline]"
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceForDataCollectionJobs = [$SqlInstanceForDataCollectionJobs]"
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceAsDataDestination = [$SqlInstanceAsDataDestination]"
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$RemoteSQLMonitorPath = [$RemoteSQLMonitorPath]"
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$DryRun = $DryRun" | Write-Host -ForegroundColor Cyan
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlCredential => "
@@ -1979,10 +1980,142 @@ else
 
 # 43__RemovePerfmonFilesFromDisk
 $stepName = '43__RemovePerfmonFilesFromDisk'
+if($stepName -in $Steps2Execute) 
+{
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove folder '$RemoteSQLMonitorPath' on [$ssnHostName]"
+    
+    if($ssnHostName -eq $env:COMPUTERNAME)
+    {
+        if(Test-Path $RemoteSQLMonitorPath)
+        {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$RemoteSQLMonitorPath' exists."
+            
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking for [DBA] data collector set existence.."
+            $pfCollector = @()
+            $pfCollector += Get-DbaPfDataCollector -CollectorSet DBA
+            if($pfCollector.Count -gt 0) 
+            {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector [DBA] exists."
+                if($DryRun) {
+                    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Data Collector Set [DBA] removed."
+                }
+                else {
+                    logman stop -name “DBA”
+                    logman delete -name “DBA”
+                    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector Set [DBA] removed."
+                }
+            }
+
+            if($DryRun) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "'$RemoteSQLMonitorPath' removed."
+            }
+            else {
+                Remove-Item $RemoteSQLMonitorPath -Recurse -Force -ErrorAction Stop
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$RemoteSQLMonitorPath' removed."
+            }
+        }
+        else{
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "'$RemoteSQLMonitorPath' does not exists."
+        }
+    }
+    else
+    {
+        if( (Invoke-Command -Session $ssn -ScriptBlock {Test-Path $Using:RemoteSQLMonitorPath}) ) 
+        {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$RemoteSQLMonitorPath' exists on remote [$ssnHostName]."
+            if($DryRun) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "'$RemoteSQLMonitorPath' removed."
+            }
+            else {
+                Invoke-Command -Session $ssn -ScriptBlock {
+                    $pfCollector = @()
+                    $pfCollector += Get-DbaPfDataCollector -CollectorSet DBA
+                    if($pfCollector.Count -gt 0) {
+                        logman stop -name “DBA”
+                        logman delete -name “DBA”
+                    }
+                    Remove-Item $Using:RemoteSQLMonitorPath -Recurse -Force
+                } -ErrorAction Stop            
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$RemoteSQLMonitorPath' removed."
+            }
+        }
+        else {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "'$RemoteSQLMonitorPath' exists on host [$($env:COMPUTERNAME)]."
+        }
+    }
+}
+
 
 
 # 44__RemoveXEventFilesFromDisk
 $stepName = '44__RemoveXEventFilesFromDisk'
+if($stepName -in $Steps2Execute) {
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+
+    if([String]::IsNullOrEmpty($XEventFilesDirectory))
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$XEventFilesDirectory is null. Get default path using tsql.."
+
+        $sqlDbaDatabasePath = @"
+    select top 1 physical_name FROM sys.master_files 
+    where database_id = DB_ID('$DbaDatabase') and type_desc = 'ROWS' 
+    and physical_name not like 'C:\%' order by file_id;
+"@
+        $dbaDatabasePath = Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -SqlCredential $SqlCredential -Query $sqlDbaDatabasePath -EnableException | Select-Object -ExpandProperty physical_name
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$dbaDatabasePath => '$dbaDatabasePath'.."
+
+        $xEventTargetPathParentDirectory = (Split-Path (Split-Path $dbaDatabasePath -Parent))
+        if($xEventTargetPathParentDirectory.Length -eq 3) {
+            $xEventTargetPathDirectory = "${xEventTargetPathParentDirectory}xevents"
+        } else {
+            $xEventTargetPathDirectory = Join-Path -Path $xEventTargetPathParentDirectory -ChildPath "xevents"
+        }
+
+        $XEventFilesDirectory = $xEventTargetPathDirectory
+    }
+
+    if([string]::IsNullOrEmpty($XEventFilesDirectory)) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "`$XEventFilesDirectory could not be detected. Kindly manually delete same, and skip this step." | Write-Host -ForegroundColor Red
+        Write-Error "Stop here. Fix above issue."
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove folder '$XEventFilesDirectory' on [$SqlInstanceToBaseline]"
+    
+    if($ssnHostName -eq $env:COMPUTERNAME)
+    {
+        if(Test-Path $XEventFilesDirectory) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$XEventFilesDirectory' exists."
+            if($DryRun) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "'$XEventFilesDirectory' removed."
+            }
+            else {
+                Remove-Item $XEventFilesDirectory -Recurse -Force -ErrorAction Stop
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$XEventFilesDirectory' removed."
+            }
+        }
+        else{
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "'$XEventFilesDirectory' does not exists."
+        }
+    }
+    else
+    {
+        if( (Invoke-Command -Session $ssn -ScriptBlock {Test-Path $Using:XEventFilesDirectory}) ) 
+        {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$XEventFilesDirectory' exists on remote [$ssnHostName]."
+            if($DryRun) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "'$XEventFilesDirectory' removed."
+            }
+            else {
+                Invoke-Command -Session $ssn -ScriptBlock {Remove-Item $Using:XEventFilesDirectory -Recurse -Force} -ErrorAction Stop            
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$XEventFilesDirectory' removed."
+            }
+        }
+        else {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "'$XEventFilesDirectory' exists on host [$($env:COMPUTERNAME)]."
+        }
+    }
+}
 
 
 # 45__DropProxy
