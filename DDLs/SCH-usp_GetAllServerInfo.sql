@@ -132,7 +132,8 @@ BEGIN
 	DECLARE cur_servers CURSOR LOCAL FORWARD_ONLY FOR
 		select distinct srvname from sys.sysservers 
 		where providername = 'SQLOLEDB' 
-		and (@servers is null or srvname in (select srv_name from @_tbl_servers));
+		and (@servers is null or srvname in (select srv_name from @_tbl_servers))
+		union select convert(varchar,SERVERPROPERTY('ServerName'));
 
 	OPEN cur_servers;
 	FETCH NEXT FROM cur_servers INTO @_srv_name;

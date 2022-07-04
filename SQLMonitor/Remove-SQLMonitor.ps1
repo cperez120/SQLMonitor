@@ -1128,33 +1128,39 @@ if($stepName -in $Steps2Execute) {
     $objTypeTitleCase = (Get-Culture).TextInfo.ToTitleCase("$objType")
 
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    if($DryRun) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType '$objName'.."
-    }
-    else {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
-    }
-        
-    $sqlRemoveObject = @"
-if exists (select 1 from sys.servers s where s.provider = 'SQLNCLI' and name = '$objName')
-begin
-	$(if($DryRun){'--'})EXEC master.dbo.sp_dropserver @server=N'$objName', @droplogins='droplogins'
-    select 1 as object_exists;
-end
-else
-    select 0 as object_exists;
-"@
-    $resultRemoveObject = @()
-    $resultRemoveObject += Invoke-DbaQuery -SqlInstance $InventoryServer -Database master -Query $sqlRemoveObject -SqlCredential $SqlCredential -EnableException
-    if($resultRemoveObject.Count -gt 0) 
-    {
-        $result = $resultRemoveObject | Select-Object -ExpandProperty object_exists;
-        if($result -eq 1) {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objName' found and removed."
+
+    if($SqlInstanceToBaseline -ne $InventoryServer) {
+        if($DryRun) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType '$objName'.."
         }
         else {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objName' not found."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
         }
+        
+        $sqlRemoveObject = @"
+    if exists (select 1 from sys.servers s where s.provider = 'SQLNCLI' and name = '$objName')
+    begin
+	    $(if($DryRun){'--'})EXEC master.dbo.sp_dropserver @server=N'$objName', @droplogins='droplogins'
+        select 1 as object_exists;
+    end
+    else
+        select 0 as object_exists;
+"@
+        $resultRemoveObject = @()
+        $resultRemoveObject += Invoke-DbaQuery -SqlInstance $InventoryServer -Database master -Query $sqlRemoveObject -SqlCredential $SqlCredential -EnableException
+        if($resultRemoveObject.Count -gt 0) 
+        {
+            $result = $resultRemoveObject | Select-Object -ExpandProperty object_exists;
+            if($result -eq 1) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objName' found and removed."
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objName' not found."
+            }
+        }
+    }
+    else {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Current instance is inventory instance. Can't remove system created Linked Server."
     }
 }
 
@@ -1987,26 +1993,28 @@ if($stepName -in $Steps2Execute)
     
     if($ssnHostName -eq $env:COMPUTERNAME)
     {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking for [DBA] data collector set existence.."
+        $pfCollector = @()
+        $pfCollector += Get-DbaPfDataCollector -CollectorSet DBA
+        if($pfCollector.Count -gt 0) 
+        {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector [DBA] exists."
+            if($DryRun) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Data Collector Set [DBA] removed."
+            }
+            else {
+                logman stop -name “DBA”
+                logman delete -name “DBA”
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector Set [DBA] removed."
+            }
+        }
+        else {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[DBA] Data Collector not found."
+        }
+
         if(Test-Path $RemoteSQLMonitorPath)
         {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$RemoteSQLMonitorPath' exists."
-            
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking for [DBA] data collector set existence.."
-            $pfCollector = @()
-            $pfCollector += Get-DbaPfDataCollector -CollectorSet DBA
-            if($pfCollector.Count -gt 0) 
-            {
-                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector [DBA] exists."
-                if($DryRun) {
-                    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Data Collector Set [DBA] removed."
-                }
-                else {
-                    logman stop -name “DBA”
-                    logman delete -name “DBA”
-                    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector Set [DBA] removed."
-                }
-            }
-
             if($DryRun) {
                 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "'$RemoteSQLMonitorPath' removed."
             }
@@ -2021,31 +2029,35 @@ if($stepName -in $Steps2Execute)
     }
     else
     {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking for [DBA] data collector set existence.."
+        Invoke-Command -Session $ssn -ScriptBlock {                
+            $pfCollector = @()
+            $pfCollector += Get-DbaPfDataCollector -CollectorSet DBA
+            if($pfCollector.Count -gt 0) 
+            {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector [DBA] exists."
+                if($Using:DryRun) {
+                    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Data Collector Set [DBA] removed."
+                }
+                else {
+                    logman stop -name “DBA”
+                    logman delete -name “DBA”
+                    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector Set [DBA] removed."
+                }
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[DBA] Data Collector not found."
+            }
+        }
+
         if( (Invoke-Command -Session $ssn -ScriptBlock {Test-Path $Using:RemoteSQLMonitorPath}) ) 
         {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$RemoteSQLMonitorPath' exists on remote [$ssnHostName]."
-
-            Invoke-Command -Session $ssn -ScriptBlock {
-                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking for [DBA] data collector set existence.."
-                $pfCollector = @()
-                $pfCollector += Get-DbaPfDataCollector -CollectorSet DBA
-                if($pfCollector.Count -gt 0) 
-                {
-                    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector [DBA] exists."
-                    if($Using:DryRun) {
-                        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Data Collector Set [DBA] removed."
-                    }
-                    else {
-                        logman stop -name “DBA”
-                        logman delete -name “DBA”
-                        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector Set [DBA] removed."
-                    }
-                }
-
-                if($Using:DryRun) {
-                    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "'$Using:RemoteSQLMonitorPath' removed."
-                }
-                else {
+            if($Using:DryRun) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "'$RemoteSQLMonitorPath' removed."
+            }
+            else {
+                Invoke-Command -Session $ssn -ScriptBlock {
                     Remove-Item $Using:RemoteSQLMonitorPath -Recurse -Force -ErrorAction Stop
                     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$Using:RemoteSQLMonitorPath' removed."
                 }
