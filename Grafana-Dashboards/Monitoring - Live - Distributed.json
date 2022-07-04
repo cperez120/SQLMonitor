@@ -113,7 +113,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1656388341715,
+  "iteration": 1656951614577,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -3162,8 +3162,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -3950,8 +3949,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -4058,8 +4056,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -4404,8 +4401,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -4481,7 +4477,7 @@
       "type": "row"
     },
     {
-      "collapsed": false,
+      "collapsed": true,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -4489,203 +4485,201 @@
         "y": 28
       },
       "id": 175,
-      "panels": [],
-      "title": "Disk Space - [$host_name] @ ${diskspace_collection_time_utc:date:YYYY-MM-DD HH.mm}",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "${DS_SQLMONITOR}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "displayMode": "auto",
-            "filterable": true
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "free_mb"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "free"
-              },
-              {
-                "id": "unit",
-                "value": "mbytes"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "capacity_mb"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "capacity"
-              },
-              {
-                "id": "unit",
-                "value": "mbytes"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "free %"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "percent"
-              },
-              {
-                "id": "custom.displayMode",
-                "value": "color-background-solid"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "thresholds"
-                }
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "red",
-                      "value": null
-                    },
-                    {
-                      "color": "green",
-                      "value": 20
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "used %"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "percent"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "thresholds"
-                }
-              },
-              {
-                "id": "custom.displayMode",
-                "value": "color-background-solid"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": null
-                    },
-                    {
-                      "color": "#EAB839",
-                      "value": 70
-                    },
-                    {
-                      "color": "orange",
-                      "value": 80
-                    },
-                    {
-                      "color": "light-red",
-                      "value": 90
-                    },
-                    {
-                      "color": "dark-red",
-                      "value": 95
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "block_size"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "bytes"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 29
-      },
-      "id": 173,
-      "options": {
-        "footer": {
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
-        "showHeader": true
-      },
-      "pluginVersion": "8.4.6",
-      "targets": [
+      "panels": [
         {
-          "alias": "",
           "datasource": {
             "type": "mssql",
             "uid": "${DS_SQLMONITOR}"
           },
-          "format": "table",
-          "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = $__timeFrom()\n\t\t    ,@end_time datetime = $__timeTo();\n\nselect  collection_time_utc as collection_time, disk_volume, label, capacity_mb, free_mb\n        ,[free %] = (free_mb * 100.0)/capacity_mb\n        ,[used %] = ((capacity_mb - free_mb) * 100.0)/capacity_mb\n        ,block_size, filesystem\nfrom $diskspace_table_name ds with (nolock)\nwhere ds.collection_time_utc = (select top 1 collection_time_utc from $diskspace_table_name with (nolock) order by collection_time_utc desc)\norder by collection_time_utc DESC, host_name, disk_volume\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
-          "refId": "A"
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto",
+                "filterable": true
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "free_mb"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "free"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "mbytes"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "capacity_mb"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "capacity"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "mbytes"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "free %"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "custom.displayMode",
+                    "value": "color-background-solid"
+                  },
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "thresholds"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "red"
+                        },
+                        {
+                          "color": "green",
+                          "value": 20
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "used %"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "thresholds"
+                    }
+                  },
+                  {
+                    "id": "custom.displayMode",
+                    "value": "color-background-solid"
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green"
+                        },
+                        {
+                          "color": "#EAB839",
+                          "value": 70
+                        },
+                        {
+                          "color": "orange",
+                          "value": 80
+                        },
+                        {
+                          "color": "light-red",
+                          "value": 90
+                        },
+                        {
+                          "color": "dark-red",
+                          "value": 95
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "block_size"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 29
+          },
+          "id": 173,
+          "options": {
+            "footer": {
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "8.4.6",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLMONITOR}"
+              },
+              "format": "table",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @start_time datetime = $__timeFrom()\n\t\t    ,@end_time datetime = $__timeTo();\n\nselect  collection_time_utc as collection_time, disk_volume, label, capacity_mb, free_mb\n        ,[free %] = (free_mb * 100.0)/capacity_mb\n        ,[used %] = ((capacity_mb - free_mb) * 100.0)/capacity_mb\n        ,block_size, filesystem\nfrom $diskspace_table_name ds with (nolock)\nwhere ds.collection_time_utc = (select top 1 collection_time_utc from $diskspace_table_name with (nolock) order by collection_time_utc desc)\norder by collection_time_utc DESC, host_name, disk_volume\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "refId": "A"
+            }
+          ],
+          "title": "Disk Space Utilization",
+          "type": "table"
         }
       ],
-      "title": "Disk Space Utilization",
-      "type": "table"
+      "title": "Disk Space - [$host_name] @ ${diskspace_collection_time_utc:date:YYYY-MM-DD HH.mm}",
+      "type": "row"
     },
     {
       "collapsed": true,
@@ -4693,7 +4687,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 37
+        "y": 29
       },
       "id": 103,
       "panels": [
@@ -4798,7 +4792,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 38
+        "y": 30
       },
       "id": 121,
       "panels": [
@@ -4867,14 +4861,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "select srvname from sys.sysservers where providername = 'SQLOLEDB'",
+        "definition": "select srvname from sys.sysservers where providername = 'SQLOLEDB'\nUNION\nselect convert(varchar, serverproperty('ServerName'))",
         "hide": 0,
         "includeAll": false,
         "label": "Sql Instance",
         "multi": false,
         "name": "server",
         "options": [],
-        "query": "select srvname from sys.sysservers where providername = 'SQLOLEDB'",
+        "query": "select srvname from sys.sysservers where providername = 'SQLOLEDB'\nUNION\nselect convert(varchar, serverproperty('ServerName'))",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -5825,6 +5819,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 185,
+  "version": 188,
   "weekStart": ""
 }
