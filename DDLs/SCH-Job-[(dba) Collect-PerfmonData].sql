@@ -2,7 +2,7 @@ USE [msdb]
 GO
 
 /****** Object:  Job [(dba) Collect-PerfmonData]    Script Date: Tue, 19 Apr 12:19:44 ******/
-if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Collect-PerfmonData')
+if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Collect-PerfmonData') and APP_NAME() = 'Microsoft SQL Server Management Studio - Query'
 	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Collect-PerfmonData', @delete_unused_schedule=1
 GO
 

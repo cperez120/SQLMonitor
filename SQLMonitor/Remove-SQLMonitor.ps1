@@ -101,7 +101,6 @@ Param (
 
     [Parameter(Mandatory=$false)]
     [bool]$DryRun = $true
-
 )
 
 # All Steps
@@ -125,6 +124,11 @@ $AllSteps = @(  "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesse
 
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
+
+if($SqlInstanceToBaseline -eq '.' -or $SqlInstanceToBaseline -eq 'localhost') {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "'localhost' or '.' are not validate SQLInstance names." | Write-Host -ForegroundColor Red
+    Write-Error "Stop here. Fix above issue."
+}
 
 "`n`n`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline] with [$DbaDatabase] database.`n" | Write-Host -ForegroundColor Yellow
 

@@ -1,7 +1,7 @@
 USE [msdb]
 GO
 
-if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Collect-DiskSpace')
+if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Collect-DiskSpace') and APP_NAME() = 'Microsoft SQL Server Management Studio - Query'
 	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Collect-DiskSpace', @delete_unused_schedule=1
 GO
 

@@ -1,7 +1,7 @@
 USE [msdb]
 GO
 
-if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Collect-OSProcesses')
+if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Collect-OSProcesses') and APP_NAME() = 'Microsoft SQL Server Management Studio - Query'
 	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Collect-OSProcesses', @delete_unused_schedule=1
 GO
 
