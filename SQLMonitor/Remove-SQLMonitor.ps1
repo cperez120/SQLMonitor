@@ -123,11 +123,10 @@ $AllSteps = @(  "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesse
                 "46__DropCredential"
                 )
 
-cls
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
 
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline] with [$DbaDatabase] database.`n" | Write-Host -ForegroundColor Yellow
+"`n`n`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline] with [$DbaDatabase] database.`n" | Write-Host -ForegroundColor Yellow
 
 
 # Set $SqlInstanceAsDataDestination same as $SqlInstanceToBaseline if NULL
@@ -1062,14 +1061,136 @@ else
 
 # 20__DropXEvent_ResourceConsumption
 $stepName = '20__DropXEvent_ResourceConsumption'
+if($stepName -in $Steps2Execute) {
+    $objName = 'resource_consumption'
+    $objType = 'xevent'
+    $objTypeTitleCase = (Get-Culture).TextInfo.ToTitleCase("$objType")
+
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType '$objName'.."
+    }
+    else {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
+    }
+        
+    $sqlRemoveObject = @"
+if exists (SELECT * FROM sys.server_event_sessions WHERE name = N'$objName')
+begin
+    -- Get XEvent files directory
+    ;with targets_xml as (
+	    select	target_data_xml = CONVERT(XML, target_data)
+	    from sys.dm_xe_sessions xs
+	    join sys.dm_xe_session_targets xt on xt.event_session_address = xs.address
+	    where xs.name = '$objName'
+	    and xt.target_name = 'event_file'
+    )
+    ,targets_current as (
+	    select file_path = t.target_data_xml.value('(/EventFileTarget/File/@name)[1]','varchar(2000)')
+	    from targets_xml t
+    )
+    select [xe_directory] = (case when CHARINDEX('\',reverse(t.file_path)) <> 0 then SUBSTRING(t.file_path,1,LEN(t.file_path)-CHARINDEX('\',reverse(t.file_path))+1)
+							    when CHARINDEX('/',reverse(t.file_path)) <> 0 then SUBSTRING(t.file_path,1,LEN(t.file_path)-CHARINDEX('/',reverse(t.file_path))+1)
+							    end),
+		    [object_exists] = case when t.file_path is not null then 1 else 0 end
+    from targets_current t full outer join (values (0)) existence(object_exists) on 1=1
+
+	$(if($DryRun){'--'})DROP EVENT SESSION [$objName] ON SERVER;
+end
+"@
+    $resultRemoveObject = @()
+    $resultRemoveObject += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -Query $sqlRemoveObject -SqlCredential $SqlCredential -EnableException
+    if($resultRemoveObject.Count -gt 0) 
+    {
+        $XEventFilesDirectory = $resultRemoveObject | Select-Object -ExpandProperty xe_directory;
+        $result = $resultRemoveObject | Select-Object -ExpandProperty object_exists;
+        if($result -eq 1) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "XEvent Directory => '$XEventFilesDirectory'."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objName' found and removed."
+        }
+        else {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objName' not found."
+        }
+    }
+}
 
 
 # 21__DropLinkedServer
 $stepName = '21__DropLinkedServer'
+if($stepName -in $Steps2Execute) {
+    $objName = $SqlInstanceToBaseline
+    $objType = 'linked server'
+    $objTypeTitleCase = (Get-Culture).TextInfo.ToTitleCase("$objType")
+
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType '$objName'.."
+    }
+    else {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
+    }
+        
+    $sqlRemoveObject = @"
+if exists (select 1 from sys.servers s where s.provider = 'SQLNCLI' and name = '$objName')
+begin
+	$(if($DryRun){'--'})EXEC master.dbo.sp_dropserver @server=N'$objName', @droplogins='droplogins'
+    select 1 as object_exists;
+end
+else
+    select 0 as object_exists;
+"@
+    $resultRemoveObject = @()
+    $resultRemoveObject += Invoke-DbaQuery -SqlInstance $InventoryServer -Database master -Query $sqlRemoveObject -SqlCredential $SqlCredential -EnableException
+    if($resultRemoveObject.Count -gt 0) 
+    {
+        $result = $resultRemoveObject | Select-Object -ExpandProperty object_exists;
+        if($result -eq 1) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objName' found and removed."
+        }
+        else {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objName' not found."
+        }
+    }
+}
 
 
 # 22__DropLogin_Grafana
 $stepName = '22__DropLogin_Grafana'
+if($stepName -in $Steps2Execute) {
+    $objName = 'grafana'
+    $objType = 'login'
+    $objTypeTitleCase = (Get-Culture).TextInfo.ToTitleCase("$objType")
+
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType '$objName'.."
+    }
+    else {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
+    }
+        
+    $sqlRemoveObject = @"
+if exists (select 1 from sys.server_principals where name = '$objName')
+begin
+	$(if($DryRun){'--'})DROP LOGIN [$objName];
+    select 1 as object_exists;
+end
+else
+    select 0 as object_exists;
+"@
+    $resultRemoveObject = @()
+    $resultRemoveObject += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -Query $sqlRemoveObject -SqlCredential $SqlCredential -EnableException
+    if($resultRemoveObject.Count -gt 0) 
+    {
+        $result = $resultRemoveObject | Select-Object -ExpandProperty object_exists;
+        if($result -eq 1) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objName' found and removed."
+        }
+        else {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objName' not found."
+        }
+    }
+}
 
 
 # 23__DropTable_ResourceConsumption

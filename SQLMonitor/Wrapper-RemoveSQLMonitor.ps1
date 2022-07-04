@@ -2,9 +2,9 @@
 #$saAdmin = Get-Credential -UserName 'sa' -Message 'sa'
 #$localAdmin = Get-Credential -UserName 'DEMO\SQL2019\Administrator' -Message 'Local Admin'
 
-cls
+#cls
 $params = @{
-    SqlInstanceToBaseline = 'localhost'
+    SqlInstanceToBaseline = 'Workstation'
     DbaDatabase = 'DBA'
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
     InventoryServer = 'SQLMonitor'
@@ -17,9 +17,9 @@ $params = @{
     #SkipRemoveJob = $true
     #SkipDropProc = $true
     #SkipDropView = $true
-    DryRun = $true
+    DryRun = $false
 }
-F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1 @Params #-Debug
+F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1 @Params
 
 
 #Get-DbaDbMailProfile -SqlInstance '192.168.56.31' -SqlCredential $personalCredential
