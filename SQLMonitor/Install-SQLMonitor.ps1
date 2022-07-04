@@ -132,6 +132,12 @@ Param (
     [bool]$DropCreatePowerShellJobs = $false,
 
     [Parameter(Mandatory=$false)]
+    [bool]$SkipPowerShellJobs = $false,
+
+    [Parameter(Mandatory=$false)]
+    [bool]$SkipRDPSessionSteps = $false,
+
+    [Parameter(Mandatory=$false)]
     [bool]$DryRun = $false
 )
 
@@ -144,6 +150,24 @@ $AllSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession"
                 "16__CreateJobPartitionsMaintenance", "17__CreateJobPurgeTables", "18__CreateJobRemoveXEventFiles",
                 "19__CreateJobRunWhoIsActive", "20__CreateJobUpdateSqlServerVersions", "21__WhoIsActivePartition",
                 "22__GrafanaLogin", "23__LinkedServerOnInventory")
+
+# PowerShell Jobs
+$PowerShellJobSteps = @(
+                "12__CreateJobCollectOSProcesses", "13__CreateJobCollectPerfmonData", "18__CreateJobRemoveXEventFiles",
+                "20__CreateJobUpdateSqlServerVersions")
+
+# RDPSessionSteps
+$RDPSessionSteps = @("9__CopyDbaToolsModule2Host", "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector")
+
+# Add $PowerShellJobSteps to Skip Jobs
+if($SkipPowerShellJobs) {
+    $SkipSteps = $SkipSteps + $PowerShellJobSteps;
+}
+
+# Add $RDPSessionSteps to Skip Jobs
+if($SkipRDPSessionSteps) {
+    $SkipSteps = $SkipSteps + $RDPSessionSteps;
+}
 
 cls
 $startTime = Get-Date
@@ -231,6 +255,9 @@ Import-Module SqlServer
 
 # Compute steps to execute
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Compute Steps to execute.."
+
+$SkipPowerShellJobs
+
 [int]$StartAtStepNumber = $StartAtStep -replace "__\w+", ''
 [int]$StopAtStepNumber = $StopAtStep -replace "__\w+", ''
 if($StopAtStepNumber -eq 0) {
@@ -377,51 +404,54 @@ if([String]::IsNullOrEmpty($HostName)) {
 }
 
 # Setup PSSession on Host
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Create PSSession for host [$HostName].."
-$ssnHostName = $HostName
-if (-not (Test-Connection -ComputerName $HostName -Quiet -Count 1)) {
-    $ssnHostName = $SqlInstanceToBaseline
-}
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ssnHostName => '$ssnHostName'"
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Domain of SqlInstance being baselined => [$($sqlServerInfo.domain)]"
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Domain of current host => [$($env:USERDOMAIN)]"
-
-$ssn = $null
-$errVariables = @()
-
-# First Attempt without Any credentials
-try {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Trying for PSSession on [$ssnHostName] normally.."
-        $ssn = New-PSSession -ComputerName $ssnHostName 
+if(-not $SkipRDPSessionSteps)
+{
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Create PSSession for host [$HostName].."
+    $ssnHostName = $HostName
+    if (-not (Test-Connection -ComputerName $HostName -Quiet -Count 1)) {
+        $ssnHostName = $SqlInstanceToBaseline
     }
-catch { $errVariables += $_ }
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ssnHostName => '$ssnHostName'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Domain of SqlInstance being baselined => [$($sqlServerInfo.domain)]"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Domain of current host => [$($env:USERDOMAIN)]"
 
-# Second Attempt for Trusted Cross Domains
-if( [String]::IsNullOrEmpty($ssn) ) {
-    try { 
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Trying for PSSession on [$ssnHostName] assuming cross domain.."
-        $ssn = New-PSSession -ComputerName $ssnHostName -Authentication Negotiate 
-    }
-    catch { $errVariables += $_ }
-}
+    $ssn = $null
+    $errVariables = @()
 
-# 3rd Attempt with Credentials
-if( [String]::IsNullOrEmpty($ssn) -and (-not [String]::IsNullOrEmpty($WindowsCredential)) ) {
+    # First Attempt without Any credentials
     try {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Attemping PSSession for [$ssnHostName] using provided WindowsCredentials.."
-        $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential    
-    }
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Trying for PSSession on [$ssnHostName] normally.."
+            $ssn = New-PSSession -ComputerName $ssnHostName 
+        }
     catch { $errVariables += $_ }
 
+    # Second Attempt for Trusted Cross Domains
     if( [String]::IsNullOrEmpty($ssn) ) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Attemping PSSession for [$ssnHostName] using provided WindowsCredentials with Negotiate attribute.."
-        $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential -Authentication Negotiate
+        try { 
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Trying for PSSession on [$ssnHostName] assuming cross domain.."
+            $ssn = New-PSSession -ComputerName $ssnHostName -Authentication Negotiate 
+        }
+        catch { $errVariables += $_ }
     }
-}
 
-if ( [String]::IsNullOrEmpty($ssn) ) {
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provide WindowsCredential for accessing server [$ssnHostName] of domain '$($sqlServerInfo.domain)'." | Write-Host -ForegroundColor Red
-    "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+    # 3rd Attempt with Credentials
+    if( [String]::IsNullOrEmpty($ssn) -and (-not [String]::IsNullOrEmpty($WindowsCredential)) ) {
+        try {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Attemping PSSession for [$ssnHostName] using provided WindowsCredentials.."
+            $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential    
+        }
+        catch { $errVariables += $_ }
+
+        if( [String]::IsNullOrEmpty($ssn) ) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Attemping PSSession for [$ssnHostName] using provided WindowsCredentials with Negotiate attribute.."
+            $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential -Authentication Negotiate
+        }
+    }
+
+    if ( [String]::IsNullOrEmpty($ssn) ) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provide WindowsCredential for accessing server [$ssnHostName] of domain '$($sqlServerInfo.domain)'." | Write-Host -ForegroundColor Red
+        "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+    }
 }
 
 

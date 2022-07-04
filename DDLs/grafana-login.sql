@@ -15,7 +15,10 @@ if object_id('dbo.SqlServerVersions') is not null
 go
 
 use [DBA]
-if not exists (select * from sys.sysusers where name = 'grafana')
+if exists (select * from sys.sysusers where name = 'grafana')
+	drop user [grafana];
+go
+use [DBA]
 	create user [grafana] for login [grafana]
 go
 use [DBA]
