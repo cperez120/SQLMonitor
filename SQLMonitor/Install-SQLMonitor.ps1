@@ -1049,3 +1049,156 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Execution completed in $($timeTaken.TotalSeconds) seconds."
 
 
+
+<#
+    .SYNOPSIS
+    Baselines the SQL Server instance by creating all required objects, Perfmon data collector, and required SQL Agent jobs. Adds linked server on inventory instance.
+    .DESCRIPTION
+    This function accepts various parameters and perform baselining of the SQLInstance with creation of required tables, views, procedures, jobs, perfmon data collector, and linked server.
+    .PARAMETER SqlInstanceToBaseline
+    Name/IP of SQL Instance that has to be baselined. Instances should be capable of connecting from remove machine SSMS using this name/ip.
+    .PARAMETER DbaDatabase
+    Name of DBA database on the SQL Instance being baseline, and as well target on [SqlInstanceAsDataDestination].
+    .PARAMETER SqlInstanceAsDataDestination
+    Name/IP of SQL Instance that would store the data caputured using Perfmon data collection. Generally same as [SqlInstanceToBaseline]. But, this could be different from [SqlInstanceToBaseline] in central repository scenario.
+    .PARAMETER SqlInstanceForDataCollectionJobs
+    Name/IP of SQL Instance that could be used to host SQL Agent jobs that call PowerShell scripts. Generally same as [SqlInstanceToBaseline]. But, this could be different from [SqlInstanceToBaseline] when [SqlInstanceToBaseline] is not capable of running PowerShell Jobs successfully due to being old version of powershell, or incapability of install modules like dbatools.
+    .PARAMETER InventoryServer
+    Name/IP of SQL Instance that would act as inventory server and is the data source on Grafana application. A linked server would be created for [SqlInstanceToBaseline] on this server.
+    .PARAMETER HostName
+    Name of server where Perfmon data collection & other OS level settings would be done. For standalone SQL Instances, this is not required as this value can be retrieved from tsql. But for active/passive SQLCluster setup where SQL Cluster instance may have other passive nodes, this value can be explictly passed to setup perfmon collection of other passive hosts.
+    .PARAMETER IsNonPartitioned
+    Switch to signify if Partitioning of table should NOT be done even if supported.
+    .PARAMETER SQLMonitorPath
+    Path of SQLMonitor tool parent folder. This is the folder that contains other folders/files like Alerting, Credential-Manager, DDLs, SQLMonitor, Inventory etc.
+    .PARAMETER DbaToolsFolderPath
+    Local directory path of dbatools powershell module that was downloaded locally from github https://github.com/dataplat/dbatools.
+    .PARAMETER RemoteSQLMonitorPath
+    Desired SQLMonitor folder location on [SqlInstanceToBaseline] or [SqlInstanceForDataCollectionJobs]. At this path, folder SQLMonitor\SQLMonitor would be copied. On target instance, all the SQL Agent jobs would call the scripts from this folder.
+    .PARAMETER MailProfileFileName
+    Script file containing tsql that helps in creating mail profile using GMail. This is NOT executed, but displayed when no default global mail profile is found.
+    .PARAMETER WhoIsActiveFileName
+    Script file containg tsql that compiles [sp_WhoIsActive] in master database. This is modified version of sp_WhoIsActive that returns JobName instead of JobID in [program_name] column.
+    .PARAMETER AllDatabaseObjectsFileName
+    Script file containing tsql that creates/populates all required objects like partition function, partition scheme, tables and views in [DbaDatabase].
+    .PARAMETER XEventSessionFileName
+    Script file containing tsql that creates XEvent session [resource_consumption]. By default, the XEvent target files are placed in a new folder named [xevents] inside parent folder of [DbaDatabase] database files.
+    .PARAMETER WhatIsRunningFileName
+    Script file containing tsql that compiles [sp_WhatIsRunning] in [DbaDatabase].
+    .PARAMETER GetAllServerInfoFileName
+    Script file containing tsql that compiles [usp_GetAllServerInfo] in [DbaDatabase] on [InventoryServer]. This stored procedure provides basic health metrics for all/specific servers.
+    .PARAMETER UspCollectWaitStatsFileName
+    Script file containing tsql that compiles [usp_collect_wait_stats] in [DbaDatabase] on [SqlInstanceToBaseline].
+    .PARAMETER UspCollectXeventsResourceConsumptionFileName
+    Script file containing tsql that compiles [usp_collect_xevents_resource_consumption] in [DbaDatabase] on [SqlInstanceToBaseline].
+    .PARAMETER UspPurgeTablesFileName
+    Script file containing tsql that compiles [usp_purge_tables] in [DbaDatabase] on [SqlInstanceToBaseline].
+    .PARAMETER UspRunWhoIsActiveFileName
+    Script file containing tsql that compiles [usp_run_WhoIsActive] in [DbaDatabase] on [SqlInstanceToBaseline].
+    .PARAMETER WhoIsActivePartitionFileName
+    Script file containing tsql that convert dbo.WhoIsActive table into partitioned tables if supported.
+    .PARAMETER GrafanaLoginFileName
+    Script file containing tsql that creates [grafana] login/user on [master] & [DbaDatabase] on [SqlInstanceToBaseline].
+    .PARAMETER CollectDiskSpaceFileName
+    Script file containing tsql that creates sql agent job [(dba) Collect-DiskSpace] on server [SqlInstanceForDataCollectionJobs] which calls powershell scripts for collecting Disk Space utilization from server [SqlInstanceToBaseline].
+    .PARAMETER CollectOSProcessesFileName
+    Script file containing tsql that creates sql agent job [(dba) Collect-OSProcesses] on server [SqlInstanceForDataCollectionJobs] which calls powershell scripts for collecting OS Processes from server [SqlInstanceToBaseline].
+    .PARAMETER CollectPerfmonDataFileName
+    Script file containing tsql that creates sql agent job [(dba) Collect-PerfmonData] on server [SqlInstanceForDataCollectionJobs] which calls powershell scripts for collecting collecting Perfmon data from server [SqlInstanceToBaseline].
+    .PARAMETER CollectWaitStatsFileName
+    Script file containing tsql that creates sql agent job [(dba) Collect-WaitStats] on server [SqlInstanceToBaseline] which captures cumulative waits.
+    .PARAMETER CollectXEventsFileName
+    Script file containing tsql that creates sql agent job [(dba) Collect-XEvents] on server [SqlInstanceToBaseline] which reads data from XEvent session [resource_consumption] & pushes it to SQL tables.
+    .PARAMETER PartitionsMaintenanceFileName
+    Script file containing tsql that creates sql agent job [(dba) Partitions-Maintenance] on server [SqlInstanceToBaseline]. This job adds further partions and purges old partitions from partitioned tables.
+    .PARAMETER PurgeTablesFileName
+    Script file containing tsql that creates sql agent job [(dba) Purge-Tables] on server [SqlInstanceToBaseline]. This job helps in purging old data from tables. Retention threshold varies table to table.
+    .PARAMETER RemoveXEventFilesFileName
+    Script file containing tsql that creates sql agent job [(dba) Remove-XEventFiles] on server [SqlInstanceToBaseline]. This job helps in purging Old XEvent files which are already processed.
+    .PARAMETER RunWhoIsActiveFileName
+    Script file containing tsql that creates sql agent job [(dba) Run-WhoIsActive] on server [SqlInstanceToBaseline]. This job captures snapshot of server sessions using sp_WhoIsActive.
+    .PARAMETER UpdateSqlServerVersionsFileName
+    Script file containing tsql that creates sql agent job [(dba) Update-SqlServerVersions] on [InventoryServer] server. This job updates the latest version/service pack details into table master.dbo.SqlServerVersions.
+    .PARAMETER LinkedServerOnInventoryFileName
+    Script file containing tsql that creates linked server for [SqlInstanceToBaseline] on [InventoryServer] server using [grafana] login.
+    .PARAMETER TestWindowsAdminAccessFileName
+    Script file containing tsql that creates temporary sql agent job [(dba) Test-WindowsAdminAccess] on server [SqlInstanceToBaseline]. This job helps in finding if sql agent proxy is required for executing powershell script.
+    .PARAMETER DbaGroupMailId
+    List of DBA/group email ids that should receive job failure alerts.
+    .PARAMETER StartAtStep
+    Starts the baselining automation on this step. If no value provided, then baselining starts with 1st step.
+    .PARAMETER SkipSteps
+    List of steps that should be skipped in the baselining automation.
+    .PARAMETER StopAtStep
+    End the baselining automation on this step. If no value provided, then baselining finishes with last step.
+    .PARAMETER SqlCredential
+    PowerShell credential object to execute queries any SQL Servers. If no value provided, then connectivity is tried using Windows Integrated Authentication.
+    .PARAMETER WindowsCredential
+    PowerShell credential object that could be used to perform OS interactives tasks. If no value provided, then connectivity is tried using Windows Integrated Authentication. This is important when [SqlInstanceToBaseline] is not in same domain as current host.
+    .PARAMETER DropCreatePowerShellJobs
+    When enabled, drops the existing SQL Agent jobs having CmdExec steps, and creates them from scratch. By default, Jobs running CmdExec step are not dropped if found existing.
+    .PARAMETER SkipPowerShellJobs
+    When enabled, baselining steps involving create of SQL Agent jobs having CmdExec steps are skipped.
+    .PARAMETER SkipAllJobs
+    When enabled, all the SQL Agent jobs creation is skipped.
+    .PARAMETER SkipRDPSessionSteps
+    When enabled, any steps that need OS level interaction is skipped. This includes copy of dbatools powershell module, SQLMonitor folder on remove path, creation of Perfmon Data Collector etc.
+    .PARAMETER DryRun
+    When enabled, only messages are printed, but actual changes are NOT made.
+    .EXAMPLE
+$params = @{
+    SqlInstanceToBaseline = 'Workstation'
+    DbaDatabase = 'DBA'
+    DbaToolsFolderPath = 'F:\GitHub\dbatools'
+    RemoteSQLMonitorPath = 'C:\SQLMonitor'
+    InventoryServer = 'SQLMonitor'
+    DbaGroupMailId = 'sqlagentservice@gmail.com'
+    #SqlCredential = $saAdmin
+    #WindowsCredential = $LabCredential
+    #SkipSteps = @("11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
+    #StartAtStep = '24__GrafanaLogin'
+    #StopAtStep = '21__WhoIsActivePartition'
+    #DropCreatePowerShellJobs = $true
+    #DryRun = $false
+    #SkipRDPSessionSteps = $true
+    #SkipPowerShellJobs = $true
+    #SkipAllJobs = $true
+}
+F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params
+
+Baseline SQLInstance [Workstation] using [DBA] database. Use [SQLMonitor] as Inventory SQLInstance, and alerts should go to 'sqlagentservice@gmail.com'.
+    .EXAMPLE
+$LabCredential = Get-Credential -UserName 'Lab\SQLServices' -Message 'AD Account'
+$saAdmin = Get-Credential -UserName 'sa' -Message 'sa'
+#$localAdmin = Get-Credential -UserName 'Administrator' -Message 'Local Admin'
+
+cls
+$params = @{
+    SqlInstanceToBaseline = 'Workstation'
+    DbaDatabase = 'DBA'
+    DbaToolsFolderPath = 'F:\GitHub\dbatools'
+    RemoteSQLMonitorPath = 'C:\SQLMonitor'
+    InventoryServer = 'SQLMonitor'
+    DbaGroupMailId = 'sqlagentservice@gmail.com'
+    SqlCredential = $saAdmin
+    WindowsCredential = $LabCredential
+    #SkipSteps = @("11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
+    #StartAtStep = '24__GrafanaLogin'
+    #StopAtStep = '21__WhoIsActivePartition'
+    #DropCreatePowerShellJobs = $true
+    #DryRun = $false
+    #SkipRDPSessionSteps = $true
+    #SkipPowerShellJobs = $true
+    #SkipAllJobs = $true
+}
+F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params
+
+Baseline SQLInstance [Workstation] using [DBA] database. Use [SQLMonitor] as Inventory SQLInstance. Alerts are sent to 'sqlagentservice@gmail.com'. Using $saAdmin credential while interacting with SQLInstance. Similary, for performing OS interactive task, use $LabCredential.
+    .NOTES
+Owner Ajay Kumar Dwivedi (ajay.dwivedi2007@gmail.com)
+    .LINK
+    https://ajaydwivedi.com/github/sqlmonitor
+    https://ajaydwivedi.com/docs/sqlmonitor
+    https://ajaydwivedi.com/blog/sqlmonitor
+    https://ajaydwivedi.com/youtube/sqlmonitor
+#>

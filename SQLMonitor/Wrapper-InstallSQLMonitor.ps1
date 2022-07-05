@@ -4,7 +4,7 @@
 
 cls
 $params = @{
-    SqlInstanceToBaseline = 'SQLMonitor'
+    SqlInstanceToBaseline = 'Workstation'
     DbaDatabase = 'DBA'
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
     RemoteSQLMonitorPath = 'C:\SQLMonitor'
@@ -13,7 +13,7 @@ $params = @{
     #SqlCredential = $saAdmin
     #WindowsCredential = $LabCredential
     #SkipSteps = @("11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
-    StartAtStep = '24__GrafanaLogin'
+    #StartAtStep = '24__GrafanaLogin'
     #StopAtStep = '21__WhoIsActivePartition'
     #DropCreatePowerShellJobs = $true
     #DryRun = $false
