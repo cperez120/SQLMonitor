@@ -1,6 +1,6 @@
-﻿#$LabCredential = Get-Credential -UserName 'Lab\SQLServices' -Message 'AD Account'
+﻿#$DomainCredential = Get-Credential -UserName 'Lab\SQLServices' -Message 'AD Account'
 #$saAdmin = Get-Credential -UserName 'sa' -Message 'sa'
-#$localAdmin = Get-Credential -UserName 'DEMO\SQL2019\Administrator' -Message 'Local Admin'
+#$localAdmin = Get-Credential -UserName 'Administrator' -Message 'Local Admin'
 
 cls
 $params = @{
@@ -11,7 +11,7 @@ $params = @{
     InventoryServer = 'SQLMonitor'
     DbaGroupMailId = 'sqlagentservice@gmail.com'
     #SqlCredential = $saAdmin
-    #WindowsCredential = $LabCredential
+    #WindowsCredential = $DomainCredential
     #SkipSteps = @("11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
     #StartAtStep = '24__GrafanaLogin'
     #StopAtStep = '21__WhoIsActivePartition'

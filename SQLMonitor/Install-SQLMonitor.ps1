@@ -971,14 +971,11 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
 
     if($requireProxy) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [(dba) Update-SqlServerVersions] to run under proxy [$credentialName].."
-        $sqlUpdateJob = @"
-        EXEC msdb.dbo.sp_update_jobstep @job_name=N'(dba) Update-SqlServerVersions', @step_id=1 ,@proxy_name=N'$credentialName';
-        GO
-        EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Update-SqlServerVersions';
-        GO
-"@
+        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'Update-SqlServerVersions', @step_id=1 ,@proxy_name=N'$credentialName';"
         Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlUpdateJob -SqlCredential $SqlCredential -EnableException
     }
+    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Update-SqlServerVersions';"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlStartJob -SqlCredential $SqlCredential -EnableException
 }
 
 
