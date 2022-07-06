@@ -35,11 +35,12 @@
 	16) Create procedure dbo.usp_extended_results
 	17) Create table [dbo].[resource_consumption]
 	18) Create table [dbo].[resource_consumption_Processed_XEL_Files]
-	19) Add boundaries to partition. 1 boundary per hour
-	20) Remove boundaries with retention of 3 months
-	21) Validate Partition Data
-	22) Create table [dbo].[disk_space] using Partition scheme
-	23) Populate [dbo].[BlitzFirst_WaitStats_Categories]
+	19) Create table [dbo].[disk_space] using Partition scheme
+	20) Create View [dbo].[vw_disk_space] for Multi SqlCluster on same nodes Architecture
+	21) Add boundaries to partition. 1 boundary per hour
+	22) Remove boundaries with retention of 3 months
+	23) Validate Partition Data	
+	24) Populate [dbo].[BlitzFirst_WaitStats_Categories]
 
 */
 
@@ -537,8 +538,55 @@ end
 go
 
 
+/* ***** 19) Create table [dbo].[disk_space] using Partition scheme *********** */
+if OBJECT_ID('[dbo].[disk_space]') is null
+begin
+	CREATE TABLE [dbo].[disk_space]
+	(
+		[collection_time_utc] [datetime2](7) NOT NULL,
+		[host_name] [varchar](125) NOT NULL,
+		[disk_volume] [varchar](255) NOT NULL,
+		[label] [varchar](125) NULL,
+		[capacity_mb] [decimal](20,2) NOT NULL,
+		[free_mb] [decimal](20,2) NOT NULL,
+		[block_size] [int] NULL,
+		[filesystem] [varchar](125) NULL,
 
-/* ***** 19) Add boundaries to partition. 1 boundary per hour ***************** */
+		constraint pk_disk_space primary key ([collection_time_utc],[host_name],[disk_volume]) on ps_dba ([collection_time_utc])
+	) on ps_dba ([collection_time_utc]);
+end
+go
+
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.disk_space')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.disk_space', 
+			date_key = 'collection_time_utc', 
+			retention_days = 90, 
+			purge_row_size = 100000,
+			reference = 'SQLMonitor Data Collection'
+end
+go
+
+/* ***** 20) Create View [dbo].[vw_disk_space] for Multi SqlCluster on same nodes Architecture */
+-- drop view dbo.vw_disk_space
+if OBJECT_ID('dbo.vw_disk_space') is null
+	exec ('create view dbo.vw_disk_space as select 1 as dummy;')
+go
+alter view dbo.vw_disk_space
+--with schemabinding
+as
+with cte_disk_space_local as (select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from dbo.disk_space)
+--,cte_disk_space_sql2019 as (select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from [SQL2019].DBA.dbo.disk_space)
+
+select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_local
+--union all
+--select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_sql2019
+go
+
+
+/* ***** 21) Add boundaries to partition. 1 boundary per hour ***************** */
 set nocount on;
 declare @current_boundary_value datetime2;
 declare @target_boundary_value datetime2; /* last day of new quarter */
@@ -576,7 +624,7 @@ end
 go
 
 
-/* ***** 20) Remove boundaries with retention of 3 months ***************** */
+/* ***** 22) Remove boundaries with retention of 3 months ***************** */
 set nocount on;
 declare @partition_boundary datetime2;
 declare @target_boundary_value datetime2; /* 3 months back date */
@@ -605,41 +653,11 @@ DEALLOCATE cur_boundaries;
 go
 
 
-/* ***** 21) Validate Partition Data ***************** */
+/* ***** 23) Validate Partition Data ***************** */
 -- Check query 'SQL-Queries\check-table-partitions.sql'
 
-/* ***** 22) Create table [dbo].[disk_space] using Partition scheme *********** */
-if OBJECT_ID('[dbo].[disk_space]') is null
-begin
-	CREATE TABLE [dbo].[disk_space]
-	(
-		[collection_time_utc] [datetime2](7) NOT NULL,
-		[host_name] [varchar](125) NOT NULL,
-		[disk_volume] [varchar](255) NOT NULL,
-		[label] [varchar](125) NULL,
-		[capacity_mb] [decimal](20,2) NOT NULL,
-		[free_mb] [decimal](20,2) NOT NULL,
-		[block_size] [int] NULL,
-		[filesystem] [varchar](125) NULL,
 
-		constraint pk_disk_space primary key ([collection_time_utc],[host_name],[disk_volume]) on ps_dba ([collection_time_utc])
-	) on ps_dba ([collection_time_utc]);
-end
-go
-
-if not exists (select 1 from dbo.purge_table where table_name = 'dbo.disk_space')
-begin
-	insert dbo.purge_table
-	(table_name, date_key, retention_days, purge_row_size, reference)
-	select	table_name = 'dbo.disk_space', 
-			date_key = 'collection_time_utc', 
-			retention_days = 90, 
-			purge_row_size = 100000,
-			reference = 'SQLMonitor Data Collection'
-end
-go
-
-/* ***** 23) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
+/* ***** 24) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
 IF OBJECT_ID('[dbo].[BlitzFirst_WaitStats_Categories]') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM [dbo].[BlitzFirst_WaitStats_Categories])
 BEGIN
 	--TRUNCATE TABLE [dbo].[BlitzFirst_WaitStats_Categories];

@@ -4,14 +4,14 @@
 
 cls
 $params = @{
-    SqlInstanceToBaseline = 'SQLMonitor'
+    SqlInstanceToBaseline = 'Workstation\SQL2014'
     DbaDatabase = 'DBA'
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
     InventoryServer = 'SQLMonitor'
     RemoteSQLMonitorPath = 'C:\SQLMonitor'
     #SqlCredential = $saAdmin
     #WindowsCredential = $DomainCredential
-    #SkipSteps = @("11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
+    SkipSteps = @("43__RemovePerfmonFilesFromDisk")
     #StartAtStep = '22__DropLogin_Grafana'
     #StopAtStep = '10__RemoveJob_UpdateSqlServerVersions'
     SkipDropTable = $true

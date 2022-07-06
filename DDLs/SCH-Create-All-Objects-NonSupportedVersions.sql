@@ -35,11 +35,12 @@
 	16) Create procedure dbo.usp_extended_results
 	17) Create table [dbo].[resource_consumption]
 	18) Create table [dbo].[resource_consumption_Processed_XEL_Files]
-	19) Add boundaries to partition. 1 boundary per hour
-	20) Remove boundaries with retention of 3 months
-	21) Validate Partition Data
-	22) Create table [dbo].[disk_space] using Partition scheme
-	23) Populate [dbo].[BlitzFirst_WaitStats_Categories]
+	19) Create table [dbo].[disk_space] using Partition scheme
+	20) Create View [dbo].[vw_disk_space] for Multi SqlCluster on same nodes Architecture
+	21) Add boundaries to partition. 1 boundary per hour
+	22) Remove boundaries with retention of 3 months
+	23) Validate Partition Data	
+	24) Populate [dbo].[BlitzFirst_WaitStats_Categories]
 
 */
 
@@ -70,6 +71,7 @@ begin
 end
 go
 
+select * from sys.extended_properties 
 
 /* ***** 4) Create table dbo.instance_hosts ***************************** */
 -- drop table dbo.instance_hosts;
@@ -133,20 +135,20 @@ begin
 		[counter] [varchar](255) NOT NULL,
 		[value] numeric(38,10) NULL,
 		[instance] [varchar](255) NULL
-	) 
+	)
 end
 go
 
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[performance_counters]') and name = 'ci_performance_counters')
 begin
 	create clustered index ci_performance_counters on [dbo].[performance_counters] 
-	([collection_time_utc], [host_name], object, counter, [instance], [value]) 
+	([collection_time_utc], [host_name], object, counter, [instance], [value])
 end
 go
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[performance_counters]') and name = 'nci_counter_collection_time_utc')
 begin
 	create nonclustered index nci_counter_collection_time_utc
-	on [dbo].[performance_counters] ([counter],[collection_time_utc]) 
+	on [dbo].[performance_counters] ([counter],[collection_time_utc])
 end
 GO
 
@@ -195,8 +197,8 @@ begin
 		(
 			[file_name] ASC,
 			[collection_time_utc] ASC
-		) 
-	) 
+		)
+	)
 end
 GO
 
@@ -230,33 +232,33 @@ begin
 		[cpu_time] [char](14) NOT NULL,
 		[cpu_time_seconds] bigint NOT NULL,
 		[window_title] [nvarchar](2000) NULL
-	) 
+	)
 end
 go
 
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'ci_os_task_list')
 begin
-	create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [host_name], [task_name]) 
+	create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [host_name], [task_name])
 end
 go
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'nci_user_name')
 begin
-	create nonclustered index nci_user_name on [dbo].[os_task_list] ([collection_time_utc], [host_name], [user_name]) 
+	create nonclustered index nci_user_name on [dbo].[os_task_list] ([collection_time_utc], [host_name], [user_name])
 end
 go
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'nci_window_title')
 begin
-	create nonclustered index nci_window_title on [dbo].[os_task_list] ([collection_time_utc], [host_name], [window_title]) 
+	create nonclustered index nci_window_title on [dbo].[os_task_list] ([collection_time_utc], [host_name], [window_title])
 end
 go
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'nci_cpu_time_seconds')
 begin
-	create nonclustered index nci_cpu_time_seconds on [dbo].[os_task_list] ([collection_time_utc], [host_name], [cpu_time_seconds]) 
+	create nonclustered index nci_cpu_time_seconds on [dbo].[os_task_list] ([collection_time_utc], [host_name], [cpu_time_seconds])
 end
 go
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'nci_memory_kb')
 begin
-	create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_time_utc], [host_name], [memory_kb]) 
+	create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_time_utc], [host_name], [memory_kb])
 end
 go
 
@@ -303,14 +305,14 @@ begin
 		[wait_time_ms] [bigint] NOT NULL,
 		[max_wait_time_ms] [bigint] NOT NULL,
 		[signal_wait_time_ms] [bigint] NOT NULL,
-		constraint pk_wait_stats primary key ([collection_time_utc], [wait_type]) 
-	) 
+		constraint pk_wait_stats primary key ([collection_time_utc], [wait_type])
+	)
 end
 GO
 
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[wait_stats]') and type_desc = 'CLUSTERED')
 begin
-	alter table [dbo].[wait_stats] add constraint pk_wait_stats primary key ([collection_time_utc], [wait_type]) 
+	alter table [dbo].[wait_stats] add constraint pk_wait_stats primary key ([collection_time_utc], [wait_type])
 end
 go
 
@@ -467,14 +469,14 @@ BEGIN
 		[session_resource_pool_id] [int] NULL,
 		[session_resource_group_id] [int] NULL,
 		[scheduler_id] [int] NULL
-		,constraint pk_resource_consumption primary key clustered (event_time,start_time,[row_id]) --on ps_dba ([event_time])
-	) --on ps_dba ([event_time])
+		,constraint pk_resource_consumption primary key clustered (event_time,start_time,[row_id])
+	)
 END
 GO
 
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[resource_consumption]') and name = 'uq_resource_consumption')
 begin
-	create unique index uq_resource_consumption on [dbo].[resource_consumption]  ([start_time], [event_time], [row_id]) --on ps_dba ([start_time])
+	create unique index uq_resource_consumption on [dbo].[resource_consumption]  ([start_time], [event_time], [row_id])
 end
 GO
 
@@ -518,15 +520,7 @@ end
 go
 
 
-
-/* ***** 19) Add boundaries to partition. 1 boundary per hour ***************** */
-
-/* ***** 20) Remove boundaries with retention of 3 months ***************** */
-
-/* ***** 21) Validate Partition Data ***************** */
--- Check query 'SQL-Queries\check-table-partitions.sql'
-
-/* ***** 22) Create table [dbo].[disk_space] using Partition scheme *********** */
+/* ***** 19) Create table [dbo].[disk_space] using Partition scheme *********** */
 if OBJECT_ID('[dbo].[disk_space]') is null
 begin
 	CREATE TABLE [dbo].[disk_space]
@@ -557,7 +551,32 @@ begin
 end
 go
 
-/* ***** 23) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
+/* ***** 20) Create View [dbo].[vw_disk_space] for Multi SqlCluster on same nodes Architecture */
+-- drop view dbo.vw_disk_space
+if OBJECT_ID('dbo.vw_disk_space') is null
+	exec ('create view dbo.vw_disk_space as select 1 as dummy;')
+go
+alter view dbo.vw_disk_space
+--with schemabinding
+as
+with cte_disk_space_local as (select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from dbo.disk_space)
+--,cte_disk_space_sql2019 as (select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from [SQL2019].DBA.dbo.disk_space)
+
+select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_local
+--union all
+--select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_sql2019
+go
+
+
+/* ***** 21) Add boundaries to partition. 1 boundary per hour ***************** */
+
+/* ***** 22) Remove boundaries with retention of 3 months ***************** */
+
+/* ***** 23) Validate Partition Data ***************** */
+-- Check query 'SQL-Queries\check-table-partitions.sql'
+
+
+/* ***** 24) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
 IF OBJECT_ID('[dbo].[BlitzFirst_WaitStats_Categories]') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM [dbo].[BlitzFirst_WaitStats_Categories])
 BEGIN
 	--TRUNCATE TABLE [dbo].[BlitzFirst_WaitStats_Categories];
