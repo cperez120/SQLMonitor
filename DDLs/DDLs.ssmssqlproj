@@ -79,12 +79,6 @@
           <AssociatedConnUserName />
           <FullPath>SCH-Create-All-Objects.sql</FullPath>
         </FileNode>
-        <FileNode Name="SCH-Create-All-Objects-NonSupportedVersions.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQL2014:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)\SQL2014</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>SCH-Create-All-Objects-NonSupportedVersions.sql</FullPath>
-        </FileNode>
         <FileNode Name="SCH-Create-XEvents.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>

@@ -50,23 +50,27 @@ go
 
 /* ****** 1) Partition function for [datetime2] & [datetime] ******* */
 --drop partition function pf_dba
-if not exists (select * from sys.partition_functions where name = 'pf_dba')
-	create partition function pf_dba (datetime2) as range right for values (convert(smalldatetime,cast(getdate() as date)))
+declare @is_partitioned bit = 1;
+if not exists (select * from sys.partition_functions where name = 'pf_dba') and @is_partitioned = 1
+	exec ('create partition function pf_dba (datetime2) as range right for values (convert(smalldatetime,cast(getdate() as date)))')
 go
 --drop partition function pf_dba_datetime
-if not exists (select * from sys.partition_functions where name = 'pf_dba_datetime')
-	create partition function pf_dba_datetime (datetime) as range right for values (convert(smalldatetime,cast(getdate() as date)))
+declare @is_partitioned bit = 1;
+if not exists (select * from sys.partition_functions where name = 'pf_dba_datetime') and @is_partitioned = 1
+	exec ('create partition function pf_dba_datetime (datetime) as range right for values (convert(smalldatetime,cast(getdate() as date)))')
 go
 
 
 /* ****** 2) Partition Scheme for [datetime2] & [datetime] ******* */
 --drop partition scheme ps_dba
-if not exists (select * from sys.partition_schemes where name = 'ps_dba')
-	create partition scheme ps_dba as partition pf_dba all to ([primary])
+declare @is_partitioned bit = 1;
+if not exists (select * from sys.partition_schemes where name = 'ps_dba') and @is_partitioned = 1
+	exec ('create partition scheme ps_dba as partition pf_dba all to ([primary])')
 go
 --drop partition scheme ps_dba_datetime
-if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime')
-	create partition scheme ps_dba_datetime as partition pf_dba_datetime all to ([primary])
+declare @is_partitioned bit = 1;
+if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime') and @is_partitioned = 1
+	exec ('create partition scheme ps_dba_datetime as partition pf_dba_datetime all to ([primary])')
 go
 
 
@@ -89,7 +93,6 @@ begin
 end
 go
 
-select * from sys.extended_properties 
 
 /* ***** 4) Create table dbo.instance_hosts ***************************** */
 -- drop table dbo.instance_hosts;
@@ -588,68 +591,73 @@ go
 
 /* ***** 21) Add boundaries to partition. 1 boundary per hour ***************** */
 set nocount on;
-declare @current_boundary_value datetime2;
-declare @target_boundary_value datetime2; /* last day of new quarter */
-set @target_boundary_value = DATEADD (dd, -1, DATEADD(qq, DATEDIFF(qq, 0, GETDATE()) +2, 0));
-
-select top 1 @current_boundary_value = convert(datetime2,prv.value)
-from sys.partition_range_values prv
-join sys.partition_functions pf on pf.function_id = prv.function_id
-where pf.name = 'pf_dba'
-order by prv.value desc;
-
-if(@current_boundary_value is null)
+declare @is_partitioned bit = 1;
+if @is_partitioned = 1
 begin
-	select 'Error - @current_boundary_value is NULL. So set to 2 Days back.';
-	set @current_boundary_value = dateadd(hour,0,cast(cast(getdate() as date) as datetime))
-end
+	declare @current_boundary_value datetime2;
+	declare @target_boundary_value datetime2; /* last day of new quarter */
+	set @target_boundary_value = DATEADD (dd, -1, DATEADD(qq, DATEDIFF(qq, 0, GETDATE()) +2, 0));
 
---select [@current_boundary_value] = @current_boundary_value, [@target_boundary_value] = @target_boundary_value;
+	select top 1 @current_boundary_value = convert(datetime2,prv.value)
+	from sys.partition_range_values prv
+	join sys.partition_functions pf on pf.function_id = prv.function_id
+	where pf.name = 'pf_dba'
+	order by prv.value desc;
 
--- Set current boundary to current time. So that no time waste in creating old partitions
-set @current_boundary_value = dateadd(hour,datediff(hour,convert(date,getutcdate()),getutcdate())-1,cast(convert(date,getutcdate())as datetime2));
+	-- Set current boundary to current time. So that no time waste in creating old partitions
+	if(@current_boundary_value is null or @current_boundary_value < dateadd(hour,datediff(hour,convert(date,getutcdate()),getutcdate())-1,cast(convert(date,getutcdate())as datetime2)))
+	begin
+		select 'Error - @current_boundary_value is NULL. So set to 2 Days back.';
+		set @current_boundary_value = dateadd(hour,datediff(hour,convert(date,getutcdate()),getutcdate())-1,cast(convert(date,getutcdate())as datetime2));
+	end
+	--select [@current_boundary_value] = @current_boundary_value, [@target_boundary_value] = @target_boundary_value;	
 
-while (@current_boundary_value < @target_boundary_value)
-begin
-	set @current_boundary_value = DATEADD(hour,1,@current_boundary_value);
-	--print @current_boundary_value
-	begin try
-		alter partition scheme ps_dba next used [primary];
-		alter partition function pf_dba() split range (@current_boundary_value);	
-	end try
-	begin catch
-		print error_message();
-	end catch
+	while (@current_boundary_value < @target_boundary_value)
+	begin
+		set @current_boundary_value = DATEADD(hour,1,@current_boundary_value);
+		--print @current_boundary_value
+		begin try
+			alter partition scheme ps_dba next used [primary];
+			alter partition function pf_dba() split range (@current_boundary_value);	
+		end try
+		begin catch
+			print error_message();
+		end catch
+	end
 end
 go
 
 
 /* ***** 22) Remove boundaries with retention of 3 months ***************** */
 set nocount on;
-declare @partition_boundary datetime2;
-declare @target_boundary_value datetime2; /* 3 months back date */
-set @target_boundary_value = DATEADD(mm,DATEDIFF(mm,0,GETDATE())-3,0);
-
---select @target_boundary_value as [@target_boundary_value];
-
-declare cur_boundaries cursor local fast_forward for
-		select convert(datetime2,prv.value) as boundary_value
-		from sys.partition_range_values prv
-		join sys.partition_functions pf on pf.function_id = prv.function_id
-		where pf.name = 'pf_dba' and convert(datetime2,prv.value) < @target_boundary_value
-		order by prv.value asc;
-
-open cur_boundaries;
-fetch next from cur_boundaries into @partition_boundary;
-while @@FETCH_STATUS = 0
+declare @is_partitioned bit = 1;
+if @is_partitioned = 1
 begin
-	--print @partition_boundary
-	alter partition function pf_dba() merge range (@partition_boundary);
+	declare @partition_boundary datetime2;
+	declare @target_boundary_value datetime2; /* 3 months back date */
+	set @target_boundary_value = DATEADD(mm,DATEDIFF(mm,0,GETDATE())-3,0);
 
+	--select @target_boundary_value as [@target_boundary_value];
+
+	declare cur_boundaries cursor local fast_forward for
+			select convert(datetime2,prv.value) as boundary_value
+			from sys.partition_range_values prv
+			join sys.partition_functions pf on pf.function_id = prv.function_id
+			where pf.name = 'pf_dba' and convert(datetime2,prv.value) < @target_boundary_value
+			order by prv.value asc;
+
+	open cur_boundaries;
 	fetch next from cur_boundaries into @partition_boundary;
+	while @@FETCH_STATUS = 0
+	begin
+		--print @partition_boundary
+		alter partition function pf_dba() merge range (@partition_boundary);
+
+		fetch next from cur_boundaries into @partition_boundary;
+	end
+	CLOSE cur_boundaries
+	DEALLOCATE cur_boundaries;
 end
-CLOSE cur_boundaries
-DEALLOCATE cur_boundaries;
 go
 
 
