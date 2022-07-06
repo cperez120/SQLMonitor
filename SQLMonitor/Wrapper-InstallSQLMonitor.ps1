@@ -4,7 +4,7 @@
 
 cls
 $params = @{
-    SqlInstanceToBaseline = 'Workstation'
+    SqlInstanceToBaseline = 'Workstation\SQL2014'
     DbaDatabase = 'DBA'
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
     RemoteSQLMonitorPath = 'C:\SQLMonitor'
@@ -12,7 +12,8 @@ $params = @{
     DbaGroupMailId = 'sqlagentservice@gmail.com'
     #SqlCredential = $saAdmin
     #WindowsCredential = $DomainCredential
-    #SkipSteps = @("11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
+    SkipSteps = @("9__CopyDbaToolsModule2Host", "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", 
+                "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData")
     #StartAtStep = '24__GrafanaLogin'
     #StopAtStep = '21__WhoIsActivePartition'
     #DropCreatePowerShellJobs = $true
