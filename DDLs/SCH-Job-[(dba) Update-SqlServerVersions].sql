@@ -5,11 +5,10 @@ if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Update-SqlSe
 	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Update-SqlServerVersions', @delete_unused_schedule=1
 GO
 
-/****** Object:  Job [(dba) Update-SqlServerVersions]    Script Date: 5/15/2022 7:00:02 PM ******/
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
-/****** Object:  JobCategory [(dba) SQLMonitor]    Script Date: 5/15/2022 7:00:03 PM ******/
+
 IF NOT EXISTS (SELECT name FROM msdb.dbo.syscategories WHERE name=N'(dba) SQLMonitor' AND category_class=1)
 BEGIN
 EXEC @ReturnCode = msdb.dbo.sp_add_category @class=N'JOB', @type=N'LOCAL', @name=N'(dba) SQLMonitor'
@@ -29,7 +28,7 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Update-SqlServerVersio
 		@category_name=N'(dba) SQLMonitor', 
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [Update-SqlServerVersions]    Script Date: 5/15/2022 7:00:04 PM ******/
+
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Update-SqlServerVersions', 
 		@step_id=1, 
 		@cmdexec_success_code=0, 

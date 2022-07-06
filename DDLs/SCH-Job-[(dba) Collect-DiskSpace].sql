@@ -5,11 +5,10 @@ if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Collect-Disk
 	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Collect-DiskSpace', @delete_unused_schedule=1
 GO
 
-/****** Object:  Job [(dba) Collect-DiskSpace]    Script Date: 4/30/2022 9:06:35 PM ******/
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
-/****** Object:  JobCategory [(dba) SQLMonitor]    Script Date: 4/30/2022 9:06:35 PM ******/
+
 IF NOT EXISTS (SELECT name FROM msdb.dbo.syscategories WHERE name=N'(dba) SQLMonitor' AND category_class=1)
 BEGIN
 EXEC @ReturnCode = msdb.dbo.sp_add_category @class=N'JOB', @type=N'LOCAL', @name=N'(dba) SQLMonitor'
@@ -29,7 +28,7 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Collect-DiskSpace',
 		@category_name=N'(dba) SQLMonitor', 
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [Import-TaskList]    Script Date: 4/30/2022 9:06:35 PM ******/
+
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Collect-DiskSpace', 
 		@step_id=1, 
 		@cmdexec_success_code=0, 
@@ -50,7 +49,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'(dba) Col
 		@freq_type=4, 
 		@freq_interval=1, 
 		@freq_subday_type=4, 
-		@freq_subday_interval=2, 
+		@freq_subday_interval=30, 
 		@freq_relative_interval=0, 
 		@freq_recurrence_factor=0, 
 		@active_start_date=20220430, 
