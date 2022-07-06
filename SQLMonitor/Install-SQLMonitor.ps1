@@ -18,8 +18,6 @@ Param (
     [Parameter(Mandatory=$false)]
     $HostName,
 
-    [Switch]$IsNonPartitioned,
-
     [Parameter(Mandatory=$false)]
     [String]$SQLMonitorPath,
 
@@ -412,22 +410,23 @@ if($requireProxy -and [String]::IsNullOrEmpty($WindowsCredential)) {
     "STOP and check above error message" | Write-Error
 }
 
-# Set Partition Flag
-$IsNonPartitioned = $false
-
 # Extract Version Info
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Extract Major & Minor Version of SQL Server.."
+[bool]$IsNonPartitioned = $true
 if($sqlServerInfo.ProductVersion -match "(?'MajorVersion'\d+)\.\d+\.(?'MinorVersion'\d+)\.\d+")
 {
     [int]$MajorVersion = $Matches['MajorVersion']
     [int]$MinorVersion = $Matches['MinorVersion']
-    if($sqlServerInfo.Edition -like 'Standard*') 
+    if($sqlServerInfo.Edition -like 'Enterprise*' -or $sqlServerInfo.Edition -like 'Developer*') {
+        $IsNonPartitioned = $false
+    }
+    elseif($sqlServerInfo.Edition -like 'Standard*')
     {
-        if($MajorVersion -lt 13) {
-            $IsNonPartitioned = $true
+        if($MajorVersion -gt 13) {
+            $IsNonPartitioned = $false
         }
-        elseif ($MajorVersion -eq 13 -and $MinorVersion -lt 4000) {
-            $IsNonPartitioned = $true
+        elseif ($MajorVersion -eq 13 -and $MinorVersion -ge 4001) {
+            $IsNonPartitioned = $false
         }
     }
 }
@@ -554,12 +553,30 @@ $stepName = '2__AllDatabaseObjects'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating All Objects in [$DbaDatabase] database.."
+
+    # Retrieve actual content
+    $tempAllDatabaseObjectsFilePath = $AllDatabaseObjectsFilePath
+
+    # Modify content if SQL Server does not support Partitioning
     if($IsNonPartitioned) {
-        $AllDatabaseObjectsFileName = "$($AllDatabaseObjectsFileName -replace '.sql','')-NonSupportedVersions.sql"
-        $AllDatabaseObjectsFilePath = Join-Path $ddlPath $AllDatabaseObjectsFileName
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Partitioning is not supported on current server."
+        $AllDatabaseObjectsFileContent = [System.IO.File]::ReadAllText($AllDatabaseObjectsFilePath)
+
+        $tempAllDatabaseObjectsFileName = "$($AllDatabaseObjectsFileName -replace '.sql','')-NonSupportedVersions.sql"
+        $tempAllDatabaseObjectsFilePath = Join-Path $ddlPath $tempAllDatabaseObjectsFileName
+
+        $AllDatabaseObjectsFileContent = $AllDatabaseObjectsFileContent.Replace('declare @is_partitioned bit = 1;', 'declare @is_partitioned bit = 0;')
+        $AllDatabaseObjectsFileContent = $AllDatabaseObjectsFileContent.Replace(' on ps_dba', ' --on ps_dba')
+        $AllDatabaseObjectsFileContent | Out-File -FilePath $tempAllDatabaseObjectsFilePath
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Non-partitioned code is generated."
     }
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$AllDatabaseObjectsFilePath = '$AllDatabaseObjectsFilePath'"
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $AllDatabaseObjectsFilePath -SqlCredential $SqlCredential -EnableException
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$AllDatabaseObjectsFilePath = '$tempAllDatabaseObjectsFilePath'"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $tempAllDatabaseObjectsFilePath -SqlCredential $SqlCredential -EnableException
+    if($IsNonPartitioned) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove temp file '$tempAllDatabaseObjectsFilePath'.."
+        Remove-Item -Path $tempAllDatabaseObjectsFilePath | Out-Null
+    }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspCollectWaitStatsFilePath = '$UspCollectWaitStatsFilePath'"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspCollectWaitStatsFilePath -SqlCredential $SqlCredential -EnableException
