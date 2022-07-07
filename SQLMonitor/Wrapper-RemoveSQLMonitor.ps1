@@ -6,7 +6,6 @@ cls
 $params = @{
     SqlInstanceToBaseline = 'Workstation\SQL2014'
     DbaDatabase = 'DBA'
-    DbaToolsFolderPath = 'F:\GitHub\dbatools'
     InventoryServer = 'SQLMonitor'
     RemoteSQLMonitorPath = 'C:\SQLMonitor'
     #SqlCredential = $saAdmin
