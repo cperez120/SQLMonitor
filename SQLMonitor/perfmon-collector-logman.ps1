@@ -5,7 +5,9 @@ Param (
     [Parameter(Mandatory=$false)]
     $CollectorSetName = "DBA",
     [Parameter(Mandatory=$false)]
-    [bool]$WhatIf = $false
+    [bool]$WhatIf = $false,
+    [Parameter(Mandatory=$false)]
+    [bool]$ReSetupCollector = $false
 )
 
 
@@ -14,6 +16,20 @@ $collector_root_directory = Split-Path $TemplatePath -Parent
 $log_file_path = "$collector_root_directory\Perfmon-Files\$CollectorSetName"
 $file_rotation_time = '00:05:00'
 $sample_interval = '00:00:30'
+
+if($ReSetupCollector) {
+    # Remove existing data collector
+    $pfCollector = @()
+    $pfCollector += Get-DbaPfDataCollector -CollectorSet $CollectorSetName
+    if($pfCollector.Count -gt 0) 
+    {
+        "Data Collector [$CollectorSetName] exists." | Write-Host -ForegroundColor Cyan
+        
+        logman stop -name $CollectorSetName
+        logman delete -name $CollectorSetName
+        "Data Collector Set [$CollectorSetName] removed." | Write-Host -ForegroundColor Cyan    
+    }
+}
 
 # Get named instances installed on box
 "Finding sql instances on host.." | Write-Host -ForegroundColor Cyan
@@ -40,16 +56,6 @@ if($sqlInstances.Count -gt 0)
             $osCounters += $cntr
         }
     }
-
-    <#
-    # remove existing sql counters
-    $matchingNodes = $xmlDoc.SelectNodes("//Counter")
-    foreach($node in $matchingNodes){
-        if($node."#text" -match '^\\SQLServer:.*') {
-            $xmlDoc.DataCollectorSet.PerformanceCounterDataCollector.RemoveChild($node)
-        }
-    }
-    #>
 
     # Loop through each named instance
     foreach($sqlInst in $sqlInstances) {

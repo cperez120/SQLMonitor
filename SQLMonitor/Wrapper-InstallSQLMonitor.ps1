@@ -4,7 +4,7 @@
 
 cls
 $params = @{
-    SqlInstanceToBaseline = 'Workstation\SQL2014'
+    SqlInstanceToBaseline = 'SQLPractice'
     DbaDatabase = 'DBA'
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
     RemoteSQLMonitorPath = 'C:\SQLMonitor'
@@ -12,14 +12,15 @@ $params = @{
     DbaGroupMailId = 'sqlagentservice@gmail.com'
     #SqlCredential = $saAdmin
     #WindowsCredential = $DomainCredential
-    SkipSteps = @("9__CopyDbaToolsModule2Host", "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData")
-    #StartAtStep = '24__GrafanaLogin'
-    #StopAtStep = '21__WhoIsActivePartition'
+    #SkipSteps = @("9__CopyDbaToolsModule2Host", "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData")
+    StartAtStep = '10__CopyPerfmonFolder2Host'
+    StopAtStep = '11__SetupPerfmonDataCollector'
     #DropCreatePowerShellJobs = $true
     #DryRun = $false
     #SkipRDPSessionSteps = $true
     #SkipPowerShellJobs = $true
     #SkipAllJobs = $true
+    SkipWindowsAdminAccessTest = $true
 }
 F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params #-Debug
 
