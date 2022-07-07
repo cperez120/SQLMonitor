@@ -21,9 +21,6 @@ Param (
     [Parameter(Mandatory=$true)]
     [String]$RemoteSQLMonitorPath,
 
-    [Parameter(Mandatory=$true)]
-    [String]$DbaToolsFolderPath,    
-
     [Parameter(Mandatory=$false)]
     [ValidateSet("1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
                 "4__RemoveJob_CollectWaitStats", "5__RemoveJob_CollectXEvents", "6__RemoveJob_PartitionsMaintenance",
