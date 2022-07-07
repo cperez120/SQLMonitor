@@ -29,7 +29,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "8.4.6"
+      "version": "9.0.2"
     },
     {
       "type": "datasource",
@@ -48,7 +48,10 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -70,12 +73,16 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1652564930338,
+  "iteration": 1657188266495,
   "links": [],
   "liveNow": false,
   "panels": [
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -278,11 +285,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "CPU & Processor - [$fqdn] - [$ip] - [$host_name\\$instance_name] - @ ${perfmon_collection_time_utc:date:YYYY-MM-DD HH.mm}",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -578,11 +598,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "OS Memory & Paging Performance Counters ",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -808,11 +841,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "MSSQL Data Access Performance Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1012,11 +1058,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQL Server: Memory Manager Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1030,7 +1089,7 @@
             "type": "mssql",
             "uid": "${DS_SQLMONITOR}"
           },
-          "description": "Current Disk Queue Length => Number of IO requests waiting for read/write disk operation to be processed",
+          "description": "Disk Queue Length => Number of IO requests waiting for read/write disk operation to be processed",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1112,11 +1171,11 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'logicaldisk' and pc.counter in ('current disk queue length')\n\t and (pc.instance <> '_total' and pc.instance not like 'harddiskvolume%')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'logicaldisk' and pc.counter in ('avg. disk queue length')\n\t and (pc.instance <> '_total' and pc.instance not like 'harddiskvolume%')\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
               "refId": "A"
             }
           ],
-          "title": "Logical Disk (Current Disk Queue Length)",
+          "title": "Logical Disk (Disk Queue Length)",
           "type": "timeseries"
         },
         {
@@ -1307,11 +1366,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "Logical Disk Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1325,7 +1397,7 @@
             "type": "mssql",
             "uid": "${DS_SQLMONITOR}"
           },
-          "description": "Current Disk Queue Length => Number of IO requests waiting for read/write disk operation to be processed",
+          "description": "Disk Queue Length => Number of IO requests waiting for read/write disk operation to be processed",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1407,11 +1479,11 @@
                 "uid": "${DS_SQLMONITOR}"
               },
               "format": "time_series",
-              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'physicaldisk' and pc.counter in ('Current Disk Queue Length')\n\t and pc.instance <> '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
+              "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @object_name varchar(255);\nset @object_name = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);\n\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere $__timeFilter(collection_time_utc) and pc.host_name = '$perfmon_host_name' and\n\t pc.object = 'physicaldisk' and pc.counter in ('Avg. Disk Queue Length')\n\t and pc.instance <> '_total'\norder by time\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
               "refId": "A"
             }
           ],
-          "title": "Physical Disk (Current Disk Queue Length)",
+          "title": "Physical Disk (Disk Queue Length)",
           "type": "timeseries"
         },
         {
@@ -1606,11 +1678,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "Physical Disk Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1715,11 +1800,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "Network Interface Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1935,11 +2033,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "MSSQL Databases - Size Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -2246,11 +2357,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "MSSQL User Database - Performance Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -2356,11 +2480,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQL Server - SQL Statistics - Auto Parameterization",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -2658,11 +2795,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "MSSQL Buffer Manager & Memory Performance Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -2866,11 +3016,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "MSSQL “How is My Memory Being Used” Performance Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -3263,11 +3426,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "MSSQL Workload Performance Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -3662,11 +3838,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQL Server : Plan Cache : Cache Manager Instance",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -4038,11 +4227,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQLServer:Transactions",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -4249,11 +4451,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQLServer:General Statistics",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -4554,11 +4769,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "MSSQL Locks Performance Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -4753,11 +4981,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "MSSQL Latches Performance Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -4955,11 +5196,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQLServer:Replication",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -5065,11 +5319,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQLAgent:Jobs",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -5078,11 +5345,24 @@
       },
       "id": 143,
       "panels": [],
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQLServer:Database Mirroring",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -5091,12 +5371,21 @@
       },
       "id": 145,
       "panels": [],
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQLServer:Resource Pool Stats",
       "type": "row"
     }
   ],
   "refresh": "1m",
-  "schemaVersion": 35,
+  "schemaVersion": 36,
   "style": "dark",
   "tags": [
     "SqlServer",
@@ -5426,6 +5715,6 @@
   "timezone": "",
   "title": "Monitoring - Perfmon Counters - Quest Softwares - Distributed",
   "uid": "distributed_perfmon",
-  "version": 9,
+  "version": 10,
   "weekStart": ""
 }

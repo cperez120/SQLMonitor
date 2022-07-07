@@ -4,7 +4,7 @@
 
 cls
 $params = @{
-    SqlInstanceToBaseline = 'SQLPractice'
+    SqlInstanceToBaseline = 'SQLMonitor'
     DbaDatabase = 'DBA'
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
     RemoteSQLMonitorPath = 'C:\SQLMonitor'
@@ -14,7 +14,7 @@ $params = @{
     #WindowsCredential = $DomainCredential
     #SkipSteps = @("9__CopyDbaToolsModule2Host", "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData")
     StartAtStep = '10__CopyPerfmonFolder2Host'
-    StopAtStep = '11__SetupPerfmonDataCollector'
+    StopAtStep = '10__CopyPerfmonFolder2Host'
     #DropCreatePowerShellJobs = $true
     #DryRun = $false
     #SkipRDPSessionSteps = $true

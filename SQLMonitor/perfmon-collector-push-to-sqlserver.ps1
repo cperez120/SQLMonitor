@@ -75,8 +75,36 @@ foreach($file in $pfCollectorFiles)
         #Import-Counter -Path "$pfCollectorFolder\$file" -EA silentlycontinue | Select-Object -ExpandProperty CounterSamples | 
         Import-Counter -Path "$("\\$computerName\"+$pfCollectorFolder.Replace(':','$'))\$file" -EA silentlycontinue | Select-Object -ExpandProperty CounterSamples | 
                 Select-Object @{l='collection_time_utc';e={($_.TimeStamp).ToUniversalTime()}}, @{l='host_name';e={$computerName}}, @{l='path';e={$_.Path}}, `
-                              @{l='object';e={$path = $_.Path; $splitPath = $path.Split('\\')|Where-Object{-not [String]::IsNullOrEmpty($_)}; $object = $splitPath[1]; $object.replace("($($_.InstanceName))",'') }}, `
-                              @{l='counter';e={$path = $_.Path; $splitPath = $path.Split('\\')|Where-Object{-not [String]::IsNullOrEmpty($_)}; $splitPath[2] }}, `
+                              @{l='object';e={
+                                    $path = $_.Path; 
+                                    $pathWithoutComputerName = ($path -replace "$computerName","").TrimStart('\\');
+                                    if( (-not [String]::IsNullOrEmpty($_.InstanceName)) -and $_.InstanceName.Contains('\') ) {
+                                        $splitPath = $pathWithoutComputerName.Replace($_.InstanceName,'').Split('()\') | Where-Object {-not [String]::IsNullOrEmpty($_)}
+                                    } else {
+                                        if([String]::IsNullOrEmpty($_.InstanceName)) {
+                                            $splitPath = $pathWithoutComputerName.Split('\') | Where-Object{-not [String]::IsNullOrEmpty($_)}
+                                        }
+                                        else {
+                                            $splitPath = $pathWithoutComputerName.Replace($_.InstanceName,'').Split('()\') | Where-Object{-not [String]::IsNullOrEmpty($_)}
+                                        }
+                                    };
+                                    $splitPath[0]
+                               }}, `
+                              @{l='counter';e={
+                                    $path = $_.Path; 
+                                    $pathWithoutComputerName = ($path -replace "$computerName","").TrimStart('\\');
+                                    if( (-not [String]::IsNullOrEmpty($_.InstanceName)) -and $_.InstanceName.Contains('\') ) {
+                                        $splitPath = $pathWithoutComputerName.Replace($_.InstanceName,'').Split('()\') | Where-Object {-not [String]::IsNullOrEmpty($_)}
+                                    } else {
+                                        if([String]::IsNullOrEmpty($_.InstanceName)) {
+                                            $splitPath = $pathWithoutComputerName.Split('\') | Where-Object{-not [String]::IsNullOrEmpty($_)}
+                                        }
+                                        else {
+                                            $splitPath = $pathWithoutComputerName.Replace($_.InstanceName,'').Split('()\') | Where-Object{-not [String]::IsNullOrEmpty($_)}
+                                        }
+                                    };
+                                    $splitPath[1]
+                               }}, `
                               @{l='value';e={$_.CookedValue}}, @{l='instance';e={$_.InstanceName}} |
                 Write-DbaDbTableData -SqlInstance $SqlInstance -Database $Database -Table $TablePerfmonCounters -EnableException
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "File import complete.."
