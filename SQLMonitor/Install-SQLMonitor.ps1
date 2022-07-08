@@ -636,7 +636,16 @@ if($stepName -in $Steps2Execute) {
     where database_id = DB_ID('$DbaDatabase') and type_desc = 'ROWS' 
     and physical_name not like 'C:\%' order by file_id;
 "@
-    $dbaDatabasePath = Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -SqlCredential $SqlCredential -Query $sqlDbaDatabasePath -EnableException | Select-Object -ExpandProperty physical_name
+    $resultDbaDatabasePath = @()
+    $resultDbaDatabasePath += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -SqlCredential $SqlCredential -Query $sqlDbaDatabasePath -EnableException
+    if($resultDbaDatabasePath.Count -eq 0) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Seems either [$DbaDatabase] does not exists, or the data/log files are present in C:\ drive. `n`t Kindly rectify this issue." | Write-Host -ForegroundColor Red
+        Write-Error "Stop here. Fix above issue."
+    }
+    else {
+        $dbaDatabasePath = $resultDbaDatabasePath[0].physical_name
+    }
+
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$dbaDatabasePath => '$dbaDatabasePath'.."
 
     $xEventTargetPathParentDirectory = (Split-Path (Split-Path $dbaDatabasePath -Parent))

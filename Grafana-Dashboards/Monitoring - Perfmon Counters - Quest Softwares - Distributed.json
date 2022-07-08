@@ -73,7 +73,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1657188266495,
+  "iteration": 1657213658045,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -1128,7 +1128,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1155,7 +1156,9 @@
                 "max"
               ],
               "displayMode": "table",
-              "placement": "right"
+              "placement": "right",
+              "sortBy": "Mean",
+              "sortDesc": true
             },
             "tooltip": {
               "mode": "multi",
@@ -1222,7 +1225,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1232,7 +1236,32 @@
               },
               "unit": "s"
             },
-            "overrides": []
+            "overrides": [
+              {
+                "__systemRef": "hideSeriesFrom",
+                "matcher": {
+                  "id": "byNames",
+                  "options": {
+                    "mode": "exclude",
+                    "names": [
+                      "e:\\data (sec/read)"
+                    ],
+                    "prefix": "All except:",
+                    "readOnly": true
+                  }
+                },
+                "properties": [
+                  {
+                    "id": "custom.hideFrom",
+                    "value": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": true
+                    }
+                  }
+                ]
+              }
+            ]
           },
           "gridPos": {
             "h": 6,
@@ -1248,7 +1277,9 @@
                 "lastNotNull"
               ],
               "displayMode": "table",
-              "placement": "right"
+              "placement": "right",
+              "sortBy": "Mean",
+              "sortDesc": true
             },
             "tooltip": {
               "mode": "multi",
@@ -1315,7 +1346,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -1341,7 +1373,9 @@
                 "lastNotNull"
               ],
               "displayMode": "table",
-              "placement": "right"
+              "placement": "right",
+              "sortBy": "Mean",
+              "sortDesc": true
             },
             "tooltip": {
               "mode": "multi",
@@ -1452,7 +1486,7 @@
             "h": 5,
             "w": 24,
             "x": 0,
-            "y": 6
+            "y": 18
           },
           "id": 34,
           "options": {
@@ -1547,7 +1581,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 11
+            "y": 23
           },
           "id": 68,
           "options": {
@@ -1641,7 +1675,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 17
+            "y": 29
           },
           "id": 69,
           "options": {
@@ -1887,7 +1921,7 @@
             "h": 15,
             "w": 24,
             "x": 0,
-            "y": 8
+            "y": 38
           },
           "id": 38,
           "options": {
@@ -1989,7 +2023,7 @@
             "h": 12,
             "w": 24,
             "x": 0,
-            "y": 23
+            "y": 53
           },
           "id": 115,
           "options": {
@@ -2120,7 +2154,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 9
+            "y": 21
           },
           "id": 119,
           "options": {
@@ -2223,7 +2257,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 18
+            "y": 30
           },
           "id": 121,
           "options": {
@@ -2321,7 +2355,7 @@
             "h": 15,
             "w": 24,
             "x": 0,
-            "y": 28
+            "y": 40
           },
           "id": 123,
           "options": {
@@ -5698,7 +5732,7 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -5715,6 +5749,6 @@
   "timezone": "",
   "title": "Monitoring - Perfmon Counters - Quest Softwares - Distributed",
   "uid": "distributed_perfmon",
-  "version": 10,
+  "version": 12,
   "weekStart": ""
 }
