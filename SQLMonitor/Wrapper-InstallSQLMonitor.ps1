@@ -5,7 +5,7 @@
 cls
 Import-Module dbatools;
 $params = @{
-    SqlInstanceToBaseline = 'SQLMonitor'
+    SqlInstanceToBaseline = 'Workstation\SqlExpress'
     DbaDatabase = 'DBA'
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
     RemoteSQLMonitorPath = 'C:\SQLMonitor'
@@ -22,13 +22,16 @@ $params = @{
     #SkipPowerShellJobs = $true
     #SkipTsqlJobs = $true
     #SkipWindowsAdminAccessTest = $true
+    #SkipMailProfileCheck = $true
+    #ConfirmValidationOfMultiInstance = $true
 
     #HostName = 'DifferentHostWhereSqlInstanceIsNotPresent'
     #SqlInstanceAsDataDestination = 'SomeDifferentDestinationInstance'
-    #SqlInstanceForTsqlJobs = 'CreateTsqlJobsOnThisServer'
-    #SqlInstanceForPowershellJobs = 'CreatePowershellJobsOnThisServer'
+    #SqlInstanceForTsqlJobs = 'Workstation'
+    #SqlInstanceForPowershellJobs = 'Workstation'
+    
 }
-F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params #-Debug
+F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params -Debug
 
 
 #Get-DbaDbMailProfile -SqlInstance '192.168.56.31' -SqlCredential $personalCredential
