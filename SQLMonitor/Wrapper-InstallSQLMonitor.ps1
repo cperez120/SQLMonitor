@@ -3,6 +3,7 @@
 #$localAdmin = Get-Credential -UserName 'Administrator' -Message 'Local Admin'
 
 cls
+Import-Module dbatools;
 $params = @{
     SqlInstanceToBaseline = 'SQLMonitor'
     DbaDatabase = 'DBA'
@@ -13,14 +14,19 @@ $params = @{
     #SqlCredential = $saAdmin
     #WindowsCredential = $DomainCredential
     #SkipSteps = @("9__CopyDbaToolsModule2Host", "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData")
-    StartAtStep = '10__CopyPerfmonFolder2Host'
-    StopAtStep = '10__CopyPerfmonFolder2Host'
+    #StartAtStep = '10__CopyPerfmonFolder2Host'
+    #StopAtStep = '10__CopyPerfmonFolder2Host'
     #DropCreatePowerShellJobs = $true
     #DryRun = $false
     #SkipRDPSessionSteps = $true
     #SkipPowerShellJobs = $true
-    #SkipAllJobs = $true
-    SkipWindowsAdminAccessTest = $true
+    #SkipTsqlJobs = $true
+    #SkipWindowsAdminAccessTest = $true
+
+    #HostName = 'DifferentHostWhereSqlInstanceIsNotPresent'
+    #SqlInstanceAsDataDestination = 'SomeDifferentDestinationInstance'
+    #SqlInstanceForTsqlJobs = 'CreateTsqlJobsOnThisServer'
+    #SqlInstanceForPowershellJobs = 'CreatePowershellJobsOnThisServer'
 }
 F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params #-Debug
 

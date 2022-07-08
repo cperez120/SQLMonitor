@@ -3,6 +3,7 @@
 #$localAdmin = Get-Credential -UserName 'Administrator' -Message 'Local Admin'
 
 cls
+Import-Module dbatools;
 $params = @{
     SqlInstanceToBaseline = 'Workstation\SQL2014'
     DbaDatabase = 'DBA'

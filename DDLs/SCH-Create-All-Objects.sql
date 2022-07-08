@@ -123,7 +123,11 @@ begin
 	(
 		[sql_instance] varchar(255) not null,
 		[host_name] varchar(255) not null,
-		[collector_sql_instance] varchar(255) null default convert(varchar,serverproperty('MachineName')),
+		--[collector_sql_instance] varchar(255) null default convert(varchar,serverproperty('MachineName')),
+		[collector_tsql_jobs_server] varchar(255) null default convert(varchar,serverproperty('MachineName')),
+		[collector_powershell_jobs_server] varchar(255) null default convert(varchar,serverproperty('MachineName')),
+		[data_destination_sql_instance] varchar(255) null default convert(varchar,serverproperty('MachineName')),
+
 		constraint pk_instance_details primary key clustered ([sql_instance], [host_name]), 
 		constraint fk_host_name foreign key ([host_name]) references dbo.instance_hosts ([host_name])
 	)
@@ -132,13 +136,18 @@ go
 
 if ( (APP_NAME() = 'Microsoft SQL Server Management Studio - Query') and (not exists (select * from dbo.instance_details where sql_instance = convert(varchar,serverproperty('MachineName')))) )
 begin
-	insert dbo.instance_details ( [sql_instance], [host_name], [collector_sql_instance] )
+	insert dbo.instance_details ( [sql_instance], [host_name], [collector_tsql_jobs_server], [collector_powershell_jobs_server], [data_destination_sql_instance] )
 	select	[sql_instance] = convert(varchar,serverproperty('MachineName')),
 			--[ip] = convert(varchar,CONNECTIONPROPERTY('local_net_address')),
 			[host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')),
 			--[service_name] = case when @@servicename = 'MSSQLSERVER' then @@servicename else 'MSSQL$'+@@servicename end,
-			[collector_sql_instance] = convert(varchar,serverproperty('MachineName'))
-			--[collector_sql_instance] = convert(varchar,CONNECTIONPROPERTY('local_net_address'))
+			[collector_tsql_jobs_server] = convert(varchar,serverproperty('MachineName')),
+			--[collector_tsql_jobs_server] = convert(varchar,CONNECTIONPROPERTY('local_net_address')),
+			[collector_powershell_jobs_server] = convert(varchar,serverproperty('MachineName')),
+			--[collector_powershell_jobs_server] = convert(varchar,CONNECTIONPROPERTY('local_net_address')),
+			[data_destination_sql_instance] = convert(varchar,serverproperty('MachineName'))
+			--[data_destination_sql_instance] = convert(varchar,CONNECTIONPROPERTY('local_net_address'))
+
 end
 go
 

@@ -10,7 +10,11 @@ Param (
     $SqlInstanceAsDataDestination,
 
     [Parameter(Mandatory=$false)]
-    $SqlInstanceForDataCollectionJobs,
+    #$SqlInstanceForDataCollectionJobs,
+    $SqlInstanceForTsqlJobs,
+
+    [Parameter(Mandatory=$false)]
+    $SqlInstanceForPowershellJobs,
 
     [Parameter(Mandatory=$false)]
     $InventoryServer,
@@ -151,7 +155,7 @@ Param (
     [bool]$SkipPowerShellJobs = $false,
 
     [Parameter(Mandatory=$false)]
-    [bool]$SkipAllJobs = $false,
+    [bool]$SkipTsqlJobs = $false,
 
     [Parameter(Mandatory=$false)]
     [bool]$SkipRDPSessionSteps = $false,
@@ -177,6 +181,11 @@ $AllSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession"
                 "22__CreateJobUpdateSqlServerVersions", "23__WhoIsActivePartition", "24__GrafanaLogin",
                 "25__LinkedServerOnInventory")
 
+# TSQL Jobs
+$TsqlJobSteps = @(
+                "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
+                "19__CreateJobPurgeTables", "21__CreateJobRunWhoIsActive")
+
 # PowerShell Jobs
 $PowerShellJobSteps = @(
                 "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData",
@@ -194,6 +203,17 @@ if($SkipPowerShellJobs) {
 # Add $RDPSessionSteps to Skip Jobs
 if($SkipRDPSessionSteps) {
     $SkipSteps = $SkipSteps + $RDPSessionSteps;
+}
+
+# Add $TsqlJobSteps to Skip Jobs
+if($SkipTsqlJobs) {
+    $SkipSteps = $SkipSteps + $TsqlJobSteps;
+}
+
+# For backward compatability
+$SkipAllJobs = $false
+if($SkipTsqlJobs -and $SkipPowerShellJobs) {
+    $SkipAllJobs = $true
 }
 
 cls
@@ -224,9 +244,14 @@ if([String]::IsNullOrEmpty($SqlInstanceAsDataDestination)) {
     $SqlInstanceAsDataDestination = $SqlInstanceToBaseline
 }
 
-# Set $SqlInstanceForDataCollectionJobs same as $SqlInstanceToBaseline if NULL
-if([String]::IsNullOrEmpty($SqlInstanceForDataCollectionJobs)) {
-    $SqlInstanceForDataCollectionJobs = $SqlInstanceToBaseline
+# Set $SqlInstanceForTsqlJobs same as $SqlInstanceToBaseline if NULL
+if([String]::IsNullOrEmpty($SqlInstanceForTsqlJobs)) {
+    $SqlInstanceForTsqlJobs = $SqlInstanceToBaseline
+}
+
+# Set $SqlInstanceForPowershellJobs same as $SqlInstanceToBaseline if NULL
+if([String]::IsNullOrEmpty($SqlInstanceForPowershellJobs)) {
+    $SqlInstanceForPowershellJobs = $SqlInstanceToBaseline
 }
 
 # Set windows credential if valid AD credential is provided as SqlCredential
@@ -298,7 +323,7 @@ if($StopAtStepNumber -eq 0) {
 $Steps2Execute = @()
 $Steps2ExecuteRaw = @()
 if(-not [String]::IsNullOrEmpty($SkipSteps)) {
-    $Steps2ExecuteRaw += Compare-Object -ReferenceObject $AllSteps -DifferenceObject $SkipSteps | Select-Object -ExpandProperty InputObject
+    $Steps2ExecuteRaw += Compare-Object -ReferenceObject $AllSteps -DifferenceObject $SkipSteps | Select-Object -ExpandProperty InputObject -Unique
 }
 else {
     $Steps2ExecuteRaw += $AllSteps

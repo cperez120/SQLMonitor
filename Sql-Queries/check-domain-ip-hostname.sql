@@ -1,4 +1,4 @@
-USE DBA_Admin
+USE DBA
 GO
 
 select @@SERVERNAME, name, recovery_model_desc, collation_name from sys.databases where database_id = db_id();
@@ -49,6 +49,8 @@ DECLARE @Domain NVARCHAR(100)
 EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT;
 SELECT Cast(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @Domain AS FQDN
 GO
+
+select 'instance_hosts' as QueryData, * from dbo.instance_hosts with (nolock);
 
 select 'instance_details' as QueryData, getdate() as [getdate()], * from dbo.instance_details with (nolock);
 go
