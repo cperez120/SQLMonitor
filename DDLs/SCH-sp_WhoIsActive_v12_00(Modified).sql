@@ -1,4 +1,5 @@
-USE master
+IF APP_NAME() = 'Microsoft SQL Server Management Studio - Query'
+	use master
 GO
 
 SET QUOTED_IDENTIFIER ON;

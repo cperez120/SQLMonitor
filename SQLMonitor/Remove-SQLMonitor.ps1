@@ -2050,7 +2050,7 @@ if($stepName -in $Steps2Execute)
         if( (Invoke-Command -Session $ssn -ScriptBlock {Test-Path $Using:RemoteSQLMonitorPath}) ) 
         {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$RemoteSQLMonitorPath' exists on remote [$ssnHostName]."
-            if($Using:DryRun) {
+            if($DryRun) {
                 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "'$RemoteSQLMonitorPath' removed."
             }
             else {

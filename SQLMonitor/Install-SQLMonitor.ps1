@@ -160,6 +160,9 @@ Param (
     [bool]$SkipWindowsAdminAccessTest = $false,
 
     [Parameter(Mandatory=$false)]
+    [bool]$SkipMailProfileCheck = $false,
+
+    [Parameter(Mandatory=$false)]
     [bool]$DryRun = $false
 )
 
@@ -513,9 +516,11 @@ if($dbCollationResult.Count -ne 0) {
 
 
 # Validate mail profile
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking for default global mail profile.."
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$MailProfileFilePath = '$MailProfileFilePath'"
-$sqlMailProfile = @"
+if(-not $SkipMailProfileCheck)
+{
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking for default global mail profile.."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$MailProfileFilePath = '$MailProfileFilePath'"
+    $sqlMailProfile = @"
 SELECT p.name as profile_name, p.description as profile_description, a.name as mail_account, 
 		a.email_address, a.display_name, a.replyto_address, s.servername, s.port, s.servername,
 		pp.is_default
@@ -526,21 +531,22 @@ JOIN msdb.dbo.sysmail_account a ON pa.account_id = a.account_id
 JOIN msdb.dbo.sysmail_server s ON a.account_id = s.account_id
 WHERE pp.is_default = 1
 "@
-$mailProfile = @()
-$mailProfile += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlMailProfile -EnableException -SqlCredential $SqlCredential
-if($mailProfile.Count -lt 1) {
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Kindly create default global mail profile." | Write-Host -ForegroundColor Red
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Kindly utilize '$mailProfileFilePath." | Write-Host -ForegroundColor Red
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Opening the file '$mailProfileFilePath' in notepad.." | Write-Host -ForegroundColor Red
-    notepad "$mailProfileFilePath"
+    $mailProfile = @()
+    $mailProfile += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlMailProfile -EnableException -SqlCredential $SqlCredential
+    if($mailProfile.Count -lt 1) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Kindly create default global mail profile." | Write-Host -ForegroundColor Red
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Kindly utilize '$mailProfileFilePath." | Write-Host -ForegroundColor Red
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Opening the file '$mailProfileFilePath' in notepad.." | Write-Host -ForegroundColor Red
+        notepad "$mailProfileFilePath"
 
-    $mailProfile += Get-DbaDbMailProfile -SqlInstance $SqlInstanceToBaseline -SqlCredential $SqlCredential
-    if($mailProfile.Count -ne 0) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Below mail profile(s) exists.`nOne of them can be set to default global profile." | Write-Host -ForegroundColor Red
-        $mailProfile | Format-Table -AutoSize
+        $mailProfile += Get-DbaDbMailProfile -SqlInstance $SqlInstanceToBaseline -SqlCredential $SqlCredential
+        if($mailProfile.Count -ne 0) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Below mail profile(s) exists.`nOne of them can be set to default global profile." | Write-Host -ForegroundColor Red
+            $mailProfile | Format-Table -AutoSize
+        }
+
+        Write-Error "Stop here. Fix above issue."
     }
-
-    Write-Error "Stop here. Fix above issue."
 }
 
 
@@ -550,7 +556,15 @@ if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$WhoIsActiveFilePath = '$WhoIsActiveFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating sp_WhoIsActive in [master] database.."
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -File $WhoIsActiveFilePath -SqlCredential $SqlCredential -EnableException
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -File $WhoIsActiveFilePath -SqlCredential $SqlCredential -EnableException
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking if sp_WhoIsActive is present in [$DbaDatabase] also.."
+    $sqlCheckWhoIsActiveExistence = "select [is_existing] = case when OBJECT_ID('dbo.sp_WhoIsActive') is null then 0 else 1 end;"
+    $existsWhoIsActive = Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlCheckWhoIsActiveExistence -SqlCredential $SqlCredential -EnableException | Select-Object -ExpandProperty is_existing;
+    if($existsWhoIsActive -eq 1) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update sp_WhoIsActive definition in [$DbaDatabase] also.."
+        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $WhoIsActiveFilePath -SqlCredential $SqlCredential -EnableException
+    }
 }
 
 
