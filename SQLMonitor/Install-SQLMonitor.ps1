@@ -330,7 +330,7 @@ $Steps2Execute += $Steps2ExecuteRaw | ForEach-Object {
 
 
 # Get Server Info
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching basic server info.."
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching basic server info for `$SqlInstanceToBaseline => [$SqlInstanceToBaseline].."
 $sqlServerInfo = @"
 DECLARE @Domain NVARCHAR(255);
 begin try
@@ -362,10 +362,10 @@ where servicename like 'SQL Server (%)'
 or servicename like 'SQL Server Agent (%)'
 "@
 try {
-    $sqlServerServicesInfo = Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Query $sqlServerInfo -SqlCredential $SqlCredential -EnableException
-    $sqlServerInfo = $sqlServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server (*)"}
-    $sqlServerAgentInfo = $sqlServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server Agent (*)"}
-    $sqlServerServicesInfo | Format-Table -AutoSize
+    $resultServerInfo = Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Query $sqlServerInfo -SqlCredential $SqlCredential -EnableException
+    $dbServiceInfo = $resultServerInfo | Where-Object {$_.service_name_str -like "SQL Server (*)"}
+    $agentServiceInfo = $resultServerInfo | Where-Object {$_.service_name_str -like "SQL Server Agent (*)"}
+    $resultServerInfo | Format-Table -AutoSize
 }
 catch {
     $errMessage = $_
@@ -383,14 +383,14 @@ catch {
 # Extract Version Info & Partition Info
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Extract Major & Minor Version of SQL Server.."
 [bool]$IsNonPartitioned = $true
-if($sqlServerInfo.ProductVersion -match "(?'MajorVersion'\d+)\.\d+\.(?'MinorVersion'\d+)\.\d+")
+if($dbServiceInfo.ProductVersion -match "(?'MajorVersion'\d+)\.\d+\.(?'MinorVersion'\d+)\.\d+")
 {
     [int]$MajorVersion = $Matches['MajorVersion']
     [int]$MinorVersion = $Matches['MinorVersion']
-    if($sqlServerInfo.Edition -like 'Enterprise*' -or $sqlServerInfo.Edition -like 'Developer*') {
+    if($dbServiceInfo.Edition -like 'Enterprise*' -or $dbServiceInfo.Edition -like 'Developer*') {
         $IsNonPartitioned = $false
     }
-    elseif($sqlServerInfo.Edition -like 'Standard*')
+    elseif($dbServiceInfo.Edition -like 'Standard*')
     {
         if($MajorVersion -gt 13) {
             $IsNonPartitioned = $false
@@ -402,23 +402,23 @@ if($sqlServerInfo.ProductVersion -match "(?'MajorVersion'\d+)\.\d+\.(?'MinorVers
 }
 
 # Extract domain & isClustered property
-[bool]$isClustered = $sqlServerInfo.is_clustered
-[string]$domain = $sqlServerInfo.domain_reg
+[bool]$isClustered = $dbServiceInfo.is_clustered
+[string]$domain = $dbServiceInfo.domain_reg
 if([String]::IsNullOrEmpty($domain)) {
-    $domain = $sqlServerInfo.domain+'.com'
+    $domain = $dbServiceInfo.domain+'.com'
 }
 
 # Fetch HostName for SqlInstance if NULL in parameter value
 if([String]::IsNullOrEmpty($HostName)) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Extract HostName of SQL Server Instance.."
-    $HostName = $sqlServerInfo.host_name;
+    $HostName = $dbServiceInfo.host_name;
 }
 else {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validate HostName.."
     # If Sql Cluster, then host can be different
     # If not sql cluster, then host should be same
     if(-not $isClustered) {
-        if($HostName -ne $sqlServerInfo.host_name) {
+        if($HostName -ne $dbServiceInfo.host_name) {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provided HostName does not match with SQLInstance host name." | Write-Host -ForegroundColor Red
             "STOP and check above error message" | Write-Error
         }
@@ -427,7 +427,7 @@ else {
 
 
 # Setup PSSession on HostName to setup Perfmon Data Collector. $ssn4PerfmonSetup
-if( (-not $SkipRDPSessionSteps) -and ($HostName -ne $env:COMPUTERNAME) )
+if( (-not $SkipRDPSessionSteps) ) #-and ($HostName -ne $env:COMPUTERNAME)
 {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Create PSSession for host [$HostName].."
     $ssnHostName = $HostName
@@ -461,7 +461,7 @@ if( (-not $SkipRDPSessionSteps) -and ($HostName -ne $env:COMPUTERNAME) )
     # First Attempt without Any credentials
     try {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Trying for PSSession on [$ssnHostName] normally.."
-            $ssn4PerfmonSetupssn4PerfmonSetupssn4PerfmonSetup = New-PSSession -ComputerName $ssnHostName 
+            $ssn4PerfmonSetup = New-PSSession -ComputerName $ssnHostName 
         }
     catch { $errVariables += $_ }
 
@@ -492,6 +492,10 @@ if( (-not $SkipRDPSessionSteps) -and ($HostName -ne $env:COMPUTERNAME) )
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provide WindowsCredential for accessing server [$ssnHostName] of domain '$domain'." | Write-Host -ForegroundColor Red
         "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
     }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ssn4PerfmonSetup PSSession for [$HostName].."
+    $ssn4PerfmonSetup
+    "`n"
 }
 
 # Validate if IPv4 is provided instead of DNS name for HostName
@@ -499,7 +503,7 @@ $pattern = "^([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\.([0-9]|[1-9][0
 if($HostName  -match $pattern) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "IP address has been provided for `$HostName parameter."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching DNS name for [$HostName].."
-    $HostName = Invoke-Command -Session $ssn -ScriptBlock { $env:COMPUTERNAME }
+    $HostName = Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock { $env:COMPUTERNAME }
 }
 
 # Validate if FQDN is provided instead of single part HostName
@@ -507,7 +511,7 @@ $pattern = "(?=^.{4,253}$)(^((?!-)[a-zA-Z0-9-]{1,63}(?<!-)\.)+[a-zA-Z]{2,63}$)"
 if($HostName  -match $pattern) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "FQDN has been provided for `$HostName parameter."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching DNS name for [$HostName].."
-    $HostName = Invoke-Command -Session $ssn -ScriptBlock { $env:COMPUTERNAME }
+    $HostName = Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock { $env:COMPUTERNAME }
 }
 
 # Check No of SQL Services on HostName
@@ -559,13 +563,10 @@ order by pc.collection_time_utc desc
                 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "No Perfmon data record found for last 20 minutes for host [$HostName] on [$SqlInstanceAsDataDestination]."
             }
             else {
-                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Perfmon data records of lastest 20 minutes for host [$HostName] are present on [$SqlInstanceAsDataDestination]."
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Perfmon data records of latest 20 minutes for host [$HostName] are present on [$SqlInstanceAsDataDestination]."
             }
         }
-
-        Write-Debug "Here checking multiple SQL Server instances"
     }
-
 }
 
 # Set $SqlInstanceAsDataDestination same as $SqlInstanceToBaseline if NULL
@@ -587,85 +588,16 @@ if([String]::IsNullOrEmpty($SqlInstanceForPowershellJobs)) {
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceForTsqlJobs = [$SqlInstanceForTsqlJobs]"
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceForPowershellJobs = [$SqlInstanceForPowershellJobs]"
 
-# Setup PSSession on $SqlInstanceForPowershellJobs
-if( (-not $SkipRDPSessionSteps) -and ($HostName -ne $env:COMPUTERNAME) )
-{
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Create PSSession for host [$HostName].."
-    $ssnHostName = $HostName
-
-    # Try reaching server using HostName provided/detected, if fails, then use FQDN
-    if (-not (Test-Connection -ComputerName $ssnHostName -Quiet -Count 1)) {
-        $ssnHostName = "$HostName.$domain"
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Host [$HostName] not pingable. So trying FQDN form [$ssnHostName].."
-    }
-
-    # Try reaching using FQDN, if fails & not a clustered instance, then use SqlInstanceToBaseline itself
-    if ( (-not (Test-Connection -ComputerName $ssnHostName -Quiet -Count 1)) -and (-not $isClustered) ) {
-        $ssnHostName = $SqlInstanceToBaseline
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Host [$ssnHostName] not pingable. Since its not clustered instance, So trying `$SqlInstanceToBaseline parameter value itself.."
-    }
-
-    # Try reaching using FQDN, if fails & not a clustered instance, then use SqlInstanceToBaseline itself
-    if ( -not (Test-Connection -ComputerName $ssnHostName -Quiet -Count 1) ) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Host [$ssnHostName] not pingable." | Write-Host -ForegroundColor Red
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide HostName either in FQDN or ipv4 format." | Write-Host -ForegroundColor Red
-        "STOP and check above error message" | Write-Error
-    }
-
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ssnHostName => '$ssnHostName'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Domain of SqlInstance being baselined => [$domain]"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Domain of current host => [$($env:USERDOMAIN)]"
-
-    $ssn = $null
-    $errVariables = @()
-
-    # First Attempt without Any credentials
-    try {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Trying for PSSession on [$ssnHostName] normally.."
-            $ssn = New-PSSession -ComputerName $ssnHostName 
-        }
-    catch { $errVariables += $_ }
-
-    # Second Attempt for Trusted Cross Domains
-    if( [String]::IsNullOrEmpty($ssn) ) {
-        try { 
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Trying for PSSession on [$ssnHostName] assuming cross domain.."
-            $ssn = New-PSSession -ComputerName $ssnHostName -Authentication Negotiate 
-        }
-        catch { $errVariables += $_ }
-    }
-
-    # 3rd Attempt with Credentials
-    if( [String]::IsNullOrEmpty($ssn) -and (-not [String]::IsNullOrEmpty($WindowsCredential)) ) {
-        try {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Attemping PSSession for [$ssnHostName] using provided WindowsCredentials.."
-            $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential    
-        }
-        catch { $errVariables += $_ }
-
-        if( [String]::IsNullOrEmpty($ssn) ) {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Attemping PSSession for [$ssnHostName] using provided WindowsCredentials with Negotiate attribute.."
-            $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential -Authentication Negotiate
-        }
-    }
-
-    if ( [String]::IsNullOrEmpty($ssn) ) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provide WindowsCredential for accessing server [$ssnHostName] of domain '$($sqlServerInfo.domain)'." | Write-Host -ForegroundColor Red
-        "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
-    }
-}
-
-
 # If Express edition, then ensure another server is mentioned for Creating jobs
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking if [$SqlInstanceToBaseline] is Express Edition.."
 $isExpressEdition = $false
-if($sqlServerInfo.Edition -like 'Express*') {
+if($dbServiceInfo.Edition -like 'Express*') {
     $isExpressEdition = $true
     if( ($SqlInstanceForTsqlJobs -eq $SqlInstanceToBaseline) -or ($SqlInstanceForPowershellJobs -eq $SqlInstanceToBaseline) ) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Curent instance is Express edition. `n`tKindly provide a different SQLInstance for parameters SqlInstanceForTsqlJobs & SqlInstanceForPowershellJobs." | Write-Host -ForegroundColor Red
         "STOP and check above error message" | Write-Error
     }
 }
-
 
 
 # Validate database collation
@@ -682,6 +614,103 @@ if($dbCollationResult.Count -ne 0) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly rectify this collation problem." | Write-Host -ForegroundColor Red
     $dbCollationResult | Format-Table -AutoSize | Write-Host -ForegroundColor Red
     Write-Error "Stop here. Fix above issue."
+}
+
+
+# Get HostName for $SqlInstanceForPowershellJobs
+if($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) 
+{
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching basic info for `$SqlInstanceForPowershellJobs => [$SqlInstanceForPowershellJobs].."
+    try {
+        $jobServerServicesInfo = Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Query $sqlServerInfo -SqlCredential $SqlCredential -EnableException
+        $jobServerDbServiceInfo = $jobServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server (*)"}
+        $jobServerAgentServiceInfo = $jobServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server Agent (*)"}
+        $jobServerServicesInfo | Format-Table -AutoSize
+    }
+    catch {
+        $errMessage = $_
+    
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "SQL Connection to [$SqlInstanceToBaseline] failed."
+        if([String]::IsNullOrEmpty($SqlCredential)) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide SqlCredentials." | Write-Host -ForegroundColor Red
+        } else {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provided SqlCredentials seems to be NOT working." | Write-Host -ForegroundColor Red
+        }
+        Write-Error "Stop here. Fix above issue."
+    }
+}
+
+
+# Setup PSSession on $SqlInstanceForPowershellJobs
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validating if PSSession is needed on `$SqlInstanceForPowershellJobs.."
+if( (-not $SkipRDPSessionSteps) -and ($HostName -ne $jobServerDbServiceInfo.host_name) )
+{
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Create PSSession for host [$($jobServerDbServiceInfo.host_name)].."
+    $ssnHostName = $jobServerDbServiceInfo.host_name #+'.'+$jobServerDbServiceInfo.domain_reg
+
+    # Try reaching server using HostName provided/detected, if fails, then use FQDN
+    if (-not (Test-Connection -ComputerName $ssnHostName -Quiet -Count 1)) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Host [$ssnHostName] not pingable. So trying FQDN form.."
+        $ssnHostName = $ssnHostName+'.'+$jobServerDbServiceInfo.domain_reg
+    }
+
+    # Try reaching using FQDN, if fails & not a clustered instance, then use SqlInstanceToBaseline itself
+    if (-not (Test-Connection -ComputerName $ssnHostName -Quiet -Count 1)) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Host [$ssnHostName] not pingable. So trying `$SqlInstanceForPowershellJobs parameter value itself.."
+        $ssnHostName = $SqlInstanceForPowershellJobs
+    }
+
+    # Try reaching using FQDN, if fails & not a clustered instance, then use SqlInstanceToBaseline itself
+    if ( -not (Test-Connection -ComputerName $ssnHostName -Quiet -Count 1) ) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Host [$ssnHostName] not pingable." | Write-Host -ForegroundColor Red
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly ensure pssession is working for `$SqlInstanceForPowershellJobs [$SqlInstanceForPowershellJobs]." | Write-Host -ForegroundColor Red
+        "STOP and check above error message" | Write-Error
+    }
+
+    $ssnJobServer = $null
+    $errVariables = @()
+
+    # First Attempt without Any credentials
+    try {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Trying for PSSession on [$ssnHostName] normally.."
+            $ssnJobServer = New-PSSession -ComputerName $ssnHostName 
+        }
+    catch { $errVariables += $_ }
+
+    # Second Attempt for Trusted Cross Domains
+    if( [String]::IsNullOrEmpty($ssnJobServer) ) {
+        try { 
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Trying for PSSession on [$ssnHostName] assuming cross domain.."
+            $ssnJobServer = New-PSSession -ComputerName $ssnHostName -Authentication Negotiate 
+        }
+        catch { $errVariables += $_ }
+    }
+
+    # 3rd Attempt with Credentials
+    if( [String]::IsNullOrEmpty($ssnJobServer) -and (-not [String]::IsNullOrEmpty($WindowsCredential)) ) {
+        try {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Attemping PSSession for [$ssnHostName] using provided WindowsCredentials.."
+            $ssnJobServer = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential    
+        }
+        catch { $errVariables += $_ }
+
+        if( [String]::IsNullOrEmpty($ssn) ) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Attemping PSSession for [$ssnHostName] using provided WindowsCredentials with Negotiate attribute.."
+            $ssnJobServer = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential -Authentication Negotiate
+        }
+    }
+
+    if ( [String]::IsNullOrEmpty($ssnJobServer) ) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provide WindowsCredential for accessing server [$ssnHostName] of domain '$($sqlServerInfo.domain)'." | Write-Host -ForegroundColor Red
+        "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "PSSession for [$($jobServerDbServiceInfo.host_name)].."
+    $ssnJobServer
+}
+else {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ssnJobServer is same as `$ssn4PerfmonSetup."
+    $ssnJobServer = $ssn4PerfmonSetup
 }
 
 
@@ -723,6 +752,8 @@ if($SkipWindowsAdminAccessTest -eq $false)
     }
 
     $hasWindowsAdminAccess = $false
+    $sqlServerAgentInfo = if($SqlInstanceForPowershellJobs -ne $SqlInstanceToBaseline) {$jobServerAgentServiceInfo} else {$agentServiceInfo}
+
     if($testWindowsAdminAccessJobHistory.Status -ne 'Succeeded') {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "SQL Agent service account [$($sqlServerAgentInfo.service_account)] DO NOT have admin access at windows."
     } else {
@@ -976,6 +1007,7 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
     #Invoke-DbaQuery -SqlInstance $InventoryServer -Database $DbaDatabase -File $GetAllServerInfoFilePath -EnableException
 }
 
+Write-Debug "Just before 1st step"
 
 # 9__CopyDbaToolsModule2Host
 $stepName = '9__CopyDbaToolsModule2Host'
@@ -983,7 +1015,8 @@ if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$DbaToolsFolderPath = '$DbaToolsFolderPath'"
     
-    $remoteModulePath = Invoke-Command -Session $ssn -ScriptBlock {
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Finding valid PSModule path on [$HostName].."
+    $remoteModulePath = Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock {
         $modulePath = $null
         if('C:\Program Files\WindowsPowerShell\Modules' -in $($env:PSModulePath -split ';')) {
             $modulePath = 'C:\Program Files\WindowsPowerShell\Modules'
@@ -997,11 +1030,36 @@ if($stepName -in $Steps2Execute) {
     $dbatoolsRemotePath = Join-Path $remoteModulePath 'dbatools'
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Copy dbatools module from '$DbaToolsFolderPath' to host [$HostName] on '$dbatoolsRemotePath'.."
     
-    if( (Invoke-Command -Session $ssn -ScriptBlock {Test-Path $Using:dbatoolsRemotePath}) ) {
+    if( (Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock {Test-Path $Using:dbatoolsRemotePath}) ) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$dbatoolsRemotePath' already exists on host [$HostName]."
     }
     else {
-        Copy-Item $DbaToolsFolderPath -Destination $dbatoolsRemotePath -ToSession $ssn -Recurse
+        Copy-Item $DbaToolsFolderPath -Destination $dbatoolsRemotePath -ToSession $ssn4PerfmonSetup -Recurse
+    }
+
+    if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -and ($ssn4PerfmonSetup -ne $ssnJobServer) )
+    {
+        "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Finding valid PSModule path on [$($ssnJobServer.ComputerName)].."
+        $remoteModulePath = Invoke-Command -Session $ssnJobServer -ScriptBlock {
+            $modulePath = $null
+            if('C:\Program Files\WindowsPowerShell\Modules' -in $($env:PSModulePath -split ';')) {
+                $modulePath = 'C:\Program Files\WindowsPowerShell\Modules'
+            }
+            else {
+                $modulePath = $($env:PSModulePath -split ';') | Where-Object {$_ -like '*Microsoft SQL Server*'} | select -First 1
+            }
+            $modulePath
+        }
+
+        $dbatoolsRemotePath = Join-Path $remoteModulePath 'dbatools'
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Copy dbatools module from '$DbaToolsFolderPath' to host [$($ssnJobServer.ComputerName)] on '$dbatoolsRemotePath'.."
+    
+        if( (Invoke-Command -Session $ssn -ScriptBlock {Test-Path $Using:dbatoolsRemotePath}) ) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$dbatoolsRemotePath' already exists on host [$($ssnJobServer.ComputerName)]."
+        }
+        else {
+            Copy-Item $DbaToolsFolderPath -Destination $dbatoolsRemotePath -ToSession $ssnJobServer -Recurse
+        }
     }
 }
 

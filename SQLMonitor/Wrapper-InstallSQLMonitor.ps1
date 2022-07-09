@@ -23,12 +23,12 @@ $params = @{
     #SkipTsqlJobs = $true
     #SkipWindowsAdminAccessTest = $true
     #SkipMailProfileCheck = $true
-    #ConfirmValidationOfMultiInstance = $true
-
+    
     #HostName = 'DifferentHostWhereSqlInstanceIsNotPresent'
-    #SqlInstanceAsDataDestination = 'SomeDifferentDestinationInstance'
-    #SqlInstanceForTsqlJobs = 'Workstation'
-    #SqlInstanceForPowershellJobs = 'Workstation'
+    SqlInstanceAsDataDestination = 'Workstation'
+    ConfirmValidationOfMultiInstance = $true
+    SqlInstanceForTsqlJobs = 'Workstation'
+    SqlInstanceForPowershellJobs = 'Workstation'
     
 }
 F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params -Debug
