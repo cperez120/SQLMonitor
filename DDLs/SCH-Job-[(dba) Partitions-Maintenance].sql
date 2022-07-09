@@ -1,17 +1,15 @@
 USE [msdb]
 GO
 
-/****** Object:  Job [(dba) Partitions-Maintenance]    Script Date: Tue, 19 Apr 12:31:58 ******/
 if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Partitions-Maintenance')
 	EXEC msdb.dbo.sp_delete_job @job_name='(dba) Partitions-Maintenance', @delete_unused_schedule=1
 GO
 
 
-/****** Object:  Job [(dba) Partitions-Maintenance]    Script Date: 5/14/2022 4:52:14 PM ******/
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
-/****** Object:  JobCategory [(dba) SQLMonitor]    Script Date: 5/14/2022 4:52:14 PM ******/
+
 IF NOT EXISTS (SELECT name FROM msdb.dbo.syscategories WHERE name=N'(dba) SQLMonitor' AND category_class=1)
 BEGIN
 EXEC @ReturnCode = msdb.dbo.sp_add_category @class=N'JOB', @type=N'LOCAL', @name=N'(dba) SQLMonitor'
@@ -31,7 +29,7 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Partitions-Maintenance
 		@category_name=N'(dba) SQLMonitor', 
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [[datetime2] - Add partitions - Hourly - Till Next Quarter End]    Script Date: 5/14/2022 4:52:14 PM ******/
+
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'[datetime2] - Add partitions - Hourly - Till Next Quarter End', 
 		@step_id=1, 
 		@cmdexec_success_code=0, 
@@ -39,8 +37,8 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'[datetim
 		@on_success_step_id=0, 
 		@on_fail_action=2, 
 		@on_fail_step_id=0, 
-		@retry_attempts=3, 
-		@retry_interval=0, 
+		@retry_attempts=3,
+		@retry_interval=1, 
 		@os_run_priority=0, @subsystem=N'TSQL', 
 		@command=N'set nocount on;
 SET QUOTED_IDENTIFIER ON;
@@ -76,7 +74,7 @@ end',
 		@database_name=N'DBA', 
 		@flags=12
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [[datetime] - Add partitions - Hourly - Till Next Quarter End]    Script Date: 5/14/2022 4:52:14 PM ******/
+
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'[datetime] - Add partitions - Hourly - Till Next Quarter End', 
 		@step_id=2, 
 		@cmdexec_success_code=0, 
@@ -85,7 +83,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'[datetim
 		@on_fail_action=2, 
 		@on_fail_step_id=0, 
 		@retry_attempts=3, 
-		@retry_interval=0, 
+		@retry_interval=1, 
 		@os_run_priority=0, @subsystem=N'TSQL', 
 		@command=N'set nocount on;
 SET QUOTED_IDENTIFIER ON;
@@ -121,7 +119,7 @@ end',
 		@database_name=N'DBA', 
 		@flags=12
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [[datetime2] - Remove Partitions - Retain upto 3 Months]    Script Date: 5/14/2022 4:52:14 PM ******/
+
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'[datetime2] - Remove Partitions - Retain upto 3 Months', 
 		@step_id=3, 
 		@cmdexec_success_code=0, 
@@ -129,8 +127,8 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'[datetim
 		@on_success_step_id=0, 
 		@on_fail_action=2, 
 		@on_fail_step_id=0, 
-		@retry_attempts=0, 
-		@retry_interval=0, 
+		@retry_attempts=3, 
+		@retry_interval=1, 
 		@os_run_priority=0, @subsystem=N'TSQL', 
 		@command=N'set nocount on;
 SET QUOTED_IDENTIFIER ON;
@@ -161,7 +159,7 @@ DEALLOCATE cur_boundaries;',
 		@database_name=N'DBA', 
 		@flags=12
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [[datetime] - Remove Partitions - Retain upto 3 Months]    Script Date: 5/14/2022 4:52:14 PM ******/
+
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'[datetime] - Remove Partitions - Retain upto 3 Months', 
 		@step_id=4, 
 		@cmdexec_success_code=0, 
@@ -169,8 +167,8 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'[datetim
 		@on_success_step_id=0, 
 		@on_fail_action=2, 
 		@on_fail_step_id=0, 
-		@retry_attempts=0, 
-		@retry_interval=0, 
+		@retry_attempts=3, 
+		@retry_interval=1, 
 		@os_run_priority=0, @subsystem=N'TSQL', 
 		@command=N'set nocount on;
 SET QUOTED_IDENTIFIER ON;

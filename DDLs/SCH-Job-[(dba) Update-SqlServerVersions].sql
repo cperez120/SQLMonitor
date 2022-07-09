@@ -37,7 +37,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Update-S
 		@on_fail_action=2, 
 		@on_fail_step_id=0, 
 		@retry_attempts=3, 
-		@retry_interval=0, 
+		@retry_interval=1, 
 		@os_run_priority=0, @subsystem=N'CmdExec', 
 		@command=N'powershell.exe -executionpolicy bypass -Noninteractive C:\SQLMonitor\sqlserver-versions-update.ps1 -SqlInstance localhost', 
 		@flags=40

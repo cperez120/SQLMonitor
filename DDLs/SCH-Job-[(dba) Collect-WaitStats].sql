@@ -37,12 +37,11 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.usp_
 		@on_success_step_id=0, 
 		@on_fail_action=2, 
 		@on_fail_step_id=0, 
-		@retry_attempts=0, 
-		@retry_interval=0, 
-		@os_run_priority=0, @subsystem=N'TSQL', 
-		@command=N'EXEC dbo.usp_collect_wait_stats @recipients = ''some_dba_mail_id@gmail.com'';', 
-		@database_name=N'DBA', 
-		@flags=12
+		@retry_attempts=2, 
+		@retry_interval=1, 
+		@os_run_priority=0, @subsystem=N'CmdExec', 
+		@command=N'sqlcmd -E -b -S Localhost -d DBA -Q "EXEC dbo.usp_collect_wait_stats @recipients = ''some_dba_mail_id@gmail.com'';"', 
+		@flags=40
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_update_job @job_id = @jobId, @start_step_id = 1
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
@@ -57,8 +56,8 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'(dba) Col
 		@active_start_date=20200820, 
 		@active_end_date=99991231, 
 		@active_start_time=0, 
-		@active_end_time=235959 
-		--,@schedule_uid=N'b807914f-75b1-4e0b-ab15-85c60bf8aa96'
+		@active_end_time=235959
+		--,@schedule_uid=N'62011cdd-c868-4a09-800d-86aaf9f2d37c'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_add_jobserver @job_id = @jobId, @server_name = N'(local)'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback

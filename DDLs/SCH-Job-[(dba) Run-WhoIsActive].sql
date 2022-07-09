@@ -5,6 +5,7 @@ if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Run-WhoIsAct
 	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Run-WhoIsActive', @delete_unused_schedule=1
 GO
 
+
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
@@ -36,12 +37,11 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.usp_
 		@on_success_step_id=0, 
 		@on_fail_action=2, 
 		@on_fail_step_id=0, 
-		@retry_attempts=0, 
+		@retry_attempts=2, 
 		@retry_interval=0, 
-		@os_run_priority=0, @subsystem=N'TSQL', 
-		@command=N'EXEC dbo.usp_run_WhoIsActive @recipients = ''some_dba_mail_id@gmail.com''', 
-		@database_name=N'DBA', 
-		@flags=12
+		@os_run_priority=0, @subsystem=N'CmdExec', 
+		@command=N'sqlcmd -E -b -S Localhost -d DBA -Q "EXEC dbo.usp_run_WhoIsActive @recipients = ''some_dba_mail_id@gmail.com'';"', 
+		@flags=40
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_update_job @job_id = @jobId, @start_step_id = 1
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
@@ -57,7 +57,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'(dba) Run
 		@active_end_date=99991231, 
 		@active_start_time=0, 
 		@active_end_time=235959
-		--,@schedule_uid=N'e9afad58-631b-4a4b-a8ce-96a70efcbff0'
+		--,@schedule_uid=N'8451e244-93f7-4f40-890b-c833923720d8'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_add_jobserver @job_id = @jobId, @server_name = N'(local)'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
