@@ -909,6 +909,12 @@ if($stepName -in $Steps2Execute)
     end
 "@
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAddInstanceHostMapping -SqlCredential $SqlCredential -EnableException | ft -AutoSize
+
+
+    if($isExpressEdition) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Since instance is Express Edition, change retention to 14 days.." | Write-Host -ForegroundColor Cyan
+        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query "update dbo.purge_table set retention_days = 14 where retention_days > 14" -SqlCredential $SqlCredential -EnableException
+    }
 }
 
 
@@ -1561,23 +1567,37 @@ select collection_time_utc, host_name, path, object, counter, value, instance fr
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAlterViewPerformanceCounters -SqlCredential $SqlCredential -EnableException
 
 
-    # Alter dbo.vw_performance_counters
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Alter view [dbo].[vw_performance_counters].."
-    $sqlAlterViewPerformanceCounters = @"
-alter view dbo.vw_performance_counters
+    # Alter dbo.vw_os_task_list
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Alter view [dbo].[vw_os_task_list].."
+    $sqlAlterViewOsTaskList = @"
+alter view dbo.vw_os_task_list
 as
-with cte_counters_local as (select collection_time_utc, host_name, path, object, counter, value, instance from dbo.performance_counters)
-,cte_counters_datasource as (select collection_time_utc, host_name, path, object, counter, value, instance from [$SqlInstanceAsDataDestination].[$DbaDatabase].dbo.performance_counters)
+with cte_os_tasks_local as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from dbo.os_task_list)
+,cte_os_tasks_datasource as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from [$SqlInstanceAsDataDestination].[$DbaDatabase].dbo.os_task_list)
 
-select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_local
+select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_local
 union all
-select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_datasource
+select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_datasource;
 "@
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAlterViewPerformanceCounters -SqlCredential $SqlCredential -EnableException
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAlterViewOsTaskList -SqlCredential $SqlCredential -EnableException
 
+
+    # Alter dbo.vw_disk_space
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Alter view [dbo].[vw_disk_space].."
+    $sqlAlterViewDiskSpace = @"
+alter view dbo.vw_disk_space
+as
+with cte_disk_space_local as (select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from dbo.disk_space)
+,cte_disk_space_datasource as (select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from [$SqlInstanceAsDataDestination].[$DbaDatabase].dbo.disk_space)
+
+select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_local
+union all
+select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_datasource
+go
+"@
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAlterViewDiskSpace -SqlCredential $SqlCredential -EnableException
 }
 
-Write-Debug "After 26__LinkedServerForDataDestinationInstance"
 
 "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Baselining of [$SqlInstanceToBaseline] completed."
 
@@ -1597,8 +1617,10 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     Name of DBA database on the SQL Instance being baseline, and as well target on [SqlInstanceAsDataDestination].
     .PARAMETER SqlInstanceAsDataDestination
     Name/IP of SQL Instance that would store the data caputured using Perfmon data collection. Generally same as [SqlInstanceToBaseline]. But, this could be different from [SqlInstanceToBaseline] in central repository scenario.
-    .PARAMETER SqlInstanceForDataCollectionJobs
-    Name/IP of SQL Instance that could be used to host SQL Agent jobs that call PowerShell scripts. Generally same as [SqlInstanceToBaseline]. But, this could be different from [SqlInstanceToBaseline] when [SqlInstanceToBaseline] is not capable of running PowerShell Jobs successfully due to being old version of powershell, or incapability of install modules like dbatools.
+    .PARAMETER SqlInstanceForTsqlJobs
+    Name/IP of SQL Instance that could be used to host SQL Agent jobs that call tsql scripts. Generally same as [SqlInstanceToBaseline]. This can be used in case of Express Edition as agent services are not available.
+    .PARAMETER SqlInstanceForPowershellJobs
+    Name/IP of SQL Instance that could be used to host SQL Agent jobs that call tsql scripts. Generally same as [SqlInstanceToBaseline]. This can be used when [SqlInstanceToBaseline] is Express Edition, or not capable of running PowerShell Jobs successfully due to being old version of powershell, or incapability of install modules like dbatools.
     .PARAMETER InventoryServer
     Name/IP of SQL Instance that would act as inventory server and is the data source on Grafana application. A linked server would be created for [SqlInstanceToBaseline] on this server.
     .PARAMETER HostName
@@ -1627,6 +1649,8 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     Script file containing tsql that compiles [usp_collect_wait_stats] in [DbaDatabase] on [SqlInstanceToBaseline].
     .PARAMETER UspCollectXeventsResourceConsumptionFileName
     Script file containing tsql that compiles [usp_collect_xevents_resource_consumption] in [DbaDatabase] on [SqlInstanceToBaseline].
+    .PARAMETER UspPartitionMaintenanceFileName 
+    Script file containing tsql that compiles [usp_partition_maintenance] in [DbaDatabase] on [SqlInstanceToBaseline].
     .PARAMETER UspPurgeTablesFileName
     Script file containing tsql that compiles [usp_purge_tables] in [DbaDatabase] on [SqlInstanceToBaseline].
     .PARAMETER UspRunWhoIsActiveFileName
@@ -1675,10 +1699,16 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     When enabled, drops the existing SQL Agent jobs having CmdExec steps, and creates them from scratch. By default, Jobs running CmdExec step are not dropped if found existing.
     .PARAMETER SkipPowerShellJobs
     When enabled, baselining steps involving create of SQL Agent jobs having CmdExec steps are skipped.
-    .PARAMETER SkipAllJobs
-    When enabled, all the SQL Agent jobs creation is skipped.
+    .PARAMETER SkipTsqlJobs
+    When enabled, skips creation of all the SQL Agent jobs that execute tsql stored procedures.
     .PARAMETER SkipRDPSessionSteps
     When enabled, any steps that need OS level interaction is skipped. This includes copy of dbatools powershell module, SQLMonitor folder on remove path, creation of Perfmon Data Collector etc.
+    .PARAMETER SkipWindowsAdminAccessTest
+    When enabled, script does not check if Proxy/Credential is required for running PowerShell jobs.
+    .PARAMETER SkipMailProfileCheck 
+    When enabled, script does not look for default global mail profile.
+    .PARAMETER ConfirmValidationOfMultiInstance
+    If required for confirmation from end user in case multiple SQL Instances are found on same host. At max, perfmon data can be pushed to only one SQL Instance.
     .PARAMETER DryRun
     When enabled, only messages are printed, but actual changes are NOT made.
     .EXAMPLE
