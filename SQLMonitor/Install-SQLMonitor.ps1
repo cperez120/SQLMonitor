@@ -118,7 +118,7 @@ Param (
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
                 "22__CreateJobUpdateSqlServerVersions", "23__WhoIsActivePartition", "24__GrafanaLogin",
-                "25__LinkedServerOnInventory")]
+                "25__LinkedServerOnInventory", "26__LinkedServerForDataDestinationInstance")]
     [String]$StartAtStep = "1__sp_WhoIsActive",
 
     [Parameter(Mandatory=$false)]
@@ -130,7 +130,7 @@ Param (
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
                 "22__CreateJobUpdateSqlServerVersions", "23__WhoIsActivePartition", "24__GrafanaLogin",
-                "25__LinkedServerOnInventory")]
+                "25__LinkedServerOnInventory", "26__LinkedServerForDataDestinationInstance")]
     [String[]]$SkipSteps,
 
     [Parameter(Mandatory=$false)]
@@ -142,7 +142,7 @@ Param (
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
                 "22__CreateJobUpdateSqlServerVersions", "23__WhoIsActivePartition", "24__GrafanaLogin",
-                "25__LinkedServerOnInventory")]
+                "25__LinkedServerOnInventory", "26__LinkedServerForDataDestinationInstance")]
     [String]$StopAtStep,
 
     [Parameter(Mandatory=$false)]
@@ -185,7 +185,7 @@ $AllSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession"
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
                 "22__CreateJobUpdateSqlServerVersions", "23__WhoIsActivePartition", "24__GrafanaLogin",
-                "25__LinkedServerOnInventory")
+                "25__LinkedServerOnInventory", "26__LinkedServerForDataDestinationInstance")
 
 # TSQL Jobs
 $TsqlJobSteps = @(
@@ -1017,7 +1017,6 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
     #Invoke-DbaQuery -SqlInstance $InventoryServer -Database $DbaDatabase -File $GetAllServerInfoFilePath -EnableException
 }
 
-Write-Debug "Just before 1st step"
 
 # 9__CopyDbaToolsModule2Host
 $stepName = '9__CopyDbaToolsModule2Host'
@@ -1526,6 +1525,32 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -ne $InventoryServer
     }
 }
 
+# 26__LinkedServerForDataDestinationInstance
+$stepName = '26__LinkedServerForDataDestinationInstance'
+if( ($stepName -in $Steps2Execute) -and ($SqlInstanceToBaseline -ne $SqlInstanceAsDataDestination) )
+{
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$LinkedServerOnInventoryFilePath = '$LinkedServerOnInventoryFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating linked server for [$SqlInstanceAsDataDestination] on [$SqlInstanceToBaseline].."
+
+    $sqlLinkedServerForDataDestinationInstance = [System.IO.File]::ReadAllText($LinkedServerOnInventoryFilePath)
+    $sqlLinkedServerForDataDestinationInstance = $sqlLinkedServerForDataDestinationInstance.Replace("'YourSqlInstanceNameHere'", "'$SqlInstanceAsDataDestination'")
+    $sqlLinkedServerForDataDestinationInstance = $sqlLinkedServerForDataDestinationInstance.Replace("@catalog=N'DBA'", "@catalog=N'$DbaDatabase'")
+    
+    $dbaLinkedServer = @()
+    $dbaLinkedServer += Get-DbaLinkedServer -SqlInstance $SqlInstanceToBaseline -LinkedServer $SqlInstanceAsDataDestination
+    if($dbaLinkedServer.Count -eq 0) {
+        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -Query $sqlLinkedServerForDataDestinationInstance -SqlCredential $SqlCredential -EnableException
+    } else {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Linked server for [$SqlInstanceAsDataDestination] on [$SqlInstanceToBaseline] already exists.."
+    }
+
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update view [dbo].[vw_performance_counters].."
+
+}
+
+Write-Debug "After 26__LinkedServerForDataDestinationInstance"
 
 "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Baselining of [$SqlInstanceToBaseline] completed."
 
