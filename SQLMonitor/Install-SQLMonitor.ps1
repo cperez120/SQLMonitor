@@ -1321,12 +1321,26 @@ if($stepName -in $Steps2Execute)
 
 # 18__CreateJobPartitionsMaintenance
 $stepName = '18__CreateJobPartitionsMaintenance'
-if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) {
+if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) 
+{
+    $jobName = '(dba) Partitions-Maintenance'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$PartitionsMaintenanceFilePath = '$PartitionsMaintenanceFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Partitions-Maintenance] on [$SqlInstanceToBaseline].."
-    $sqlPartitionsMaintenance = [System.IO.File]::ReadAllText($PartitionsMaintenanceFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlPartitionsMaintenance -SqlCredential $SqlCredential -EnableException
+
+    # Append HostName if Job Server is different    
+    $jobNameNew = $jobName
+    if($SqlInstanceToBaseline -ne $SqlInstanceForTsqlJobs) {
+        $jobNameNew = "$jobName - $SqlInstanceToBaseline"
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
+    $sqlPartitionsMaintenance = [System.IO.File]::ReadAllText($PartitionsMaintenanceFilePath)
+    $sqlPartitionsMaintenance = $sqlPartitionsMaintenance.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlPartitionsMaintenance = $sqlPartitionsMaintenance.Replace('-d DBA', "-d `"$DbaDatabase`"")
+    if($jobNameNew -ne $jobName) {
+        $sqlPartitionsMaintenance = $sqlPartitionsMaintenance.Replace($jobName, $jobNameNew)
+    }
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForTsqlJobs -Database msdb -Query $sqlPartitionsMaintenance -SqlCredential $SqlCredential -EnableException
 }
 
 
