@@ -1147,7 +1147,7 @@ if($stepName -in $Steps2Execute)
     # Append HostName if Job Server is different    
     $jobNameNew = $jobName
     if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -and ($HostName -ne $jobServerDbServiceInfo.host_name) ) {
-        $jobNameNew = "(dba) Collect-DiskSpace - $HostName"
+        $jobNameNew = "$jobName - $HostName"
     }    
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForPowershellJobs].."
@@ -1179,13 +1179,26 @@ if($stepName -in $Steps2Execute)
 
 # 14__CreateJobCollectOSProcesses
 $stepName = '14__CreateJobCollectOSProcesses'
-if($stepName -in $Steps2Execute) {
+if($stepName -in $Steps2Execute) 
+{
+    $jobName = '(dba) Collect-OSProcesses'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectOSProcessesFilePath = '$CollectOSProcessesFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Collect-OSProcesses] on [$SqlInstanceForPowershellJobs].."
+
+    # Append HostName if Job Server is different    
+    $jobNameNew = $jobName
+    if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -and ($HostName -ne $jobServerDbServiceInfo.host_name) ) {
+        $jobNameNew = "$jobName - $HostName"
+    }   
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForPowershellJobs].."
     $sqlCreateJobCollectOSProcesses = [System.IO.File]::ReadAllText($CollectOSProcessesFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceAsDataDestination`"")
     $sqlCreateJobCollectOSProcesses = $sqlCreateJobCollectOSProcesses.Replace('-Database DBA', "-Database `"$DbaDatabase`"")
     $sqlCreateJobCollectOSProcesses = $sqlCreateJobCollectOSProcesses.Replace('-HostName localhost', "-HostName `"$HostName`"")
+    if($jobNameNew -ne $jobName) {
+        $sqlCreateJobCollectOSProcesses = $sqlCreateJobCollectOSProcesses.Replace($jobName, $jobNameNew)
+    }
+
     if($RemoteSQLMonitorPath -ne 'C:\SQLMonitor') {
         $sqlCreateJobCollectOSProcesses = $sqlCreateJobCollectOSProcesses.Replace('C:\SQLMonitor', $RemoteSQLMonitorPath)
     }
@@ -1196,11 +1209,11 @@ if($stepName -in $Steps2Execute) {
     Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlCreateJobCollectOSProcesses -SqlCredential $SqlCredential -EnableException
 
     if($requireProxy) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [(dba) Collect-OSProcesses] to run under proxy [$credentialName].."
-        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'(dba) Collect-OSProcesses', @step_id=1 ,@proxy_name=N'$credentialName';"
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [$jobNameNew] to run under proxy [$credentialName].."
+        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'$jobNameNew', @step_id=1 ,@proxy_name=N'$credentialName';"
         Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlUpdateJob -SqlCredential $SqlCredential -EnableException
     }
-    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Collect-OSProcesses';"
+    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'$jobNameNew';"
     Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlStartJob -SqlCredential $SqlCredential -EnableException
 }
 
