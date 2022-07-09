@@ -1288,13 +1288,27 @@ if($stepName -in $Steps2Execute)
 
 # 17__CreateJobCollectXEvents
 $stepName = '17__CreateJobCollectXEvents'
-if($stepName -in $Steps2Execute) {
+if($stepName -in $Steps2Execute) 
+{
+    $jobName = '(dba) Collect-XEvents'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectXEventsFilePath = '$CollectXEventsFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Collect-XEvents] on [$SqlInstanceToBaseline].."
-    $sqlCreateJobCollectXEvents = [System.IO.File]::ReadAllText($CollectXEventsFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
-    $sqlCreateJobCollectXEvents = $sqlCreateJobCollectXEvents.Replace("varchar(500) = ''some_dba_mail_id@gmail.com'';", "varchar(500) = ''$($DbaGroupMailId -join ';')'';"   )
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlCreateJobCollectXEvents -SqlCredential $SqlCredential -EnableException
+
+    # Append HostName if Job Server is different    
+    $jobNameNew = $jobName
+    if($SqlInstanceToBaseline -ne $SqlInstanceForTsqlJobs) {
+        $jobNameNew = "$jobName - $SqlInstanceToBaseline"
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
+    $sqlCreateJobCollectXEvents = [System.IO.File]::ReadAllText($CollectXEventsFilePath)
+    $sqlCreateJobCollectXEvents = $sqlCreateJobCollectXEvents.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlCreateJobCollectXEvents = $sqlCreateJobCollectXEvents.Replace('-d DBA', "-d `"$DbaDatabase`"")
+    if($jobNameNew -ne $jobName) {
+        $sqlCreateJobCollectXEvents = $sqlCreateJobCollectXEvents.Replace($jobName, $jobNameNew)
+    }
+
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForTsqlJobs -Database msdb -Query $sqlCreateJobCollectXEvents -SqlCredential $SqlCredential -EnableException
 }
 
 
