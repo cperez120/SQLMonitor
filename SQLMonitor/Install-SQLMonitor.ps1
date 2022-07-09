@@ -56,6 +56,9 @@ Param (
     [String]$UspCollectXeventsResourceConsumptionFileName = "SCH-usp_collect_xevents_resource_consumption.sql",
 
     [Parameter(Mandatory=$false)]
+    [String]$UspPartitionMaintenanceFileName = "SCH-usp_partition_maintenance.sql",
+
+    [Parameter(Mandatory=$false)]
     [String]$UspPurgeTablesFileName = "SCH-usp_purge_tables.sql",
 
     [Parameter(Mandatory=$false)]
@@ -270,6 +273,7 @@ $WhatIsRunningFilePath = "$ddlPath\$WhatIsRunningFileName"
 $GetAllServerInfoFilePath = "$ddlPath\$GetAllServerInfoFileName"
 $UspCollectWaitStatsFilePath = "$ddlPath\$UspCollectWaitStatsFileName"
 $UspCollectXeventsResourceConsumptionFilePath = "$ddlPath\$UspCollectXeventsResourceConsumptionFileName"
+$UspPartitionMaintenanceFilePath = "$ddlPath\$UspPartitionMaintenanceFileName"
 $UspPurgeTablesFilePath = "$ddlPath\$UspPurgeTablesFileName"
 $UspRunWhoIsActiveFilePath = "$ddlPath\$UspRunWhoIsActiveFileName"
 $WhoIsActivePartitionFilePath = "$ddlPath\$WhoIsActivePartitionFileName"
@@ -869,6 +873,9 @@ if($stepName -in $Steps2Execute)
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspCollectXeventsResourceConsumptionFilePath = '$UspCollectXeventsResourceConsumptionFilePath'"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspCollectXeventsResourceConsumptionFilePath -SqlCredential $SqlCredential -EnableException
 
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspPartitionMaintenanceFilePath = '$UspPartitionMaintenanceFilePath'"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspPartitionMaintenanceFilePath -SqlCredential $SqlCredential -EnableException
+
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspPurgeTablesFilePath = '$UspPurgeTablesFilePath'"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspPurgeTablesFilePath -SqlCredential $SqlCredential -EnableException
 
@@ -1419,7 +1426,8 @@ if($stepName -in $Steps2Execute)
 
 # 22__CreateJobUpdateSqlServerVersions
 $stepName = '22__CreateJobUpdateSqlServerVersions'
-if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer) {
+if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer) 
+{
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UpdateSqlServerVersionsFilePath = '$UpdateSqlServerVersionsFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Update-SqlServerVersions] on [$SqlInstanceToBaseline].."
