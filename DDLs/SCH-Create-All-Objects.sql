@@ -205,11 +205,11 @@ alter view dbo.vw_performance_counters
 --with schemabinding
 as
 with cte_counters_local as (select collection_time_utc, host_name, path, object, counter, value, instance from dbo.performance_counters)
---,cte_counters_sql2019 as (select collection_time_utc, host_name, path, object, counter, value, instance from [SQL2019].DBA.dbo.performance_counters)
+--,cte_counters_datasource as (select collection_time_utc, host_name, path, object, counter, value, instance from [SQL2019].DBA.dbo.performance_counters)
 
 select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_local --with (forceseek)
 --union all
---select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_sql2019
+--select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_datasource
 go
 
 
@@ -314,11 +314,11 @@ alter view dbo.vw_os_task_list
 --with schemabinding
 as
 with cte_os_tasks_local as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from dbo.os_task_list)
---,cte_os_tasks_sql2019 as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from [SQL2019].DBA.dbo.os_task_list)
+--,cte_os_tasks_datasource as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from [SQL2019].DBA.dbo.os_task_list)
 
 select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_local
 --union all
---select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_sql2019
+--select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_datasource
 go
 
 
@@ -590,11 +590,11 @@ alter view dbo.vw_disk_space
 --with schemabinding
 as
 with cte_disk_space_local as (select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from dbo.disk_space)
---,cte_disk_space_sql2019 as (select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from [SQL2019].DBA.dbo.disk_space)
+--,cte_disk_space_datasource as (select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from [SQL2019].DBA.dbo.disk_space)
 
 select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_local
 --union all
---select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_sql2019
+--select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_datasource
 go
 
 

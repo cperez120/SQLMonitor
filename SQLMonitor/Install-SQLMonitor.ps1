@@ -1546,7 +1546,34 @@ if( ($stepName -in $Steps2Execute) -and ($SqlInstanceToBaseline -ne $SqlInstance
     }
 
 
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update view [dbo].[vw_performance_counters].."
+    # Alter dbo.vw_performance_counters
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Alter view [dbo].[vw_performance_counters].."
+    $sqlAlterViewPerformanceCounters = @"
+alter view dbo.vw_performance_counters
+as
+with cte_counters_local as (select collection_time_utc, host_name, path, object, counter, value, instance from dbo.performance_counters)
+,cte_counters_datasource as (select collection_time_utc, host_name, path, object, counter, value, instance from [$SqlInstanceAsDataDestination].[$DbaDatabase].dbo.performance_counters)
+
+select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_local
+union all
+select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_datasource
+"@
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAlterViewPerformanceCounters -SqlCredential $SqlCredential -EnableException
+
+
+    # Alter dbo.vw_performance_counters
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Alter view [dbo].[vw_performance_counters].."
+    $sqlAlterViewPerformanceCounters = @"
+alter view dbo.vw_performance_counters
+as
+with cte_counters_local as (select collection_time_utc, host_name, path, object, counter, value, instance from dbo.performance_counters)
+,cte_counters_datasource as (select collection_time_utc, host_name, path, object, counter, value, instance from [$SqlInstanceAsDataDestination].[$DbaDatabase].dbo.performance_counters)
+
+select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_local
+union all
+select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_datasource
+"@
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAlterViewPerformanceCounters -SqlCredential $SqlCredential -EnableException
 
 }
 
