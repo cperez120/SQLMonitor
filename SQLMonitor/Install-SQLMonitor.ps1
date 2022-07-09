@@ -1261,13 +1261,28 @@ if($stepName -in $Steps2Execute)
 
 # 16__CreateJobCollectWaitStats
 $stepName = '16__CreateJobCollectWaitStats'
-if($stepName -in $Steps2Execute) {
+if($stepName -in $Steps2Execute) 
+{
+    $jobName = '(dba) Collect-WaitStats'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectWaitStatsFilePath = '$CollectWaitStatsFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Collect-WaitStats] on [$SqlInstanceToBaseline].."
-    $sqlCreateJobCollectWaitStats = [System.IO.File]::ReadAllText($CollectWaitStatsFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
+
+    # Append HostName if Job Server is different    
+    $jobNameNew = $jobName
+    if($SqlInstanceToBaseline -ne $SqlInstanceForTsqlJobs) {
+        $jobNameNew = "$jobName - $SqlInstanceToBaseline"
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
+    $sqlCreateJobCollectWaitStats = [System.IO.File]::ReadAllText($CollectWaitStatsFilePath)
+    $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace("''some_dba_mail_id@gmail.com''", "''$($DbaGroupMailId -join ';')'';" )
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlCreateJobCollectWaitStats -SqlCredential $SqlCredential -EnableException
+    if($jobNameNew -ne $jobName) {
+        $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace($jobName, $jobNameNew)
+    }
+
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForTsqlJobs -Database msdb -Query $sqlCreateJobCollectWaitStats -SqlCredential $SqlCredential -EnableException
 }
 
 
