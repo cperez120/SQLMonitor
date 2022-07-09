@@ -5,6 +5,7 @@ if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Purge-Tables
 	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Purge-Tables', @delete_unused_schedule=1
 GO
 
+
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
@@ -36,12 +37,11 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.usp_
 		@on_success_step_id=0, 
 		@on_fail_action=2, 
 		@on_fail_step_id=0, 
-		@retry_attempts=0, 
+		@retry_attempts=2, 
 		@retry_interval=0, 
-		@os_run_priority=0, @subsystem=N'TSQL', 
-		@command=N'EXEC dbo.usp_purge_tables', 
-		@database_name=N'DBA', 
-		@flags=12
+		@os_run_priority=0, @subsystem=N'CmdExec', 
+		@command=N'sqlcmd -E -b -S Localhost -d DBA -Q "EXEC dbo.usp_purge_tables;"', 
+		@flags=40
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_update_job @job_id = @jobId, @start_step_id = 1
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
@@ -56,8 +56,8 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'(dba) Pur
 		@active_start_date=20220601, 
 		@active_end_date=99991231, 
 		@active_start_time=0, 
-		@active_end_time=235959 
-		--,@schedule_uid=N'0f78628a-e7fe-40cd-9df1-6d2805dfcdcf'
+		@active_end_time=235959
+		--,@schedule_uid=N'faa68dfb-0723-4f7a-8293-145cb88653e4'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_add_jobserver @job_id = @jobId, @server_name = N'(local)'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
@@ -67,6 +67,7 @@ QuitWithRollback:
     IF (@@TRANCOUNT > 0) ROLLBACK TRANSACTION
 EndSave:
 GO
+
 
 
 if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Purge-Tables')

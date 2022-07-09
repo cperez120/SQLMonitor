@@ -6,11 +6,10 @@ if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Remove-XEven
 GO
 
 
-/****** Object:  Job [(dba) Remove-XEventFiles]    Script Date: 5/9/2022 11:38:14 PM ******/
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
-/****** Object:  JobCategory [(dba) SQLMonitor]    Script Date: 5/9/2022 11:38:14 PM ******/
+
 IF NOT EXISTS (SELECT name FROM msdb.dbo.syscategories WHERE name=N'(dba) SQLMonitor' AND category_class=1)
 BEGIN
 EXEC @ReturnCode = msdb.dbo.sp_add_category @class=N'JOB', @type=N'LOCAL', @name=N'(dba) SQLMonitor'
@@ -30,7 +29,7 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Remove-XEventFiles',
 		@category_name=N'(dba) SQLMonitor', 
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [Remove-XEventFiles]    Script Date: 5/9/2022 11:38:14 PM ******/
+
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Remove-XEventFiles', 
 		@step_id=1, 
 		@cmdexec_success_code=0, 
@@ -38,7 +37,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Remove-X
 		@on_success_step_id=0, 
 		@on_fail_action=2, 
 		@on_fail_step_id=0, 
-		@retry_attempts=0, 
+		@retry_attempts=2, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'CmdExec', 
 		@command=N'powershell.exe -executionpolicy bypass -Noninteractive C:\SQLMonitor\xevents-remove-processed-files.ps1 -SqlInstance localhost -Database DBA', 

@@ -10,13 +10,17 @@ Param (
     $SqlInstanceAsDataDestination,
 
     [Parameter(Mandatory=$false)]
-    $SqlInstanceForDataCollectionJobs,
+    #$SqlInstanceForDataCollectionJobs,
+    $SqlInstanceForTsqlJobs,
+
+    [Parameter(Mandatory=$false)]
+    $SqlInstanceForPowershellJobs,
 
     [Parameter(Mandatory=$false)]
     $InventoryServer,
 
     [Parameter(Mandatory=$false)]
-    $HostName,
+    [String]$HostName,
 
     [Parameter(Mandatory=$false)]
     [String]$SQLMonitorPath,
@@ -50,6 +54,9 @@ Param (
 
     [Parameter(Mandatory=$false)]
     [String]$UspCollectXeventsResourceConsumptionFileName = "SCH-usp_collect_xevents_resource_consumption.sql",
+
+    [Parameter(Mandatory=$false)]
+    [String]$UspPartitionMaintenanceFileName = "SCH-usp_partition_maintenance.sql",
 
     [Parameter(Mandatory=$false)]
     [String]$UspPurgeTablesFileName = "SCH-usp_purge_tables.sql",
@@ -111,7 +118,7 @@ Param (
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
                 "22__CreateJobUpdateSqlServerVersions", "23__WhoIsActivePartition", "24__GrafanaLogin",
-                "25__LinkedServerOnInventory")]
+                "25__LinkedServerOnInventory", "26__LinkedServerForDataDestinationInstance")]
     [String]$StartAtStep = "1__sp_WhoIsActive",
 
     [Parameter(Mandatory=$false)]
@@ -123,7 +130,7 @@ Param (
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
                 "22__CreateJobUpdateSqlServerVersions", "23__WhoIsActivePartition", "24__GrafanaLogin",
-                "25__LinkedServerOnInventory")]
+                "25__LinkedServerOnInventory", "26__LinkedServerForDataDestinationInstance")]
     [String[]]$SkipSteps,
 
     [Parameter(Mandatory=$false)]
@@ -135,7 +142,7 @@ Param (
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
                 "22__CreateJobUpdateSqlServerVersions", "23__WhoIsActivePartition", "24__GrafanaLogin",
-                "25__LinkedServerOnInventory")]
+                "25__LinkedServerOnInventory", "26__LinkedServerForDataDestinationInstance")]
     [String]$StopAtStep,
 
     [Parameter(Mandatory=$false)]
@@ -151,13 +158,19 @@ Param (
     [bool]$SkipPowerShellJobs = $false,
 
     [Parameter(Mandatory=$false)]
-    [bool]$SkipAllJobs = $false,
+    [bool]$SkipTsqlJobs = $false,
 
     [Parameter(Mandatory=$false)]
     [bool]$SkipRDPSessionSteps = $false,
 
     [Parameter(Mandatory=$false)]
     [bool]$SkipWindowsAdminAccessTest = $false,
+
+    [Parameter(Mandatory=$false)]
+    [bool]$SkipMailProfileCheck = $false,
+
+    [Parameter(Mandatory=$false)]
+    [bool]$ConfirmValidationOfMultiInstance = $false,
 
     [Parameter(Mandatory=$false)]
     [bool]$DryRun = $false
@@ -172,7 +185,12 @@ $AllSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession"
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
                 "22__CreateJobUpdateSqlServerVersions", "23__WhoIsActivePartition", "24__GrafanaLogin",
-                "25__LinkedServerOnInventory")
+                "25__LinkedServerOnInventory", "26__LinkedServerForDataDestinationInstance")
+
+# TSQL Jobs
+$TsqlJobSteps = @(
+                "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
+                "19__CreateJobPurgeTables", "21__CreateJobRunWhoIsActive")
 
 # PowerShell Jobs
 $PowerShellJobSteps = @(
@@ -191,6 +209,17 @@ if($SkipPowerShellJobs) {
 # Add $RDPSessionSteps to Skip Jobs
 if($SkipRDPSessionSteps) {
     $SkipSteps = $SkipSteps + $RDPSessionSteps;
+}
+
+# Add $TsqlJobSteps to Skip Jobs
+if($SkipTsqlJobs) {
+    $SkipSteps = $SkipSteps + $TsqlJobSteps;
+}
+
+# For backward compatability
+$SkipAllJobs = $false
+if($SkipTsqlJobs -and $SkipPowerShellJobs) {
+    $SkipAllJobs = $true
 }
 
 cls
@@ -216,16 +245,6 @@ else {
     Write-Error "Stop here. Fix above issue."
 }
 
-# Set $SqlInstanceAsDataDestination same as $SqlInstanceToBaseline if NULL
-if([String]::IsNullOrEmpty($SqlInstanceAsDataDestination)) {
-    $SqlInstanceAsDataDestination = $SqlInstanceToBaseline
-}
-
-# Set $SqlInstanceForDataCollectionJobs same as $SqlInstanceToBaseline if NULL
-if([String]::IsNullOrEmpty($SqlInstanceForDataCollectionJobs)) {
-    $SqlInstanceForDataCollectionJobs = $SqlInstanceToBaseline
-}
-
 # Set windows credential if valid AD credential is provided as SqlCredential
 if( [String]::IsNullOrEmpty($WindowsCredential) -and (-not [String]::IsNullOrEmpty($SqlCredential)) -and $SqlCredential.UserName -like "*\*" ) {
     $WindowsCredential = $SqlCredential
@@ -237,9 +256,6 @@ if($RemoteSQLMonitorPath.EndsWith('\')) {
 }
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceToBaseline = [$SqlInstanceToBaseline]"
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceForDataCollectionJobs = [$SqlInstanceForDataCollectionJobs]"
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceAsDataDestination = [$SqlInstanceAsDataDestination]"
-
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlCredential => "
 $SqlCredential | ft -AutoSize
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$WindowsCredential => "
@@ -257,6 +273,7 @@ $WhatIsRunningFilePath = "$ddlPath\$WhatIsRunningFileName"
 $GetAllServerInfoFilePath = "$ddlPath\$GetAllServerInfoFileName"
 $UspCollectWaitStatsFilePath = "$ddlPath\$UspCollectWaitStatsFileName"
 $UspCollectXeventsResourceConsumptionFilePath = "$ddlPath\$UspCollectXeventsResourceConsumptionFileName"
+$UspPartitionMaintenanceFilePath = "$ddlPath\$UspPartitionMaintenanceFileName"
 $UspPurgeTablesFilePath = "$ddlPath\$UspPurgeTablesFileName"
 $UspRunWhoIsActiveFilePath = "$ddlPath\$UspRunWhoIsActiveFileName"
 $WhoIsActivePartitionFilePath = "$ddlPath\$WhoIsActivePartitionFileName"
@@ -280,12 +297,10 @@ $TestWindowsAdminAccessFilePath = "$ddlPath\$TestWindowsAdminAccessFileName"
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Import dbatools module.."
 Import-Module dbatools
-Import-Module SqlServer
+#Import-Module SqlServer
 
 # Compute steps to execute
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Compute Steps to execute.."
-
-$SkipPowerShellJobs
 
 [int]$StartAtStepNumber = $StartAtStep -replace "__\w+", ''
 [int]$StopAtStepNumber = $StopAtStep -replace "__\w+", ''
@@ -295,7 +310,7 @@ if($StopAtStepNumber -eq 0) {
 $Steps2Execute = @()
 $Steps2ExecuteRaw = @()
 if(-not [String]::IsNullOrEmpty($SkipSteps)) {
-    $Steps2ExecuteRaw += Compare-Object -ReferenceObject $AllSteps -DifferenceObject $SkipSteps | Select-Object -ExpandProperty InputObject
+    $Steps2ExecuteRaw += Compare-Object -ReferenceObject $AllSteps -DifferenceObject $SkipSteps | Select-Object -ExpandProperty InputObject -Unique
 }
 else {
     $Steps2ExecuteRaw += $AllSteps
@@ -319,9 +334,18 @@ $Steps2Execute += $Steps2ExecuteRaw | ForEach-Object {
 
 
 # Get Server Info
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching basic server info.."
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching basic server info for `$SqlInstanceToBaseline => [$SqlInstanceToBaseline].."
 $sqlServerInfo = @"
-select	default_domain() as [domain],
+DECLARE @Domain NVARCHAR(255);
+begin try
+	EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT;
+end try
+begin catch
+	print 'some erorr accessing registry'
+end catch
+
+select	[domain] = default_domain(),
+		[domain_reg] = @Domain,
 		--[ip] = CONNECTIONPROPERTY('local_net_address'),
 		[@@SERVERNAME] = @@SERVERNAME,
 		[MachineName] = serverproperty('MachineName'),
@@ -335,16 +359,17 @@ select	default_domain() as [domain],
 								when @@servicename <> 'MSSQLSERVER' and servicename like 'SQL Server Agent (%)' then 'SQLAgent'+@@servicename
 								else 'MSSQL$'+@@servicename end,
         service_account,
-		SERVERPROPERTY('Edition') AS Edition
+		SERVERPROPERTY('Edition') AS Edition,
+        [is_clustered] = case when exists (select 1 from sys.dm_os_cluster_nodes) then 1 else 0 end
 from sys.dm_server_services 
 where servicename like 'SQL Server (%)'
 or servicename like 'SQL Server Agent (%)'
 "@
 try {
-    $sqlServerServicesInfo = Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Query $sqlServerInfo -SqlCredential $SqlCredential -EnableException
-    $sqlServerInfo = $sqlServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server (*)"}
-    $sqlServerAgentInfo = $sqlServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server Agent (*)"}
-    $sqlServerServicesInfo | Format-Table -AutoSize
+    $resultServerInfo = Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Query $sqlServerInfo -SqlCredential $SqlCredential -EnableException
+    $dbServiceInfo = $resultServerInfo | Where-Object {$_.service_name_str -like "SQL Server (*)"}
+    $agentServiceInfo = $resultServerInfo | Where-Object {$_.service_name_str -like "SQL Server Agent (*)"}
+    $resultServerInfo | Format-Table -AutoSize
 }
 catch {
     $errMessage = $_
@@ -358,75 +383,18 @@ catch {
     Write-Error "Stop here. Fix above issue."
 }
 
-# Service Account and Access Validation
-if( ($SkipPowerShellJobs -or $SkipAllJobs) -and ($SkipWindowsAdminAccessTest -eq $false) ) { $SkipWindowsAdminAccessTest = $true }
-if($SkipWindowsAdminAccessTest -eq $false)
-{
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validate for WindowsCredential if SQL Service Accounts are non-priviledged.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$TestWindowsAdminAccessFilePath = '$TestWindowsAdminAccessFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating & executing job [(dba) Test-WindowsAdminAccess] on [$SqlInstanceForDataCollectionJobs].."
-    $sqlTestWindowsAdminAccessFilePath = [System.IO.File]::ReadAllText($TestWindowsAdminAccessFilePath)
-    Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlTestWindowsAdminAccessFilePath -SqlCredential $SqlCredential -EnableException
 
-    $testWindowsAdminAccessJobHistory = @()
-    $loopStartTime = Get-Date
-    $sleepDurationSeconds = 5
-    $loopTotalDurationThresholdSeconds = 300    
-    
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching execution history for job [(dba) Test-WindowsAdminAccess] on [$SqlInstanceForDataCollectionJobs].."
-    while ($testWindowsAdminAccessJobHistory.Count -eq 0 -and $( (New-TimeSpan $loopStartTime $(Get-Date)).TotalSeconds -le $loopTotalDurationThresholdSeconds ) )
-    {
-        $testWindowsAdminAccessJobHistory += Get-DbaAgentJobHistory -SqlInstance $SqlInstanceForDataCollectionJobs -Job '(dba) Test-WindowsAdminAccess' `
-                                                    -ExcludeJobSteps -SqlCredential $SqlCredential -EnableException
-
-        if($testWindowsAdminAccessJobHistory.Count -eq 0) {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Wait for $sleepDurationSeconds seconds as the job might be running.."
-            Start-Sleep -Seconds $sleepDurationSeconds
-        }
-    }
-
-    if($testWindowsAdminAccessJobHistory.Count -eq 0) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Status of job [(dba) Test-WindowsAdminAccess] on [$SqlInstanceForDataCollectionJobs] could not be fetched on time. Kindly validate." | Write-Host -ForegroundColor Red
-        "STOP and check above error message" | Write-Error
-    }
-    else {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[(dba) Test-WindowsAdminAccess] Job history => '$($testWindowsAdminAccessJobHistory.Message)'."
-        $testWindowsAdminAccessJobHistory | Format-Table -AutoSize
-    }
-
-    $hasWindowsAdminAccess = $false
-    if($testWindowsAdminAccessJobHistory.Status -ne 'Succeeded') {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "SQL Agent service account [$($sqlServerAgentInfo.service_account)] DO NOT have admin access at windows."
-    } else {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "SQL Agent service account [$($sqlServerAgentInfo.service_account)] has admin access at windows."
-        $hasWindowsAdminAccess = $true
-    }
-
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remmove test job [(dba) Test-WindowsAdminAccess].."
-    Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query "EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Test-WindowsAdminAccess'" -SqlCredential $SqlCredential -EnableException
-
-
-    $requireProxy = $(-not $hasWindowsAdminAccess)
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$hasWindowsAdminAccess = $hasWindowsAdminAccess"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$requireProxy = $requireProxy"
-
-    if($requireProxy -and [String]::IsNullOrEmpty($WindowsCredential)) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide WindowsCredential to create SQL Agent Job Proxy." | Write-Host -ForegroundColor Red
-        "STOP and check above error message" | Write-Error
-    }
-}
-
-# Extract Version Info
+# Extract Version Info & Partition Info
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Extract Major & Minor Version of SQL Server.."
 [bool]$IsNonPartitioned = $true
-if($sqlServerInfo.ProductVersion -match "(?'MajorVersion'\d+)\.\d+\.(?'MinorVersion'\d+)\.\d+")
+if($dbServiceInfo.ProductVersion -match "(?'MajorVersion'\d+)\.\d+\.(?'MinorVersion'\d+)\.\d+")
 {
     [int]$MajorVersion = $Matches['MajorVersion']
     [int]$MinorVersion = $Matches['MinorVersion']
-    if($sqlServerInfo.Edition -like 'Enterprise*' -or $sqlServerInfo.Edition -like 'Developer*') {
+    if($dbServiceInfo.Edition -like 'Enterprise*' -or $dbServiceInfo.Edition -like 'Developer*') {
         $IsNonPartitioned = $false
     }
-    elseif($sqlServerInfo.Edition -like 'Standard*')
+    elseif($dbServiceInfo.Edition -like 'Standard*')
     {
         if($MajorVersion -gt 13) {
             $IsNonPartitioned = $false
@@ -437,39 +405,75 @@ if($sqlServerInfo.ProductVersion -match "(?'MajorVersion'\d+)\.\d+\.(?'MinorVers
     }
 }
 
-# Fetch HostName from SqlInstance if NULL
-if([String]::IsNullOrEmpty($HostName)) {
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Extract HostName of SQL Server Instance.."
-    $HostName = $sqlServerInfo.host_name;
+# Extract domain & isClustered property
+[bool]$isClustered = $dbServiceInfo.is_clustered
+[string]$domain = $dbServiceInfo.domain_reg
+if([String]::IsNullOrEmpty($domain)) {
+    $domain = $dbServiceInfo.domain+'.com'
 }
 
-# Setup PSSession on Host
-if(-not $SkipRDPSessionSteps)
+# Fetch HostName for SqlInstance if NULL in parameter value
+if([String]::IsNullOrEmpty($HostName)) {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Extract HostName of SQL Server Instance.."
+    $HostName = $dbServiceInfo.host_name;
+}
+else {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validate HostName.."
+    # If Sql Cluster, then host can be different
+    # If not sql cluster, then host should be same
+    if(-not $isClustered) {
+        if($HostName -ne $dbServiceInfo.host_name) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provided HostName does not match with SQLInstance host name." | Write-Host -ForegroundColor Red
+            "STOP and check above error message" | Write-Error
+        }
+    }
+}
+
+
+# Setup PSSession on HostName to setup Perfmon Data Collector. $ssn4PerfmonSetup
+if( (-not $SkipRDPSessionSteps) ) #-and ($HostName -ne $env:COMPUTERNAME)
 {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Create PSSession for host [$HostName].."
     $ssnHostName = $HostName
-    if (-not (Test-Connection -ComputerName $HostName -Quiet -Count 1)) {
-        $ssnHostName = $SqlInstanceToBaseline
+
+    # Try reaching server using HostName provided/detected, if fails, then use FQDN
+    if (-not (Test-Connection -ComputerName $ssnHostName -Quiet -Count 1)) {
+        $ssnHostName = "$HostName.$domain"
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Host [$HostName] not pingable. So trying FQDN form [$ssnHostName].."
     }
+
+    # Try reaching using FQDN, if fails & not a clustered instance, then use SqlInstanceToBaseline itself
+    if ( (-not (Test-Connection -ComputerName $ssnHostName -Quiet -Count 1)) -and (-not $isClustered) ) {
+        $ssnHostName = $SqlInstanceToBaseline
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Host [$ssnHostName] not pingable. Since its not clustered instance, So trying `$SqlInstanceToBaseline parameter value itself.."
+    }
+
+    # Try reaching using FQDN, if fails & not a clustered instance, then use SqlInstanceToBaseline itself
+    if ( -not (Test-Connection -ComputerName $ssnHostName -Quiet -Count 1) ) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Host [$ssnHostName] not pingable." | Write-Host -ForegroundColor Red
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide HostName either in FQDN or ipv4 format." | Write-Host -ForegroundColor Red
+        "STOP and check above error message" | Write-Error
+    }
+
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ssnHostName => '$ssnHostName'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Domain of SqlInstance being baselined => [$($sqlServerInfo.domain)]"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Domain of SqlInstance being baselined => [$domain]"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Domain of current host => [$($env:USERDOMAIN)]"
 
-    $ssn = $null
+    $ssn4PerfmonSetup = $null
     $errVariables = @()
 
     # First Attempt without Any credentials
     try {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Trying for PSSession on [$ssnHostName] normally.."
-            $ssn = New-PSSession -ComputerName $ssnHostName 
+            $ssn4PerfmonSetup = New-PSSession -ComputerName $ssnHostName 
         }
     catch { $errVariables += $_ }
 
     # Second Attempt for Trusted Cross Domains
-    if( [String]::IsNullOrEmpty($ssn) ) {
+    if( [String]::IsNullOrEmpty($ssn4PerfmonSetup) ) {
         try { 
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Trying for PSSession on [$ssnHostName] assuming cross domain.."
-            $ssn = New-PSSession -ComputerName $ssnHostName -Authentication Negotiate 
+            $ssn4PerfmonSetup = New-PSSession -ComputerName $ssnHostName -Authentication Negotiate 
         }
         catch { $errVariables += $_ }
     }
@@ -478,19 +482,124 @@ if(-not $SkipRDPSessionSteps)
     if( [String]::IsNullOrEmpty($ssn) -and (-not [String]::IsNullOrEmpty($WindowsCredential)) ) {
         try {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Attemping PSSession for [$ssnHostName] using provided WindowsCredentials.."
-            $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential    
+            $ssn4PerfmonSetup = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential    
         }
         catch { $errVariables += $_ }
 
         if( [String]::IsNullOrEmpty($ssn) ) {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Attemping PSSession for [$ssnHostName] using provided WindowsCredentials with Negotiate attribute.."
-            $ssn = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential -Authentication Negotiate
+            $ssn4PerfmonSetup = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential -Authentication Negotiate
         }
     }
 
-    if ( [String]::IsNullOrEmpty($ssn) ) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provide WindowsCredential for accessing server [$ssnHostName] of domain '$($sqlServerInfo.domain)'." | Write-Host -ForegroundColor Red
+    if ( [String]::IsNullOrEmpty($ssn4PerfmonSetup) ) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provide WindowsCredential for accessing server [$ssnHostName] of domain '$domain'." | Write-Host -ForegroundColor Red
         "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ssn4PerfmonSetup PSSession for [$HostName].."
+    $ssn4PerfmonSetup
+    "`n"
+}
+
+# Validate if IPv4 is provided instead of DNS name for HostName
+$pattern = "^([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])){3}$"
+if($HostName  -match $pattern) {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "IP address has been provided for `$HostName parameter."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching DNS name for [$HostName].."
+    $HostName = Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock { $env:COMPUTERNAME }
+}
+
+# Validate if FQDN is provided instead of single part HostName
+$pattern = "(?=^.{4,253}$)(^((?!-)[a-zA-Z0-9-]{1,63}(?<!-)\.)+[a-zA-Z]{2,63}$)"
+if($HostName  -match $pattern) {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "FQDN has been provided for `$HostName parameter."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching DNS name for [$HostName].."
+    $HostName = Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock { $env:COMPUTERNAME }
+}
+
+# Check No of SQL Services on HostName
+if(-not $SkipPowerShellJobs)
+{
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Check for number of SQLServices on [$HostName].."
+
+    $sqlServicesOnHost = @()
+    # Localhost system
+    if( $HostName -eq $env:COMPUTERNAME ) {
+        $sqlServicesOnHost += Get-Service MSSQL* | Where-Object {$_.DisplayName -like 'SQL Server (*)' -and $_.StartType -ne 'Disabled'}
+    }
+    else {
+        $sqlServicesOnHost += Invoke-Command -SessionName $ssn4PerfmonSetup -ScriptBlock { 
+                                    Get-Service MSSQL* | Where-Object {$_.DisplayName -like 'SQL Server (*)' -and $_.StartType -ne 'Disabled'} 
+                            }
+    }
+
+    # If more than one sql services found, then ensure appropriate parameters are provided
+    if($sqlServicesOnHost.Count -gt 1) 
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[$($sqlServicesOnHost.Count)] database engine Services found on [$HostName].."
+
+        # If Destination instance is not provided, throw error
+        if([String]::IsNullOrEmpty($SqlInstanceAsDataDestination) -or (-not $ConfirmValidationOfMultiInstance)) 
+        {
+            if([String]::IsNullOrEmpty($SqlInstanceAsDataDestination)) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide value for parameter SqlInstanceAsDataDestination as host has multiple database engine services, `n`t and Perfmon data can be saved on only on one SQLInstance." | Write-Host -ForegroundColor Red
+            }
+            if(-not $ConfirmValidationOfMultiInstance) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly set ConfirmValidationOfMultiInstance parameter to true as host has multiple database engine services, `n`t and Perfmon data can be saved on only on one SQLInstance." | Write-Host -ForegroundColor Red
+            }
+
+            "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+        }
+        # If destination is provided, then validate if perfmon is not already get collected
+        else {
+            
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validate if Perfmon data is not being collected already on [$SqlInstanceAsDataDestination] for same host.."
+            $sqlPerfmonRecord = @"
+select top 1 'dbo.performance_counters' as QueryData, getutcdate() as current_time_utc, collection_time_utc, pc.host_name
+from dbo.performance_counters pc with (nolock)
+where pc.collection_time_utc >= DATEADD(minute,-20,GETUTCDATE()) and host_name = '$HostName'
+order by pc.collection_time_utc desc
+"@
+            $resultPerfmonRecord = @()
+            $resultPerfmonRecord += Invoke-DbaQuery -SqlInstance $SqlInstanceAsDataDestination -Database $DbaDatabase -Query $sqlPerfmonRecord -SqlCredential $SqlCredential -EnableException
+            if($resultPerfmonRecord.Count -eq 0) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "No Perfmon data record found for last 20 minutes for host [$HostName] on [$SqlInstanceAsDataDestination]."
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Perfmon data records of latest 20 minutes for host [$HostName] are present on [$SqlInstanceAsDataDestination]."
+            }
+        }
+    }
+}
+
+# Set $SqlInstanceAsDataDestination same as $SqlInstanceToBaseline if NULL
+if([String]::IsNullOrEmpty($SqlInstanceAsDataDestination)) {
+    $SqlInstanceAsDataDestination = $SqlInstanceToBaseline
+}
+
+# Set $SqlInstanceForTsqlJobs same as $SqlInstanceToBaseline if NULL
+if([String]::IsNullOrEmpty($SqlInstanceForTsqlJobs)) {
+    $SqlInstanceForTsqlJobs = $SqlInstanceToBaseline
+}
+
+# Set $SqlInstanceForPowershellJobs same as $SqlInstanceToBaseline if NULL
+if([String]::IsNullOrEmpty($SqlInstanceForPowershellJobs)) {
+    $SqlInstanceForPowershellJobs = $SqlInstanceToBaseline
+}
+
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceAsDataDestination = [$SqlInstanceAsDataDestination]"
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceForTsqlJobs = [$SqlInstanceForTsqlJobs]"
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceForPowershellJobs = [$SqlInstanceForPowershellJobs]"
+
+# If Express edition, then ensure another server is mentioned for Creating jobs
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking if [$SqlInstanceToBaseline] is Express Edition.."
+$isExpressEdition = $false
+if($dbServiceInfo.Edition -like 'Express*') {
+    $isExpressEdition = $true
+    if( ($SqlInstanceForTsqlJobs -eq $SqlInstanceToBaseline) -or ($SqlInstanceForPowershellJobs -eq $SqlInstanceToBaseline) ) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Curent instance is Express edition. `n`tKindly provide a different SQLInstance for parameters SqlInstanceForTsqlJobs & SqlInstanceForPowershellJobs." | Write-Host -ForegroundColor Red
+        "STOP and check above error message" | Write-Error
     }
 }
 
@@ -512,10 +621,174 @@ if($dbCollationResult.Count -ne 0) {
 }
 
 
+# Get HostName for $SqlInstanceForPowershellJobs
+if($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) 
+{
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching basic info for `$SqlInstanceForPowershellJobs => [$SqlInstanceForPowershellJobs].."
+    try {
+        $jobServerServicesInfo = Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Query $sqlServerInfo -SqlCredential $SqlCredential -EnableException
+        $jobServerDbServiceInfo = $jobServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server (*)"}
+        $jobServerAgentServiceInfo = $jobServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server Agent (*)"}
+        $jobServerServicesInfo | Format-Table -AutoSize
+    }
+    catch {
+        $errMessage = $_
+    
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "SQL Connection to [$SqlInstanceToBaseline] failed."
+        if([String]::IsNullOrEmpty($SqlCredential)) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide SqlCredentials." | Write-Host -ForegroundColor Red
+        } else {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provided SqlCredentials seems to be NOT working." | Write-Host -ForegroundColor Red
+        }
+        Write-Error "Stop here. Fix above issue."
+    }
+}
+
+
+# Setup PSSession on $SqlInstanceForPowershellJobs
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validating if PSSession is needed on `$SqlInstanceForPowershellJobs.."
+if( (-not $SkipRDPSessionSteps) -and ($HostName -ne $jobServerDbServiceInfo.host_name) )
+{
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Create PSSession for host [$($jobServerDbServiceInfo.host_name)].."
+    $ssnHostName = $jobServerDbServiceInfo.host_name #+'.'+$jobServerDbServiceInfo.domain_reg
+
+    # Try reaching server using HostName provided/detected, if fails, then use FQDN
+    if (-not (Test-Connection -ComputerName $ssnHostName -Quiet -Count 1)) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Host [$ssnHostName] not pingable. So trying FQDN form.."
+        $ssnHostName = $ssnHostName+'.'+$jobServerDbServiceInfo.domain_reg
+    }
+
+    # Try reaching using FQDN, if fails & not a clustered instance, then use SqlInstanceToBaseline itself
+    if (-not (Test-Connection -ComputerName $ssnHostName -Quiet -Count 1)) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Host [$ssnHostName] not pingable. So trying `$SqlInstanceForPowershellJobs parameter value itself.."
+        $ssnHostName = $SqlInstanceForPowershellJobs
+    }
+
+    # Try reaching using FQDN, if fails & not a clustered instance, then use SqlInstanceToBaseline itself
+    if ( -not (Test-Connection -ComputerName $ssnHostName -Quiet -Count 1) ) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Host [$ssnHostName] not pingable." | Write-Host -ForegroundColor Red
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly ensure pssession is working for `$SqlInstanceForPowershellJobs [$SqlInstanceForPowershellJobs]." | Write-Host -ForegroundColor Red
+        "STOP and check above error message" | Write-Error
+    }
+
+    $ssnJobServer = $null
+    $errVariables = @()
+
+    # First Attempt without Any credentials
+    try {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Trying for PSSession on [$ssnHostName] normally.."
+            $ssnJobServer = New-PSSession -ComputerName $ssnHostName 
+        }
+    catch { $errVariables += $_ }
+
+    # Second Attempt for Trusted Cross Domains
+    if( [String]::IsNullOrEmpty($ssnJobServer) ) {
+        try { 
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Trying for PSSession on [$ssnHostName] assuming cross domain.."
+            $ssnJobServer = New-PSSession -ComputerName $ssnHostName -Authentication Negotiate 
+        }
+        catch { $errVariables += $_ }
+    }
+
+    # 3rd Attempt with Credentials
+    if( [String]::IsNullOrEmpty($ssnJobServer) -and (-not [String]::IsNullOrEmpty($WindowsCredential)) ) {
+        try {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Attemping PSSession for [$ssnHostName] using provided WindowsCredentials.."
+            $ssnJobServer = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential    
+        }
+        catch { $errVariables += $_ }
+
+        if( [String]::IsNullOrEmpty($ssn) ) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Attemping PSSession for [$ssnHostName] using provided WindowsCredentials with Negotiate attribute.."
+            $ssnJobServer = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential -Authentication Negotiate
+        }
+    }
+
+    if ( [String]::IsNullOrEmpty($ssnJobServer) ) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provide WindowsCredential for accessing server [$ssnHostName] of domain '$($sqlServerInfo.domain)'." | Write-Host -ForegroundColor Red
+        "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "PSSession for [$($jobServerDbServiceInfo.host_name)].."
+    $ssnJobServer
+}
+else {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ssnJobServer is same as `$ssn4PerfmonSetup."
+    $ssnJobServer = $ssn4PerfmonSetup
+}
+
+
+# Service Account and Access Validation
+$requireProxy = $false
+if( ($SkipPowerShellJobs -or $SkipAllJobs) -and ($SkipWindowsAdminAccessTest -eq $false) ) { $SkipWindowsAdminAccessTest = $true }
+if($SkipWindowsAdminAccessTest -eq $false)
+{
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validate for WindowsCredential if SQL Service Accounts are non-priviledged.."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$TestWindowsAdminAccessFilePath = '$TestWindowsAdminAccessFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating & executing job [(dba) Test-WindowsAdminAccess] on [$SqlInstanceForPowershellJobs].."
+    $sqlTestWindowsAdminAccessFilePath = [System.IO.File]::ReadAllText($TestWindowsAdminAccessFilePath)
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlTestWindowsAdminAccessFilePath -SqlCredential $SqlCredential -EnableException
+
+    $testWindowsAdminAccessJobHistory = @()
+    $loopStartTime = Get-Date
+    $sleepDurationSeconds = 5
+    $loopTotalDurationThresholdSeconds = 300    
+    
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching execution history for job [(dba) Test-WindowsAdminAccess] on [$SqlInstanceForPowershellJobs].."
+    while ($testWindowsAdminAccessJobHistory.Count -eq 0 -and $( (New-TimeSpan $loopStartTime $(Get-Date)).TotalSeconds -le $loopTotalDurationThresholdSeconds ) )
+    {
+        $testWindowsAdminAccessJobHistory += Get-DbaAgentJobHistory -SqlInstance $SqlInstanceForPowershellJobs -Job '(dba) Test-WindowsAdminAccess' `
+                                                    -ExcludeJobSteps -SqlCredential $SqlCredential -EnableException
+
+        if($testWindowsAdminAccessJobHistory.Count -eq 0) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Wait for $sleepDurationSeconds seconds as the job might be running.."
+            Start-Sleep -Seconds $sleepDurationSeconds
+        }
+    }
+
+    if($testWindowsAdminAccessJobHistory.Count -eq 0) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Status of job [(dba) Test-WindowsAdminAccess] on [$SqlInstanceForPowershellJobs] could not be fetched on time. Kindly validate." | Write-Host -ForegroundColor Red
+        "STOP and check above error message" | Write-Error
+    }
+    else {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[(dba) Test-WindowsAdminAccess] Job history => '$($testWindowsAdminAccessJobHistory.Message)'."
+        $testWindowsAdminAccessJobHistory | Format-Table -AutoSize
+    }
+
+    $hasWindowsAdminAccess = $false
+    $sqlServerAgentInfo = if($SqlInstanceForPowershellJobs -ne $SqlInstanceToBaseline) {$jobServerAgentServiceInfo} else {$agentServiceInfo}
+
+    if($testWindowsAdminAccessJobHistory.Status -ne 'Succeeded') {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "SQL Agent service account [$($sqlServerAgentInfo.service_account)] DO NOT have admin access at windows."
+    } else {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "SQL Agent service account [$($sqlServerAgentInfo.service_account)] has admin access at windows."
+        $hasWindowsAdminAccess = $true
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove test job [(dba) Test-WindowsAdminAccess].."
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query "EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Test-WindowsAdminAccess'" -SqlCredential $SqlCredential -EnableException
+
+
+    $requireProxy = $(-not $hasWindowsAdminAccess)
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$hasWindowsAdminAccess = $hasWindowsAdminAccess"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$requireProxy = $requireProxy"
+
+    if($requireProxy -and [String]::IsNullOrEmpty($WindowsCredential)) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide WindowsCredential to create SQL Agent Job Proxy." | Write-Host -ForegroundColor Red
+        "STOP and check above error message" | Write-Error
+    }
+}
+else {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Since SkipWindowsAdminAccessTest is set to TRUE, assuming `$requireProxy to $requireProxy."
+}
+
+
 # Validate mail profile
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking for default global mail profile.."
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$MailProfileFilePath = '$MailProfileFilePath'"
-$sqlMailProfile = @"
+if(-not $SkipMailProfileCheck)
+{
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking for default global mail profile.."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$MailProfileFilePath = '$MailProfileFilePath'"
+    $sqlMailProfile = @"
 SELECT p.name as profile_name, p.description as profile_description, a.name as mail_account, 
 		a.email_address, a.display_name, a.replyto_address, s.servername, s.port, s.servername,
 		pp.is_default
@@ -526,21 +799,22 @@ JOIN msdb.dbo.sysmail_account a ON pa.account_id = a.account_id
 JOIN msdb.dbo.sysmail_server s ON a.account_id = s.account_id
 WHERE pp.is_default = 1
 "@
-$mailProfile = @()
-$mailProfile += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlMailProfile -EnableException -SqlCredential $SqlCredential
-if($mailProfile.Count -lt 1) {
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Kindly create default global mail profile." | Write-Host -ForegroundColor Red
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Kindly utilize '$mailProfileFilePath." | Write-Host -ForegroundColor Red
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Opening the file '$mailProfileFilePath' in notepad.." | Write-Host -ForegroundColor Red
-    notepad "$mailProfileFilePath"
+    $mailProfile = @()
+    $mailProfile += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlMailProfile -EnableException -SqlCredential $SqlCredential
+    if($mailProfile.Count -lt 1) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Kindly create default global mail profile." | Write-Host -ForegroundColor Red
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Kindly utilize '$mailProfileFilePath." | Write-Host -ForegroundColor Red
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Opening the file '$mailProfileFilePath' in notepad.." | Write-Host -ForegroundColor Red
+        notepad "$mailProfileFilePath"
 
-    $mailProfile += Get-DbaDbMailProfile -SqlInstance $SqlInstanceToBaseline -SqlCredential $SqlCredential
-    if($mailProfile.Count -ne 0) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Below mail profile(s) exists.`nOne of them can be set to default global profile." | Write-Host -ForegroundColor Red
-        $mailProfile | Format-Table -AutoSize
+        $mailProfile += Get-DbaDbMailProfile -SqlInstance $SqlInstanceToBaseline -SqlCredential $SqlCredential
+        if($mailProfile.Count -ne 0) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Below mail profile(s) exists.`nOne of them can be set to default global profile." | Write-Host -ForegroundColor Red
+            $mailProfile | Format-Table -AutoSize
+        }
+
+        Write-Error "Stop here. Fix above issue."
     }
-
-    Write-Error "Stop here. Fix above issue."
 }
 
 
@@ -550,13 +824,22 @@ if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$WhoIsActiveFilePath = '$WhoIsActiveFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating sp_WhoIsActive in [master] database.."
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -File $WhoIsActiveFilePath -SqlCredential $SqlCredential -EnableException
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -File $WhoIsActiveFilePath -SqlCredential $SqlCredential -EnableException
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking if sp_WhoIsActive is present in [$DbaDatabase] also.."
+    $sqlCheckWhoIsActiveExistence = "select [is_existing] = case when OBJECT_ID('dbo.sp_WhoIsActive') is null then 0 else 1 end;"
+    $existsWhoIsActive = Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlCheckWhoIsActiveExistence -SqlCredential $SqlCredential -EnableException | Select-Object -ExpandProperty is_existing;
+    if($existsWhoIsActive -eq 1) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update sp_WhoIsActive definition in [$DbaDatabase] also.."
+        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $WhoIsActiveFilePath -SqlCredential $SqlCredential -EnableException
+    }
 }
 
 
 # 2__AllDatabaseObjects
 $stepName = '2__AllDatabaseObjects'
-if($stepName -in $Steps2Execute) {
+if($stepName -in $Steps2Execute) 
+{
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating All Objects in [$DbaDatabase] database.."
 
@@ -590,6 +873,9 @@ if($stepName -in $Steps2Execute) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspCollectXeventsResourceConsumptionFilePath = '$UspCollectXeventsResourceConsumptionFilePath'"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspCollectXeventsResourceConsumptionFilePath -SqlCredential $SqlCredential -EnableException
 
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspPartitionMaintenanceFilePath = '$UspPartitionMaintenanceFilePath'"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspPartitionMaintenanceFilePath -SqlCredential $SqlCredential -EnableException
+
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspPurgeTablesFilePath = '$UspPurgeTablesFilePath'"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspPurgeTablesFilePath -SqlCredential $SqlCredential -EnableException
 
@@ -603,7 +889,7 @@ if($stepName -in $Steps2Execute) {
 	        insert dbo.instance_hosts ([host_name])
 	        select [host_name] = '$HostName';
             
-            select * from dbo.instance_hosts
+            select 'dbo.instance_hosts' as RunningQuery, * from dbo.instance_hosts
         end
 "@
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAddInstanceHost -SqlCredential $SqlCredential -EnableException | ft -AutoSize
@@ -612,15 +898,23 @@ if($stepName -in $Steps2Execute) {
     $sqlAddInstanceHostMapping = @"
     if not exists (select * from dbo.instance_details where sql_instance = '$SqlInstanceToBaseline' and [host_name] = '$HostName')
     begin
-	    insert dbo.instance_details ( [sql_instance], [host_name], [collector_sql_instance] )
+	    insert dbo.instance_details ( [sql_instance], [host_name], [collector_tsql_jobs_server], [collector_powershell_jobs_server], [data_destination_sql_instance] )
 	    select	[sql_instance] = '$SqlInstanceToBaseline',
 			    [host_name] = '$Hostname',
-			    [collector_sql_instance] = '$SqlInstanceForDataCollectionJobs';
+			    [collector_tsql_jobs_server] = '$SqlInstanceForTsqlJobs',
+                [collector_powershell_jobs_server] = '$SqlInstanceForPowershellJobs',
+                [data_destination_sql_instance] = '$SqlInstanceAsDataDestination'
 
-        select * from dbo.instance_details
+        select 'dbo.instance_details' as RunningQuery, * from dbo.instance_details
     end
 "@
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAddInstanceHostMapping -SqlCredential $SqlCredential -EnableException | ft -AutoSize
+
+
+    if($isExpressEdition) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Since instance is Express Edition, change retention to 14 days.." | Write-Host -ForegroundColor Cyan
+        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query "update dbo.purge_table set retention_days = 14 where retention_days > 14" -SqlCredential $SqlCredential -EnableException
+    }
 }
 
 
@@ -736,7 +1030,8 @@ if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$DbaToolsFolderPath = '$DbaToolsFolderPath'"
     
-    $remoteModulePath = Invoke-Command -Session $ssn -ScriptBlock {
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Finding valid PSModule path on [$HostName].."
+    $remoteModulePath = Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock {
         $modulePath = $null
         if('C:\Program Files\WindowsPowerShell\Modules' -in $($env:PSModulePath -split ';')) {
             $modulePath = 'C:\Program Files\WindowsPowerShell\Modules'
@@ -750,11 +1045,37 @@ if($stepName -in $Steps2Execute) {
     $dbatoolsRemotePath = Join-Path $remoteModulePath 'dbatools'
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Copy dbatools module from '$DbaToolsFolderPath' to host [$HostName] on '$dbatoolsRemotePath'.."
     
-    if( (Invoke-Command -Session $ssn -ScriptBlock {Test-Path $Using:dbatoolsRemotePath}) ) {
+    if( (Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock {Test-Path $Using:dbatoolsRemotePath}) ) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$dbatoolsRemotePath' already exists on host [$HostName]."
     }
     else {
-        Copy-Item $DbaToolsFolderPath -Destination $dbatoolsRemotePath -ToSession $ssn -Recurse
+        Copy-Item $DbaToolsFolderPath -Destination $dbatoolsRemotePath -ToSession $ssn4PerfmonSetup -Recurse
+    }
+
+    # If Job Server is different server, then Copy dbatools there also
+    if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -and ($ssn4PerfmonSetup -ne $ssnJobServer) )
+    {
+        "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Finding valid PSModule path on [$($ssnJobServer.ComputerName)].."
+        $remoteModulePath = Invoke-Command -Session $ssnJobServer -ScriptBlock {
+            $modulePath = $null
+            if('C:\Program Files\WindowsPowerShell\Modules' -in $($env:PSModulePath -split ';')) {
+                $modulePath = 'C:\Program Files\WindowsPowerShell\Modules'
+            }
+            else {
+                $modulePath = $($env:PSModulePath -split ';') | Where-Object {$_ -like '*Microsoft SQL Server*'} | select -First 1
+            }
+            $modulePath
+        }
+
+        $dbatoolsRemotePath = Join-Path $remoteModulePath 'dbatools'
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Copy dbatools module from '$DbaToolsFolderPath' to host [$($ssnJobServer.ComputerName)] on '$dbatoolsRemotePath'.."
+    
+        if( (Invoke-Command -Session $ssnJobServer -ScriptBlock {Test-Path $Using:dbatoolsRemotePath}) ) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$dbatoolsRemotePath' already exists on host [$($ssnJobServer.ComputerName)]."
+        }
+        else {
+            Copy-Item $DbaToolsFolderPath -Destination $dbatoolsRemotePath -ToSession $ssnJobServer -Recurse
+        }
     }
 }
 
@@ -765,14 +1086,26 @@ if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$psScriptPath = '$psScriptPath'"
     
-    if( (Invoke-Command -Session $ssn -ScriptBlock {Test-Path $Using:RemoteSQLMonitorPath}) ) {
+    # Copy SQLMonitor folder on HostName provided
+    if( (Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock {Test-Path $Using:RemoteSQLMonitorPath}) ) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Sync '$RemoteSQLMonitorPath' on [$HostName] from local copy '$psScriptPath'.."
-        Copy-Item "$psScriptPath\*" -Destination "$RemoteSQLMonitorPath" -ToSession $ssn -Recurse -Force
+        Copy-Item "$psScriptPath\*" -Destination "$RemoteSQLMonitorPath" -ToSession $ssn4PerfmonSetup -Recurse -Force
     }else {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Copy '$psScriptPath' to '$RemoteSQLMonitorPath' on [$HostName].."
-        Copy-Item $psScriptPath -Destination $RemoteSQLMonitorPath -ToSession $ssn -Recurse -Force
+        Copy-Item $psScriptPath -Destination $RemoteSQLMonitorPath -ToSession $ssn4PerfmonSetup -Recurse -Force
     }
-    
+
+    # Copy SQLMonitor folder on Jobs Server Host
+    if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -and ($ssn4PerfmonSetup -ne $ssnJobServer) )
+    {
+        if( (Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock {Test-Path $Using:RemoteSQLMonitorPath}) ) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Sync '$RemoteSQLMonitorPath' on [$HostName] from local copy '$psScriptPath'.."
+            Copy-Item "$psScriptPath\*" -Destination "$RemoteSQLMonitorPath" -ToSession $ssn4PerfmonSetup -Recurse -Force
+        }else {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Copy '$psScriptPath' to '$RemoteSQLMonitorPath' on [$HostName].."
+            Copy-Item $psScriptPath -Destination $RemoteSQLMonitorPath -ToSession $ssn4PerfmonSetup -Recurse -Force
+        }
+    }
 }
 
 
@@ -781,7 +1114,7 @@ $stepName = '11__SetupPerfmonDataCollector'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Setup Data Collector set 'DBA' on host '$HostName'.."
-    Invoke-Command -Session $ssn -ScriptBlock {
+    Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock {
         # Set execution policy
         Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy Unrestricted -Force 
         & "$Using:RemoteSQLMonitorPath\perfmon-collector-logman.ps1" -TemplatePath "$Using:RemoteSQLMonitorPath\DBA_PerfMon_All_Counters_Template.xml" -ReSetupCollector $true
@@ -791,38 +1124,52 @@ if($stepName -in $Steps2Execute) {
 
 # 12__CreateCredentialProxy. Create Credential & Proxy on SQL Server. If Instance being baselined is same as data collector job owner
 $stepName = '12__CreateCredentialProxy'
-if( ($SqlInstanceForDataCollectionJobs -eq $SqlInstanceToBaseline -and $requireProxy) -and ($stepName -in $Steps2Execute) ) {
+if( $requireProxy -and ($stepName -in $Steps2Execute) ) 
+{
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     $credentialName = $WindowsCredential.UserName
     $credentialPassword = $WindowsCredential.Password
 
-    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Create new SQL Credential [$credentialName] on [$SqlInstanceToBaseline].."
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Create new SQL Credential [$credentialName] on [$SqlInstanceForPowershellJobs].."
     $dbaCredential = @()
-    $dbaCredential += Get-DbaCredential -SqlInstance $SqlInstanceToBaseline -Name $credentialName -SqlCredential $SqlCredential -EnableException
+    $dbaCredential += Get-DbaCredential -SqlInstance $SqlInstanceForPowershellJobs -Name $credentialName -SqlCredential $SqlCredential -EnableException
     if($dbaCredential.Count -eq 0) {
-        New-DbaCredential -SqlInstance $SqlInstanceToBaseline -Identity $credentialName -SecurePassword $credentialPassword -SqlCredential $SqlCredential -EnableException
+        New-DbaCredential -SqlInstance $SqlInstanceForPowershellJobs -Identity $credentialName -SecurePassword $credentialPassword -SqlCredential $SqlCredential -EnableException
     } else {
-        "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "SQL Credential [$credentialName] already exists on [$SqlInstanceToBaseline].."
+        "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "SQL Credential [$credentialName] already exists on [$SqlInstanceForPowershellJobs].."
     }
     $dbaAgentProxy = @()
-    $dbaAgentProxy += Get-DbaAgentProxy -SqlInstance $SqlInstanceToBaseline -Proxy $credentialName -SqlCredential $SqlCredential -EnableException
+    $dbaAgentProxy += Get-DbaAgentProxy -SqlInstance $SqlInstanceForPowershellJobs -Proxy $credentialName -SqlCredential $SqlCredential -EnableException
     if($dbaAgentProxy.Count -eq 0) {
-        New-DbaAgentProxy -SqlInstance $SqlInstanceToBaseline -Name $credentialName -ProxyCredential $credentialName -SubSystem CmdExec, PowerShell -SqlCredential $SqlCredential -EnableException
+        New-DbaAgentProxy -SqlInstance $SqlInstanceForPowershellJobs -Name $credentialName -ProxyCredential $credentialName -SubSystem CmdExec, PowerShell -SqlCredential $SqlCredential -EnableException
     } else {
-        "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "SQL Agent Proxy [$credentialName] already exists on [$SqlInstanceToBaseline].."
+        "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "SQL Agent Proxy [$credentialName] already exists on [$SqlInstanceForPowershellJobs].."
     }
 }
 
 
 # 13__CreateJobCollectDiskSpace
 $stepName = '13__CreateJobCollectDiskSpace'
-if($stepName -in $Steps2Execute) {
+if($stepName -in $Steps2Execute) 
+{
+    $jobName = '(dba) Collect-DiskSpace'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectDiskSpaceFilePath = '$CollectDiskSpaceFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Collect-DiskSpace] on [$SqlInstanceForDataCollectionJobs].."
+    
+    # Append HostName if Job Server is different    
+    $jobNameNew = $jobName
+    if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -and ($HostName -ne $jobServerDbServiceInfo.host_name) ) {
+        $jobNameNew = "$jobName - $HostName"
+    }    
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForPowershellJobs].."
     $sqlCreateJobCollectDiskSpace = [System.IO.File]::ReadAllText($CollectDiskSpaceFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceAsDataDestination`"")
     $sqlCreateJobCollectDiskSpace = $sqlCreateJobCollectDiskSpace.Replace('-Database DBA', "-Database `"$DbaDatabase`"")
     $sqlCreateJobCollectDiskSpace = $sqlCreateJobCollectDiskSpace.Replace('-HostName localhost', "-HostName `"$HostName`"")
+    if($jobNameNew -ne $jobName) {
+        $sqlCreateJobCollectDiskSpace = $sqlCreateJobCollectDiskSpace.Replace($jobName, $jobNameNew)
+    }
+
     if($RemoteSQLMonitorPath -ne 'C:\SQLMonitor') {
         $sqlCreateJobCollectDiskSpace = $sqlCreateJobCollectDiskSpace.Replace('C:\SQLMonitor', $RemoteSQLMonitorPath)
     }
@@ -830,27 +1177,40 @@ if($stepName -in $Steps2Execute) {
         $tsqlSSMSValidation = "and APP_NAME() = 'Microsoft SQL Server Management Studio - Query'"
         $sqlCreateJobCollectDiskSpace = $sqlCreateJobCollectDiskSpace.Replace($tsqlSSMSValidation, "--$tsqlSSMSValidation")
     }
-    Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlCreateJobCollectDiskSpace -SqlCredential $SqlCredential -EnableException
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlCreateJobCollectDiskSpace -SqlCredential $SqlCredential -EnableException
 
     if($requireProxy) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [(dba) Collect-DiskSpace] to run under proxy [$credentialName].."
-        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'(dba) Collect-DiskSpace', @step_id=1 ,@proxy_name=N'$credentialName';"
-        Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlUpdateJob -SqlCredential $SqlCredential -EnableException
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [$jobNameNew] to run under proxy [$credentialName].."
+        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'$jobNameNew', @step_id=1 ,@proxy_name=N'$credentialName';"
+        Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlUpdateJob -SqlCredential $SqlCredential -EnableException
     }
-    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Collect-DiskSpace';"
-    Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlStartJob -SqlCredential $SqlCredential -EnableException
+    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'$jobNameNew';"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlStartJob -SqlCredential $SqlCredential -EnableException
 }
 
 
 # 14__CreateJobCollectOSProcesses
 $stepName = '14__CreateJobCollectOSProcesses'
-if($stepName -in $Steps2Execute) {
+if($stepName -in $Steps2Execute) 
+{
+    $jobName = '(dba) Collect-OSProcesses'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectOSProcessesFilePath = '$CollectOSProcessesFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Collect-OSProcesses] on [$SqlInstanceForDataCollectionJobs].."
+
+    # Append HostName if Job Server is different    
+    $jobNameNew = $jobName
+    if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -and ($HostName -ne $jobServerDbServiceInfo.host_name) ) {
+        $jobNameNew = "$jobName - $HostName"
+    }   
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForPowershellJobs].."
     $sqlCreateJobCollectOSProcesses = [System.IO.File]::ReadAllText($CollectOSProcessesFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceAsDataDestination`"")
     $sqlCreateJobCollectOSProcesses = $sqlCreateJobCollectOSProcesses.Replace('-Database DBA', "-Database `"$DbaDatabase`"")
     $sqlCreateJobCollectOSProcesses = $sqlCreateJobCollectOSProcesses.Replace('-HostName localhost', "-HostName `"$HostName`"")
+    if($jobNameNew -ne $jobName) {
+        $sqlCreateJobCollectOSProcesses = $sqlCreateJobCollectOSProcesses.Replace($jobName, $jobNameNew)
+    }
+
     if($RemoteSQLMonitorPath -ne 'C:\SQLMonitor') {
         $sqlCreateJobCollectOSProcesses = $sqlCreateJobCollectOSProcesses.Replace('C:\SQLMonitor', $RemoteSQLMonitorPath)
     }
@@ -858,27 +1218,39 @@ if($stepName -in $Steps2Execute) {
         $tsqlSSMSValidation = "and APP_NAME() = 'Microsoft SQL Server Management Studio - Query'"
         $sqlCreateJobCollectOSProcesses = $sqlCreateJobCollectOSProcesses.Replace($tsqlSSMSValidation, "--$tsqlSSMSValidation")
     }
-    Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlCreateJobCollectOSProcesses -SqlCredential $SqlCredential -EnableException
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlCreateJobCollectOSProcesses -SqlCredential $SqlCredential -EnableException
 
     if($requireProxy) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [(dba) Collect-OSProcesses] to run under proxy [$credentialName].."
-        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'(dba) Collect-OSProcesses', @step_id=1 ,@proxy_name=N'$credentialName';"
-        Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlUpdateJob -SqlCredential $SqlCredential -EnableException
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [$jobNameNew] to run under proxy [$credentialName].."
+        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'$jobNameNew', @step_id=1 ,@proxy_name=N'$credentialName';"
+        Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlUpdateJob -SqlCredential $SqlCredential -EnableException
     }
-    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Collect-OSProcesses';"
-    Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlStartJob -SqlCredential $SqlCredential -EnableException
+    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'$jobNameNew';"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlStartJob -SqlCredential $SqlCredential -EnableException
 }
 
 
 # 15__CreateJobCollectPerfmonData
 $stepName = '15__CreateJobCollectPerfmonData'
-if($stepName -in $Steps2Execute) {
+if($stepName -in $Steps2Execute) 
+{
+    $jobName = '(dba) Collect-PerfmonData'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectPerfmonDataFilePath = '$CollectPerfmonDataFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Collect-PerfmonData] on [$SqlInstanceForDataCollectionJobs].."
+
+    # Append HostName if Job Server is different    
+    $jobNameNew = $jobName
+    if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -and ($HostName -ne $jobServerDbServiceInfo.host_name) ) {
+        $jobNameNew = "$jobName - $HostName"
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForPowershellJobs].."
     $sqlCreateJobCollectPerfmonData = [System.IO.File]::ReadAllText($CollectPerfmonDataFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceAsDataDestination`"")
     $sqlCreateJobCollectPerfmonData = $sqlCreateJobCollectPerfmonData.Replace('-Database DBA', "-Database `"$DbaDatabase`"")
     $sqlCreateJobCollectPerfmonData = $sqlCreateJobCollectPerfmonData.Replace('-HostName localhost', "-HostName `"$HostName`"")
+    if($jobNameNew -ne $jobName) {
+        $sqlCreateJobCollectPerfmonData = $sqlCreateJobCollectPerfmonData.Replace($jobName, $jobNameNew)
+    }
     
     if($RemoteSQLMonitorPath -ne 'C:\SQLMonitor') {
         $sqlCreateJobCollectPerfmonData = $sqlCreateJobCollectPerfmonData.Replace('C:\SQLMonitor', $RemoteSQLMonitorPath)
@@ -887,73 +1259,143 @@ if($stepName -in $Steps2Execute) {
         $tsqlSSMSValidation = "and APP_NAME() = 'Microsoft SQL Server Management Studio - Query'"
         $sqlCreateJobCollectPerfmonData = $sqlCreateJobCollectPerfmonData.Replace($tsqlSSMSValidation, "--$tsqlSSMSValidation")
     }
-    Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlCreateJobCollectPerfmonData -SqlCredential $SqlCredential -EnableException
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlCreateJobCollectPerfmonData -SqlCredential $SqlCredential -EnableException
 
     if($requireProxy) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [(dba) Collect-PerfmonData] to run under proxy [$credentialName].."
-        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'(dba) Collect-PerfmonData', @step_id=1 ,@proxy_name=N'$credentialName';"
-        Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlUpdateJob -SqlCredential $SqlCredential -EnableException
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [$jobNameNew] to run under proxy [$credentialName].."
+        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'$jobNameNew', @step_id=1 ,@proxy_name=N'$credentialName';"
+        Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlUpdateJob -SqlCredential $SqlCredential -EnableException
     }
-    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Collect-PerfmonData';"
-    Invoke-DbaQuery -SqlInstance $SqlInstanceForDataCollectionJobs -Database msdb -Query $sqlStartJob -SqlCredential $SqlCredential -EnableException
+    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'$jobNameNew';"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlStartJob -SqlCredential $SqlCredential -EnableException
 }
 
 
 # 16__CreateJobCollectWaitStats
 $stepName = '16__CreateJobCollectWaitStats'
-if($stepName -in $Steps2Execute) {
+if($stepName -in $Steps2Execute) 
+{
+    $jobName = '(dba) Collect-WaitStats'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectWaitStatsFilePath = '$CollectWaitStatsFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Collect-WaitStats] on [$SqlInstanceToBaseline].."
-    $sqlCreateJobCollectWaitStats = [System.IO.File]::ReadAllText($CollectWaitStatsFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
+
+    # Append HostName if Job Server is different    
+    $jobNameNew = $jobName
+    if($SqlInstanceToBaseline -ne $SqlInstanceForTsqlJobs) {
+        $jobNameNew = "$jobName - $SqlInstanceToBaseline"
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
+    $sqlCreateJobCollectWaitStats = [System.IO.File]::ReadAllText($CollectWaitStatsFilePath)
+    $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace("''some_dba_mail_id@gmail.com''", "''$($DbaGroupMailId -join ';')'';" )
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlCreateJobCollectWaitStats -SqlCredential $SqlCredential -EnableException
+    if($jobNameNew -ne $jobName) {
+        $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace($jobName, $jobNameNew)
+    }
+
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForTsqlJobs -Database msdb -Query $sqlCreateJobCollectWaitStats -SqlCredential $SqlCredential -EnableException
 }
 
 
 # 17__CreateJobCollectXEvents
 $stepName = '17__CreateJobCollectXEvents'
-if($stepName -in $Steps2Execute) {
+if($stepName -in $Steps2Execute) 
+{
+    $jobName = '(dba) Collect-XEvents'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectXEventsFilePath = '$CollectXEventsFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Collect-XEvents] on [$SqlInstanceToBaseline].."
-    $sqlCreateJobCollectXEvents = [System.IO.File]::ReadAllText($CollectXEventsFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
-    $sqlCreateJobCollectXEvents = $sqlCreateJobCollectXEvents.Replace("varchar(500) = ''some_dba_mail_id@gmail.com'';", "varchar(500) = ''$($DbaGroupMailId -join ';')'';"   )
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlCreateJobCollectXEvents -SqlCredential $SqlCredential -EnableException
+
+    # Append HostName if Job Server is different    
+    $jobNameNew = $jobName
+    if($SqlInstanceToBaseline -ne $SqlInstanceForTsqlJobs) {
+        $jobNameNew = "$jobName - $SqlInstanceToBaseline"
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
+    $sqlCreateJobCollectXEvents = [System.IO.File]::ReadAllText($CollectXEventsFilePath)
+    $sqlCreateJobCollectXEvents = $sqlCreateJobCollectXEvents.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlCreateJobCollectXEvents = $sqlCreateJobCollectXEvents.Replace('-d DBA', "-d `"$DbaDatabase`"")
+    if($jobNameNew -ne $jobName) {
+        $sqlCreateJobCollectXEvents = $sqlCreateJobCollectXEvents.Replace($jobName, $jobNameNew)
+    }
+
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForTsqlJobs -Database msdb -Query $sqlCreateJobCollectXEvents -SqlCredential $SqlCredential -EnableException
 }
 
 
 # 18__CreateJobPartitionsMaintenance
 $stepName = '18__CreateJobPartitionsMaintenance'
-if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) {
+if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) 
+{
+    $jobName = '(dba) Partitions-Maintenance'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$PartitionsMaintenanceFilePath = '$PartitionsMaintenanceFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Partitions-Maintenance] on [$SqlInstanceToBaseline].."
-    $sqlPartitionsMaintenance = [System.IO.File]::ReadAllText($PartitionsMaintenanceFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlPartitionsMaintenance -SqlCredential $SqlCredential -EnableException
+
+    # Append HostName if Job Server is different    
+    $jobNameNew = $jobName
+    if($SqlInstanceToBaseline -ne $SqlInstanceForTsqlJobs) {
+        $jobNameNew = "$jobName - $SqlInstanceToBaseline"
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
+    $sqlPartitionsMaintenance = [System.IO.File]::ReadAllText($PartitionsMaintenanceFilePath)
+    $sqlPartitionsMaintenance = $sqlPartitionsMaintenance.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlPartitionsMaintenance = $sqlPartitionsMaintenance.Replace('-d DBA', "-d `"$DbaDatabase`"")
+    if($jobNameNew -ne $jobName) {
+        $sqlPartitionsMaintenance = $sqlPartitionsMaintenance.Replace($jobName, $jobNameNew)
+    }
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForTsqlJobs -Database msdb -Query $sqlPartitionsMaintenance -SqlCredential $SqlCredential -EnableException
 }
 
 
 # 19__CreateJobPurgeTables
 $stepName = '19__CreateJobPurgeTables'
-if($stepName -in $Steps2Execute) {
+if($stepName -in $Steps2Execute) 
+{
+    $jobName = '(dba) Purge-Tables'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$PurgeTablesFilePath = '$PurgeTablesFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Purge-DbaMetrics - Daily] on [$SqlInstanceToBaseline].."
-    $sqlPurgeDbaMetrics = [System.IO.File]::ReadAllText($PurgeTablesFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
-    $sqlPurgeDbaMetrics = $sqlPurgeDbaMetrics.Replace("varchar(500) = ''some_dba_mail_id@gmail.com'';", "varchar(500) = ''$($DbaGroupMailId -join ';')'';"   )
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlPurgeDbaMetrics -SqlCredential $SqlCredential -EnableException
+
+    # Append HostName if Job Server is different    
+    $jobNameNew = $jobName
+    if($SqlInstanceToBaseline -ne $SqlInstanceForTsqlJobs) {
+        $jobNameNew = "$jobName - $SqlInstanceToBaseline"
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
+    $sqlPurgeDbaMetrics = [System.IO.File]::ReadAllText($PurgeTablesFilePath)
+    $sqlPurgeDbaMetrics = $sqlPurgeDbaMetrics.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlPurgeDbaMetrics = $sqlPurgeDbaMetrics.Replace('-d DBA', "-d `"$DbaDatabase`"")
+    if($jobNameNew -ne $jobName) {
+        $sqlPurgeDbaMetrics = $sqlPurgeDbaMetrics.Replace($jobName, $jobNameNew)
+    }
+
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForTsqlJobs -Database msdb -Query $sqlPurgeDbaMetrics -SqlCredential $SqlCredential -EnableException
 }
 
 
 # 20__CreateJobRemoveXEventFiles
 $stepName = '20__CreateJobRemoveXEventFiles'
-if($stepName -in $Steps2Execute) {
+if($stepName -in $Steps2Execute) 
+{
+    $jobName = '(dba) Remove-XEventFiles'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$RemoveXEventFilesFilePath = '$RemoveXEventFilesFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Remove-XEventFiles] on [$SqlInstanceToBaseline].."
-    $sqlCreateJobRemoveXEventFiles = [System.IO.File]::ReadAllText($RemoveXEventFilesFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceToBaseline`"")
+
+    # Append HostName if Job Server is different    
+    $jobNameNew = $jobName
+    if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) ) {
+        $jobNameNew = "$jobName - $HostName"
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForPowershellJobs].."
+    $sqlCreateJobRemoveXEventFiles = [System.IO.File]::ReadAllText($RemoveXEventFilesFilePath)
+    $sqlCreateJobRemoveXEventFiles = $sqlCreateJobRemoveXEventFiles.Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceToBaseline`"")
     $sqlCreateJobRemoveXEventFiles = $sqlCreateJobRemoveXEventFiles.Replace('-Database DBA', "-Database `"$DbaDatabase`"")
+    if($jobNameNew -ne $jobName) {
+        $sqlCreateJobRemoveXEventFiles = $sqlCreateJobRemoveXEventFiles.Replace($jobName, $jobNameNew)
+    }
 
     if($RemoteSQLMonitorPath -ne 'C:\SQLMonitor') {
         $sqlCreateJobRemoveXEventFiles = $sqlCreateJobRemoveXEventFiles.Replace('C:\SQLMonitor', $RemoteSQLMonitorPath)
@@ -962,33 +1404,49 @@ if($stepName -in $Steps2Execute) {
         $tsqlSSMSValidation = "and APP_NAME() = 'Microsoft SQL Server Management Studio - Query'"
         $sqlCreateJobRemoveXEventFiles = $sqlCreateJobRemoveXEventFiles.Replace($tsqlSSMSValidation, "--$tsqlSSMSValidation")
     }
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlCreateJobRemoveXEventFiles -SqlCredential $SqlCredential -EnableException
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlCreateJobRemoveXEventFiles -SqlCredential $SqlCredential -EnableException
 
     if($requireProxy) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [(dba) Remove-XEventFiles] to run under proxy [$credentialName].."
-        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'(dba) Remove-XEventFiles', @step_id=1 ,@proxy_name=N'$credentialName';"
-        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlUpdateJob -SqlCredential $SqlCredential -EnableException
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [$jobNameNew] to run under proxy [$credentialName].."
+        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'$jobNameNew', @step_id=1 ,@proxy_name=N'$credentialName';"
+        Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlUpdateJob -SqlCredential $SqlCredential -EnableException
     }
-    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Remove-XEventFiles';"
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlStartJob -SqlCredential $SqlCredential -EnableException
+    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'$jobNameNew';"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlStartJob -SqlCredential $SqlCredential -EnableException
 }
 
 
 # 21__CreateJobRunWhoIsActive
 $stepName = '21__CreateJobRunWhoIsActive'
-if($stepName -in $Steps2Execute) {
+if($stepName -in $Steps2Execute) 
+{
+    $jobName = '(dba) Run-WhoIsActive'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$RunWhoIsActiveFilePath = '$RunWhoIsActiveFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Run-WhoIsActive] on [$SqlInstanceToBaseline].."
-    $sqlRunWhoIsActive = [System.IO.File]::ReadAllText($RunWhoIsActiveFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
+
+    # Append HostName if Job Server is different    
+    $jobNameNew = $jobName
+    if($SqlInstanceToBaseline -ne $SqlInstanceForTsqlJobs) {
+        $jobNameNew = "$jobName - $SqlInstanceToBaseline"
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
+    $sqlRunWhoIsActive = [System.IO.File]::ReadAllText($RunWhoIsActiveFilePath)
+    $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace("''some_dba_mail_id@gmail.com''", "''$($DbaGroupMailId -join ';')'';" )
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlRunWhoIsActive -SqlCredential $SqlCredential -EnableException
+    if($jobNameNew -ne $jobName) {
+        $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace($jobName, $jobNameNew)
+    }
+
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForTsqlJobs -Database msdb -Query $sqlRunWhoIsActive -SqlCredential $SqlCredential -EnableException
 }
 
 
 # 22__CreateJobUpdateSqlServerVersions
 $stepName = '22__CreateJobUpdateSqlServerVersions'
-if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer) {
+if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer) 
+{
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UpdateSqlServerVersionsFilePath = '$UpdateSqlServerVersionsFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Update-SqlServerVersions] on [$SqlInstanceToBaseline].."
@@ -1073,6 +1531,73 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -ne $InventoryServer
     }
 }
 
+# 26__LinkedServerForDataDestinationInstance
+$stepName = '26__LinkedServerForDataDestinationInstance'
+if( ($stepName -in $Steps2Execute) -and ($SqlInstanceToBaseline -ne $SqlInstanceAsDataDestination) )
+{
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$LinkedServerOnInventoryFilePath = '$LinkedServerOnInventoryFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating linked server for [$SqlInstanceAsDataDestination] on [$SqlInstanceToBaseline].."
+
+    $sqlLinkedServerForDataDestinationInstance = [System.IO.File]::ReadAllText($LinkedServerOnInventoryFilePath)
+    $sqlLinkedServerForDataDestinationInstance = $sqlLinkedServerForDataDestinationInstance.Replace("'YourSqlInstanceNameHere'", "'$SqlInstanceAsDataDestination'")
+    $sqlLinkedServerForDataDestinationInstance = $sqlLinkedServerForDataDestinationInstance.Replace("@catalog=N'DBA'", "@catalog=N'$DbaDatabase'")
+    
+    $dbaLinkedServer = @()
+    $dbaLinkedServer += Get-DbaLinkedServer -SqlInstance $SqlInstanceToBaseline -LinkedServer $SqlInstanceAsDataDestination
+    if($dbaLinkedServer.Count -eq 0) {
+        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -Query $sqlLinkedServerForDataDestinationInstance -SqlCredential $SqlCredential -EnableException
+    } else {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Linked server for [$SqlInstanceAsDataDestination] on [$SqlInstanceToBaseline] already exists.."
+    }
+
+
+    # Alter dbo.vw_performance_counters
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Alter view [dbo].[vw_performance_counters].."
+    $sqlAlterViewPerformanceCounters = @"
+alter view dbo.vw_performance_counters
+as
+with cte_counters_local as (select collection_time_utc, host_name, path, object, counter, value, instance from dbo.performance_counters)
+,cte_counters_datasource as (select collection_time_utc, host_name, path, object, counter, value, instance from [$SqlInstanceAsDataDestination].[$DbaDatabase].dbo.performance_counters)
+
+select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_local
+union all
+select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_datasource
+"@
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAlterViewPerformanceCounters -SqlCredential $SqlCredential -EnableException
+
+
+    # Alter dbo.vw_os_task_list
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Alter view [dbo].[vw_os_task_list].."
+    $sqlAlterViewOsTaskList = @"
+alter view dbo.vw_os_task_list
+as
+with cte_os_tasks_local as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from dbo.os_task_list)
+,cte_os_tasks_datasource as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from [$SqlInstanceAsDataDestination].[$DbaDatabase].dbo.os_task_list)
+
+select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_local
+union all
+select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_datasource;
+"@
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAlterViewOsTaskList -SqlCredential $SqlCredential -EnableException
+
+
+    # Alter dbo.vw_disk_space
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Alter view [dbo].[vw_disk_space].."
+    $sqlAlterViewDiskSpace = @"
+alter view dbo.vw_disk_space
+as
+with cte_disk_space_local as (select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from dbo.disk_space)
+,cte_disk_space_datasource as (select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from [$SqlInstanceAsDataDestination].[$DbaDatabase].dbo.disk_space)
+
+select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_local
+union all
+select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_datasource
+go
+"@
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAlterViewDiskSpace -SqlCredential $SqlCredential -EnableException
+}
+
 
 "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Baselining of [$SqlInstanceToBaseline] completed."
 
@@ -1092,8 +1617,10 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     Name of DBA database on the SQL Instance being baseline, and as well target on [SqlInstanceAsDataDestination].
     .PARAMETER SqlInstanceAsDataDestination
     Name/IP of SQL Instance that would store the data caputured using Perfmon data collection. Generally same as [SqlInstanceToBaseline]. But, this could be different from [SqlInstanceToBaseline] in central repository scenario.
-    .PARAMETER SqlInstanceForDataCollectionJobs
-    Name/IP of SQL Instance that could be used to host SQL Agent jobs that call PowerShell scripts. Generally same as [SqlInstanceToBaseline]. But, this could be different from [SqlInstanceToBaseline] when [SqlInstanceToBaseline] is not capable of running PowerShell Jobs successfully due to being old version of powershell, or incapability of install modules like dbatools.
+    .PARAMETER SqlInstanceForTsqlJobs
+    Name/IP of SQL Instance that could be used to host SQL Agent jobs that call tsql scripts. Generally same as [SqlInstanceToBaseline]. This can be used in case of Express Edition as agent services are not available.
+    .PARAMETER SqlInstanceForPowershellJobs
+    Name/IP of SQL Instance that could be used to host SQL Agent jobs that call tsql scripts. Generally same as [SqlInstanceToBaseline]. This can be used when [SqlInstanceToBaseline] is Express Edition, or not capable of running PowerShell Jobs successfully due to being old version of powershell, or incapability of install modules like dbatools.
     .PARAMETER InventoryServer
     Name/IP of SQL Instance that would act as inventory server and is the data source on Grafana application. A linked server would be created for [SqlInstanceToBaseline] on this server.
     .PARAMETER HostName
@@ -1122,6 +1649,8 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     Script file containing tsql that compiles [usp_collect_wait_stats] in [DbaDatabase] on [SqlInstanceToBaseline].
     .PARAMETER UspCollectXeventsResourceConsumptionFileName
     Script file containing tsql that compiles [usp_collect_xevents_resource_consumption] in [DbaDatabase] on [SqlInstanceToBaseline].
+    .PARAMETER UspPartitionMaintenanceFileName 
+    Script file containing tsql that compiles [usp_partition_maintenance] in [DbaDatabase] on [SqlInstanceToBaseline].
     .PARAMETER UspPurgeTablesFileName
     Script file containing tsql that compiles [usp_purge_tables] in [DbaDatabase] on [SqlInstanceToBaseline].
     .PARAMETER UspRunWhoIsActiveFileName
@@ -1170,10 +1699,16 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     When enabled, drops the existing SQL Agent jobs having CmdExec steps, and creates them from scratch. By default, Jobs running CmdExec step are not dropped if found existing.
     .PARAMETER SkipPowerShellJobs
     When enabled, baselining steps involving create of SQL Agent jobs having CmdExec steps are skipped.
-    .PARAMETER SkipAllJobs
-    When enabled, all the SQL Agent jobs creation is skipped.
+    .PARAMETER SkipTsqlJobs
+    When enabled, skips creation of all the SQL Agent jobs that execute tsql stored procedures.
     .PARAMETER SkipRDPSessionSteps
     When enabled, any steps that need OS level interaction is skipped. This includes copy of dbatools powershell module, SQLMonitor folder on remove path, creation of Perfmon Data Collector etc.
+    .PARAMETER SkipWindowsAdminAccessTest
+    When enabled, script does not check if Proxy/Credential is required for running PowerShell jobs.
+    .PARAMETER SkipMailProfileCheck 
+    When enabled, script does not look for default global mail profile.
+    .PARAMETER ConfirmValidationOfMultiInstance
+    If required for confirmation from end user in case multiple SQL Instances are found on same host. At max, perfmon data can be pushed to only one SQL Instance.
     .PARAMETER DryRun
     When enabled, only messages are printed, but actual changes are NOT made.
     .EXAMPLE

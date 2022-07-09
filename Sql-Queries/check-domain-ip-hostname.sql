@@ -1,4 +1,4 @@
-USE DBA_Admin
+USE DBA
 GO
 
 select @@SERVERNAME, name, recovery_model_desc, collation_name from sys.databases where database_id = db_id();
@@ -16,7 +16,16 @@ from sys.database_files f with (nolock) left join sys.filegroups fg with (nolock
 order by FreeSpace_GB desc;
 go
 
-select	default_domain() as [domain],
+DECLARE @Domain NVARCHAR(255);
+begin try
+	EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT;
+end try
+begin catch
+	print 'some erorr accessing registry'
+end catch
+
+select	[domain] = default_domain(),
+		[domain_reg] = @Domain,
 		[ip] = CONNECTIONPROPERTY('local_net_address'),
 		[@@SERVERNAME] = @@SERVERNAME,
 		[MachineName] = serverproperty('MachineName'),
@@ -45,10 +54,7 @@ select *
 from sys.dm_os_cluster_nodes;
 go
 
-DECLARE @Domain NVARCHAR(100)
-EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT;
-SELECT Cast(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @Domain AS FQDN
-GO
+select 'instance_hosts' as QueryData, * from dbo.instance_hosts with (nolock);
 
 select 'instance_details' as QueryData, getdate() as [getdate()], * from dbo.instance_details with (nolock);
 go

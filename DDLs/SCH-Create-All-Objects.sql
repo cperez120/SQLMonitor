@@ -123,7 +123,11 @@ begin
 	(
 		[sql_instance] varchar(255) not null,
 		[host_name] varchar(255) not null,
-		[collector_sql_instance] varchar(255) null default convert(varchar,serverproperty('MachineName')),
+		--[collector_sql_instance] varchar(255) null default convert(varchar,serverproperty('MachineName')),
+		[collector_tsql_jobs_server] varchar(255) null default convert(varchar,serverproperty('MachineName')),
+		[collector_powershell_jobs_server] varchar(255) null default convert(varchar,serverproperty('MachineName')),
+		[data_destination_sql_instance] varchar(255) null default convert(varchar,serverproperty('MachineName')),
+
 		constraint pk_instance_details primary key clustered ([sql_instance], [host_name]), 
 		constraint fk_host_name foreign key ([host_name]) references dbo.instance_hosts ([host_name])
 	)
@@ -132,13 +136,18 @@ go
 
 if ( (APP_NAME() = 'Microsoft SQL Server Management Studio - Query') and (not exists (select * from dbo.instance_details where sql_instance = convert(varchar,serverproperty('MachineName')))) )
 begin
-	insert dbo.instance_details ( [sql_instance], [host_name], [collector_sql_instance] )
+	insert dbo.instance_details ( [sql_instance], [host_name], [collector_tsql_jobs_server], [collector_powershell_jobs_server], [data_destination_sql_instance] )
 	select	[sql_instance] = convert(varchar,serverproperty('MachineName')),
 			--[ip] = convert(varchar,CONNECTIONPROPERTY('local_net_address')),
 			[host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')),
 			--[service_name] = case when @@servicename = 'MSSQLSERVER' then @@servicename else 'MSSQL$'+@@servicename end,
-			[collector_sql_instance] = convert(varchar,serverproperty('MachineName'))
-			--[collector_sql_instance] = convert(varchar,CONNECTIONPROPERTY('local_net_address'))
+			[collector_tsql_jobs_server] = convert(varchar,serverproperty('MachineName')),
+			--[collector_tsql_jobs_server] = convert(varchar,CONNECTIONPROPERTY('local_net_address')),
+			[collector_powershell_jobs_server] = convert(varchar,serverproperty('MachineName')),
+			--[collector_powershell_jobs_server] = convert(varchar,CONNECTIONPROPERTY('local_net_address')),
+			[data_destination_sql_instance] = convert(varchar,serverproperty('MachineName'))
+			--[data_destination_sql_instance] = convert(varchar,CONNECTIONPROPERTY('local_net_address'))
+
 end
 go
 
@@ -196,11 +205,11 @@ alter view dbo.vw_performance_counters
 --with schemabinding
 as
 with cte_counters_local as (select collection_time_utc, host_name, path, object, counter, value, instance from dbo.performance_counters)
---,cte_counters_sql2019 as (select collection_time_utc, host_name, path, object, counter, value, instance from [SQL2019].DBA.dbo.performance_counters)
+--,cte_counters_datasource as (select collection_time_utc, host_name, path, object, counter, value, instance from [SQL2019].DBA.dbo.performance_counters)
 
 select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_local --with (forceseek)
 --union all
---select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_sql2019
+--select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_datasource
 go
 
 
@@ -305,11 +314,11 @@ alter view dbo.vw_os_task_list
 --with schemabinding
 as
 with cte_os_tasks_local as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from dbo.os_task_list)
---,cte_os_tasks_sql2019 as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from [SQL2019].DBA.dbo.os_task_list)
+--,cte_os_tasks_datasource as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from [SQL2019].DBA.dbo.os_task_list)
 
 select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_local
 --union all
---select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_sql2019
+--select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_datasource
 go
 
 
@@ -581,11 +590,11 @@ alter view dbo.vw_disk_space
 --with schemabinding
 as
 with cte_disk_space_local as (select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from dbo.disk_space)
---,cte_disk_space_sql2019 as (select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from [SQL2019].DBA.dbo.disk_space)
+--,cte_disk_space_datasource as (select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from [SQL2019].DBA.dbo.disk_space)
 
 select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_local
 --union all
---select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_sql2019
+--select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_datasource
 go
 
 

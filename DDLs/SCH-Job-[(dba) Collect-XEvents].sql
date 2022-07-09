@@ -5,6 +5,7 @@ if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Collect-XEve
 	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Collect-XEvents', @delete_unused_schedule=1
 GO
 
+
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
@@ -28,7 +29,7 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Collect-XEvents',
 		@category_name=N'(dba) SQLMonitor', 
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Object:  Step [Consume-XEvent-resource_consumption]    Script Date: 5/10/2022 11:41:38 PM ******/
+
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.usp_collect_xevents_resource_consumption', 
 		@step_id=1, 
 		@cmdexec_success_code=0, 
@@ -36,12 +37,11 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.usp_
 		@on_success_step_id=0, 
 		@on_fail_action=2, 
 		@on_fail_step_id=0, 
-		@retry_attempts=0, 
+		@retry_attempts=2, 
 		@retry_interval=0, 
-		@os_run_priority=0, @subsystem=N'TSQL', 
-		@command=N'EXEC dbo.usp_collect_xevents_resource_consumption', 
-		@database_name=N'DBA', 
-		@flags=12
+		@os_run_priority=0, @subsystem=N'CmdExec', 
+		@command=N'sqlcmd -E -b -S Localhost -d DBA -Q "EXEC dbo.usp_collect_xevents_resource_consumption;"', 
+		@flags=40
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_update_job @job_id = @jobId, @start_step_id = 1
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
@@ -57,7 +57,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'(dba) Col
 		@active_end_date=99991231, 
 		@active_start_time=0, 
 		@active_end_time=235959
-		--,@schedule_uid=N'68b6bbf2-ba3c-47c2-b99a-7b175ef40cec'
+		--,@schedule_uid=N'f2b45ada-f4c0-474a-a1d4-efb7d4873e6b'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_add_jobserver @job_id = @jobId, @server_name = N'(local)'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
