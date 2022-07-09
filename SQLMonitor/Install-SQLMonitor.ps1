@@ -1392,13 +1392,28 @@ if($stepName -in $Steps2Execute)
 
 # 21__CreateJobRunWhoIsActive
 $stepName = '21__CreateJobRunWhoIsActive'
-if($stepName -in $Steps2Execute) {
+if($stepName -in $Steps2Execute) 
+{
+    $jobName = '(dba) Run-WhoIsActive'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$RunWhoIsActiveFilePath = '$RunWhoIsActiveFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Run-WhoIsActive] on [$SqlInstanceToBaseline].."
-    $sqlRunWhoIsActive = [System.IO.File]::ReadAllText($RunWhoIsActiveFilePath).Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
+
+    # Append HostName if Job Server is different    
+    $jobNameNew = $jobName
+    if($SqlInstanceToBaseline -ne $SqlInstanceForTsqlJobs) {
+        $jobNameNew = "$jobName - $SqlInstanceToBaseline"
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
+    $sqlRunWhoIsActive = [System.IO.File]::ReadAllText($RunWhoIsActiveFilePath)
+    $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace("''some_dba_mail_id@gmail.com''", "''$($DbaGroupMailId -join ';')'';" )
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlRunWhoIsActive -SqlCredential $SqlCredential -EnableException
+    if($jobNameNew -ne $jobName) {
+        $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace($jobName, $jobNameNew)
+    }
+
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForTsqlJobs -Database msdb -Query $sqlRunWhoIsActive -SqlCredential $SqlCredential -EnableException
 }
 
 
