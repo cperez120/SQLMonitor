@@ -1422,7 +1422,7 @@ if($stepName -in $Steps2Execute)
     # Append HostName if Job Server is different    
     $jobNameNew = $jobName
     if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) ) {
-        $jobNameNew = "$jobName - $HostName"
+        $jobNameNew = "$jobName - $SqlInstanceToBaseline"
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForPowershellJobs].."
