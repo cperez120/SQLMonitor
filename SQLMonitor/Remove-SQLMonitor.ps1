@@ -568,15 +568,20 @@ if($stepName -in $Steps2Execute) {
     if($DryRun) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType '$objName'.."
     }
-    else 
-    {
+    else {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
+    }
+
+    # Append HostName if Job Server is different    
+    $objNameNew = $objName
+    if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -and ($HostName -ne $jobServerDbServiceInfo.host_name) ) {
+        $objNameNew = "$objName - $HostName"
     }
         
     $sqlRemoveObject = @"
-if exists (select * from msdb.dbo.sysjobs_view where name = N'$objName')
+if exists (select * from msdb.dbo.sysjobs_view where name = N'$objNameNew')
 begin
-	$(if($DryRun){'--'})EXEC msdb.dbo.sp_delete_job @job_name=N'$objName', @delete_unused_schedule=1;
+	$(if($DryRun){'--'})EXEC msdb.dbo.sp_delete_job @job_name=N'$objNameNew', @delete_unused_schedule=1;
     select 1 as object_exists;
 end
 else
@@ -588,10 +593,10 @@ else
     {
         $result = $resultRemoveObject | Select-Object -ExpandProperty object_exists;
         if($result -eq 1) {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objName' found and removed."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objNameNew' found and removed."
         }
         else {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objName' not found."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objNameNew' not found."
         }
     }
     
@@ -609,15 +614,20 @@ if($stepName -in $Steps2Execute) {
     if($DryRun) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType '$objName'.."
     }
-    else 
-    {
+    else {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
+    }
+
+    # Append HostName if Job Server is different    
+    $objNameNew = $objName
+    if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -and ($HostName -ne $jobServerDbServiceInfo.host_name) ) {
+        $objNameNew = "$objName - $HostName"
     }
         
     $sqlRemoveObject = @"
-if exists (select * from msdb.dbo.sysjobs_view where name = N'$objName')
+if exists (select * from msdb.dbo.sysjobs_view where name = N'$objNameNew')
 begin
-	$(if($DryRun){'--'})EXEC msdb.dbo.sp_delete_job @job_name=N'$objName', @delete_unused_schedule=1;
+	$(if($DryRun){'--'})EXEC msdb.dbo.sp_delete_job @job_name=N'$objNameNew', @delete_unused_schedule=1;
     select 1 as object_exists;
 end
 else
@@ -629,13 +639,12 @@ else
     {
         $result = $resultRemoveObject | Select-Object -ExpandProperty object_exists;
         if($result -eq 1) {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objName' found and removed."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objNameNew' found and removed."
         }
         else {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objName' not found."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objNameNew' not found."
         }
     }
-    
 }
 
 
@@ -650,33 +659,37 @@ if($stepName -in $Steps2Execute) {
     if($DryRun) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType '$objName'.."
     }
-    else 
-    {
+    else {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
+    }
+
+    # Append SQLInstance if Job Server is different    
+    $objNameNew = $objName
+    if($SqlInstanceToBaseline -ne $SqlInstanceForTsqlJobs) {
+        $objNameNew = "$objName - $SqlInstanceToBaseline"
     }
         
     $sqlRemoveObject = @"
-if exists (select * from msdb.dbo.sysjobs_view where name = N'$objName')
+if exists (select * from msdb.dbo.sysjobs_view where name = N'$objNameNew')
 begin
-	$(if($DryRun){'--'})EXEC msdb.dbo.sp_delete_job @job_name=N'$objName', @delete_unused_schedule=1;
+	$(if($DryRun){'--'})EXEC msdb.dbo.sp_delete_job @job_name=N'$objNameNew', @delete_unused_schedule=1;
     select 1 as object_exists;
 end
 else
     select 0 as object_exists;
 "@
     $resultRemoveObject = @()
-    $resultRemoveObject += Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlRemoveObject -SqlCredential $SqlCredential -EnableException
+    $resultRemoveObject += Invoke-DbaQuery -SqlInstance $SqlInstanceForTsqlJobs -Database msdb -Query $sqlRemoveObject -SqlCredential $SqlCredential -EnableException
     if($resultRemoveObject.Count -gt 0) 
     {
         $result = $resultRemoveObject | Select-Object -ExpandProperty object_exists;
         if($result -eq 1) {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objName' found and removed."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objNameNew' found and removed."
         }
         else {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objName' not found."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objNameNew' not found."
         }
-    }
-    
+    }    
 }
 
 
