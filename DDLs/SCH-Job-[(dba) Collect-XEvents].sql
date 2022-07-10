@@ -25,7 +25,9 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Collect-XEvents',
 		@notify_level_netsend=0, 
 		@notify_level_page=0, 
 		@delete_level=0, 
-		@description=N'This job consumes data from XEvent [resource_consumption].', 
+		@description=N'This job consumes data from XEvent [resource_consumption] into dbo.resource_consumption.
+
+https://ajaydwivedi.com/github/sqlmonitor', 
 		@category_name=N'(dba) SQLMonitor', 
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback

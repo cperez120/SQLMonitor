@@ -5,13 +5,13 @@
 cls
 Import-Module dbatools;
 $params = @{
-    SqlInstanceToBaseline = 'Workstation\SQL2014'
+    SqlInstanceToBaseline = 'Workstation\SQLEXPRESS'
     DbaDatabase = 'DBA'
     InventoryServer = 'SQLMonitor'
     RemoteSQLMonitorPath = 'C:\SQLMonitor'
     #SqlCredential = $saAdmin
     #WindowsCredential = $DomainCredential
-    SkipSteps = @("43__RemovePerfmonFilesFromDisk")
+    #SkipSteps = @("43__RemovePerfmonFilesFromDisk")
     #StartAtStep = '22__DropLogin_Grafana'
     #StopAtStep = '10__RemoveJob_UpdateSqlServerVersions'
     SkipDropTable = $true
@@ -20,7 +20,7 @@ $params = @{
     #SkipDropView = $true
     DryRun = $false
 }
-F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1 @Params
+F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1 @Params -Debug
 
 
 #Get-DbaDbMailProfile -SqlInstance '192.168.56.31' -SqlCredential $personalCredential

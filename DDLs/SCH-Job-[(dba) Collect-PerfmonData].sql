@@ -25,8 +25,9 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Collect-PerfmonData',
 		@notify_level_page=0, 
 		@delete_level=0, 
 		@description=N'This job captures Perfmon data as per template 
+https://github.com/imajaydwivedi/SqlServer-Baselining-Grafana/blob/master/NonSql-Files/DBA_PerfMon_All_Counters_Template.xml
 
-https://github.com/imajaydwivedi/SqlServer-Baselining-Grafana/blob/master/NonSql-Files/DBA_PerfMon_All_Counters_Template.xml', 
+https://ajaydwivedi.com/github/sqlmonitor', 
 		@category_name=N'(dba) SQLMonitor', 
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback

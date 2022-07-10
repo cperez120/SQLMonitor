@@ -23,7 +23,10 @@ Param (
     $ErrorActionPreference = 'Stop',
 
     [Parameter(Mandatory=$false)]
-    [Bool]$CleanupFiles = $true
+    [Bool]$CleanupFiles = $true,
+
+    [Parameter(Mandatory=$false)]
+    [int]$FileCleanupThresholdHours = 48
 )
 
 $startTime = Get-Date
@@ -155,4 +158,18 @@ foreach($file in $pfCollectorFiles)
         }
     }
 }
+
+# Remove older files
+if($CleanupFiles) {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Search files older than $FileCleanupThresholdHours hours.."
+    $oldFilesForCleanup = @()
+    $oldFilesForCleanup += Get-ChildItem $perfmonFilesDirectory -Recurse -File -Name *.blg | Where-Object {$_.LastWriteTimeUtc -lt (Get-Date).AddHours(-$FileCleanupThresholdHours)}
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$($oldFilesForCleanup.Count) files detected older than $FileCleanupThresholdHours hours."
+    if($oldFilesForCleanup.Count -gt 0) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove above detected old files.."
+        $oldFilesForCleanup | Remove-Item -ErrorAction Ignore | Out-Null
+    }    
+}
+
 "`n`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'END:', "All files processed.."

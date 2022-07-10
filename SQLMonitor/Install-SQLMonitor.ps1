@@ -232,6 +232,7 @@ if($SqlInstanceToBaseline -eq '.' -or $SqlInstanceToBaseline -eq 'localhost') {
 }
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline] with [$DbaDatabase] database.`n" | Write-Host -ForegroundColor Yellow
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "For help, kindly reach out to 'Ajay Dwivedi <ajay.dwivedi2007@gmail.com>'`n" | Write-Host -ForegroundColor Yellow
 
 # Evaluate path of SQLMonitor folder
 if( (-not [String]::IsNullOrEmpty($PSScriptRoot)) -or ((-not [String]::IsNullOrEmpty($SQLMonitorPath)) -and $(Test-Path $SQLMonitorPath)) ) {
@@ -302,11 +303,19 @@ Import-Module dbatools
 # Compute steps to execute
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Compute Steps to execute.."
 
-[int]$StartAtStepNumber = $StartAtStep -replace "__\w+", ''
-[int]$StopAtStepNumber = $StopAtStep -replace "__\w+", ''
-if($StopAtStepNumber -eq 0) {
-    $StopAtStepNumber = $AllSteps.Count+1
+# Compute steps to execute
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Compute Steps to execute.."
+$StartAtStepNumber = 1
+$StopAtStepNumber = $AllSteps.Count+1
+
+if(-not [String]::IsNullOrEmpty($StartAtStep)) {
+    [int]$StartAtStepNumber = $StartAtStep -replace "__\w+", ''
 }
+if(-not [String]::IsNullOrEmpty($StopAtStep)) {
+    [int]$StopAtStepNumber = $StopAtStep -replace "__\w+", ''
+}
+
+
 $Steps2Execute = @()
 $Steps2ExecuteRaw = @()
 if(-not [String]::IsNullOrEmpty($SkipSteps)) {
@@ -448,7 +457,7 @@ if( (-not $SkipRDPSessionSteps) ) #-and ($HostName -ne $env:COMPUTERNAME)
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Host [$ssnHostName] not pingable. Since its not clustered instance, So trying `$SqlInstanceToBaseline parameter value itself.."
     }
 
-    # Try reaching using FQDN, if fails & not a clustered instance, then use SqlInstanceToBaseline itself
+    # If not reachable after all attempts, raise error
     if ( -not (Test-Connection -ComputerName $ssnHostName -Quiet -Count 1) ) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Host [$ssnHostName] not pingable." | Write-Host -ForegroundColor Red
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide HostName either in FQDN or ipv4 format." | Write-Host -ForegroundColor Red
@@ -865,6 +874,17 @@ if($stepName -in $Steps2Execute)
     if($IsNonPartitioned) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove temp file '$tempAllDatabaseObjectsFilePath'.."
         Remove-Item -Path $tempAllDatabaseObjectsFilePath | Out-Null
+    }
+
+    # Add extra column on InventoryServer
+    if($SqlInstanceToBaseline -eq $InventoryServer) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Current server is mentioned as Inventory Server, so adding column [dbo].[instance_details].[is_available].."
+        $sqlAddInstanceDetailsColumns = @"
+alter table dbo.instance_details 
+    add [is_available] bit not null default 1,
+        [created_date_utc] datetime2 not null default SYSUTCDATETIME();
+"@
+        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAddInstanceDetailsColumns -SqlCredential $SqlCredential -EnableException
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspCollectWaitStatsFilePath = '$UspCollectWaitStatsFilePath'"
