@@ -15,8 +15,11 @@ Param (
     [Parameter(Mandatory=$false)]
     $SqlInstanceForPowershellJobs,
 
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory=$true)]
     $InventoryServer,
+
+    [Parameter(Mandatory=$false)]
+    $InventoryDatabase = 'DBA',
 
     [Parameter(Mandatory=$false)]
     [String]$HostName,
@@ -891,6 +894,9 @@ go
 if not exists (select * from sys.columns c where c.object_id = OBJECT_ID('dbo.instance_details') and c.name = 'created_date_utc')
     alter table dbo.instance_details add [created_date_utc] datetime2 not null default SYSUTCDATETIME();
 go
+if not exists (select * from sys.columns c where c.object_id = OBJECT_ID('dbo.instance_details') and c.name = 'last_unavailability_time_utc')
+    alter table dbo.instance_details add [last_unavailability_time_utc] datetime2 null;
+go
 "@
         Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAddInstanceDetailsColumns -SqlCredential $SqlCredential -EnableException
     }
@@ -934,9 +940,10 @@ go
     $sqlAddInstanceHostMapping = @"
     if not exists (select * from dbo.instance_details where sql_instance = '$SqlInstanceToBaseline' and [host_name] = '$HostName')
     begin
-	    insert dbo.instance_details ( [sql_instance], [host_name], [collector_tsql_jobs_server], [collector_powershell_jobs_server], [data_destination_sql_instance] )
+	    insert dbo.instance_details ( [sql_instance], [host_name], [database], [collector_tsql_jobs_server], [collector_powershell_jobs_server], [data_destination_sql_instance] )
 	    select	[sql_instance] = '$SqlInstanceToBaseline',
 			    [host_name] = '$Hostname',
+                [database] = '$DbaDatabase',
 			    [collector_tsql_jobs_server] = '$SqlInstanceForTsqlJobs',
                 [collector_powershell_jobs_server] = '$SqlInstanceForPowershellJobs',
                 [data_destination_sql_instance] = '$SqlInstanceAsDataDestination'
@@ -944,16 +951,21 @@ go
         select 'dbo.instance_details' as RunningQuery, * from dbo.instance_details
     end
 "@
+    
+    # Populate $SqlInstanceToBaseline
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAddInstanceHostMapping -SqlCredential $SqlCredential -EnableException | ft -AutoSize
-    if($SqlInstanceAsDataDestination -ne $SqlInstanceToBaseline) {
+
+    # Populate $SqlInstanceAsDataDestination
+    if( ($SqlInstanceAsDataDestination -ne $SqlInstanceToBaseline) -and ($InventoryServer -ne $SqlInstanceAsDataDestination) ) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$SqlInstanceAsDataDestination].[$DbaDatabase].[dbo].[instance_details].."
         Invoke-DbaQuery -SqlInstance $SqlInstanceAsDataDestination -Database $DbaDatabase -Query $sqlAddInstanceHostMapping -SqlCredential $SqlCredential -EnableException | ft -AutoSize
     }
+
+    # Populate $InventoryServe
     if($InventoryServer -ne $SqlInstanceToBaseline) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$InventoryServer].[$DbaDatabase].[dbo].[instance_details].."
-        Invoke-DbaQuery -SqlInstance $InventoryServer -Database $DbaDatabase -Query $sqlAddInstanceHostMapping -SqlCredential $SqlCredential -EnableException | ft -AutoSize
+        Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $sqlAddInstanceHostMapping -SqlCredential $SqlCredential -EnableException | ft -AutoSize
     }
-
 
     if($isExpressEdition) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Since instance is Express Edition, change retention to 14 days.." | Write-Host -ForegroundColor Cyan

@@ -4,9 +4,10 @@ go
 if not exists (select * from sys.columns c where c.object_id = OBJECT_ID('dbo.instance_details') and c.name = 'collector_powershell_jobs_server')
 begin
 	alter table dbo.instance_details
-		add [collector_tsql_jobs_server] varchar(255) null default convert(varchar,serverproperty('MachineName')),
-		[collector_powershell_jobs_server] varchar(255) null default convert(varchar,serverproperty('MachineName')),
-		[data_destination_sql_instance] varchar(255) null default convert(varchar,serverproperty('MachineName'))
+		add [database] varchar(255) not null default 'DBA', 
+			[collector_tsql_jobs_server] varchar(255) not null default convert(varchar,serverproperty('MachineName')),
+			[collector_powershell_jobs_server] varchar(255) not null default convert(varchar,serverproperty('MachineName')),
+			[data_destination_sql_instance] varchar(255) not null default convert(varchar,serverproperty('MachineName'))
 end
 go
 
@@ -23,7 +24,7 @@ begin
 end
 go
 
-if exists (select * from sys.columns c where c.object_id = OBJECT_ID('dbo.instance_details') and c.name = 'collector_sql_instance')
+if (select count(*) as counts from sys.columns c where c.object_id = OBJECT_ID('dbo.instance_details') and c.name in ('collector_sql_instance','database')) = 2
 begin
 	declare @constraint_name nvarchar(255);
 	declare @sql nvarchar(max);

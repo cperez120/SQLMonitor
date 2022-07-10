@@ -10,6 +10,9 @@ Param (
     $InventoryServer,
 
     [Parameter(Mandatory=$false)]
+    $InventoryDatabase = 'DBA',
+
+    [Parameter(Mandatory=$false)]
     $HostName,
 
     [Parameter(Mandatory=$false)]
@@ -311,7 +314,7 @@ else {
 }
 try {
     $instanceDetails = @()
-    $instanceDetails += Invoke-DbaQuery -SqlInstance $InventoryServer -Database $DbaDatabase -Query $sqlInstanceDetails -SqlCredential $SqlCredential
+    $instanceDetails += Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $sqlInstanceDetails -SqlCredential $SqlCredential
     if($instanceDetails.Count -eq 0) {
         $instanceDetails += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlInstanceDetails -SqlCredential $SqlCredential -EnableException
     }
