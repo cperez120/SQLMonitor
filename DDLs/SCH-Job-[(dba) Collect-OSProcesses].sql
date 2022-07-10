@@ -39,7 +39,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Import-T
 		@on_success_step_id=0, 
 		@on_fail_action=2, 
 		@on_fail_step_id=0, 
-		@retry_attempts=2, 
+		@retry_attempts=1, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'CmdExec', 
 		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  C:\SQLMonitor\tasklist-push-to-sqlserver.ps1 -HostName localhost -SqlInstance localhost -Database DBA', 

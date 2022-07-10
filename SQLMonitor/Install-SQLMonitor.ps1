@@ -189,30 +189,30 @@ $AllSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession"
 # TSQL Jobs
 $TsqlJobSteps = @(
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
-                "19__CreateJobPurgeTables", "21__CreateJobRunWhoIsActive")
+                "19__CreateJobPurgeTables", "21__CreateJobRunWhoIsActive", "20__CreateJobRemoveXEventFiles")
 
 # PowerShell Jobs
 $PowerShellJobSteps = @(
                 "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData",
-                "20__CreateJobRemoveXEventFiles", "22__CreateJobUpdateSqlServerVersions")
+                "22__CreateJobUpdateSqlServerVersions")
 
 # RDPSessionSteps
 $RDPSessionSteps = @("9__CopyDbaToolsModule2Host", "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector")
 
 
 # Add $PowerShellJobSteps to Skip Jobs
-if($SkipPowerShellJobs) {
-    $SkipSteps = $SkipSteps + $PowerShellJobSteps;
+if($SkipPowerShellJobs) {    
+    $SkipSteps = $SkipSteps + $($PowerShellJobSteps | % {if($_ -notin $SkipSteps){$_}});
 }
 
 # Add $RDPSessionSteps to Skip Jobs
 if($SkipRDPSessionSteps) {
-    $SkipSteps = $SkipSteps + $RDPSessionSteps;
+    $SkipSteps = $SkipSteps + $($RDPSessionSteps | % {if($_ -notin $SkipSteps){$_}});
 }
 
 # Add $TsqlJobSteps to Skip Jobs
 if($SkipTsqlJobs) {
-    $SkipSteps = $SkipSteps + $TsqlJobSteps;
+    $SkipSteps = $SkipSteps + $($TsqlJobSteps | % {if($_ -notin $SkipSteps){$_}});
 }
 
 # For backward compatability
@@ -230,7 +230,7 @@ if($SqlInstanceToBaseline -eq '.' -or $SqlInstanceToBaseline -eq 'localhost') {
     Write-Error "Stop here. Fix above issue."
 }
 
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline] with [$DbaDatabase] database.`n" | Write-Host -ForegroundColor Yellow
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline] with [$DbaDatabase] database." | Write-Host -ForegroundColor Yellow
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "For help, kindly reach out to 'Ajay Dwivedi <ajay.dwivedi2007@gmail.com>'`n" | Write-Host -ForegroundColor Yellow
 
 # Evaluate path of SQLMonitor folder
@@ -318,7 +318,7 @@ if(-not [String]::IsNullOrEmpty($StopAtStep)) {
 $Steps2Execute = @()
 $Steps2ExecuteRaw = @()
 if(-not [String]::IsNullOrEmpty($SkipSteps)) {
-    $Steps2ExecuteRaw += Compare-Object -ReferenceObject $AllSteps -DifferenceObject $SkipSteps | Select-Object -ExpandProperty InputObject -Unique
+    $Steps2ExecuteRaw += Compare-Object -ReferenceObject $AllSteps -DifferenceObject $SkipSteps | Where-Object {$_.SideIndicator -eq '<='} | Select-Object -ExpandProperty InputObject -Unique
 }
 else {
     $Steps2ExecuteRaw += $AllSteps
@@ -502,7 +502,7 @@ if( (-not $SkipRDPSessionSteps) ) #-and ($HostName -ne $env:COMPUTERNAME)
 
     if ( [String]::IsNullOrEmpty($ssn4PerfmonSetup) ) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provide WindowsCredential for accessing server [$ssnHostName] of domain '$domain'." | Write-Host -ForegroundColor Red
-        "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+        "STOP here, and fix above issue." | Write-Error
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ssn4PerfmonSetup PSSession for [$HostName].."
@@ -527,7 +527,7 @@ if($HostName  -match $pattern) {
 }
 
 # Check No of SQL Services on HostName
-if(-not $SkipPowerShellJobs)
+if( ($SkipPowerShellJobs -eq $false) -or ('20__CreateJobRemoveXEventFiles' -in $Steps2Execute) )
 {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Check for number of SQLServices on [$HostName].."
 
@@ -537,7 +537,7 @@ if(-not $SkipPowerShellJobs)
         $sqlServicesOnHost += Get-Service MSSQL* | Where-Object {$_.DisplayName -like 'SQL Server (*)' -and $_.StartType -ne 'Disabled'}
     }
     else {
-        $sqlServicesOnHost += Invoke-Command -SessionName $ssn4PerfmonSetup -ScriptBlock { 
+        $sqlServicesOnHost += Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock { 
                                     Get-Service MSSQL* | Where-Object {$_.DisplayName -like 'SQL Server (*)' -and $_.StartType -ne 'Disabled'} 
                             }
     }
@@ -557,7 +557,7 @@ if(-not $SkipPowerShellJobs)
                 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly set ConfirmValidationOfMultiInstance parameter to true as host has multiple database engine services, `n`t and Perfmon data can be saved on only on one SQLInstance." | Write-Host -ForegroundColor Red
             }
 
-            "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+            "STOP here, and fix above issue." | Write-Error
         }
         # If destination is provided, then validate if perfmon is not already get collected
         else {
@@ -651,6 +651,12 @@ if($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs)
         Write-Error "Stop here. Fix above issue."
     }
 }
+else {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceToBaseline ~ `$SqlInstanceForPowershellJobs.."
+    $jobServerServicesInfo = $resultServerInfo
+    $jobServerDbServiceInfo = $dbServiceInfo
+    $jobServerAgentServiceInfo = $agentServiceInfo
+}
 
 
 # Setup PSSession on $SqlInstanceForPowershellJobs
@@ -714,7 +720,7 @@ if( (-not $SkipRDPSessionSteps) -and ($HostName -ne $jobServerDbServiceInfo.host
 
     if ( [String]::IsNullOrEmpty($ssnJobServer) ) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provide WindowsCredential for accessing server [$ssnHostName] of domain '$($sqlServerInfo.domain)'." | Write-Host -ForegroundColor Red
-        "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+        "STOP here, and fix above issue." | Write-Error
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "PSSession for [$($jobServerDbServiceInfo.host_name)].."
@@ -728,7 +734,7 @@ else {
 
 # Service Account and Access Validation
 $requireProxy = $false
-if( ($SkipPowerShellJobs -or $SkipAllJobs) -and ($SkipWindowsAdminAccessTest -eq $false) ) { $SkipWindowsAdminAccessTest = $true }
+if( ($SkipPowerShellJobs -or $SkipAllJobs) -and ($SkipWindowsAdminAccessTest -eq $false) -and ('20__CreateJobRemoveXEventFiles' -notin $Steps2Execute) ) { $SkipWindowsAdminAccessTest = $true }
 if($SkipWindowsAdminAccessTest -eq $false)
 {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validate for WindowsCredential if SQL Service Accounts are non-priviledged.."
@@ -877,11 +883,14 @@ if($stepName -in $Steps2Execute)
 
     # Add extra column on InventoryServer
     if($SqlInstanceToBaseline -eq $InventoryServer) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Current server is mentioned as Inventory Server, so adding column [dbo].[instance_details].[is_available].."
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Current server is mentioned as Inventory Server, so ensuring column [dbo].[instance_details].[is_available] is present.."
         $sqlAddInstanceDetailsColumns = @"
-alter table dbo.instance_details 
-    add [is_available] bit not null default 1,
-        [created_date_utc] datetime2 not null default SYSUTCDATETIME();
+if not exists (select * from sys.columns c where c.object_id = OBJECT_ID('dbo.instance_details') and c.name = 'is_available')
+    alter table dbo.instance_details add [is_available] bit not null default 1;
+go
+if not exists (select * from sys.columns c where c.object_id = OBJECT_ID('dbo.instance_details') and c.name = 'created_date_utc')
+    alter table dbo.instance_details add [created_date_utc] datetime2 not null default SYSUTCDATETIME();
+go
 "@
         Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAddInstanceDetailsColumns -SqlCredential $SqlCredential -EnableException
     }
@@ -1183,7 +1192,7 @@ if( $requireProxy -and ($stepName -in $Steps2Execute) )
     }
 }
 
-
+Write-Debug "13__CreateJobCollectDiskSpace"
 # 13__CreateJobCollectDiskSpace
 $stepName = '13__CreateJobCollectDiskSpace'
 if($stepName -in $Steps2Execute) 

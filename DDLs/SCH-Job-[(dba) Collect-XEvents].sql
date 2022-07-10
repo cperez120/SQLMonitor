@@ -39,7 +39,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.usp_
 		@on_success_step_id=0, 
 		@on_fail_action=2, 
 		@on_fail_step_id=0, 
-		@retry_attempts=2, 
+		@retry_attempts=1, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'CmdExec', 
 		@command=N'sqlcmd -E -b -S Localhost -d DBA -Q "EXEC dbo.usp_collect_xevents_resource_consumption;"', 

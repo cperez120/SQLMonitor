@@ -128,12 +128,12 @@ $AllSteps = @(  "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesse
 # TSQL Jobs
 $TsqlJobSteps = @(
                 "4__RemoveJob_CollectWaitStats", "5__RemoveJob_CollectXEvents", "6__RemoveJob_PartitionsMaintenance",
-                "7__RemoveJob_PurgeTables", "9__RemoveJob_RunWhoIsActive")
+                "7__RemoveJob_PurgeTables", "8__RemoveJob_RemoveXEventFiles", "9__RemoveJob_RunWhoIsActive")
 
 # PowerShell Jobs
 $PowerShellJobSteps = @(
                 "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
-                "8__RemoveJob_RemoveXEventFiles", "10__RemoveJob_UpdateSqlServerVersions")
+                "10__RemoveJob_UpdateSqlServerVersions")
 
 # RDPSessionSteps
 $RDPSessionSteps = @("44__RemovePerfmonFilesFromDisk", "45__RemoveXEventFilesFromDisk")
@@ -141,17 +141,17 @@ $RDPSessionSteps = @("44__RemovePerfmonFilesFromDisk", "45__RemoveXEventFilesFro
 
 # Add $PowerShellJobSteps to Skip Jobs
 if($SkipRemovePowerShellJobs) {
-    $SkipSteps = $SkipSteps + $PowerShellJobSteps;
+    $SkipSteps = $SkipSteps + $($PowerShellJobSteps | % {if($_ -notin $SkipSteps){$_}});
 }
 
 # Add $RDPSessionSteps to Skip Jobs
 if($SkipRDPSessionSteps) {
-    $SkipSteps = $SkipSteps + $RDPSessionSteps;
+    $SkipSteps = $SkipSteps + $($RDPSessionSteps | % {if($_ -notin $SkipSteps){$_}});
 }
 
 # Add $TsqlJobSteps to Skip Jobs
 if($SkipRemoveTsqlJobs) {
-    $SkipSteps = $SkipSteps + $TsqlJobSteps;
+    $SkipSteps = $SkipSteps + $($TsqlJobSteps | % {if($_ -notin $SkipSteps){$_}});
 }
 
 # For backward compatability
@@ -206,7 +206,7 @@ if(-not [String]::IsNullOrEmpty($StopAtStep)) {
 $Steps2Execute = @()
 $Steps2ExecuteRaw = @()
 if(-not [String]::IsNullOrEmpty($SkipSteps)) {
-    $Steps2ExecuteRaw += Compare-Object -ReferenceObject $AllSteps -DifferenceObject $SkipSteps | Select-Object -ExpandProperty InputObject
+    $Steps2ExecuteRaw += Compare-Object -ReferenceObject $AllSteps -DifferenceObject $SkipSteps | Where-Object {$_.SideIndicator -eq '<='} | Select-Object -ExpandProperty InputObject
 }
 else {
     $Steps2ExecuteRaw += $AllSteps
@@ -331,7 +331,7 @@ catch {
 # If no instance details found, then throw error
 if ( $instanceDetails.Count -eq 0 ) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Instance details could not be found in [dbo].[instance_details] on either [$InventoryServer] or [$SqlInstanceToBaseline].`n`t`tThis information is required to get HostName & Collector Instance details." | Write-Host -ForegroundColor Red
-    "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+    "STOP here, and fix above issue." | Write-Error
 }
 else {
     $instanceDetails | ft -AutoSize
@@ -347,7 +347,7 @@ if ( $instanceDetails.Count -gt 1 )
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly either specify specific HostName or set ConfirmValidationOfMultiInstance to True.
                                         When executed with ConfirmValidationOfMultiInstance = `$True, then this infra removes SQLMonitor for 1st HostName from above resultset.
                                         So this function should be completed enough times to remove SQLMonitor for all Hosts of [$SqlInstanceToBaseline]." | Write-Host -ForegroundColor Red
-        "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+        "STOP here, and fix above issue." | Write-Error
     }
 }
 
@@ -433,17 +433,17 @@ if( (-not $SkipRDPSessionSteps) ) #-and ($HostName -ne $env:COMPUTERNAME)
 
     if ( [String]::IsNullOrEmpty($ssn4PerfmonSetup) ) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provide WindowsCredential for accessing server [$ssnHostName] of domain '$domain'." | Write-Host -ForegroundColor Red
-        "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+        "STOP here, and fix above issue." | Write-Error
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ssn4PerfmonSetup PSSession for [$HostName].."
-    $ssn4PerfmonSetup
+    $ssn4PerfmonSetup | Format-Table -AutoSize
     "`n"
 }
 
 
 # Check No of SQL Services on HostName
-if(-not $SkipRemovePowerShellJobs)
+if( ($SkipRemovePowerShellJobs -eq $false) -or ('8__RemoveJob_RemoveXEventFiles' -in $Steps2Execute) )
 {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Check for number of SQLServices on [$HostName].."
 
@@ -453,7 +453,7 @@ if(-not $SkipRemovePowerShellJobs)
         $sqlServicesOnHost += Get-Service MSSQL* | Where-Object {$_.DisplayName -like 'SQL Server (*)' -and $_.StartType -ne 'Disabled'}
     }
     else {
-        $sqlServicesOnHost += Invoke-Command -SessionName $ssn4PerfmonSetup -ScriptBlock { 
+        $sqlServicesOnHost += Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock { 
                                     Get-Service MSSQL* | Where-Object {$_.DisplayName -like 'SQL Server (*)' -and $_.StartType -ne 'Disabled'} 
                             }
     }
@@ -461,19 +461,19 @@ if(-not $SkipRemovePowerShellJobs)
     # If more than one sql services found, then ensure appropriate parameters are provided
     if($sqlServicesOnHost.Count -gt 1) 
     {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[$($sqlServicesOnHost.Count)] database engine Services found on [$HostName].."
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$($sqlServicesOnHost.Count) database engine Services found on [$HostName].."
 
         # If Destination instance is not provided, throw error
         if([String]::IsNullOrEmpty($SqlInstanceAsDataDestination) -or (-not $ConfirmValidationOfMultiInstance)) 
         {
             if([String]::IsNullOrEmpty($SqlInstanceAsDataDestination)) {
-                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide value for parameter SqlInstanceAsDataDestination as host has multiple database engine services, `n`t and Perfmon data can be saved on only on one SQLInstance." | Write-Host -ForegroundColor Red
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide value for parameter SqlInstanceAsDataDestination as host has multiple database engine services.`n`t`t`t`t Perfmon data can be saved only on one SQLInstance." | Write-Host -ForegroundColor Red
             }
             if(-not $ConfirmValidationOfMultiInstance) {
-                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly set ConfirmValidationOfMultiInstance parameter to true as host has multiple database engine services, `n`t and Perfmon data can be saved on only on one SQLInstance." | Write-Host -ForegroundColor Red
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly set ConfirmValidationOfMultiInstance parameter to true as host has multiple database engine services.`n`t`t`t`t Perfmon data can be saved only on one SQLInstance." | Write-Host -ForegroundColor Red
             }
 
-            "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+            "STOP here, and fix above issue." | Write-Error
         }
         # If destination is provided, then validate if perfmon is not already get collected
         else {
@@ -503,7 +503,9 @@ if($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs)
 {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching basic info for `$SqlInstanceForPowershellJobs => [$SqlInstanceForPowershellJobs].."
     try {
-        $jobServerServicesInfo = Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Query $sqlServerInfo -SqlCredential $SqlCredential -EnableException
+        $jobServerServicesInfo = @()
+        $jobServerServicesInfo += Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Query $sqlServerInfo -SqlCredential $SqlCredential -EnableException
+
         $jobServerDbServiceInfo = $jobServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server (*)"}
         $jobServerAgentServiceInfo = $jobServerServicesInfo | Where-Object {$_.service_name_str -like "SQL Server Agent (*)"}
         $jobServerServicesInfo | Format-Table -AutoSize
@@ -519,6 +521,12 @@ if($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs)
         }
         Write-Error "Stop here. Fix above issue."
     }
+}
+else {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceToBaseline ~ `$SqlInstanceForPowershellJobs.."
+    $jobServerServicesInfo = $resultServerInfo
+    $jobServerDbServiceInfo = $dbServiceInfo
+    $jobServerAgentServiceInfo = $agentServiceInfo
 }
 
 
@@ -583,7 +591,7 @@ if( (-not $SkipRDPSessionSteps) -and ($HostName -ne $jobServerDbServiceInfo.host
 
     if ( [String]::IsNullOrEmpty($ssnJobServer) ) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provide WindowsCredential for accessing server [$ssnHostName] of domain '$($sqlServerInfo.domain)'." | Write-Host -ForegroundColor Red
-        "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+        "STOP here, and fix above issue." | Write-Error
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "PSSession for [$($jobServerDbServiceInfo.host_name)].."
@@ -1562,7 +1570,7 @@ if($stepName -in $Steps2Execute)
     $objType = 'linked server'
     $objTypeTitleCase = (Get-Culture).TextInfo.ToTitleCase("$objType")    
 
-    if($SqlInstanceToBaseline -ne $SqlInstanceAsDataDestination) 
+    if( ($SqlInstanceToBaseline -ne $SqlInstanceAsDataDestination) -and ($SqlInstanceToBaseline -ne $InventoryServer) )
     {
         if($DryRun) {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType '$objName'.."
