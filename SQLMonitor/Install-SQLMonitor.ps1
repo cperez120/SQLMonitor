@@ -882,7 +882,7 @@ if($stepName -in $Steps2Execute)
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspRunWhoIsActiveFilePath = '$UspRunWhoIsActiveFilePath'"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspRunWhoIsActiveFilePath -SqlCredential $SqlCredential -EnableException
 
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [dbo].[instance_hosts].."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$SqlInstanceToBaseline].[$DbaDatabase].[dbo].[instance_hosts].."
     $sqlAddInstanceHost = @"
         if not exists (select * from dbo.instance_hosts where host_name = '$HostName')
         begin
@@ -893,8 +893,16 @@ if($stepName -in $Steps2Execute)
         end
 "@
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAddInstanceHost -SqlCredential $SqlCredential -EnableException | ft -AutoSize
+    if($SqlInstanceAsDataDestination -ne $SqlInstanceToBaseline) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$SqlInstanceAsDataDestination].[$DbaDatabase].[dbo].[instance_hosts].."
+        Invoke-DbaQuery -SqlInstance $SqlInstanceAsDataDestination -Database $DbaDatabase -Query $sqlAddInstanceHost -SqlCredential $SqlCredential -EnableException | ft -AutoSize
+    }
+    if($InventoryServer -ne $SqlInstanceToBaseline) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$InventoryServer].[$DbaDatabase].[dbo].[instance_hosts].."
+        Invoke-DbaQuery -SqlInstance $InventoryServer -Database $DbaDatabase -Query $sqlAddInstanceHost -SqlCredential $SqlCredential -EnableException | ft -AutoSize
+    }
 
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [dbo].[instance_details].."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$SqlInstanceToBaseline].[$DbaDatabase].[dbo].[instance_details].."
     $sqlAddInstanceHostMapping = @"
     if not exists (select * from dbo.instance_details where sql_instance = '$SqlInstanceToBaseline' and [host_name] = '$HostName')
     begin
@@ -909,6 +917,14 @@ if($stepName -in $Steps2Execute)
     end
 "@
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAddInstanceHostMapping -SqlCredential $SqlCredential -EnableException | ft -AutoSize
+    if($SqlInstanceAsDataDestination -ne $SqlInstanceToBaseline) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$SqlInstanceAsDataDestination].[$DbaDatabase].[dbo].[instance_details].."
+        Invoke-DbaQuery -SqlInstance $SqlInstanceAsDataDestination -Database $DbaDatabase -Query $sqlAddInstanceHostMapping -SqlCredential $SqlCredential -EnableException | ft -AutoSize
+    }
+    if($InventoryServer -ne $SqlInstanceToBaseline) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$InventoryServer].[$DbaDatabase].[dbo].[instance_details].."
+        Invoke-DbaQuery -SqlInstance $InventoryServer -Database $DbaDatabase -Query $sqlAddInstanceHostMapping -SqlCredential $SqlCredential -EnableException | ft -AutoSize
+    }
 
 
     if($isExpressEdition) {
