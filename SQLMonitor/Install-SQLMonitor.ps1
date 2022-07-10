@@ -4,13 +4,12 @@ Param (
     $SqlInstanceToBaseline,
 
     [Parameter(Mandatory=$false)]
-    $DbaDatabase,
+    $DbaDatabase = 'DBA',
 
     [Parameter(Mandatory=$false)]
     $SqlInstanceAsDataDestination,
 
     [Parameter(Mandatory=$false)]
-    #$SqlInstanceForDataCollectionJobs,
     $SqlInstanceForTsqlJobs,
 
     [Parameter(Mandatory=$false)]
@@ -28,8 +27,8 @@ Param (
     [Parameter(Mandatory=$true)]
     [String]$DbaToolsFolderPath,
 
-    [Parameter(Mandatory=$true)]
-    [String]$RemoteSQLMonitorPath,
+    [Parameter(Mandatory=$false)]
+    [String]$RemoteSQLMonitorPath = 'C:\SQLMonitor',
 
     [Parameter(Mandatory=$false)]
     [String]$MailProfileFileName = "DatabaseMail_Using_GMail.sql",
@@ -1066,6 +1065,7 @@ if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$DbaToolsFolderPath = '$DbaToolsFolderPath'"
     
+    # Copy dbatools on HostName provided
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Finding valid PSModule path on [$HostName].."
     $remoteModulePath = Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock {
         $modulePath = $null
@@ -1088,7 +1088,7 @@ if($stepName -in $Steps2Execute) {
         Copy-Item $DbaToolsFolderPath -Destination $dbatoolsRemotePath -ToSession $ssn4PerfmonSetup -Recurse
     }
 
-    # If Job Server is different server, then Copy dbatools there also
+    # Copy dbatools folder on Jobs Server Host
     if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -and ($ssn4PerfmonSetup -ne $ssnJobServer) )
     {
         "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Finding valid PSModule path on [$($ssnJobServer.ComputerName)].."

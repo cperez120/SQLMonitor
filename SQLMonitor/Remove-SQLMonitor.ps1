@@ -12,8 +12,11 @@ Param (
     [Parameter(Mandatory=$false)]
     $HostName,
 
-    [Parameter(Mandatory=$true)]
-    [String]$RemoteSQLMonitorPath,
+    [Parameter(Mandatory=$false)]
+    [String]$RemoteSQLMonitorPath = 'C:\SQLMonitor',
+
+    [Parameter(Mandatory=$false)]
+    $DataCollectorSetName = 'DBA',
 
     [Parameter(Mandatory=$false)]
     [ValidateSet("1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
@@ -76,7 +79,10 @@ Param (
     [bool]$SkipDropTable = $false,
 
     [Parameter(Mandatory=$false)]
-    [bool]$SkipRemoveJob = $false,
+    [bool]$SkipRemoveTsqlJobs = $false,
+
+    [Parameter(Mandatory=$false)]
+    [bool]$SkipRemovePowerShellJobs = $false,    
 
     [Parameter(Mandatory=$false)]
     [bool]$SkipDropProcedure = $false,
@@ -118,6 +124,42 @@ $AllSteps = @(  "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesse
                 "43__DropTable_WaitStats", "44__RemovePerfmonFilesFromDisk", "45__RemoveXEventFilesFromDisk",
                 "46__DropProxy", "47__DropCredential"
                 )
+
+# TSQL Jobs
+$TsqlJobSteps = @(
+                "4__RemoveJob_CollectWaitStats", "5__RemoveJob_CollectXEvents", "6__RemoveJob_PartitionsMaintenance",
+                "7__RemoveJob_PurgeTables", "9__RemoveJob_RunWhoIsActive")
+
+# PowerShell Jobs
+$PowerShellJobSteps = @(
+                "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
+                "8__RemoveJob_RemoveXEventFiles", "10__RemoveJob_UpdateSqlServerVersions")
+
+# RDPSessionSteps
+$RDPSessionSteps = @("44__RemovePerfmonFilesFromDisk", "45__RemoveXEventFilesFromDisk")
+
+
+# Add $PowerShellJobSteps to Skip Jobs
+if($SkipRemovePowerShellJobs) {
+    $SkipSteps = $SkipSteps + $PowerShellJobSteps;
+}
+
+# Add $RDPSessionSteps to Skip Jobs
+if($SkipRDPSessionSteps) {
+    $SkipSteps = $SkipSteps + $RDPSessionSteps;
+}
+
+# Add $TsqlJobSteps to Skip Jobs
+if($SkipRemoveTsqlJobs) {
+    $SkipSteps = $SkipSteps + $TsqlJobSteps;
+}
+
+# For backward compatability
+$SkipAllJobs = $false
+if($SkipRemoveTsqlJobs -and $SkipRemovePowerShellJobs) {
+    $SkipAllJobs = $true
+}
+
 
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
@@ -260,7 +302,7 @@ if([String]::IsNullOrEmpty($domain)) {
 }
 
 # Get dbo.instance_details info
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching info.."
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching info from [dbo].[instance_details].."
 if([String]::IsNullOrEmpty($HostName)) {
     $sqlInstanceDetails = "select * from dbo.instance_details where sql_instance = '$SqlInstanceToBaseline'"
 }
@@ -269,7 +311,7 @@ else {
 }
 try {
     $instanceDetails = @()
-    $instanceDetails += Invoke-DbaQuery -SqlInstance $InventoryServer -Database $DbaDatabase -Query $sqlInstanceDetails -SqlCredential $SqlCredential -EnableException
+    $instanceDetails += Invoke-DbaQuery -SqlInstance $InventoryServer -Database $DbaDatabase -Query $sqlInstanceDetails -SqlCredential $SqlCredential
     if($instanceDetails.Count -eq 0) {
         $instanceDetails += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlInstanceDetails -SqlCredential $SqlCredential -EnableException
     }
@@ -290,6 +332,9 @@ catch {
 if ( $instanceDetails.Count -eq 0 ) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Instance details could not be found in [dbo].[instance_details] on either [$InventoryServer] or [$SqlInstanceToBaseline].`n`t`tThis information is required to get HostName & Collector Instance details." | Write-Host -ForegroundColor Red
     "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+}
+else {
+    $instanceDetails | ft -AutoSize
 }
 
 # If more than 1 host is found, then confirm from user
@@ -394,6 +439,62 @@ if( (-not $SkipRDPSessionSteps) ) #-and ($HostName -ne $env:COMPUTERNAME)
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ssn4PerfmonSetup PSSession for [$HostName].."
     $ssn4PerfmonSetup
     "`n"
+}
+
+
+# Check No of SQL Services on HostName
+if(-not $SkipRemovePowerShellJobs)
+{
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Check for number of SQLServices on [$HostName].."
+
+    $sqlServicesOnHost = @()
+    # Localhost system
+    if( $HostName -eq $env:COMPUTERNAME ) {
+        $sqlServicesOnHost += Get-Service MSSQL* | Where-Object {$_.DisplayName -like 'SQL Server (*)' -and $_.StartType -ne 'Disabled'}
+    }
+    else {
+        $sqlServicesOnHost += Invoke-Command -SessionName $ssn4PerfmonSetup -ScriptBlock { 
+                                    Get-Service MSSQL* | Where-Object {$_.DisplayName -like 'SQL Server (*)' -and $_.StartType -ne 'Disabled'} 
+                            }
+    }
+
+    # If more than one sql services found, then ensure appropriate parameters are provided
+    if($sqlServicesOnHost.Count -gt 1) 
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[$($sqlServicesOnHost.Count)] database engine Services found on [$HostName].."
+
+        # If Destination instance is not provided, throw error
+        if([String]::IsNullOrEmpty($SqlInstanceAsDataDestination) -or (-not $ConfirmValidationOfMultiInstance)) 
+        {
+            if([String]::IsNullOrEmpty($SqlInstanceAsDataDestination)) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide value for parameter SqlInstanceAsDataDestination as host has multiple database engine services, `n`t and Perfmon data can be saved on only on one SQLInstance." | Write-Host -ForegroundColor Red
+            }
+            if(-not $ConfirmValidationOfMultiInstance) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly set ConfirmValidationOfMultiInstance parameter to true as host has multiple database engine services, `n`t and Perfmon data can be saved on only on one SQLInstance." | Write-Host -ForegroundColor Red
+            }
+
+            "STOP here, and fix above issue." | Write-Error -ForegroundColor Red
+        }
+        # If destination is provided, then validate if perfmon is not already get collected
+        else {
+            
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validate if Perfmon data is not being collected already on [$SqlInstanceAsDataDestination] for same host.."
+            $sqlPerfmonRecord = @"
+select top 1 'dbo.performance_counters' as QueryData, getutcdate() as current_time_utc, collection_time_utc, pc.host_name
+from dbo.performance_counters pc with (nolock)
+where pc.collection_time_utc >= DATEADD(minute,-20,GETUTCDATE()) and host_name = '$HostName'
+order by pc.collection_time_utc desc
+"@
+            $resultPerfmonRecord = @()
+            $resultPerfmonRecord += Invoke-DbaQuery -SqlInstance $SqlInstanceAsDataDestination -Database $DbaDatabase -Query $sqlPerfmonRecord -SqlCredential $SqlCredential -EnableException
+            if($resultPerfmonRecord.Count -eq 0) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "No Perfmon data record found for last 20 minutes for host [$HostName] on [$SqlInstanceAsDataDestination]."
+            }
+            else {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Perfmon data records of latest 20 minutes for host [$HostName] are present on [$SqlInstanceAsDataDestination]."
+            }
+        }
+    }
 }
 
 
@@ -2324,25 +2425,25 @@ if($stepName -in $Steps2Execute)
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove folder '$RemoteSQLMonitorPath' on [$ssnHostName]"
     
-    if($ssnHostName -eq $env:COMPUTERNAME)
+    if($HostName -eq $env:COMPUTERNAME)
     {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking for [DBA] data collector set existence.."
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking for [$DataCollectorSetName] data collector set existence.."
         $pfCollector = @()
-        $pfCollector += Get-DbaPfDataCollector -CollectorSet DBA
+        $pfCollector += Get-DbaPfDataCollector -CollectorSet $DataCollectorSetName
         if($pfCollector.Count -gt 0) 
         {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector [DBA] exists."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector [$DataCollectorSetName] exists."
             if($DryRun) {
-                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Data Collector Set [DBA] removed."
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Data Collector Set [$DataCollectorSetName] removed."
             }
             else {
-                logman stop -name “DBA”
-                logman delete -name “DBA”
-                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector Set [DBA] removed."
+                logman stop -name $DataCollectorSetName
+                logman delete -name $DataCollectorSetName
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector Set [$DataCollectorSetName] removed."
             }
         }
         else {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[DBA] Data Collector not found."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[$DataCollectorSetName] Data Collector not found."
         }
 
         if(Test-Path $RemoteSQLMonitorPath)
@@ -2362,42 +2463,43 @@ if($stepName -in $Steps2Execute)
     }
     else
     {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking for [DBA] data collector set existence.."
-        Invoke-Command -Session $ssn -ScriptBlock {                
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking for [$DataCollectorSetName] data collector set existence.."
+        Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock {                
             $pfCollector = @()
-            $pfCollector += Get-DbaPfDataCollector -CollectorSet DBA
+            $pfCollector += Get-DbaPfDataCollector -CollectorSet $Using:DataCollectorSetName
+
             if($pfCollector.Count -gt 0) 
             {
-                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector [DBA] exists."
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector [$Using:DataCollectorSetName] exists."
                 if($Using:DryRun) {
-                    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Data Collector Set [DBA] removed."
+                    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Data Collector Set [$Using:DataCollectorSetName] removed."
                 }
                 else {
-                    logman stop -name “DBA”
-                    logman delete -name “DBA”
-                    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector Set [DBA] removed."
+                    logman stop -name $Using:DataCollectorSetName
+                    logman delete -name $Using:DataCollectorSetName
+                    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Data Collector Set [$Using:DataCollectorSetName] removed."
                 }
             }
             else {
-                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[DBA] Data Collector not found."
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "[$Using:DataCollectorSetName] Data Collector not found."
             }
         }
 
-        if( (Invoke-Command -Session $ssn -ScriptBlock {Test-Path $Using:RemoteSQLMonitorPath}) ) 
+        if( (Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock {Test-Path $Using:RemoteSQLMonitorPath}) ) 
         {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$RemoteSQLMonitorPath' exists on remote [$ssnHostName]."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$RemoteSQLMonitorPath' exists on remote [$HostName]."
             if($DryRun) {
                 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "'$RemoteSQLMonitorPath' removed."
             }
             else {
-                Invoke-Command -Session $ssn -ScriptBlock {
+                Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock {
                     Remove-Item $Using:RemoteSQLMonitorPath -Recurse -Force -ErrorAction Stop
                     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$Using:RemoteSQLMonitorPath' removed."
                 }
             }
         }
         else {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "'$RemoteSQLMonitorPath' does not exist on host [$ssnHostName]."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "'$RemoteSQLMonitorPath' does not exist on host [$HostName]."
         }
     }
 }
@@ -2438,7 +2540,7 @@ if($stepName -in $Steps2Execute) {
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove folder '$XEventFilesDirectory' on [$SqlInstanceToBaseline]"
     
-    if($ssnHostName -eq $env:COMPUTERNAME)
+    if($HostName -eq $env:COMPUTERNAME)
     {
         if(Test-Path $XEventFilesDirectory) {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$XEventFilesDirectory' exists."
@@ -2456,19 +2558,19 @@ if($stepName -in $Steps2Execute) {
     }
     else
     {
-        if( (Invoke-Command -Session $ssn -ScriptBlock {Test-Path $Using:XEventFilesDirectory}) ) 
+        if( (Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock {Test-Path $Using:XEventFilesDirectory}) ) 
         {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$XEventFilesDirectory' exists on remote [$ssnHostName]."
             if($DryRun) {
                 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "'$XEventFilesDirectory' removed."
             }
             else {
-                Invoke-Command -Session $ssn -ScriptBlock {Remove-Item $Using:XEventFilesDirectory -Recurse -Force} -ErrorAction Stop            
+                Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock {Remove-Item $Using:XEventFilesDirectory -Recurse -Force} -ErrorAction Stop            
                 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "'$XEventFilesDirectory' removed."
             }
         }
         else {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "'$XEventFilesDirectory' exists on host [$($env:COMPUTERNAME)]."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "'$XEventFilesDirectory' does exists on host [$($env:COMPUTERNAME)]."
         }
     }
 }
@@ -2482,4 +2584,85 @@ $stepName = '46__DropProxy'
 $stepName = '47__DropCredential'
 
 
+"`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Removal of SQLMonitor for [$SqlInstanceToBaseline] completed."
+
+$timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Execution completed in $($timeTaken.TotalSeconds) seconds."
+
+
+
+<#
+    .SYNOPSIS
+    Removes SQLMonitor objects, Perfmon data collector, and created SQL Agent jobs. Removes linked server from inventory instance.
+    .DESCRIPTION
+    This function accepts various parameters and perform removal of SQLMonitor from the SQLInstance with deletion of required tables, views, procedures, jobs, perfmon data collector, and linked server.
+    .PARAMETER SqlInstanceToBaseline
+    Name/IP of SQL Instance where SQLMonitor need to be removed. Instances should be capable of connecting from remove machine SSMS using this name/ip.
+    .PARAMETER DbaDatabase
+    Name of DBA database where SQLMonitor objects were created while setup.
+    .PARAMETER InventoryServer
+    Name/IP of Inventory Server which acts are source for Grafana Dashboards.
+    .PARAMETER HostName
+    Name of host for SqlInstanceToBaseline which has perfmon setup.
+    .PARAMETER RemoteSQLMonitorPath
+    SQLMonitor folder location where SQLMonitor folder was copied, and hosts perfmon generated files.
+    .PARAMETER DataCollectorSetName
+    Name of DBA perform data collector set created on server that was baselined. By default, its DBA.
+    .PARAMETER StartAtStep
+    Starts the baselining automation on this step. If no value provided, then baselining starts with 1st step.
+    .PARAMETER SkipSteps
+    List of steps that should be skipped in the baselining automation.
+    .PARAMETER StopAtStep
+    End the baselining automation on this step. If no value provided, then baselining finishes with last step.
+    .PARAMETER SkipDropTable
+    When enabled, dropping of tables is skipped.
+    .PARAMETER SkipRemoveTsqlJobs
+    When enabled, removal activity of jobs that execute stored procedures to capture SQL Server inbuilt metrics is skipped.
+    .PARAMETER SkipRemovePowerShellJobs
+    When enabled, removal activity of jobs that execute powershell scripts is skipped.
+    .PARAMETER SkipDropProcedure
+    When enabled, dropped of stored procedure is skipped.
+    .PARAMETER SkipDropView
+    When enabled, dropped of Views is skipped.
+    .PARAMETER SkipRDPSessionSteps
+    When enabled, any steps that need OS level interaction is skipped. This includes removal of SQLMonitor folder on remote path, removal of Perfmon Data Collector etc.
+    .PARAMETER SqlCredential
+    PowerShell credential object to execute queries any SQL Servers. If no value provided, then connectivity is tried using Windows Integrated Authentication.
+    .PARAMETER WindowsCredential
+    PowerShell credential object that could be used to perform OS interactives tasks. If no value provided, then connectivity is tried using Windows Integrated Authentication. This is important when [SqlInstanceToBaseline] is not in same domain as current host.
+    
+    .PARAMETER ConfirmValidationOfMultiInstance
+    If required for confirmation from end user in case multiple SQL Instances are found on same host. At max, perfmon data can be pushed to only one SQL Instance.
+    .PARAMETER DryRun
+    When enabled, only messages are printed, but actual changes are NOT made.
+
+    .EXAMPLE
+Import-Module dbatools;
+$params = @{
+    SqlInstanceToBaseline = 'Workstation'
+    DbaDatabase = 'DBA'
+    InventoryServer = 'SQLMonitor'
+    RemoteSQLMonitorPath = 'C:\SQLMonitor'
+    #SqlCredential = $saAdmin
+    #WindowsCredential = $DomainCredential
+    #SkipSteps = @("43__RemovePerfmonFilesFromDisk")
+    #StartAtStep = '22__DropLogin_Grafana'
+    #StopAtStep = '10__RemoveJob_UpdateSqlServerVersions'
+    SkipDropTable = $true
+    #SkipRemoveJob = $true
+    #SkipDropProc = $true
+    #SkipDropView = $true
+    DryRun = $false
+}
+F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1 @Params
+
+Remove SQLMonitor setup for SQLInstance [Workstation] while dropping all objects from [DBA] database.
+    .NOTES
+Owner Ajay Kumar Dwivedi (ajay.dwivedi2007@gmail.com)
+    .LINK
+    https://ajaydwivedi.com/github/sqlmonitor
+    https://ajaydwivedi.com/docs/sqlmonitor
+    https://ajaydwivedi.com/blog/sqlmonitor
+    https://ajaydwivedi.com/youtube/sqlmonitor
+#>
 

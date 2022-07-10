@@ -20,7 +20,7 @@ $params = @{
     #SkipDropView = $true
     DryRun = $false
 }
-F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1 @Params -Debug
+F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1 @Params #-Debug
 
 
 #Get-DbaDbMailProfile -SqlInstance '192.168.56.31' -SqlCredential $personalCredential
