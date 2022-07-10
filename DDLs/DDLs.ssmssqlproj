@@ -187,6 +187,12 @@
           <AssociatedConnUserName />
           <FullPath>SCH-usp_GetAllServerInfo.sql</FullPath>
         </FileNode>
+        <FileNode Name="SCH-usp_partition_maintenance.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-usp_partition_maintenance.sql</FullPath>
+        </FileNode>
         <FileNode Name="SCH-usp_purge_tables.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>

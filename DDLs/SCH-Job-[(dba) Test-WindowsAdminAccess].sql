@@ -23,7 +23,9 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Test-WindowsAdminAcces
 		@notify_level_netsend=0, 
 		@notify_level_page=0, 
 		@delete_level=0, 
-		@description=N'No description available.', 
+		@description=N'This job is temporary for testing if Proxy is required for calling PowerShell scripts.
+
+https://ajaydwivedi.com/github/sqlmonitor', 
 		@category_name=N'(dba) SQLMonitor', 
 		@job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback

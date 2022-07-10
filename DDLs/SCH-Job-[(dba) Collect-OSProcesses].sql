@@ -25,7 +25,9 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'(dba) Collect-OSProcesses',
 		@notify_level_netsend=0, 
 		@notify_level_page=0, 
 		@delete_level=0, 
-		@description=N'Get OS Processes CPU & Memory', 
+		@description=N'Get OS Processes CPU & Memory
+
+https://ajaydwivedi.com/github/sqlmonitor', 
 		@category_name=N'(dba) SQLMonitor', 
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
@@ -37,7 +39,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Import-T
 		@on_success_step_id=0, 
 		@on_fail_action=2, 
 		@on_fail_step_id=0, 
-		@retry_attempts=2, 
+		@retry_attempts=1, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'CmdExec', 
 		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  C:\SQLMonitor\tasklist-push-to-sqlserver.ps1 -HostName localhost -SqlInstance localhost -Database DBA', 

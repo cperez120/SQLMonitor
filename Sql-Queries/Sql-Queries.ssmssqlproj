@@ -159,6 +159,18 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="Workstation\SQL2014:LAB\adwivedi">
+          <Created>2022-07-10T09:54:14.6355193+05:30</Created>
+          <Type>SQL</Type>
+          <Server>Workstation\SQL2014</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
       </Items>
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
@@ -198,6 +210,12 @@
           <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>datetime-conversions.sql</FullPath>
+        </FileNode>
+        <FileNode Name="DDL-Alter-instance_details.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>DDL-Alter-instance_details.sql</FullPath>
         </FileNode>
         <FileNode Name="grafana-wait-stats-query.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
