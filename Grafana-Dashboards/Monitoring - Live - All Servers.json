@@ -49,7 +49,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "8.4.6"
+      "version": "9.0.2"
     },
     {
       "type": "datasource",
@@ -68,7 +68,10 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -88,12 +91,16 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1656227631535,
+  "iteration": 1657518694112,
   "links": [],
   "liveNow": false,
   "panels": [
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -115,15 +122,15 @@
               "custom": {
                 "align": "auto",
                 "displayMode": "auto",
-                "filterable": true
+                "filterable": true,
+                "inspect": false
               },
               "mappings": [],
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               }
@@ -268,7 +275,7 @@
             },
             "showHeader": true
           },
-          "pluginVersion": "8.4.6",
+          "pluginVersion": "9.0.2",
           "targets": [
             {
               "alias": "",
@@ -285,6 +292,15 @@
           "type": "table"
         }
       ],
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "All Servers - Basic Info",
       "type": "row"
     },
@@ -296,8 +312,102 @@
         "x": 0,
         "y": 1
       },
+      "id": 846,
+      "panels": [],
+      "repeat": "datasource",
+      "repeatDirection": "h",
+      "title": "CRITICAL - SQLInstance - OFFLINE",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "mssql",
+        "uid": "${DS_SQLMONITOR}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "color-background-solid",
+            "filterable": true,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 2
+      },
+      "id": 844,
+      "options": {
+        "footer": {
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "9.0.2",
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "format": "table",
+          "rawSql": "select sql_instance, [host_name], [tsql jobs server] = collector_tsql_jobs_server, [powershell jobs server] = collector_powershell_jobs_server, [perfmon data server] = data_destination_sql_instance, is_available, last_unavailability_time_utc\nfrom dbo.instance_details id\nwhere is_available = 0\n",
+          "refId": "A"
+        }
+      ],
+      "title": "SQL Instances that are OFFLINE",
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
       "id": 245,
       "panels": [],
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "All Servers - Health Metrics - Require ATTENTION",
       "type": "row"
     },
@@ -314,7 +424,8 @@
           "custom": {
             "align": "center",
             "displayMode": "auto",
-            "filterable": true
+            "filterable": true,
+            "inspect": false
           },
           "mappings": [],
           "thresholds": {
@@ -780,7 +891,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 2
+        "y": 8
       },
       "id": 842,
       "options": {
@@ -794,7 +905,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "8.4.6",
+      "pluginVersion": "9.0.2",
       "targets": [
         {
           "alias": "",
@@ -812,11 +923,15 @@
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 18
       },
       "id": 121,
       "panels": [
@@ -845,12 +960,21 @@
           "type": "dashlist"
         }
       ],
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "Other Dashboards",
       "type": "row"
     }
   ],
   "refresh": "5m",
-  "schemaVersion": 35,
+  "schemaVersion": 36,
   "style": "dark",
   "tags": [
     "mssql",
@@ -884,14 +1008,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "select srvname from sys.sysservers where providername = 'SQLOLEDB'",
+        "definition": "select distinct srvname = sql_instance from dbo.instance_details\nwhere is_available = 1\nunion select convert(varchar,SERVERPROPERTY('ServerName'))",
         "hide": 0,
         "includeAll": true,
         "label": "Sql Instance",
         "multi": true,
         "name": "server",
         "options": [],
-        "query": "select srvname from sys.sysservers where providername = 'SQLOLEDB'",
+        "query": "select distinct srvname = sql_instance from dbo.instance_details\nwhere is_available = 1\nunion select convert(varchar,SERVERPROPERTY('ServerName'))",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1784,7 +1908,7 @@
     ]
   },
   "time": {
-    "from": "now-10m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -1798,6 +1922,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - All Servers",
   "uid": "distributed_live_dashboard_all_servers",
-  "version": 94,
+  "version": 99,
   "weekStart": ""
 }
