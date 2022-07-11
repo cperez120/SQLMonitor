@@ -199,8 +199,7 @@ $AllSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession"
 # TSQL Jobs
 $TsqlJobSteps = @(
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
-                "19__CreateJobPurgeTables", "21__CreateJobRunWhoIsActive", "20__CreateJobRemoveXEventFiles",
-                "28__AlterViewsForDataDestinationInstance")
+                "19__CreateJobPurgeTables", "21__CreateJobRunWhoIsActive", "20__CreateJobRemoveXEventFiles")
 
 # PowerShell Jobs
 $PowerShellJobSteps = @(
