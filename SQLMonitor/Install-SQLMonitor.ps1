@@ -1711,6 +1711,7 @@ go
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAlterViewDiskSpace -SqlCredential $SqlCredential -EnableException
 }
 
+Get-PSSession | Remove-PSSession
 
 "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Baselining of [$SqlInstanceToBaseline] completed."
 
