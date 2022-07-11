@@ -1012,7 +1012,7 @@ if($stepName -in $Steps2Execute) {
     if($xEventTargetPathParentDirectory.Length -eq 3) {
         $xEventTargetPathDirectory = "${xEventTargetPathParentDirectory}xevents"
     } else {
-        $xEventTargetPathDirectory = Join-Path -Path $xEventTargetPathParentDirectory -ChildPath "xevents"
+        $xEventTargetPathDirectory = "$xEventTargetPathParentDirectory\xevents" #Join-Path -Path $xEventTargetPathParentDirectory -ChildPath "xevents"
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Computed XEvent files directory -> '$xEventTargetPathDirectory'.."
