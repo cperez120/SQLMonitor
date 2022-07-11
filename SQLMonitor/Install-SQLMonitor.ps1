@@ -235,6 +235,8 @@ cls
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
 
+$skipCollationCheck = $false
+
 if($SqlInstanceToBaseline -eq '.' -or $SqlInstanceToBaseline -eq 'localhost') {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "'localhost' or '.' are not validate SQLInstance names." | Write-Host -ForegroundColor Red
     Write-Error "Stop here. Fix above issue."
@@ -624,19 +626,22 @@ if($dbServiceInfo.Edition -like 'Express*') {
 
 
 # Validate database collation
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validating Collation of databases.."
-$sqlDbCollation = @"
+if(-not $skipCollationCheck) 
+{
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validating Collation of databases.."
+    $sqlDbCollation = @"
 select name as [db_name], collation_name from sys.databases 
 where collation_name not in ('SQL_Latin1_General_CP1_CI_AS') 
 and name in ('master','msdb','tempdb','$DbaDatabase')
 "@
-$dbCollationResult = @()
-$dbCollationResult += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Query $sqlDbCollation -EnableException -SqlCredential $SqlCredential
-if($dbCollationResult.Count -ne 0) {
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Collation of below databases is not [SQL_Latin1_General_CP1_CI_AS]." | Write-Host -ForegroundColor Red
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly rectify this collation problem." | Write-Host -ForegroundColor Red
-    $dbCollationResult | Format-Table -AutoSize | Write-Host -ForegroundColor Red
-    Write-Error "Stop here. Fix above issue."
+    $dbCollationResult = @()
+    $dbCollationResult += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Query $sqlDbCollation -EnableException -SqlCredential $SqlCredential
+    if($dbCollationResult.Count -ne 0) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Collation of below databases is not [SQL_Latin1_General_CP1_CI_AS]." | Write-Host -ForegroundColor Red
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly rectify this collation problem." | Write-Host -ForegroundColor Red
+        $dbCollationResult | Format-Table -AutoSize #| Write-Host -ForegroundColor Red
+        Write-Error "Stop here. Fix above issue."
+    }
 }
 
 
