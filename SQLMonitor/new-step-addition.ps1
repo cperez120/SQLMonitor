@@ -1,25 +1,25 @@
 ﻿[CmdletBinding()]
 Param (
     [Parameter(Mandatory=$false)]
-    [String]$NewStepName = "15__DropProc_UspPartitionMaintenance",
+    [String]$NewStepName = "11__RemoveJob_CheckInstanceAvailability",
     
     [Parameter(Mandatory=$false)]
-    [String[]]$AllSteps = @(  "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
+    [String[]]$AllSteps = @( "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
                 "4__RemoveJob_CollectWaitStats", "5__RemoveJob_CollectXEvents", "6__RemoveJob_PartitionsMaintenance",
                 "7__RemoveJob_PurgeTables", "8__RemoveJob_RemoveXEventFiles", "9__RemoveJob_RunWhoIsActive",
                 "10__RemoveJob_UpdateSqlServerVersions", "11__DropProc_UspExtendedResults", "12__DropProc_UspCollectWaitStats",
-                "13__DropProc_UspRunWhoIsActive", "14__DropProc_UspCollectXEventsResourceConsumption", "15__DropProc_UspPurgeTables",
-                "16__DropProc_SpWhatIsRunning", "17__DropView_VwPerformanceCounters", "18__DropView_VwOsTaskList",
-                "19__DropView_VwWaitStatsDeltas", "20__DropXEvent_ResourceConsumption", "21__DropLinkedServer",
-                "22__DropLogin_Grafana", "23__DropTable_ResourceConsumption","24__DropTable_ResourceConsumptionProcessedXELFiles",
-                "25__DropTable_WhoIsActive_Staging", "26__DropTable_WhoIsActive", "27__DropTable_PerformanceCounters",
-                "28__DropTable_PurgeTable", "29__DropTable_PerfmonFiles", "30__DropTable_InstanceHosts", 
-                "31__DropTable_OsTaskList", "32__DropTable_BlitzWho", "33__DropTable_BlitzCache",
-                "34__DropTable_ConnectionHistory", "35__DropTable_BlitzFirst", "36__DropTable_BlitzFirstFileStats",
-                "37__DropTable_InstanceDetails", "38__DropTable_DiskSpace", "39__DropTable_BlitzFirstPerfmonStats",
-                "40__DropTable_BlitzFirstWaitStats", "41__DropTable_BlitzFirstWaitStatsCategories", "42__DropTable_WaitStats",
-                "43__RemovePerfmonFilesFromDisk", "44__RemoveXEventFilesFromDisk", "45__DropProxy",
-                "46__DropCredential"
+                "13__DropProc_UspRunWhoIsActive", "14__DropProc_UspCollectXEventsResourceConsumption", "15__DropProc_UspPartitionMaintenance",
+                "16__DropProc_UspPurgeTables", "17__DropProc_SpWhatIsRunning", "18__DropView_VwPerformanceCounters",
+                "19__DropView_VwOsTaskList", "20__DropView_VwWaitStatsDeltas", "21__DropXEvent_ResourceConsumption",
+                "22__DropLinkedServer", "23__DropLogin_Grafana", "24__DropTable_ResourceConsumption",
+                "25__DropTable_ResourceConsumptionProcessedXELFiles", "26__DropTable_WhoIsActive_Staging", "27__DropTable_WhoIsActive",
+                "28__DropTable_PerformanceCounters", "29__DropTable_PurgeTable", "30__DropTable_PerfmonFiles",
+                "31__DropTable_InstanceHosts", "32__DropTable_OsTaskList", "33__DropTable_BlitzWho",
+                "34__DropTable_BlitzCache", "35__DropTable_ConnectionHistory", "36__DropTable_BlitzFirst",
+                "37__DropTable_BlitzFirstFileStats", "38__DropTable_InstanceDetails", "39__DropTable_DiskSpace",
+                "40__DropTable_BlitzFirstPerfmonStats", "41__DropTable_BlitzFirstWaitStats", "42__DropTable_BlitzFirstWaitStatsCategories",
+                "43__DropTable_WaitStats", "44__RemovePerfmonFilesFromDisk", "45__RemoveXEventFilesFromDisk",
+                "46__DropProxy", "47__DropCredential"
                 ),
 
     [Parameter(Mandatory=$false)]
@@ -27,7 +27,7 @@ Param (
 
     [Parameter(Mandatory=$false)]
     [String]$ScriptFile = 'F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1'
-    #'F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1'
+                          #'F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1'
 )
 
 cls
