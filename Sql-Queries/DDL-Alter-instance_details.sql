@@ -46,6 +46,12 @@ from dbo.instance_details
 go
 
 /*
+if not exists (select * from sys.columns c where c.object_id = OBJECT_ID('dbo.instance_details') and c.name = 'is_available')
+    alter table dbo.instance_details add [is_available] bit not null default 1;
+go
+if not exists (select * from sys.columns c where c.object_id = OBJECT_ID('dbo.instance_details') and c.name = 'created_date_utc')
+    alter table dbo.instance_details add [created_date_utc] datetime2 not null default SYSUTCDATETIME();
+go
 if not exists (select * from sys.columns c where c.object_id = OBJECT_ID('dbo.instance_details') and c.name = 'last_unavailability_time_utc')
     alter table dbo.instance_details add [last_unavailability_time_utc] datetime2 null;
 go
