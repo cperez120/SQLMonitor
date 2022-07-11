@@ -85,6 +85,12 @@
           <AssociatedConnUserName />
           <FullPath>SCH-Create-XEvents.sql</FullPath>
         </FileNode>
+        <FileNode Name="SCH-Job-[(dba) Check-InstanceAvailability].sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-Job-[(dba) Check-InstanceAvailability].sql</FullPath>
+        </FileNode>
         <FileNode Name="SCH-Job-[(dba) Collect-DiskSpace].sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>

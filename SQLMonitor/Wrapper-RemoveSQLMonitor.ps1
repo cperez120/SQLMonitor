@@ -8,6 +8,7 @@ $params = @{
     SqlInstanceToBaseline = 'Workstation'
     DbaDatabase = 'DBA'
     InventoryServer = 'SQLMonitor'
+    InventoryDatabase = 'DBA'
     RemoteSQLMonitorPath = 'C:\SQLMonitor'
     #SqlCredential = $saAdmin
     #WindowsCredential = $DomainCredential

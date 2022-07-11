@@ -130,9 +130,13 @@ BEGIN
 	--select '@_tbl_output_columns' as QueryData, * from @_tbl_output_columns;
 
 	DECLARE cur_servers CURSOR LOCAL FORWARD_ONLY FOR
-		select distinct srvname from sys.sysservers 
-		where providername = 'SQLOLEDB' 
-		and (@servers is null or srvname in (select srv_name from @_tbl_servers))
+		select distinct srvname = sql_instance 
+		from dbo.instance_details
+		where is_available = 1
+		and (@servers is null or sql_instance in (select srv_name from @_tbl_servers))
+		--select distinct srvname from sys.sysservers 
+		--where providername = 'SQLOLEDB' 
+		--and (@servers is null or srvname in (select srv_name from @_tbl_servers))
 		union select convert(varchar,SERVERPROPERTY('ServerName'));
 
 	OPEN cur_servers;
