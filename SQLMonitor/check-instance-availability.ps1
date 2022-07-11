@@ -47,8 +47,6 @@ $jobs += $supportedInstances | Start-RSJob -Name {"$($_.sql_instance)"} -ScriptB
 "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Waiting for RSJobs to complete.." | Write-Verbose
 $jobs | Wait-RSJob -ShowProgress -Timeout 1200 -Verbose:$false | Out-Null
 
-Write-Debug "Inside check-server-availability"
-
 $jobs_timedout = @()
 $jobs_timedout += $jobs | Where-Object {$_.State -in ('NotStarted','Running','Stopping')}
 $jobs_success = @()
@@ -105,5 +103,31 @@ $jobs | Remove-RSJob -Verbose:$false
 
 #throw $errMessage
 
+if($jobsResult.Count -gt 0) {
+    "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Setting [is_available] flag for $($jobsResult.Count) online server(s).."
+    $onlineSqlInstancesCSV = (($jobsResult.sql_instance | % {"'$_'"}) -join ',')
+    $sqlSetOnlineFlag = @"
+update dbo.instance_details set is_available = 1
+where is_available = 0 and sql_instance in ($onlineSqlInstancesCSV)
+"@
+    Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $sqlSetOnlineFlag -EnableException
+}
+
+if($jobs_exception.Count -gt 0) {
+    "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Setting [is_available] flag for $($jobs_exception.Count) offline server(s).."
+    $offlineSqlInstancesCSV = (($jobs_exception.Name | % {"'$_'"}) -join ',')
+    $sqlSetOfflineFlag = @"
+update dbo.instance_details set is_available = 0, last_unavailability_time_utc = SYSUTCDATETIME()
+where is_available = 1 and sql_instance in ($offlineSqlInstancesCSV)
+"@
+    Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $sqlSetOfflineFlag -EnableException
+}
+
+$errMessage
+
+"`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Script completed."
+
+$timeTaken = New-TimeSpan -Start $currentTime -End $(Get-Date)
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Execution completed in $($timeTaken.TotalSeconds) seconds."
 
 # F:\GitHub\SQLMonitor\SQLMonitor\check-instance-availability.ps1 -InventoryServer SQLMonitor -Debug

@@ -44,3 +44,9 @@ go
 select *
 from dbo.instance_details
 go
+
+/*
+if not exists (select * from sys.columns c where c.object_id = OBJECT_ID('dbo.instance_details') and c.name = 'last_unavailability_time_utc')
+    alter table dbo.instance_details add [last_unavailability_time_utc] datetime2 null;
+go
+*/
