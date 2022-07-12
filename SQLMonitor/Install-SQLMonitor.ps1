@@ -178,6 +178,9 @@ Param (
     [bool]$SkipMailProfileCheck = $false,
 
     [Parameter(Mandatory=$false)]
+    [bool]$skipCollationCheck = $false,
+
+    [Parameter(Mandatory=$false)]
     [bool]$ConfirmValidationOfMultiInstance = $false,
 
     [Parameter(Mandatory=$false)]
@@ -235,7 +238,8 @@ cls
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
 
-$skipCollationCheck = $false
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Clearing old PSSessions.."
+Get-PSSession | Remove-PSSession
 
 if($SqlInstanceToBaseline -eq '.' -or $SqlInstanceToBaseline -eq 'localhost') {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "'localhost' or '.' are not validate SQLInstance names." | Write-Host -ForegroundColor Red
@@ -1630,7 +1634,7 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -ne $InventoryServer
     $sqlLinkedServerOnInventory = $sqlLinkedServerOnInventory.Replace("@catalog=N'DBA'", "@catalog=N'$DbaDatabase'")
     
     $dbaLinkedServer = @()
-    $dbaLinkedServer += Get-DbaLinkedServer -SqlInstance $InventoryServer -LinkedServer $SqlInstanceToBaseline
+    $dbaLinkedServer += Get-DbaLinkedServer -SqlInstance $InventoryServer -LinkedServer $SqlInstanceToBaseline -SqlCredential $SqlCredential
     if($dbaLinkedServer.Count -eq 0) {
         Invoke-DbaQuery -SqlInstance $InventoryServer -Database master -Query $sqlLinkedServerOnInventory -SqlCredential $SqlCredential -EnableException
     } else {
@@ -1716,6 +1720,7 @@ go
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAlterViewDiskSpace -SqlCredential $SqlCredential -EnableException
 }
 
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Clearing old PSSessions.."
 Get-PSSession | Remove-PSSession
 
 "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Baselining of [$SqlInstanceToBaseline] completed."
