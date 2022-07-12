@@ -549,14 +549,31 @@ if( ($SkipPowerShellJobs -eq $false) -or ('20__CreateJobRemoveXEventFiles' -in $
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Check for number of SQLServices on [$HostName].."
 
     $sqlServicesOnHost = @()
+
     # Localhost system
     if( $HostName -eq $env:COMPUTERNAME ) {
         $sqlServicesOnHost += Get-Service MSSQL* | Where-Object {$_.DisplayName -like 'SQL Server (*)' -and $_.StartType -ne 'Disabled'}
     }
-    else {
+    
+    # Remote host
+    if($HostName -ne $env:COMPUTERNAME)
+    {
+        # if pssession is null
+        if([String]::IsNullOrEmpty($ssn4PerfmonSetup)) 
+        {
+            # If Destination instance is not provided, throw error
+            if([String]::IsNullOrEmpty($SqlInstanceAsDataDestination) -or (-not $ConfirmValidationOfMultiInstance)) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide values for parameter SqlInstanceAsDataDestination & ConfirmValidationOfMultiInstance as `$ssn4PerfmonSetup is null." | Write-Host -ForegroundColor Red
+                "STOP here, and fix above issue." | Write-Error
+            }
+        }
+        
+        # if pssession is not null
+        if(-not [String]::IsNullOrEmpty($ssn4PerfmonSetup)) {
         $sqlServicesOnHost += Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock { 
                                     Get-Service MSSQL* | Where-Object {$_.DisplayName -like 'SQL Server (*)' -and $_.StartType -ne 'Disabled'} 
                             }
+        }
     }
 
     # If more than one sql services found, then ensure appropriate parameters are provided
