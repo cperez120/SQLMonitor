@@ -1052,11 +1052,18 @@ if($stepName -in $Steps2Execute) {
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$dbaDatabasePath => '$dbaDatabasePath'.."
 
-    $xEventTargetPathParentDirectory = (Split-Path (Split-Path $dbaDatabasePath -Parent))
-    if($xEventTargetPathParentDirectory.Length -eq 3) {
-        $xEventTargetPathDirectory = "${xEventTargetPathParentDirectory}xevents"
-    } else {
-        $xEventTargetPathDirectory = "$xEventTargetPathParentDirectory\xevents" #Join-Path -Path $xEventTargetPathParentDirectory -ChildPath "xevents"
+    $dbaDatabasePathParent = Split-Path $dbaDatabasePath -Parent
+    if($dbaDatabasePathParent.Length -eq 3) {
+        $xEventTargetPathDirectory = "${dbaDatabasePathParent}xevents"
+    }
+    else {
+        $xEventTargetPathDirectoryParent = Split-Path $dbaDatabasePathParent -Parent
+        if($xEventTargetPathDirectoryParent.Length -eq 3) {
+            $xEventTargetPathDirectory = "$(Split-Path $dbaDatabasePathParent -Parent)xevents"
+        }
+        else {
+            $xEventTargetPathDirectory = "$($xEventTargetPathDirectoryParent)\xevents"
+        }
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Computed XEvent files directory -> '$xEventTargetPathDirectory'.."
