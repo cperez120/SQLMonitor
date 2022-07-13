@@ -123,7 +123,8 @@ Param (
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
                 "22__CreateJobUpdateSqlServerVersions", "23__CreateJobCheckInstanceAvailability", "24__WhoIsActivePartition",
-                "25__GrafanaLogin", "26__LinkedServerOnInventory", "27__LinkedServerForDataDestinationInstance")]
+                "25__GrafanaLogin", "26__LinkedServerOnInventory", "27__LinkedServerForDataDestinationInstance",
+                "28__AlterViewsForDataDestinationInstance")]
     [String]$StartAtStep = "1__sp_WhoIsActive",
 
     [Parameter(Mandatory=$false)]
@@ -135,7 +136,8 @@ Param (
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
                 "22__CreateJobUpdateSqlServerVersions", "23__CreateJobCheckInstanceAvailability", "24__WhoIsActivePartition",
-                "25__GrafanaLogin", "26__LinkedServerOnInventory", "27__LinkedServerForDataDestinationInstance")]
+                "25__GrafanaLogin", "26__LinkedServerOnInventory", "27__LinkedServerForDataDestinationInstance",
+                "28__AlterViewsForDataDestinationInstance")]
     [String[]]$SkipSteps,
 
     [Parameter(Mandatory=$false)]
@@ -147,7 +149,8 @@ Param (
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
                 "22__CreateJobUpdateSqlServerVersions", "23__CreateJobCheckInstanceAvailability", "24__WhoIsActivePartition",
-                "25__GrafanaLogin", "26__LinkedServerOnInventory", "27__LinkedServerForDataDestinationInstance")]
+                "25__GrafanaLogin", "26__LinkedServerOnInventory", "27__LinkedServerForDataDestinationInstance",
+                "28__AlterViewsForDataDestinationInstance")]
     [String]$StopAtStep,
 
     [Parameter(Mandatory=$false)]
@@ -175,6 +178,9 @@ Param (
     [bool]$SkipMailProfileCheck = $false,
 
     [Parameter(Mandatory=$false)]
+    [bool]$skipCollationCheck = $false,
+
+    [Parameter(Mandatory=$false)]
     [bool]$ConfirmValidationOfMultiInstance = $false,
 
     [Parameter(Mandatory=$false)]
@@ -190,7 +196,8 @@ $AllSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession"
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
                 "22__CreateJobUpdateSqlServerVersions", "23__CreateJobCheckInstanceAvailability", "24__WhoIsActivePartition",
-                "25__GrafanaLogin", "26__LinkedServerOnInventory", "27__LinkedServerForDataDestinationInstance")
+                "25__GrafanaLogin", "26__LinkedServerOnInventory", "27__LinkedServerForDataDestinationInstance",
+                "28__AlterViewsForDataDestinationInstance")
 
 # TSQL Jobs
 $TsqlJobSteps = @(
@@ -230,6 +237,9 @@ if($SkipTsqlJobs -and $SkipPowerShellJobs) {
 cls
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
+
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Clearing old PSSessions.."
+Get-PSSession | Remove-PSSession
 
 if($SqlInstanceToBaseline -eq '.' -or $SqlInstanceToBaseline -eq 'localhost') {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "'localhost' or '.' are not validate SQLInstance names." | Write-Host -ForegroundColor Red
@@ -539,14 +549,31 @@ if( ($SkipPowerShellJobs -eq $false) -or ('20__CreateJobRemoveXEventFiles' -in $
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Check for number of SQLServices on [$HostName].."
 
     $sqlServicesOnHost = @()
+
     # Localhost system
     if( $HostName -eq $env:COMPUTERNAME ) {
         $sqlServicesOnHost += Get-Service MSSQL* | Where-Object {$_.DisplayName -like 'SQL Server (*)' -and $_.StartType -ne 'Disabled'}
     }
-    else {
+    
+    # Remote host
+    if($HostName -ne $env:COMPUTERNAME)
+    {
+        # if pssession is null
+        if([String]::IsNullOrEmpty($ssn4PerfmonSetup)) 
+        {
+            # If Destination instance is not provided, throw error
+            if([String]::IsNullOrEmpty($SqlInstanceAsDataDestination) -or (-not $ConfirmValidationOfMultiInstance)) {
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide values for parameter SqlInstanceAsDataDestination & ConfirmValidationOfMultiInstance as `$ssn4PerfmonSetup is null." | Write-Host -ForegroundColor Red
+                "STOP here, and fix above issue." | Write-Error
+            }
+        }
+        
+        # if pssession is not null
+        if(-not [String]::IsNullOrEmpty($ssn4PerfmonSetup)) {
         $sqlServicesOnHost += Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock { 
                                     Get-Service MSSQL* | Where-Object {$_.DisplayName -like 'SQL Server (*)' -and $_.StartType -ne 'Disabled'} 
                             }
+        }
     }
 
     # If more than one sql services found, then ensure appropriate parameters are provided
@@ -620,19 +647,22 @@ if($dbServiceInfo.Edition -like 'Express*') {
 
 
 # Validate database collation
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validating Collation of databases.."
-$sqlDbCollation = @"
+if(-not $skipCollationCheck) 
+{
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validating Collation of databases.."
+    $sqlDbCollation = @"
 select name as [db_name], collation_name from sys.databases 
 where collation_name not in ('SQL_Latin1_General_CP1_CI_AS') 
 and name in ('master','msdb','tempdb','$DbaDatabase')
 "@
-$dbCollationResult = @()
-$dbCollationResult += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Query $sqlDbCollation -EnableException -SqlCredential $SqlCredential
-if($dbCollationResult.Count -ne 0) {
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Collation of below databases is not [SQL_Latin1_General_CP1_CI_AS]." | Write-Host -ForegroundColor Red
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly rectify this collation problem." | Write-Host -ForegroundColor Red
-    $dbCollationResult | Format-Table -AutoSize | Write-Host -ForegroundColor Red
-    Write-Error "Stop here. Fix above issue."
+    $dbCollationResult = @()
+    $dbCollationResult += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Query $sqlDbCollation -EnableException -SqlCredential $SqlCredential
+    if($dbCollationResult.Count -ne 0) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Collation of below databases is not [SQL_Latin1_General_CP1_CI_AS]." | Write-Host -ForegroundColor Red
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly rectify this collation problem." | Write-Host -ForegroundColor Red
+        $dbCollationResult | Format-Table -AutoSize #| Write-Host -ForegroundColor Red
+        Write-Error "Stop here. Fix above issue."
+    }
 }
 
 
@@ -930,15 +960,21 @@ go
             select 'dbo.instance_hosts' as RunningQuery, * from dbo.instance_hosts
         end
 "@
+    # Populate $SqlInstanceToBaseline
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAddInstanceHost -SqlCredential $SqlCredential -EnableException | ft -AutoSize
-    if($SqlInstanceAsDataDestination -ne $SqlInstanceToBaseline) {
+
+    # Populate $SqlInstanceAsDataDestination
+    if( ($SqlInstanceAsDataDestination -ne $SqlInstanceToBaseline) -and ($InventoryServer -ne $SqlInstanceAsDataDestination) ) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$SqlInstanceAsDataDestination].[$DbaDatabase].[dbo].[instance_hosts].."
         Invoke-DbaQuery -SqlInstance $SqlInstanceAsDataDestination -Database $DbaDatabase -Query $sqlAddInstanceHost -SqlCredential $SqlCredential -EnableException | ft -AutoSize
     }
+
+    # Populate $InventoryServer
     if($InventoryServer -ne $SqlInstanceToBaseline) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$InventoryServer].[$DbaDatabase].[dbo].[instance_hosts].."
         Invoke-DbaQuery -SqlInstance $InventoryServer -Database $DbaDatabase -Query $sqlAddInstanceHost -SqlCredential $SqlCredential -EnableException | ft -AutoSize
     }
+
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$SqlInstanceToBaseline].[$DbaDatabase].[dbo].[instance_details].."
     $sqlAddInstanceHostMapping = @"
@@ -965,7 +1001,7 @@ go
         Invoke-DbaQuery -SqlInstance $SqlInstanceAsDataDestination -Database $DbaDatabase -Query $sqlAddInstanceHostMapping -SqlCredential $SqlCredential -EnableException | ft -AutoSize
     }
 
-    # Populate $InventoryServe
+    # Populate $InventoryServer
     if($InventoryServer -ne $SqlInstanceToBaseline) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$InventoryServer].[$DbaDatabase].[dbo].[instance_details].."
         Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $sqlAddInstanceHostMapping -SqlCredential $SqlCredential -EnableException | ft -AutoSize
@@ -1006,7 +1042,7 @@ if($stepName -in $Steps2Execute) {
     if($xEventTargetPathParentDirectory.Length -eq 3) {
         $xEventTargetPathDirectory = "${xEventTargetPathParentDirectory}xevents"
     } else {
-        $xEventTargetPathDirectory = Join-Path -Path $xEventTargetPathParentDirectory -ChildPath "xevents"
+        $xEventTargetPathDirectory = "$xEventTargetPathParentDirectory\xevents" #Join-Path -Path $xEventTargetPathParentDirectory -ChildPath "xevents"
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Computed XEvent files directory -> '$xEventTargetPathDirectory'.."
@@ -1150,10 +1186,10 @@ if($stepName -in $Steps2Execute) {
     # Copy SQLMonitor folder on HostName provided
     if( (Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock {Test-Path $Using:RemoteSQLMonitorPath}) ) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Sync '$RemoteSQLMonitorPath' on [$HostName] from local copy '$psScriptPath'.."
-        Copy-Item "$psScriptPath\*" -Destination "$RemoteSQLMonitorPath" -ToSession $ssn4PerfmonSetup -Recurse -Force
+        Copy-Item "$psScriptPath\*" -Destination "$RemoteSQLMonitorPath" -ToSession $ssn4PerfmonSetup -Exclude "*.blg" -Recurse -Force
     }else {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Copy '$psScriptPath' to '$RemoteSQLMonitorPath' on [$HostName].."
-        Copy-Item $psScriptPath -Destination $RemoteSQLMonitorPath -ToSession $ssn4PerfmonSetup -Recurse -Force
+        Copy-Item $psScriptPath -Destination $RemoteSQLMonitorPath -ToSession $ssn4PerfmonSetup -Exclude "*.blg" -Recurse -Force
     }
 
     # Copy SQLMonitor folder on Jobs Server Host
@@ -1161,10 +1197,10 @@ if($stepName -in $Steps2Execute) {
     {
         if( (Invoke-Command -Session $ssn4PerfmonSetup -ScriptBlock {Test-Path $Using:RemoteSQLMonitorPath}) ) {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Sync '$RemoteSQLMonitorPath' on [$HostName] from local copy '$psScriptPath'.."
-            Copy-Item "$psScriptPath\*" -Destination "$RemoteSQLMonitorPath" -ToSession $ssn4PerfmonSetup -Recurse -Force
+            Copy-Item "$psScriptPath\*" -Destination "$RemoteSQLMonitorPath" -ToSession $ssn4PerfmonSetup -Exclude "*.blg" -Recurse -Force
         }else {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Copy '$psScriptPath' to '$RemoteSQLMonitorPath' on [$HostName].."
-            Copy-Item $psScriptPath -Destination $RemoteSQLMonitorPath -ToSession $ssn4PerfmonSetup -Recurse -Force
+            Copy-Item $psScriptPath -Destination $RemoteSQLMonitorPath -ToSession $ssn4PerfmonSetup -Exclude "*.blg" -Recurse -Force
         }
     }
 }
@@ -1615,7 +1651,7 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -ne $InventoryServer
     $sqlLinkedServerOnInventory = $sqlLinkedServerOnInventory.Replace("@catalog=N'DBA'", "@catalog=N'$DbaDatabase'")
     
     $dbaLinkedServer = @()
-    $dbaLinkedServer += Get-DbaLinkedServer -SqlInstance $InventoryServer -LinkedServer $SqlInstanceToBaseline
+    $dbaLinkedServer += Get-DbaLinkedServer -SqlInstance $InventoryServer -LinkedServer $SqlInstanceToBaseline -SqlCredential $SqlCredential
     if($dbaLinkedServer.Count -eq 0) {
         Invoke-DbaQuery -SqlInstance $InventoryServer -Database master -Query $sqlLinkedServerOnInventory -SqlCredential $SqlCredential -EnableException
     } else {
@@ -1623,26 +1659,37 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -ne $InventoryServer
     }
 }
 
+
 # 27__LinkedServerForDataDestinationInstance
 $stepName = '27__LinkedServerForDataDestinationInstance'
 if( ($stepName -in $Steps2Execute) -and ($SqlInstanceToBaseline -ne $SqlInstanceAsDataDestination) )
 {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$LinkedServerOnInventoryFilePath = '$LinkedServerOnInventoryFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating linked server for [$SqlInstanceAsDataDestination] on [$SqlInstanceToBaseline].."
 
     $sqlLinkedServerForDataDestinationInstance = [System.IO.File]::ReadAllText($LinkedServerOnInventoryFilePath)
     $sqlLinkedServerForDataDestinationInstance = $sqlLinkedServerForDataDestinationInstance.Replace("'YourSqlInstanceNameHere'", "'$SqlInstanceAsDataDestination'")
     $sqlLinkedServerForDataDestinationInstance = $sqlLinkedServerForDataDestinationInstance.Replace("@catalog=N'DBA'", "@catalog=N'$DbaDatabase'")
     
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking if linked server already exists.."
     $dbaLinkedServer = @()
-    $dbaLinkedServer += Get-DbaLinkedServer -SqlInstance $SqlInstanceToBaseline -LinkedServer $SqlInstanceAsDataDestination
+    $dbaLinkedServer += Get-DbaLinkedServer -SqlInstance $SqlInstanceToBaseline -SqlCredential $SqlCredential -LinkedServer $SqlInstanceAsDataDestination -EnableException
     if($dbaLinkedServer.Count -eq 0) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating linked server for [$SqlInstanceAsDataDestination] on [$SqlInstanceToBaseline].."
         Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database master -Query $sqlLinkedServerForDataDestinationInstance -SqlCredential $SqlCredential -EnableException
     } else {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Linked server for [$SqlInstanceAsDataDestination] on [$SqlInstanceToBaseline] already exists.."
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Linked server named [$SqlInstanceAsDataDestination] already exists on [$SqlInstanceToBaseline]." | Write-Host -ForegroundColor Red
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly validate if linked server is able to access data of [$SqlInstanceAsDataDestination].[$DbaDatabase] database." | Write-Host -ForegroundColor Red
+        "STOP and check above error message" | Write-Error
     }
+}
 
+
+# 28__AlterViewsForDataDestinationInstance
+$stepName = '28__AlterViewsForDataDestinationInstance'
+if( ($stepName -in $Steps2Execute) -and ($SqlInstanceToBaseline -ne $SqlInstanceAsDataDestination) )
+{
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
 
     # Alter dbo.vw_performance_counters
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Alter view [dbo].[vw_performance_counters].."
@@ -1690,6 +1737,8 @@ go
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAlterViewDiskSpace -SqlCredential $SqlCredential -EnableException
 }
 
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Clearing old PSSessions.."
+Get-PSSession | Remove-PSSession
 
 "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Baselining of [$SqlInstanceToBaseline] completed."
 

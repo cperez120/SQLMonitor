@@ -31,7 +31,7 @@ BEGIN
 		Version:		1.0.0
 		Date:			2022-07-01
 
-		EXEC dbo.usp_collect_wait_stats @recipients = 'sqlagentservice@gmail.com'
+		EXEC dbo.usp_collect_wait_stats @recipients = 'some_dba_mail_id@gmail.com'
 
 		Additional Requirements
 		1) Default Global Mail Profile
