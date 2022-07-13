@@ -10,8 +10,10 @@ Navigation
    - [Live Dashboard - Perfmon Counters - Quest Softwares](#live-dashboard---perfmon-counters---quest-softwares)
  - [Portal Credentials](#portal-credentials)
  - [How to Setup](#how-to-setup)
-   - [Part 01 - Setup Baselining of SqlServer](#part-01---setup-baselining-of-sqlserver)
-   - [Part 02 - Configure Grafana for Visualization on baselined data](#part-02---configure-grafana-for-visualization-on-baselined-data)
+   - [Jobs for SQLMonitor](#jobs-for-sqlmonitor)
+   - [Download SQLMonitor](#download-sqlmonitor)
+   - [Install SQLMonitor Using Wrapper Script](#execute-wrapper-script)
+   - [Setup Grafana Dashboards](#setup-grafana-dashboards)
 
 ## Why SQLMonitor?
 SQLMonitor is designed as opensource tool to replace expensive enterprise monitoring or to simply fill the gap and monitor all environments such as DEV, TEST, QA/UAT & PROD.
