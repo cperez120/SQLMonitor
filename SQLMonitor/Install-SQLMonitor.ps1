@@ -1010,11 +1010,19 @@ go
         Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $sqlAddInstanceHostMapping -SqlCredential $SqlCredential -EnableException | ft -AutoSize
     }
 
-    if($isExpressEdition -or (-not [String]::IsNullOrEmpty($RetentionDays)) ) {
-        if([String]::IsNullOrEmpty($RetentionDays)) {
-            $RetentionDays = 14
+    if($isExpressEdition -or (-not [String]::IsNullOrEmpty($RetentionDays)) ) 
+    {
+        if($isExpressEdition -and ([String]::IsNullOrEmpty($RetentionDays) -or $RetentionDays -gt 7) ) {
+            $RetentionDays = 7
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Since Express Edition, setting retention to $RetentionDays days.." | Write-Host -ForegroundColor Cyan
         }
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Since instance is Express Edition, change retention to $RetentionDays days.." | Write-Host -ForegroundColor Cyan
+        else {
+            if([String]::IsNullOrEmpty($RetentionDays)) {
+                $RetentionDays = 14
+            }
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Setting retention to $RetentionDays days.." | Write-Host -ForegroundColor Cyan
+        }
+        
         Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query "update dbo.purge_table set retention_days = $RetentionDays where retention_days > $RetentionDays" -SqlCredential $SqlCredential -EnableException
     }
 }
