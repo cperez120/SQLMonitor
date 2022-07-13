@@ -160,6 +160,9 @@ Param (
     [PSCredential]$WindowsCredential,
 
     [Parameter(Mandatory=$false)]
+    [int]$RetentionDays,
+
+    [Parameter(Mandatory=$false)]
     [bool]$DropCreatePowerShellJobs = $false,
 
     [Parameter(Mandatory=$false)]
@@ -1007,9 +1010,12 @@ go
         Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $sqlAddInstanceHostMapping -SqlCredential $SqlCredential -EnableException | ft -AutoSize
     }
 
-    if($isExpressEdition) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Since instance is Express Edition, change retention to 14 days.." | Write-Host -ForegroundColor Cyan
-        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query "update dbo.purge_table set retention_days = 14 where retention_days > 14" -SqlCredential $SqlCredential -EnableException
+    if($isExpressEdition -or (-not [String]::IsNullOrEmpty($RetentionDays)) ) {
+        if([String]::IsNullOrEmpty($RetentionDays)) {
+            $RetentionDays = 14
+        }
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Since instance is Express Edition, change retention to $RetentionDays days.." | Write-Host -ForegroundColor Cyan
+        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query "update dbo.purge_table set retention_days = $RetentionDays where retention_days > $RetentionDays" -SqlCredential $SqlCredential -EnableException
     }
 }
 
