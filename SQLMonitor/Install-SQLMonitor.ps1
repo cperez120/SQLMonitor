@@ -1821,24 +1821,26 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     Script file containing tsql that convert dbo.WhoIsActive table into partitioned tables if supported.
     .PARAMETER GrafanaLoginFileName
     Script file containing tsql that creates [grafana] login/user on [master] & [DbaDatabase] on [SqlInstanceToBaseline].
+    .PARAMETER CheckInstanceAvailabilityFileName
+    Script file containing tsql that creates sql agent job [(dba) Check-InstanceAvailability] on Inventory Server which calls powershell script to check if a particular SQL Instance is online or not.
     .PARAMETER CollectDiskSpaceFileName
-    Script file containing tsql that creates sql agent job [(dba) Collect-DiskSpace] on server [SqlInstanceForDataCollectionJobs] which calls powershell scripts for collecting Disk Space utilization from server [SqlInstanceToBaseline].
+    Script file containing tsql that creates sql agent job [(dba) Collect-DiskSpace] on server [SqlInstanceForPowerShellJobs] which calls powershell scripts for collecting Disk Space utilization from server [SqlInstanceToBaseline].
     .PARAMETER CollectOSProcessesFileName
-    Script file containing tsql that creates sql agent job [(dba) Collect-OSProcesses] on server [SqlInstanceForDataCollectionJobs] which calls powershell scripts for collecting OS Processes from server [SqlInstanceToBaseline].
+    Script file containing tsql that creates sql agent job [(dba) Collect-OSProcesses] on server [SqlInstanceForPowerShellJobs] which calls powershell scripts for collecting OS Processes from server [SqlInstanceToBaseline].
     .PARAMETER CollectPerfmonDataFileName
-    Script file containing tsql that creates sql agent job [(dba) Collect-PerfmonData] on server [SqlInstanceForDataCollectionJobs] which calls powershell scripts for collecting collecting Perfmon data from server [SqlInstanceToBaseline].
+    Script file containing tsql that creates sql agent job [(dba) Collect-PerfmonData] on server [SqlInstanceForPowerShellJobs] which calls powershell scripts for collecting collecting Perfmon data from server [SqlInstanceToBaseline].
     .PARAMETER CollectWaitStatsFileName
-    Script file containing tsql that creates sql agent job [(dba) Collect-WaitStats] on server [SqlInstanceToBaseline] which captures cumulative waits.
+    Script file containing tsql that creates sql agent job [(dba) Collect-WaitStats] on server [SqlInstanceForTsqlJobs] which captures cumulative waits.
     .PARAMETER CollectXEventsFileName
-    Script file containing tsql that creates sql agent job [(dba) Collect-XEvents] on server [SqlInstanceToBaseline] which reads data from XEvent session [resource_consumption] & pushes it to SQL tables.
+    Script file containing tsql that creates sql agent job [(dba) Collect-XEvents] on server [SqlInstanceForTsqlJobs] which reads data from XEvent session [resource_consumption] & pushes it to SQL tables.
     .PARAMETER PartitionsMaintenanceFileName
-    Script file containing tsql that creates sql agent job [(dba) Partitions-Maintenance] on server [SqlInstanceToBaseline]. This job adds further partions and purges old partitions from partitioned tables.
+    Script file containing tsql that creates sql agent job [(dba) Partitions-Maintenance] on server [SqlInstanceForTsqlJobs]. This job adds further partions and purges old partitions from partitioned tables.
     .PARAMETER PurgeTablesFileName
-    Script file containing tsql that creates sql agent job [(dba) Purge-Tables] on server [SqlInstanceToBaseline]. This job helps in purging old data from tables. Retention threshold varies table to table.
+    Script file containing tsql that creates sql agent job [(dba) Purge-Tables] on server [SqlInstanceForTsqlJobs]. This job helps in purging old data from tables. Retention threshold varies table to table.
     .PARAMETER RemoveXEventFilesFileName
-    Script file containing tsql that creates sql agent job [(dba) Remove-XEventFiles] on server [SqlInstanceToBaseline]. This job helps in purging Old XEvent files which are already processed.
+    Script file containing tsql that creates sql agent job [(dba) Remove-XEventFiles] on server [SqlInstanceForPowerShellJobs]. This job helps in purging Old XEvent files which are already processed.
     .PARAMETER RunWhoIsActiveFileName
-    Script file containing tsql that creates sql agent job [(dba) Run-WhoIsActive] on server [SqlInstanceToBaseline]. This job captures snapshot of server sessions using sp_WhoIsActive.
+    Script file containing tsql that creates sql agent job [(dba) Run-WhoIsActive] on server [SqlInstanceForTsqlJobs]. This job captures snapshot of server sessions using sp_WhoIsActive.
     .PARAMETER UpdateSqlServerVersionsFileName
     Script file containing tsql that creates sql agent job [(dba) Update-SqlServerVersions] on [InventoryServer] server. This job updates the latest version/service pack details into table master.dbo.SqlServerVersions.
     .PARAMETER LinkedServerOnInventoryFileName
@@ -1857,6 +1859,8 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     PowerShell credential object to execute queries any SQL Servers. If no value provided, then connectivity is tried using Windows Integrated Authentication.
     .PARAMETER WindowsCredential
     PowerShell credential object that could be used to perform OS interactives tasks. If no value provided, then connectivity is tried using Windows Integrated Authentication. This is important when [SqlInstanceToBaseline] is not in same domain as current host.
+    .PARAMETER RetentionDays 
+    No of days as data retention threshold in tables  of SQLMonitor. Data older than this value would be purged daily once.
     .PARAMETER DropCreatePowerShellJobs
     When enabled, drops the existing SQL Agent jobs having CmdExec steps, and creates them from scratch. By default, Jobs running CmdExec step are not dropped if found existing.
     .PARAMETER SkipPowerShellJobs
@@ -1869,6 +1873,8 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     When enabled, script does not check if Proxy/Credential is required for running PowerShell jobs.
     .PARAMETER SkipMailProfileCheck 
     When enabled, script does not look for default global mail profile.
+    .PARAMETER skipCollationCheck 
+    When enabled, database collations checks are skipped. This means we don't validate if the collation of DBA database  is same as system databases or not.
     .PARAMETER ConfirmValidationOfMultiInstance
     If required for confirmation from end user in case multiple SQL Instances are found on same host. At max, perfmon data can be pushed to only one SQL Instance.
     .PARAMETER DryRun
