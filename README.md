@@ -11,16 +11,29 @@ Navigation
    - [Part 01 - Setup Baselining of SqlServer](#part-01---setup-baselining-of-sqlserver)
    - [Part 02 - Configure Grafana for Visualization on baselined data](#part-02---configure-grafana-for-visualization-on-baselined-data)
 
+## Why SQLMonitor?
+SQLMonitor is designed as opensource tool to replace expensive enterprise monitoring or to simply fill the gap and monitor all environments such as DEV, TEST, QA/UAT & PROD.
+
+### Features
+- Highly customizable granularity to capture important spikes in server workload.
+- Grafana for real-time dashboarding
+- Minimal performance impact (around 1% on a single core SQL Instance)
+- Out of the box collection with minimal configuration required to get it up and running
+- Zero maintenance. It has been designed to maintain itself.
+- Unlimited scalability. As each instance monitors itself, we are not constraint by the capacity of the monitoring server.
+- Works with all supported SQL Servers (with some limitations on 2008R2).
+- Smart alerting (self clearing) with ability to use Emails, PagerDuty & Slack as target.
+
 ## Live Dashboard - Basic Metrics
 You can visit [http://ajaydwivedi.ddns.net:3000](http://ajaydwivedi.ddns.net:3000/d/Fg8Q_wSMz/monitoring-live?orgId=1&refresh=30s&from=now-30m&to=now) for live dashboard for basic real time monitoring.<br><br>
 
-![](https://github.com/imajaydwivedi/Images/blob/master/SqlServer-Baselining-Grafana/Live-Dashboards-All.gif) <br>
+![](https://github.com/imajaydwivedi/Images/blob/master/SQLMonitor/Live-Dashboards-All.gif) <br>
 
 
 ## Live Dashboard - Perfmon Counters - Quest Softwares
 Visit [http://ajaydwivedi.ddns.net:3000](http://ajaydwivedi.ddns.net:3000/d/_dioLINMk/monitoring-perfmon-counters-quest-softwares?orgId=1&refresh=1m) for live dashboard of all Perfmon counters suggested in [SQL Server Perfmon Counters of Interest - Quest Software](https://drive.google.com/file/d/1LB7Joo6055T1FfPcholXByazOX55e5b8/view?usp=sharing).<br><br>
 
-![](https://github.com/imajaydwivedi/Images/blob/33429d24f7ebca45bf0aa1052896462a50ada85e/SqlServer-Baselining-Grafana/Quest-Dashboards-All.gif) <br>
+![](https://github.com/imajaydwivedi/Images/blob/master/SQLMonitor/Quest-Dashboards-All.gif) <br>
 
 ### Portal Credentials
 Database/Grafana Portal | User Name | Password
@@ -29,73 +42,129 @@ http://ajaydwivedi.ddns.net:3000/ | guest | ajaydwivedi-guest
 Sql Instance -> ajaydwivedi.ddns.net:1433 | grafana | grafana
 
 ## How to Setup
-Setup of baselining & visualization is divided into 2 parts:-
-- [Part 01 - Setup Baselining of SqlServer](#part-01---setup-baselining-of-sqlserver)
-- [Part 02 - Configure Grafana for Visualization on baselined data](#part-02---configure-grafana-for-visualization-on-baselined-data)
+SQLMonitor supports both Central & Distributed topology. In preferred distributed topology, each SQL Server instance monitors itself. The required objects like tables, view, functions, procedures, scripts, jobs etc. are created on the monitored instance itself.
 
-### Part 01 - Setup Baselining of SqlServer. 
-Execute all below steps on Sql Instances unless specified otherwise.
-1. Ensure SqlInstance has a **mail profile set as default & public**.
-	> * [DDLs/DatabaseMail_Using_GMail.sql](DDLs/DatabaseMail_Using_GMail.sql)<br>
-	 
-2. Create following modified version of `sp_WhoIsActive` in `[master]` database. 
-	> * [sp_WhoIsActive_V12_00(Modified)](https://github.com/imajaydwivedi/SQLDBA-SSMS-Solution/blob/ae2541e37c28ea5b50887de993666bc81f29eba5/BlitzQueries/SCH-sp_WhoIsActive_v12_00(Modified).sql)
-	
-3. Install [Brent Ozar's First Responder Kit](https://raw.githubusercontent.com/BrentOzarULTD/SQL-Server-First-Responder-Kit/dev/Install-All-Scripts.sql) in `[master]` database.
-	> * [DDLs/FirstResponderKit-Install-All-Scripts.sql](DDLs/FirstResponderKit-Install-All-Scripts.sql)<br>
+SQLMonitor utilizes PowerShell script to collect various metric from operating system including setting up Perfmon data collector, pushing the collected perfmon data to sql tables, collecting os processes running etc.
 
-4. Install following powershell modules on host/SqlInstance that would have data collection SQL Agent job `(dba) Collect-PerfmonData`-
+For collecting metrics available from inside SQL Server, it used standard tsql procedures. 
+
+All the objects are created in [DBA_Admin] databases. Only few stored procedures that should have capability to be executed from context of any databases are created in [master] database.
+
+For both OS metrics & SQL metric, SQL Agent jobs are used as schedulers. Each job has its own schedule which may differ in frequency of data collection from every one minute to once a week.
+
+![](https://github.com/imajaydwivedi/Images/blob/master/SQLMonitor/SQLMonitor-Distributed-Topology.png) <br>
+
+### Jobs for SQLMonitor
+
+Following are few of the SQLMonitor data collection jobs. Each of these jobs is set to ‘(dba) SQLMonitor’ job category along with fixed naming convention of `(dba) *********`.
+
+| Job Name                       | Job Category     | Schedule         | Job Type   | Location                 |
+| ------------------------------ |:----------------:|:----------------:|:----------:|:------------------------:|
+| (dba) Collect-PerfmonData      | (dba) SQLMonitor | Every 2 minute   | PowerShell | <PowerShell Jobs Server> |
+| (dba) Collect-XEvents          | (dba) SQLMonitor | Every minute     | TSQL       | <Tsql Jobs Server>       |
+| (dba) Run-WhoIsActive          | (dba) SQLMonitor | Every 2 minute   | TSQL       | <Tsql Jobs Server>       |
+| (dba) Partitions-Maintenance   | (dba) SQLMonitor | Every Day        | TSQL       | <Tsql Jobs Server>       |
+| (dba) Update-SqlServerVersions | (dba) SQLMonitor | Once a week      | PowerShell | <PowerShell Jobs Server> |
+| (dba) Collect-OSProcesses      | (dba) SQLMonitor | Every 2 minute   | PowerShell | <PowerShell Jobs Server> |
+| (dba) Collect-WaitStats        | (dba) SQLMonitor | Every 10 minutes | TSQL       | <Tsql Jobs Server>       |
+| (dba) Purge-Tables             | (dba) SQLMonitor | Every Day        | TSQL       | <Tsql Jobs Server>       |
+| (dba) Remove-XEventFiles       | (dba) SQLMonitor | Every 4 hours    | PowerShell | <PowerShell Jobs Server> |
+| (dba) Collect-DiskSpace        | (dba) SQLMonitor | Every 30 minutes | PowerShell | <PowerShell Jobs Server> |
+
+`<PowerShell Jobs Server>` can be same SQL Instance that is being baselined, or some other server in same Cluster network, or some some other server in same network, or even Inventory Server.
+`<Tsql Jobs Server>` can be same SQL Instance that is being baselined, or some other server in same Cluster network, or some some other server in same network, or even Inventory Server.
+
+### Download SQLMonitor
+Download SQLMonitor repository on your central server from where you deploy your scripts on all other servers. Say, after closing SQLMonitor, our local repo directory is `D:\Ajay-Dwivedi\GitHub-Personal\SQLMonitor`.
+
+If the local SQLMonitor repo folder already exists, simply pull the latest from master branch.
+
+### Execute Wrapper Script
+Open script D:\Ajay-Dwivedi\GitHub-Personal\*SQLMonitor\SQLMonitor\Wrapper-InstallSQLMonitor.ps1*. Replace the appropriate values for parameters, and execute the script.
+
 ```
-Update-Module -Force -ErrorAction Continue -Verbose
-Update-Help -Force -ErrorAction Continue -Verbose
-Install-Module dbatools, enhancedhtml2, sqlserver, poshrsjob -Scope AllUsers -Force -ErrorAction Continue -Verbose
+#$DomainCredential = Get-Credential -UserName 'Lab\SQLServices' -Message 'AD Account'
+#$personal = Get-Credential -UserName 'sa' -Message 'sa'
+#$localAdmin = Get-Credential -UserName 'Administrator' -Message 'Local Admin'
+
+cls
+import-module dbatools
+$params = @{
+    SqlInstanceToBaseline = 'Workstation'
+    DbaDatabase = 'DBA'
+    #HostName = 'Workstation'
+    DbaToolsFolderPath = 'F:\GitHub\dbatools'
+    RemoteSQLMonitorPath = 'C:\SQLMonitor'
+    InventoryServer = 'SQLMonitor'
+    InventoryDatabase = 'DBA'
+    DbaGroupMailId = 'some_dba_mail_id@gmail.com'
+    SqlCredential = $personal
+    WindowsCredential = $DomainCredential
+    <#
+    SkipSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
+                "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__OlaHallengrenSolutionObjects",
+                "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
+                "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateCredentialProxy",
+                "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData",
+                "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
+                "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
+                "22__CreateJobUpdateSqlServerVersions", "23__CreateJobCheckInstanceAvailability", "24__WhoIsActivePartition",
+                "25__GrafanaLogin", "26__LinkedServerOnInventory", "27__LinkedServerForDataDestinationInstance",
+                "28__AlterViewsForDataDestinationInstance")
+    #>
+    #StartAtStep = '1__sp_WhoIsActive'
+    #StopAtStep = '28__AlterViewsForDataDestinationInstance'
+    #DropCreatePowerShellJobs = $true
+    #DryRun = $false
+    #SkipRDPSessionSteps = $true
+    #SkipPowerShellJobs = $true
+    #SkipTsqlJobs = $true
+    #SkipMailProfileCheck = $true
+    #SkipWindowsAdminAccessTest = $true
+    #SqlInstanceAsDataDestination = 'Workstation'
+    #SqlInstanceForPowershellJobs = 'Workstation'
+    #SqlInstanceForTsqlJobs = 'Workstation'
+    #ConfirmValidationOfMultiInstance = $true
+}
+D:\Ajay-Dwivedi\GitHub-Personal\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params
+
+#Copy-DbaDbMail -Source 'SomeSourceInstance' -Destination 'SomeDestinationInstance' -SourceSqlCredential $personal -DestinationSqlCredential $personal
+<#
+
+Enable-PSRemoting -Force # run on remote machine
+Set-Item WSMAN:\Localhost\Client\TrustedHosts -Value * -Force # run on local machine
+Set-Item WSMAN:\Localhost\Client\TrustedHosts -Value InventoryServerIP -Force
+#Set-NetConnectionProfile -NetworkCategory Private # Execute this only if above command fails
+
+Enter-PSSession -ComputerName 'SqlInstanceToBaseline' -Credential $localAdmin -Authentication Negotiate
+Test-WSMan 'SqlInstanceToBaseline' -Credential $localAdmin -Authentication Negotiate
+
+#>
 ```
 
-5. Create required database objects in your preferred `[DBA]` database using [DDLs\SCH-Create-All-Objects.sql](DDLs\SCH-Create-All-Objects.sql). This will create partition function, scheme, few tables & views.
-	> * [DDLs/SCH-Create-All-Objects.sql](DDLs/SCH-Create-All-Objects.sql)<br>
-	
-6. Execute the below scripts to create respective SQL Agent jobs on each SQL Instance -
-	* [DDLs/SCH-Job-\[*(dba) Collect-WaitStats*\]](DDLs/SCH-Job-%5B(dba)%20Collect-WaitStats%5D.sql)
-	* [DDLs/SCH-Job-\[*(dba) Partitions-Maintenance*\]](DDLs/SCH-Job-%5B(dba)%20Partitions-Maintenance%5D.sql)
-	* [DDLs/SCH-Job-\[*(dba) Purge-DbaMetrics - Daily*\]](DDLs/SCH-Job-%5B(dba)%20Purge-DbaMetrics%20-%20Daily%5D.sql)
-	* [DDLs/SCH-Job-\[*(dba) Run First-Responder-Kit*\]](DDLs/SCH-Job-%5B(dba)%20Run%20First-Responder-Kit%5D.sql)
-	* [DDLs/SCH-Job-\[*(dba) Run-WhoIsActive*\]](DDLs/SCH-Job-%5B(dba)%20Run-WhoIsActive%5D.sql)
-	
-7. Download folder [Perfmon](Perfmon).
-	1. Copy downloaded folder on C:\ drive of host to be baselined. 
-	2. RDP the host being baselined, and execute script [Perfmon\perfmon-collector-logman.ps1](Perfmon/perfmon-collector-logman.ps1) from above copied folder. On this host, a perfmon data collector set named `[DBA]` would be created. *This directory should have at least 4 gb of size*.<br>
-	3. Copy downloaded folder on C:\ drive of SqlInstance where `(dba) Collect-PerfmonData` agent job should be created. This job connects to host being baselined (in above steps), and imports the perfmon data on destination SqlInstance. This is the same instance select for powershell modules instalation on step 4. In best case scenarios, all the 3 entities (host being baselined, SqlInstance with agent job, and the perfmon data destination SqlInstance).
-	4. Execute script [DDLs/SCH-Job-\[*(dba) Collect-PerfmonData*\]](DDLs/SCH-Job-%5B(dba)%20Collect-PerfmonData%5D.sql) copied on above step on SqlInstance where perfmon data processing job named `(dba) Collect-PerfmonData` should be created.
-	5. Open above created job `(dba) Collect-PerfmonData`, and set proper value for `-HostName`, `-SqlInstance` and `-Database` parameters.
+Below are some key highlight of above code:
 
-Here ensure that all the jobs created in step 6 & 7 are executing successfully. As per need, change job schedule & failure notification settings.
+Line 1-> Enable/use this variable when the SqlInstanceToBaseline  is not in same domain as inventory server (server from where these scripts are being executed). In this line, we are creating/saving credentials that could take RDP to SqlInstanceToBaseline .
 
+Line 2-> Enable/use this variable when the SqlInstanceToBaseline  is not in same domain as inventory server (server from where these scripts are being executed). In this line, we are creating/saving credentials that could execute elevated SQL Queries against SqlInstanceToBaseline.
 
+Line 3-> Enable/use this variable when the SqlInstanceToBaseline  is not joined to any domain. In this line, we are creating/saving credentials that could take RDP to SqlInstanceToBaseline.
 
-### Part 02 - Configure Grafana for Visualization on baselined data
+Lines 6-22 → These are the parameters for function Install-SQLMonitor. Enable/use them based on the requirement of various behavior of function. For example, when is from different domain, then SqlCredential & WindowsCredential parameters can be utilized.
 
-For Grafana, I am using one SqlInstance as my **Inventory** (central) server. What this mean is, on this server, I'll create linked servers for all the SqlInstances that required monitoring using Grafana.
+### Setup Grafana Dashboards
+Download Grafana which is open source visualization tool. Install & configure same.
 
-1. Create login `grafana` on all SqlInstance to be monitored including inventory server using script [DDLs/grafana-login.sql](DDLs/grafana-login.sql)
-	> This script provides `grafana` login basic access like `db_datareader`, `view definition` and `execute` stored procedure on `DBA` database.
+Create a datasource on Grafana that connects to your Inventory Server. Say, we set it with name 'SQLMonitor'. Use `grafana` as login & password while setting up this data source. The `grafana` sql login is created on each server being baselined with `db_datareader` on `<DBA>` database.
 
-2. On your **Inventory server**, [create linked Server for each SqlInstance](DDLs/SCH-Linked-Servers-Sample.sql) that require monitoring through Grafana. Make use of `Microsoft OLEDB Provider for SQL Server`.
-	![](https://github.com/imajaydwivedi/Images/blob/master/SqlServer-Baselining-Grafana/Inventory-Server-Linked-Servers.JPG) <br>
-	
-3. On grafana portal, create *data source* named **`SqlMonitor`** with details of inventory server, and `grafana` login.
-	![](https://github.com/imajaydwivedi/Images/blob/master/SqlServer-Baselining-Grafana/Grafana-Inventory-DataSource.JPG) <br>
+At next step, import all the dashboard *.json files on path ‘D:\Ajay-Dwivedi\GitHub-Personal\SQLMonitor\Grafana-Dashboards’ into `SQLServer` folder on grafana portal. While importing each JSON file, we need to explicitly choose 'SQLMonitor` Data Source & Folder we created in above steps.
 
-4. Create a folder with name `SQLServer'. We will keep/import all our dashboards in this folder.
+Remove SQLMonitor
+Download SQLMonitor Source Code
+Before we remove SQLMonitor, kindly pull the latest from git repo of SQLMonitor.
 
-5. Finally, Create dashboards by importing below *.json files
+Execute Wrapper Script
+Open script 'D:\Ajay-Dwivedi\GitHub-Personal\SQLMonitor\SQLMonitor\Wrapper-RemoveSQLMonitor.ps1'. Replace the appropriate values for parameters, and execute the script.
 
-	> * [Perfmon/Monitoring - Live.json](Perfmon/Monitoring%20-%20Live.json)
-	> * [Perfmon/Grafana - Monitoring - Perfmon Counters - Quest Softwares.json](Perfmon/Grafana%20-%20Monitoring%20-%20Perfmon%20Counters%20-%20Quest%20Softwares.json)
-	> * [Perfmon/Wait Stats.json](Perfmon/Wait%20Stats.json)
-
-While importing, ensure to select `SqlMonitor` as datasource & `SQLServer` as folder. Both of these were created in above steps 3 & 4.
-![](https://github.com/imajaydwivedi/Images/blob/master/SqlServer-Baselining-Grafana/Grafana-Setup-Import-Dashboard.png) <br>
-	
-This should create the grafana dashboard according to settings of above json files.
 	
 Thanks :smiley:. Subscribe for updates :thumbsup:
