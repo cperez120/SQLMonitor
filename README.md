@@ -102,8 +102,8 @@ $params = @{
     InventoryServer = 'SQLMonitor'
     InventoryDatabase = 'DBA'
     DbaGroupMailId = 'some_dba_mail_id@gmail.com'
-    SqlCredential = $personal
-    WindowsCredential = $DomainCredential
+    #SqlCredential = $personal
+    #WindowsCredential = $DomainCredential
     <#
     SkipSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
                 "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__OlaHallengrenSolutionObjects",
