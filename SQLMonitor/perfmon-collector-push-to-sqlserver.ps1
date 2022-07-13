@@ -66,7 +66,7 @@ $lastImportedFile = $null
 
 # Get latest imported file
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetch details of last imported file from [$SqlInstance].[$Database].$TablePerfmonFiles.."
-$lastImportedFile = Invoke-DbaQuery -SqlInstance $SqlInstance -Database $Database -Query "select top 1 file_name from $TablePerfmonFiles where host_name = '$computerName' order by file_name desc" | Select-Object -ExpandProperty file_name;
+$lastImportedFile = Invoke-DbaQuery -SqlInstance $SqlInstance -Database $Database -Query "select top 1 file_name from $TablePerfmonFiles where host_name = '$computerName' and file_name like '$computerName%' order by file_name desc" | Select-Object -ExpandProperty file_name;
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$lastImportedFile => '$lastImportedFile'."
 
 # Stop collector set
