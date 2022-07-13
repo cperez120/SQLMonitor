@@ -41,9 +41,13 @@ F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params #-Debug
 #New-DbaAgentProxy -SqlInstance 'xy' -Name $LabCredential.UserName -ProxyCredential $LabCredential.UserName -SubSystem PowerShell,CmdExec
 <#
 
-Enable-PSRemoting -Force # run on remote machine
-Set-Item WSMAN:\Localhost\Client\TrustedHosts -Value * -Force # run on local machine
-Set-Item WSMAN:\Localhost\Client\TrustedHosts -Value 192.168.56.15 -Force
+Enable-PSRemoting -Force -SkipNetworkProfileCheck # remote machine
+Set-Item WSMAN:\Localhost\Client\TrustedHosts -Value SQLMonitor.Lab.com -Concatenate -Force # remote machine
+Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name LocalAccountTokenFilterPolicy
+Set-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name LocalAccountTokenFilterPolicy -Value 1
+
+# Incase 
+#Set-Item WSMAN:\Localhost\Client\TrustedHosts -Value * -Force # run on local machine
 #Set-NetConnectionProfile -NetworkCategory Private # Execute this only if above command fails
 
 Enter-PSSession -ComputerName '192.168.56.31' -Credential $localAdmin -Authentication Negotiate
@@ -51,3 +55,4 @@ Test-WSMan '192.168.56.31' -Credential $localAdmin -Authentication Negotiate
 
 
 #>
+

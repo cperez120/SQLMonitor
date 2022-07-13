@@ -160,6 +160,9 @@ Param (
     [PSCredential]$WindowsCredential,
 
     [Parameter(Mandatory=$false)]
+    [int]$RetentionDays,
+
+    [Parameter(Mandatory=$false)]
     [bool]$DropCreatePowerShellJobs = $false,
 
     [Parameter(Mandatory=$false)]
@@ -957,7 +960,7 @@ go
 	        insert dbo.instance_hosts ([host_name])
 	        select [host_name] = '$HostName';
             
-            select 'dbo.instance_hosts' as RunningQuery, * from dbo.instance_hosts
+            select 'dbo.instance_hosts' as RunningQuery, * from dbo.instance_hosts where [host_name] = '$HostName';
         end
 "@
     # Populate $SqlInstanceToBaseline
@@ -988,7 +991,7 @@ go
                 [collector_powershell_jobs_server] = '$SqlInstanceForPowershellJobs',
                 [data_destination_sql_instance] = '$SqlInstanceAsDataDestination'
 
-        select 'dbo.instance_details' as RunningQuery, * from dbo.instance_details
+        select 'dbo.instance_details' as RunningQuery, * from dbo.instance_details where [sql_instance] = '$SqlInstanceToBaseline';
     end
 "@
     
@@ -1007,9 +1010,20 @@ go
         Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $sqlAddInstanceHostMapping -SqlCredential $SqlCredential -EnableException | ft -AutoSize
     }
 
-    if($isExpressEdition) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Since instance is Express Edition, change retention to 14 days.." | Write-Host -ForegroundColor Cyan
-        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query "update dbo.purge_table set retention_days = 14 where retention_days > 14" -SqlCredential $SqlCredential -EnableException
+    if($isExpressEdition -or (-not [String]::IsNullOrEmpty($RetentionDays)) ) 
+    {
+        if($isExpressEdition -and ([String]::IsNullOrEmpty($RetentionDays) -or $RetentionDays -gt 7) ) {
+            $RetentionDays = 7
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Since Express Edition, setting retention to $RetentionDays days.." | Write-Host -ForegroundColor Cyan
+        }
+        else {
+            if([String]::IsNullOrEmpty($RetentionDays)) {
+                $RetentionDays = 14
+            }
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Setting retention to $RetentionDays days.." | Write-Host -ForegroundColor Cyan
+        }
+        
+        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query "update dbo.purge_table set retention_days = $RetentionDays where retention_days > $RetentionDays" -SqlCredential $SqlCredential -EnableException
     }
 }
 
@@ -1038,11 +1052,18 @@ if($stepName -in $Steps2Execute) {
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$dbaDatabasePath => '$dbaDatabasePath'.."
 
-    $xEventTargetPathParentDirectory = (Split-Path (Split-Path $dbaDatabasePath -Parent))
-    if($xEventTargetPathParentDirectory.Length -eq 3) {
-        $xEventTargetPathDirectory = "${xEventTargetPathParentDirectory}xevents"
-    } else {
-        $xEventTargetPathDirectory = "$xEventTargetPathParentDirectory\xevents" #Join-Path -Path $xEventTargetPathParentDirectory -ChildPath "xevents"
+    $dbaDatabasePathParent = Split-Path $dbaDatabasePath -Parent
+    if($dbaDatabasePathParent.Length -eq 3) {
+        $xEventTargetPathDirectory = "${dbaDatabasePathParent}xevents"
+    }
+    else {
+        $xEventTargetPathDirectoryParent = Split-Path $dbaDatabasePathParent -Parent
+        if($xEventTargetPathDirectoryParent.Length -eq 3) {
+            $xEventTargetPathDirectory = "$(Split-Path $dbaDatabasePathParent -Parent)xevents"
+        }
+        else {
+            $xEventTargetPathDirectory = "$($xEventTargetPathDirectoryParent)\xevents"
+        }
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Computed XEvent files directory -> '$xEventTargetPathDirectory'.."
