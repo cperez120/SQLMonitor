@@ -3,6 +3,8 @@
 If you are a developer, or DBA who manages Microsoft SQL Servers, it becames important to understand current load vs usual load when SQL Server is slow. This repository contains scripts that will help you to setup baseline on individual SQL Server instances, and then visualize the collected data using Grafana through one Inventory server with Linked Server for individual SQL Server instances.
 
 Navigation
+ - [Why SQLMonitor?](#why-sqlmonitor)
+   - [Features](#features)
  - Sample Live Grafana Dashboards
    - [Live Dashboard - Basic Metrics](#live-dashboard---basic-metrics)
    - [Live Dashboard - Perfmon Counters - Quest Softwares](#live-dashboard---perfmon-counters---quest-softwares)
