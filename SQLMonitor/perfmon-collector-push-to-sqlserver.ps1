@@ -37,10 +37,26 @@ Write-Debug "At start of function"
 
 # Fetch Collector details
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetch details of [$collectorSetName] data collector.."
-$pfCollector = Get-DbaPfDataCollector -ComputerName $HostName -CollectorSet $collectorSetName
-$pfCollectorSet = Get-DbaPfDataCollectorSet -ComputerName $HostName -CollectorSet $collectorSetName
-$computerName = $pfCollector.ComputerName
-$lastFile = $pfCollector.LatestOutputLocation
+
+$dataCollectorSet = New-Object -COM Pla.DataCollectorSet;
+$dataCollectorSet.Query($CollectorSetName,$HostName);
+
+<#
+$dataCollectorSet | gm
+$dataCollectorSet.LatestOutputLocation
+$dataCollectorSet.DataCollectors | gm
+$dataCollectorSet.DataCollectors[0].LatestOutputLocation
+$dataCollectorSet.Status
+$dataCollectorSet.start($true)
+$dataCollectorSet.Stop($true)
+#>
+
+#$pfCollector = Get-DbaPfDataCollector -ComputerName $HostName -CollectorSet $collectorSetName
+#$pfCollectorSet = Get-DbaPfDataCollectorSet -ComputerName $HostName -CollectorSet $collectorSetName
+#$computerName = $pfCollector.ComputerName
+$computerName = $dataCollectorSet.Server
+#$lastFile = $pfCollector.LatestOutputLocation
+$lastFile = $dataCollectorSet.DataCollectors[0].LatestOutputLocation
 $pfCollectorFolder = Split-Path $lastFile -Parent
 $lastImportedFile = $null
 
@@ -50,9 +66,11 @@ $lastImportedFile = Invoke-DbaQuery -SqlInstance $SqlInstance -Database $Databas
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$lastImportedFile => '$lastImportedFile'."
 
 # Stop collector set
-if($pfCollectorSet.State -eq 'Running') {
+#if($pfCollectorSet.State -eq 'Running') {
+if($dataCollectorSet.Status -eq 1) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Stop data collector.."
-    $pfCollectorSet | Stop-DbaPfDataCollectorSet | Out-Null
+    #$pfCollectorSet | Stop-DbaPfDataCollectorSet | Out-Null
+    $dataCollectorSet.Stop($true) | Out-Null
 }
 
 # Note existing files
@@ -67,7 +85,8 @@ $pfCollectorFiles += $perfmonFilesFound | Where-Object {[String]::IsNullOrEmpty(
 
 # Start collector set
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Start data collector.."
-Start-DbaPfDataCollectorSet -ComputerName $computerName -CollectorSet $collectorSetName | Out-Null
+#Start-DbaPfDataCollectorSet -ComputerName $computerName -CollectorSet $collectorSetName | Out-Null
+$dataCollectorSet.start($true)
 
 foreach($file in $pfCollectorFiles)
 {
