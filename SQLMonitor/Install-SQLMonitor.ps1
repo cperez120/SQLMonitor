@@ -960,7 +960,7 @@ go
 	        insert dbo.instance_hosts ([host_name])
 	        select [host_name] = '$HostName';
             
-            select 'dbo.instance_hosts' as RunningQuery, * from dbo.instance_hosts
+            select 'dbo.instance_hosts' as RunningQuery, * from dbo.instance_hosts where [host_name] = '$HostName';
         end
 "@
     # Populate $SqlInstanceToBaseline
@@ -991,7 +991,7 @@ go
                 [collector_powershell_jobs_server] = '$SqlInstanceForPowershellJobs',
                 [data_destination_sql_instance] = '$SqlInstanceAsDataDestination'
 
-        select 'dbo.instance_details' as RunningQuery, * from dbo.instance_details
+        select 'dbo.instance_details' as RunningQuery, * from dbo.instance_details where [sql_instance] = '$SqlInstanceToBaseline';
     end
 "@
     
