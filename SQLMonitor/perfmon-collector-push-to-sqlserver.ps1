@@ -33,7 +33,6 @@ $startTime = Get-Date
 Import-Module dbatools;
 $ErrorActionPreference = 'Stop'
 
-Write-Debug "At start of function"
 
 # Fetch Collector details
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetch details of [$collectorSetName] data collector.."
@@ -57,7 +56,12 @@ $dataCollectorSet.Stop($true)
 $computerName = $dataCollectorSet.Server
 #$lastFile = $pfCollector.LatestOutputLocation
 $lastFile = $dataCollectorSet.DataCollectors[0].LatestOutputLocation
-$pfCollectorFolder = Split-Path $lastFile -Parent
+if([String]::IsNullOrEmpty($lastFile)) {
+    $pfCollectorFolder = "$PSScriptRoot\Perfmon-Files"
+}
+else {
+    $pfCollectorFolder = Split-Path $lastFile -Parent
+}
 $lastImportedFile = $null
 
 # Get latest imported file
