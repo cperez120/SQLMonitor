@@ -1275,7 +1275,7 @@ if( $requireProxy -and ($stepName -in $Steps2Execute) )
     }
 }
 
-Write-Debug "13__CreateJobCollectDiskSpace"
+
 # 13__CreateJobCollectDiskSpace
 $stepName = '13__CreateJobCollectDiskSpace'
 if($stepName -in $Steps2Execute) 
