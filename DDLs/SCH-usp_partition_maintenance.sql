@@ -37,7 +37,7 @@ BEGIN
 	declare @partition_boundary datetime2;
 
 	if @step is not null and @step not in ('add_datetime2_partition','add_datetime_partition','remove_datetime2_partition','remove_datetime_partition')
-		THROW 50000, '@recipients is mandatory parameter', 1;
+		raiserror ('@recipients is mandatory parameter', 20, -1) with log;
 
 	set @current_step_name = 'add_datetime2_partition'
 	if @step is null or @step = @current_step_name
@@ -166,6 +166,6 @@ BEGIN
 	end
 
 	if @err_message is not null
-		throw 50000, @err_message, 1;
+    raiserror (@err_message, 20, -1) with log;
 END
 GO

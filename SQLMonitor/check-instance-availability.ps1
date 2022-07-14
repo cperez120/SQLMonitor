@@ -11,6 +11,10 @@ Param (
     $Threads = 4
 )
 
+$modulePath = [Environment]::GetEnvironmentVariable('PSModulePath')
+$modulePath += ';C:\Program Files\WindowsPowerShell\Modules'
+[Environment]::SetEnvironmentVariable('PSModulePath', $modulePath)
+
 Import-Module dbatools
 Import-Module PoshRSJob -WarningAction Continue;
 

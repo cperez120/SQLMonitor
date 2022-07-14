@@ -48,7 +48,7 @@ BEGIN
 	DECLARE @staging_table VARCHAR(4000) = @destination_table+'_Staging';
 
 	IF @recipients IS NULL OR @recipients = 'some_dba_mail_id@gmail.com'
-		THROW 50000, '@recipients is mandatory parameter', 1;	
+    raiserror ('@recipients is mandatory parameter', 20, -1) with log;
 
 	DECLARE @_output VARCHAR(8000);
 	SET @_output = 'Declare local variables'+CHAR(10);
@@ -67,7 +67,7 @@ BEGIN
 	DECLARE @_continous_failures tinyint = 0;
 	DECLARE @_send_mail bit = 0;
 	DECLARE @output_column_list VARCHAR(8000);
-
+	
 	SET @output_column_list = '[collection_time][dd hh:mm:ss.mss][session_id][program_name][login_name][database_name]
 							[CPU][CPU_delta][used_memory][used_memory_delta][open_tran_count][status][wait_info][sql_command]
 							[blocked_session_count][blocking_session_id][sql_text][%]';
@@ -234,21 +234,22 @@ BEGIN
 		SET @_output += '<br>Fetch @_cpu_system & @_cpu_sql..'+CHAR(10);
 		IF @verbose > 0
 			PRINT CHAR(9)+'Inside Step 06: Get system & sql cpu into variables..';
+		
 		SELECT	@_cpu_system = CASE WHEN system_cpu_utilization_post_sp2 IS NOT NULL THEN system_cpu_utilization_post_sp2 ELSE system_cpu_utilization_pre_sp2 END,  
 				@_cpu_sql = CASE WHEN sql_cpu_utilization_post_sp2 IS NOT NULL THEN sql_cpu_utilization_post_sp2 ELSE sql_cpu_utilization_pre_sp2 END
-		FROM  (	SELECT	record.value('(Record/@id)[1]', 'int') AS record_id,
-						DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS EventTime,
-						100-record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu_utilization_post_sp2, 
-						record.value('(Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu_utilization_post_sp2,
-						100-record.value('(Record/SchedluerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu_utilization_pre_sp2,
-						record.value('(Record/SchedluerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu_utilization_pre_sp2
-				FROM (	SELECT	timestamp, CONVERT (xml, record) AS record, cpu_ticks / (cpu_ticks/ms_ticks) as ts_now
-						FROM sys.dm_os_ring_buffers cross apply sys.dm_os_sys_info
-						WHERE ring_buffer_type = 'RING_BUFFER_SCHEDULER_MONITOR'
-						AND record LIKE '%<SystemHealth>%'
-						) AS t 
-				) AS t
-		ORDER BY EventTime DESC OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY;
+		FROM  (		SELECT	TOP 1 record.value('(Record/@id)[1]', 'int') AS record_id,
+							DATEADD (ms, -1 * (ts_now - [timestamp]), GETDATE()) AS EventTime,
+							100-record.value('(Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu_utilization_post_sp2, 
+							record.value('(Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu_utilization_post_sp2,
+							100-record.value('(Record/SchedluerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS system_cpu_utilization_pre_sp2,
+							record.value('(Record/SchedluerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS sql_cpu_utilization_pre_sp2
+					FROM (	SELECT	timestamp, CONVERT (xml, record) AS record, cpu_ticks / (cpu_ticks/ms_ticks) as ts_now
+							FROM sys.dm_os_ring_buffers cross apply sys.dm_os_sys_info
+							WHERE ring_buffer_type = 'RING_BUFFER_SCHEDULER_MONITOR'
+							AND record LIKE '%<SystemHealth>%'
+							) AS t 
+					ORDER BY EventTime DESC
+				) AS t;
 	
 		IF @verbose > 0
 			PRINT CHAR(9)+'Inside Step 06: Calculate cpu_rank, CPU_delta_percent, pool & CPU_delta_all..';
@@ -316,6 +317,9 @@ BEGIN
 				,@_errorLine	 = Error_Line()
 				,@_errorMessage	 = Error_Message();
 
+    declare @_product_version tinyint;
+	  select @_product_version = CONVERT(tinyint,SERVERPROPERTY('ProductMajorVersion'));
+
 		IF OBJECT_ID('tempdb..#CommandLog') IS NOT NULL
 			TRUNCATE TABLE #CommandLog;
 		ELSE
@@ -323,15 +327,36 @@ BEGIN
 
 		IF @verbose > 0
 			PRINT CHAR(9)+'Inside Catch Block. Get recent '+cast(@threshold_continous_failure as varchar)+' execution entries from logs..'
-		SET @_s = N'
-		DECLARE @threshold_continous_failure tinyint = @_threshold_continous_failure;
-		SET @threshold_continous_failure -= 1;
-		SELECT	[run_date_time] = msdb.dbo.agent_datetime(run_date, run_time),
-				[status] = case when run_status = 1 then ''Success'' else ''Failure'' end
-		FROM msdb.dbo.sysjobs jobs
-		INNER JOIN msdb.dbo.sysjobhistory history ON jobs.job_id = history.job_id
-		WHERE jobs.enabled = 1 AND jobs.name = @_job_name AND step_id = 0 AND run_status NOT IN (2,4) -- not retry/inprogress
-		ORDER BY run_date_time DESC OFFSET 0 ROWS FETCH FIRST @threshold_continous_failure ROWS ONLY;' + char(10);
+		IF @_product_version IS NOT NULL
+		BEGIN
+			SET @_s = N'
+			DECLARE @threshold_continous_failure tinyint = @_threshold_continous_failure;
+			SET @threshold_continous_failure -= 1;
+			SELECT	[run_date_time] = msdb.dbo.agent_datetime(run_date, run_time),
+					[status] = case when run_status = 1 then ''Success'' else ''Failure'' end
+			FROM msdb.dbo.sysjobs jobs
+			INNER JOIN msdb.dbo.sysjobhistory history ON jobs.job_id = history.job_id
+			WHERE jobs.enabled = 1 AND jobs.name = @_job_name AND step_id = 0 AND run_status NOT IN (2,4) -- not retry/inprogress
+			ORDER BY run_date_time DESC OFFSET 0 ROWS FETCH FIRST @threshold_continous_failure ROWS ONLY;' + char(10);
+		END
+		ELSE
+		BEGIN
+			SET @_s = N'
+			DECLARE @threshold_continous_failure tinyint = @_threshold_continous_failure;
+			SET @threshold_continous_failure -= 1;
+
+			SELECT [run_date_time], [status]
+			FROM (
+				SELECT	[run_date_time] = msdb.dbo.agent_datetime(run_date, run_time),
+						[status] = case when run_status = 1 then ''Success'' else ''Failure'' end,
+						[seq] = ROW_NUMBER() OVER (ORDER BY msdb.dbo.agent_datetime(run_date, run_time) DESC)
+				FROM msdb.dbo.sysjobs jobs
+				INNER JOIN msdb.dbo.sysjobhistory history ON jobs.job_id = history.job_id
+				WHERE jobs.enabled = 1 AND jobs.name = @_job_name AND step_id = 0 AND run_status NOT IN (2,4) -- not retry/inprogress
+			) t
+			WHERE [seq] BETWEEN 1 and @threshold_continous_failure
+			' + char(10);
+		END
 		IF @verbose > 1
 			PRINT CHAR(9)+@_s;
 		INSERT #CommandLog
@@ -432,6 +457,6 @@ BEGIN
 	END
 
 	IF @_errorMessage IS NOT NULL --AND @send_error_mail = 0
-		THROW 50000, @_errorMessage, 1;
+    raiserror (@_errorMessage, 20, -1) with log;
 END
 GO

@@ -10,6 +10,13 @@ Param (
     [bool]$ReSetupCollector = $false
 )
 
+$modulePath = [Environment]::GetEnvironmentVariable('PSModulePath')
+$modulePath += ';C:\Program Files\WindowsPowerShell\Modules'
+[Environment]::SetEnvironmentVariable('PSModulePath', $modulePath)
+
+Import-Module dbatools
+Import-Module PoshRSJob -WarningAction Continue;
+$ErrorActionPreference = 'Stop'
 
 # Find Perfmon data collection logs folder path
 $collector_root_directory = Split-Path $TemplatePath -Parent

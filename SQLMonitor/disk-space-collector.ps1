@@ -14,7 +14,12 @@ Param (
     $TableName = '[dbo].[disk_space]'
 )
 
-Import-Module dbatools;
+$modulePath = [Environment]::GetEnvironmentVariable('PSModulePath')
+$modulePath += ';C:\Program Files\WindowsPowerShell\Modules'
+[Environment]::SetEnvironmentVariable('PSModulePath', $modulePath)
+
+Import-Module dbatools
+Import-Module PoshRSJob -WarningAction Continue;
 
 Write-Debug "Here at start of function."
 $ErrorActionPreference = 'Stop'
