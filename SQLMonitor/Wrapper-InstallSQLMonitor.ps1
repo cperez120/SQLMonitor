@@ -5,7 +5,7 @@
 cls
 Import-Module dbatools;
 $params = @{
-    SqlInstanceToBaseline = 'Workstation'
+    SqlInstanceToBaseline = 'SqlPractice'
     DbaDatabase = 'DBA'
     #HostName = 'Workstation'
     #RetentionDays = 7
