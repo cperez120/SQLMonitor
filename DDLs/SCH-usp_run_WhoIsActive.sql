@@ -67,9 +67,7 @@ BEGIN
 	DECLARE @_continous_failures tinyint = 0;
 	DECLARE @_send_mail bit = 0;
 	DECLARE @output_column_list VARCHAR(8000);
-	declare @_product_version tinyint;
 	
-	select @_product_version = CONVERT(tinyint,SERVERPROPERTY('ProductMajorVersion'));
 	SET @output_column_list = '[collection_time][dd hh:mm:ss.mss][session_id][program_name][login_name][database_name]
 							[CPU][CPU_delta][used_memory][used_memory_delta][open_tran_count][status][wait_info][sql_command]
 							[blocked_session_count][blocking_session_id][sql_text][%]';
@@ -317,7 +315,10 @@ BEGIN
 				,@_errorSeverity = Error_Severity()
 				,@_errorState	 = Error_State()
 				,@_errorLine	 = Error_Line()
-				,@_errorMessage	 = Error_Message();		
+				,@_errorMessage	 = Error_Message();
+
+    declare @_product_version tinyint;
+	  select @_product_version = CONVERT(tinyint,SERVERPROPERTY('ProductMajorVersion'));
 
 		IF OBJECT_ID('tempdb..#CommandLog') IS NOT NULL
 			TRUNCATE TABLE #CommandLog;
@@ -326,7 +327,7 @@ BEGIN
 
 		IF @verbose > 0
 			PRINT CHAR(9)+'Inside Catch Block. Get recent '+cast(@threshold_continous_failure as varchar)+' execution entries from logs..'
-		IF @product_version IS NOT NULL
+		IF @_product_version IS NOT NULL
 		BEGIN
 			SET @_s = N'
 			DECLARE @threshold_continous_failure tinyint = @_threshold_continous_failure;
