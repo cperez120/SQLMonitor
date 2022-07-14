@@ -11,9 +11,13 @@ Param (
     $TableName = '[dbo].[resource_consumption_Processed_XEL_Files]'
 )
 
-Import-Module dbatools;
+$modulePath = [Environment]::GetEnvironmentVariable('PSModulePath')
+$modulePath += ';C:\Program Files\WindowsPowerShell\Modules'
+[Environment]::SetEnvironmentVariable('PSModulePath', $modulePath)
 
-Write-Debug "Here at start of function."
+Import-Module dbatools
+Import-Module PoshRSJob -WarningAction Continue;
+
 $ErrorActionPreference = 'Stop'
 $currentTime = Get-Date
 

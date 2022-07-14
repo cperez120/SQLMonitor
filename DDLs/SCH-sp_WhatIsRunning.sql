@@ -93,7 +93,7 @@ BEGIN
 												ELSE CAST((CAST(r.granted_query_memory AS numeric(20,2))*8) AS VARCHAR(23)) + ' KB'
 												END
 				,COALESCE(r.status, s.status) as status
-				,s.open_transaction_count
+				,open_transaction_count = s.open_transaction_count
 				,s.host_name as host_name
 				,COALESCE(r.start_time, s.last_request_start_time) as start_time
 				,s.login_time as login_time
