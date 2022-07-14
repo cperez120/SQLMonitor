@@ -48,7 +48,7 @@ BEGIN
 	DECLARE @staging_table VARCHAR(4000) = @destination_table+'_Staging';
 
 	IF @recipients IS NULL OR @recipients = 'some_dba_mail_id@gmail.com'
-		THROW 50000, '@recipients is mandatory parameter', 1;	
+    raiserror ('@recipients is mandatory parameter', 20, -1) with log;
 
 	DECLARE @_output VARCHAR(8000);
 	SET @_output = 'Declare local variables'+CHAR(10);
@@ -432,6 +432,6 @@ BEGIN
 	END
 
 	IF @_errorMessage IS NOT NULL --AND @send_error_mail = 0
-		THROW 50000, @_errorMessage, 1;
+    raiserror (@_errorMessage, 20, -1) with log;
 END
 GO

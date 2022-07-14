@@ -70,6 +70,6 @@ BEGIN
 	deallocate cur_purge_tables;
 
 	if @err_message is not null
-		throw 50000, @err_message, 1;
+    raiserror (@err_message, 20, -1) with log;
 END
 GO
