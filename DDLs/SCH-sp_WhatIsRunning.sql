@@ -39,16 +39,16 @@ BEGIN
 	--	Query to find what's is running on server
 	;WITH T_Requests AS 
 	(
-		select  Concat
+		select  [dd hh:mm:ss] =
 						(
 								RIGHT('00'+CAST(ISNULL((datediff(second,COALESCE(r.start_time, s.last_request_start_time),GETDATE()) / 3600 / 24), 0) AS VARCHAR(2)),2)
-								,' '
-								,RIGHT('00'+CAST(ISNULL(datediff(second,COALESCE(r.start_time, s.last_request_start_time),GETDATE()) / 3600  % 24, 0) AS VARCHAR(2)),2)
-								,':'
-								,RIGHT('00'+CAST(ISNULL(datediff(second,COALESCE(r.start_time, s.last_request_start_time),GETDATE()) / 60 % 60, 0) AS VARCHAR(2)),2)
-								,':'
-								,RIGHT('00'+CAST(ISNULL(datediff(second,COALESCE(r.start_time, s.last_request_start_time),GETDATE()) % 3600 % 60, 0) AS VARCHAR(2)),2)
-						) as [dd hh:mm:ss]
+								+' '
+								+RIGHT('00'+CAST(ISNULL(datediff(second,COALESCE(r.start_time, s.last_request_start_time),GETDATE()) / 3600  % 24, 0) AS VARCHAR(2)),2)
+								+':'
+								+RIGHT('00'+CAST(ISNULL(datediff(second,COALESCE(r.start_time, s.last_request_start_time),GETDATE()) / 60 % 60, 0) AS VARCHAR(2)),2)
+								+':'
+								+RIGHT('00'+CAST(ISNULL(datediff(second,COALESCE(r.start_time, s.last_request_start_time),GETDATE()) % 3600 % 60, 0) AS VARCHAR(2)),2)
+						)
 				,datediff(MILLISECOND,COALESCE(r.start_time, s.last_request_start_time),GETDATE()) as elapsed_time_ms
 				,s.session_id
 				,st.text as sql_command
@@ -135,33 +135,31 @@ BEGIN
 	SELECT --distinct [flush-plan] = plan_handle 
 			--[kill_query] = 'kill '+convert(varchar,session_id), --[dd hh:mm:ss], elapsed_time_ms,
 			[collection_time] = getutcdate(),
-			Concat
-					(
-							RIGHT('000'+CAST(ISNULL((elapsed_time_ms / 1000 / 3600 / 24), 0) AS VARCHAR(3)),3)
-							,' '
-							,RIGHT('00'+CAST(ISNULL(elapsed_time_ms / 1000 / 3600  % 24, 0) AS VARCHAR(2)),2)
-							,':'
-							,RIGHT('00'+CAST(ISNULL(elapsed_time_ms / 1000 / 60 % 60, 0) AS VARCHAR(2)),2)
-							,':'
-							,RIGHT('00'+CAST(ISNULL(elapsed_time_ms / 1000 % 3600 % 60, 0) AS VARCHAR(2)),2)
-							,'.'
-							,RIGHT('00'+CAST(ISNULL(elapsed_time_ms / 1000 % 3600 % 60 % 1000, 0) AS VARCHAR(3)),3)
-					) as [ddd hh:mm:ss.mss], 
+			[ddd hh:mm:ss.mss] = 
+							(	RIGHT('000'+CAST(ISNULL((elapsed_time_ms / 1000 / 3600 / 24), 0) AS VARCHAR(3)),3)
+								+' '
+								+RIGHT('00'+CAST(ISNULL(elapsed_time_ms / 1000 / 3600  % 24, 0) AS VARCHAR(2)),2)
+								+':'
+								+RIGHT('00'+CAST(ISNULL(elapsed_time_ms / 1000 / 60 % 60, 0) AS VARCHAR(2)),2)
+								+':'
+								+RIGHT('00'+CAST(ISNULL(elapsed_time_ms / 1000 % 3600 % 60, 0) AS VARCHAR(2)),2)
+								+'.'
+								+RIGHT('00'+CAST(ISNULL(elapsed_time_ms / 1000 % 3600 % 60 % 1000, 0) AS VARCHAR(3)),3)
+							), 
 			[session_id], [blocking_session_id], [command], [wait_type], [granted_query_memory], [program_name], [login_name], [database_name], [sql_command], 
 			[plan_handle] ,[sql_handle], 
 			--[wait_time], 
-			Concat
-					(
-							RIGHT('00'+CAST(ISNULL(([wait_time] / 1000 / 3600 / 24), 0) AS VARCHAR(2)),2)
-							,' '
-							,RIGHT('00'+CAST(ISNULL([wait_time] / 1000 / 3600  % 24, 0) AS VARCHAR(2)),2)
-							,':'
-							,RIGHT('00'+CAST(ISNULL([wait_time] / 1000 / 60 % 60, 0) AS VARCHAR(2)),2)
-							,':'
-							,RIGHT('00'+CAST(ISNULL([wait_time] / 1000 % 3600 % 60, 0) AS VARCHAR(2)),2)
-							,'.'
-							,RIGHT('00'+CAST(ISNULL([wait_time] / 1000 % 3600 % 60 % 1000, 0) AS VARCHAR(3)),3)
-					) as [wait_time], 
+			[wait_time] = (
+								RIGHT('00'+CAST(ISNULL(([wait_time] / 1000 / 3600 / 24), 0) AS VARCHAR(2)),2)
+								+' '
+								+RIGHT('00'+CAST(ISNULL([wait_time] / 1000 / 3600  % 24, 0) AS VARCHAR(2)),2)
+								+':'
+								+RIGHT('00'+CAST(ISNULL([wait_time] / 1000 / 60 % 60, 0) AS VARCHAR(2)),2)
+								+':'
+								+RIGHT('00'+CAST(ISNULL([wait_time] / 1000 % 3600 % 60, 0) AS VARCHAR(2)),2)
+								+'.'
+								+RIGHT('00'+CAST(ISNULL([wait_time] / 1000 % 3600 % 60 % 1000, 0) AS VARCHAR(3)),3)
+							) , 
 			[wait_resource_type], [tempdb_allocations], [tempdb_current], 
 			[reads], [writes], [cpu_time], [status], [open_transaction_count], [host_name], [start_time], [login_time], 
 			[statement_start_offset], [statement_end_offset]

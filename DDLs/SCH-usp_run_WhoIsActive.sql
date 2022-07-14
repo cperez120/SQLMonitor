@@ -344,7 +344,7 @@ BEGIN
 			SET @_s = N'
 			DECLARE @threshold_continous_failure tinyint = @_threshold_continous_failure;
 			SET @threshold_continous_failure -= 1;
-			
+
 			SELECT [run_date_time], [status]
 			FROM (
 				SELECT	[run_date_time] = msdb.dbo.agent_datetime(run_date, run_time),
@@ -354,7 +354,7 @@ BEGIN
 				INNER JOIN msdb.dbo.sysjobhistory history ON jobs.job_id = history.job_id
 				WHERE jobs.enabled = 1 AND jobs.name = @_job_name AND step_id = 0 AND run_status NOT IN (2,4) -- not retry/inprogress
 			) t
-			WHERE [seq] BETWEEN 1 and @threshold_continous_failure			
+			WHERE [seq] BETWEEN 1 and @threshold_continous_failure
 			' + char(10);
 		END
 		IF @verbose > 1
