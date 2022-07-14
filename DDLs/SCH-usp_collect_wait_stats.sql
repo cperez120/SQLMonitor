@@ -86,6 +86,8 @@ BEGIN
 				,@_errorState	 = Error_State()
 				,@_errorLine	 = Error_Line()
 				,@_errorMessage	 = Error_Message();
+		declare @product_version tinyint;
+		select @product_version = CONVERT(tinyint,SERVERPROPERTY('ProductMajorVersion'));
 
 		IF OBJECT_ID('tempdb..#CommandLog') IS NOT NULL
 			TRUNCATE TABLE #CommandLog;
@@ -94,15 +96,37 @@ BEGIN
 
 		IF @verbose > 0
 			PRINT CHAR(9)+'Inside Catch Block. Get recent '+cast(@threshold_continous_failure as varchar)+' execution entries from logs..'
-		SET @_s = N'
-		DECLARE @threshold_continous_failure tinyint = @_threshold_continous_failure;
-		SET @threshold_continous_failure -= 1;
-		SELECT	[run_date_time] = msdb.dbo.agent_datetime(run_date, run_time),
-				[status] = case when run_status = 1 then ''Success'' else ''Failure'' end
-		FROM msdb.dbo.sysjobs jobs
-		INNER JOIN msdb.dbo.sysjobhistory history ON jobs.job_id = history.job_id
-		WHERE jobs.enabled = 1 AND jobs.name = @_job_name AND step_id = 0 AND run_status NOT IN (2,4) -- not retry/inprogress
-		ORDER BY run_date_time DESC OFFSET 0 ROWS FETCH FIRST @threshold_continous_failure ROWS ONLY;' + char(10);
+		IF @product_version IS NOT NULL
+		BEGIN
+			SET @_s = N'
+			DECLARE @threshold_continous_failure tinyint = @_threshold_continous_failure;
+			SET @threshold_continous_failure -= 1;
+			SELECT	[run_date_time] = msdb.dbo.agent_datetime(run_date, run_time),
+					[status] = case when run_status = 1 then ''Success'' else ''Failure'' end
+			FROM msdb.dbo.sysjobs jobs
+			INNER JOIN msdb.dbo.sysjobhistory history ON jobs.job_id = history.job_id
+			WHERE jobs.enabled = 1 AND jobs.name = @_job_name AND step_id = 0 AND run_status NOT IN (2,4) -- not retry/inprogress
+			ORDER BY run_date_time DESC OFFSET 0 ROWS FETCH FIRST @threshold_continous_failure ROWS ONLY;' + char(10);
+		END
+		ELSE
+		BEGIN
+			SET @_s = N'
+			DECLARE @threshold_continous_failure tinyint = @_threshold_continous_failure;
+			SET @threshold_continous_failure -= 1;
+			
+			SELECT [run_date_time], [status]
+			FROM (
+				SELECT	[run_date_time] = msdb.dbo.agent_datetime(run_date, run_time),
+						[status] = case when run_status = 1 then ''Success'' else ''Failure'' end,
+						[seq] = ROW_NUMBER() OVER (ORDER BY msdb.dbo.agent_datetime(run_date, run_time) DESC)
+				FROM msdb.dbo.sysjobs jobs
+				INNER JOIN msdb.dbo.sysjobhistory history ON jobs.job_id = history.job_id
+				WHERE jobs.enabled = 1 AND jobs.name = @_job_name AND step_id = 0 AND run_status NOT IN (2,4) -- not retry/inprogress
+			) t
+			WHERE [seq] BETWEEN 1 and @threshold_continous_failure			
+			' + char(10);
+		END
+
 		IF @verbose > 1
 			PRINT CHAR(9)+@_s;
 		INSERT #CommandLog
