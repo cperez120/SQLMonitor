@@ -52,7 +52,7 @@ SQLMonitor utilizes PowerShell script to collect various metric from operating s
 
 For collecting metrics available from inside SQL Server, it used standard tsql procedures. 
 
-All the objects are created in [DBA] databases. Only few stored procedures that should have capability to be executed from context of any databases are created in [master] database.
+All the objects are created in [`DBA`] databases. Only few stored procedures that should have capability to be executed from context of any databases are created in [master] database.
 
 For both OS metrics & SQL metric, SQL Agent jobs are used as schedulers. Each job has its own schedule which may differ in frequency of data collection from every one minute to once a week.
 
