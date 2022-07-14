@@ -94,6 +94,7 @@ $dataCollectorSet.start($true)
 
 foreach($file in $pfCollectorFiles)
 {
+    Write-Debug "Inside each file loop"
     #Import-Counter -Path "$pfCollectorFolder\21L-LTPABL-1187_DBA_20220325_134853_001.blg" -ListSet * | ogv
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Processing file '$file', and import data into [$SqlInstance].[$Database].$TablePerfmonCounters.."
     try
@@ -126,7 +127,8 @@ foreach($file in $pfCollectorFiles)
                                             $splitPath = $pathWithoutComputerName.Split('\') | Where-Object{-not [String]::IsNullOrEmpty($_)}
                                         }
                                         else {
-                                            $splitPath = $pathWithoutComputerName.Replace($_.InstanceName,'').Split('()\') | Where-Object{-not [String]::IsNullOrEmpty($_)}
+                                            $pathWithoutInstance = $pathWithoutComputerName.Replace($_.InstanceName,'')
+                                            $splitPath = $($pathWithoutInstance -split '()\', 0, "simplematch") | Where-Object{-not [String]::IsNullOrEmpty($_)}
                                         }
                                     };
                                     $splitPath[1]
