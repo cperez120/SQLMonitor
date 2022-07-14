@@ -5,7 +5,7 @@
 cls
 Import-Module dbatools;
 $params = @{
-    SqlInstanceToBaseline = 'Workstation'
+    SqlInstanceToBaseline = 'SqlPractice'
     DbaDatabase = 'DBA'
     InventoryServer = 'SQLMonitor'
     InventoryDatabase = 'DBA'
@@ -19,8 +19,8 @@ $params = @{
     #SkipRemoveJob = $true
     #SkipDropProc = $true
     #SkipDropView = $true
-    ConfirmValidationOfMultiInstance = $true
-    DryRun = $false
+    #ConfirmValidationOfMultiInstance = $true
+    DryRun = $true
 }
 F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1 @Params #-Debug
 
