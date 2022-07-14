@@ -52,7 +52,7 @@ SQLMonitor utilizes PowerShell script to collect various metric from operating s
 
 For collecting metrics available from inside SQL Server, it used standard tsql procedures. 
 
-All the objects are created in [DBA_Admin] databases. Only few stored procedures that should have capability to be executed from context of any databases are created in [master] database.
+All the objects are created in [DBA] databases. Only few stored procedures that should have capability to be executed from context of any databases are created in [master] database.
 
 For both OS metrics & SQL metric, SQL Agent jobs are used as schedulers. Each job has its own schedule which may differ in frequency of data collection from every one minute to once a week.
 
@@ -62,22 +62,23 @@ For both OS metrics & SQL metric, SQL Agent jobs are used as schedulers. Each jo
 
 Following are few of the SQLMonitor data collection jobs. Each of these jobs is set to ‘(dba) SQLMonitor’ job category along with fixed naming convention of `(dba) *********`.
 
-| Job Name                       | Job Category     | Schedule         | Job Type   | Location                 |
-| ------------------------------ |:----------------:|:----------------:|:----------:|:------------------------:|
-| (dba) Collect-PerfmonData      | (dba) SQLMonitor | Every 2 minute   | PowerShell | <PowerShell Jobs Server> |
-| (dba) Collect-XEvents          | (dba) SQLMonitor | Every minute     | TSQL       | <Tsql Jobs Server>       |
-| (dba) Run-WhoIsActive          | (dba) SQLMonitor | Every 2 minute   | TSQL       | <Tsql Jobs Server>       |
-| (dba) Partitions-Maintenance   | (dba) SQLMonitor | Every Day        | TSQL       | <Tsql Jobs Server>       |
-| (dba) Update-SqlServerVersions | (dba) SQLMonitor | Once a week      | PowerShell | <PowerShell Jobs Server> |
-| (dba) Collect-OSProcesses      | (dba) SQLMonitor | Every 2 minute   | PowerShell | <PowerShell Jobs Server> |
-| (dba) Collect-WaitStats        | (dba) SQLMonitor | Every 10 minutes | TSQL       | <Tsql Jobs Server>       |
-| (dba) Purge-Tables             | (dba) SQLMonitor | Every Day        | TSQL       | <Tsql Jobs Server>       |
-| (dba) Remove-XEventFiles       | (dba) SQLMonitor | Every 4 hours    | PowerShell | <PowerShell Jobs Server> |
-| (dba) Collect-DiskSpace        | (dba) SQLMonitor | Every 30 minutes | PowerShell | <PowerShell Jobs Server> |
+| Job Name                       | Job Category     | Schedule         | Job Type   | Location               |
+| ------------------------------ |:----------------:|:----------------:|:----------:|:----------------------:|
+| (dba) Collect-PerfmonData      | (dba) SQLMonitor | Every 2 minute   | PowerShell | PowerShell Jobs Server |
+| (dba) Collect-XEvents          | (dba) SQLMonitor | Every minute     | TSQL       | Tsql Jobs Server       |
+| (dba) Run-WhoIsActive          | (dba) SQLMonitor | Every 2 minute   | TSQL       | Tsql Jobs Server       |
+| (dba) Partitions-Maintenance   | (dba) SQLMonitor | Every Day        | TSQL       | Tsql Jobs Server       |
+| (dba) Update-SqlServerVersions | (dba) SQLMonitor | Once a week      | PowerShell | PowerShell Jobs Server |
+| (dba) Collect-OSProcesses      | (dba) SQLMonitor | Every 2 minute   | PowerShell | PowerShell Jobs Server |
+| (dba) Collect-WaitStats        | (dba) SQLMonitor | Every 10 minutes | TSQL       | Tsql Jobs Server       |
+| (dba) Purge-Tables             | (dba) SQLMonitor | Every Day        | TSQL       | Tsql Jobs Server       |
+| (dba) Remove-XEventFiles       | (dba) SQLMonitor | Every 4 hours    | PowerShell | PowerShell Jobs Server |
+| (dba) Collect-DiskSpace        | (dba) SQLMonitor | Every 30 minutes | PowerShell | PowerShell Jobs Server |
 
 ----
-`<PowerShell Jobs Server>` can be same SQL Instance that is being baselined, or some other server in same Cluster network, or some some other server in same network, or even Inventory Server.
-`<Tsql Jobs Server>` can be same SQL Instance that is being baselined, or some other server in same Cluster network, or some some other server in same network, or even Inventory Server.
+`PowerShell Jobs Server` can be same SQL Instance that is being baselined, or some other server in same Cluster network, or some some other server in same network, or even Inventory Server.
+
+`Tsql Jobs Server` can be same SQL Instance that is being baselined, or some other server in same Cluster network, or some some other server in same network, or even Inventory Server.
 
 ### Download SQLMonitor
 Download SQLMonitor repository on your central server from where you deploy your scripts on all other servers. Say, after closing SQLMonitor, our local repo directory is `D:\Ajay-Dwivedi\GitHub-Personal\SQLMonitor`.
@@ -168,6 +169,7 @@ At next step, import all the dashboard `*.json` files on path `D:\Ajay-Dwivedi\G
 
 ## Remove SQLMonitor
 Similar to `Wrapper-InstallSQLMonitor`, we have `Wrapper-RemoveSQLMonitor` that can help us remove SQLMonitor for a particular baselined server.
+
 Open script `D:\Ajay-Dwivedi\GitHub-Personal\SQLMonitor\SQLMonitor\Wrapper-RemoveSQLMonitor.ps1`. Replace the appropriate values for parameters, and execute the script.
 
 	
