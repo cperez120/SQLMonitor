@@ -37,7 +37,7 @@ Param (
                 "37__DropTable_BlitzFirst", "38__DropTable_BlitzFirstFileStats", "39__DropTable_InstanceDetails",
                 "40__DropTable_DiskSpace", "41__DropTable_BlitzFirstPerfmonStats", "42__DropTable_BlitzFirstWaitStats",
                 "43__DropTable_BlitzFirstWaitStatsCategories", "44__DropTable_WaitStats", "45__RemovePerfmonFilesFromDisk",
-                "46__RemoveXEventFilesFromDisk", "47__DropProxy", "48__DropCredential")]
+                "46__RemoveXEventFilesFromDisk", "47__DropProxy", "48__DropCredential", "49__RemoveInstanceFromInventory")]
     [String]$StartAtStep = "1__RemoveJob_CollectDiskSpace",
 
     [Parameter(Mandatory=$false)]
@@ -56,7 +56,7 @@ Param (
                 "37__DropTable_BlitzFirst", "38__DropTable_BlitzFirstFileStats", "39__DropTable_InstanceDetails",
                 "40__DropTable_DiskSpace", "41__DropTable_BlitzFirstPerfmonStats", "42__DropTable_BlitzFirstWaitStats",
                 "43__DropTable_BlitzFirstWaitStatsCategories", "44__DropTable_WaitStats", "45__RemovePerfmonFilesFromDisk",
-                "46__RemoveXEventFilesFromDisk", "47__DropProxy", "48__DropCredential")]
+                "46__RemoveXEventFilesFromDisk", "47__DropProxy", "48__DropCredential", "49__RemoveInstanceFromInventory")]
     [String[]]$SkipSteps,
 
     [Parameter(Mandatory=$false)]
@@ -75,7 +75,7 @@ Param (
                 "37__DropTable_BlitzFirst", "38__DropTable_BlitzFirstFileStats", "39__DropTable_InstanceDetails",
                 "40__DropTable_DiskSpace", "41__DropTable_BlitzFirstPerfmonStats", "42__DropTable_BlitzFirstWaitStats",
                 "43__DropTable_BlitzFirstWaitStatsCategories", "44__DropTable_WaitStats", "45__RemovePerfmonFilesFromDisk",
-                "46__RemoveXEventFilesFromDisk", "47__DropProxy", "48__DropCredential")]
+                "46__RemoveXEventFilesFromDisk", "47__DropProxy", "48__DropCredential", "49__RemoveInstanceFromInventory")]
     [String]$StopAtStep,
 
     [Parameter(Mandatory=$false)]
@@ -125,7 +125,7 @@ $AllSteps = @(  "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesse
                 "37__DropTable_BlitzFirst", "38__DropTable_BlitzFirstFileStats", "39__DropTable_InstanceDetails",
                 "40__DropTable_DiskSpace", "41__DropTable_BlitzFirstPerfmonStats", "42__DropTable_BlitzFirstWaitStats",
                 "43__DropTable_BlitzFirstWaitStatsCategories", "44__DropTable_WaitStats", "45__RemovePerfmonFilesFromDisk",
-                "46__RemoveXEventFilesFromDisk", "47__DropProxy", "48__DropCredential"
+                "46__RemoveXEventFilesFromDisk", "47__DropProxy", "48__DropCredential", "49__RemoveInstanceFromInventory"
                 )
 
 # TSQL Jobs
@@ -2638,6 +2638,72 @@ $stepName = '47__DropProxy'
 
 # 48__DropCredential
 $stepName = '48__DropCredential'
+
+
+# 49__RemoveInstanceFromInventory
+$stepName = '49__RemoveInstanceFromInventory'
+if($stepName -in $Steps2Execute) {
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Remove entry for SQLInstance [$SqlInstanceToBaseline] from Inventory [$InventoryServer].[$InventoryDatabase].[dbo].[instance_details].."
+    }
+    else {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Remove entry for SQLInstance [$SqlInstanceToBaseline] from Inventory [$InventoryServer].[$InventoryDatabase].[dbo].[instance_details].."
+    }
+        
+    $sqlRemoveInstanceEntry = @"
+begin try
+    if exists (select * from dbo.instance_details where sql_instance = '$SqlInstanceToBaseline')
+    begin
+        begin tran
+            delete from dbo.instance_details where sql_instance = '$SqlInstanceToBaseline' and [host_name] = '$HostName';
+            if not exists (select * from dbo.instance_details where [host_name] = '$HostName')
+                delete from dbo.instance_hosts where [host_name] = '$HostName';
+        commit tran
+
+        select 1 as object_exists;
+    end
+    else
+        select 0 as object_exists;
+end try
+begin catch
+    DECLARE	@_errorNumber int,
+		    @_errorSeverity int,
+		    @_errorState int,
+		    @_errorLine int,
+		    @_errorMessage nvarchar(4000);
+    
+    SELECT  @_errorNumber	 = Error_Number(),
+		    @_errorSeverity = Error_Severity(),
+		    @_errorState	 = Error_State(),
+		    @_errorLine	 = Error_Line(),
+		    @_errorMessage	 = Error_Message();
+
+    rollback tran;
+    
+    raiserror (@_errorMessage, 20, -1) with log;
+end catch
+"@
+    $resultRemoveObject = @()
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$sqlRemoveInstanceEntry => `n`n$sqlRemoveInstanceEntry`n"        
+    }
+    else {
+        $resultRemoveObject += Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $sqlRemoveInstanceEntry -SqlCredential $SqlCredential -EnableException
+    }
+
+    if($resultRemoveObject.Count -gt 0) 
+    {
+        $result = $resultRemoveObject | Select-Object -ExpandProperty object_exists;
+        if($result -eq 1) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Instance entry removed from inventory."
+        }
+        else {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Instance entry not found in inventory."
+        }
+    }
+}
 
 
 "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Removal of SQLMonitor for [$SqlInstanceToBaseline] completed."
