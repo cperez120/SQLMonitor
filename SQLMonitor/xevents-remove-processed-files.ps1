@@ -16,7 +16,6 @@ $modulePath += ';C:\Program Files\WindowsPowerShell\Modules'
 [Environment]::SetEnvironmentVariable('PSModulePath', $modulePath)
 
 Import-Module dbatools
-Import-Module PoshRSJob -WarningAction Continue;
 
 $ErrorActionPreference = 'Stop'
 $currentTime = Get-Date
