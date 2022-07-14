@@ -1030,7 +1030,7 @@ go
 
 # 3__XEventSession
 $stepName = '3__XEventSession'
-if($stepName -in $Steps2Execute) {
+if( ($stepName -in $Steps2Execute) -and ($MajorVersion -ge 11) ) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$XEventSessionFilePath = '$XEventSessionFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetch [$DbaDatabase] path.."
