@@ -75,6 +75,7 @@ Following are few of the SQLMonitor data collection jobs. Each of these jobs is 
 | (dba) Remove-XEventFiles       | (dba) SQLMonitor | Every 4 hours    | PowerShell | <PowerShell Jobs Server> |
 | (dba) Collect-DiskSpace        | (dba) SQLMonitor | Every 30 minutes | PowerShell | <PowerShell Jobs Server> |
 
+----
 `<PowerShell Jobs Server>` can be same SQL Instance that is being baselined, or some other server in same Cluster network, or some some other server in same network, or even Inventory Server.
 `<Tsql Jobs Server>` can be same SQL Instance that is being baselined, or some other server in same Cluster network, or some some other server in same network, or even Inventory Server.
 
@@ -84,7 +85,7 @@ Download SQLMonitor repository on your central server from where you deploy your
 If the local SQLMonitor repo folder already exists, simply pull the latest from master branch.
 
 ### Execute Wrapper Script
-Open script D:\Ajay-Dwivedi\GitHub-Personal\*SQLMonitor\SQLMonitor\Wrapper-InstallSQLMonitor.ps1*. Replace the appropriate values for parameters, and execute the script.
+Open script `D:\Ajay-Dwivedi\GitHub-Personal\SQLMonitor\SQLMonitor\Wrapper-InstallSQLMonitor.ps1`. Replace the appropriate values for parameters, and execute the script.
 
 ```
 #$DomainCredential = Get-Credential -UserName 'Lab\SQLServices' -Message 'AD Account'
@@ -97,6 +98,7 @@ $params = @{
     SqlInstanceToBaseline = 'Workstation'
     DbaDatabase = 'DBA'
     #HostName = 'Workstation'
+    #RetentionDays = 7
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
     RemoteSQLMonitorPath = 'C:\SQLMonitor'
     InventoryServer = 'SQLMonitor'
@@ -124,6 +126,7 @@ $params = @{
     #SkipPowerShellJobs = $true
     #SkipTsqlJobs = $true
     #SkipMailProfileCheck = $true
+    #skipCollationCheck = $true
     #SkipWindowsAdminAccessTest = $true
     #SqlInstanceAsDataDestination = 'Workstation'
     #SqlInstanceForPowershellJobs = 'Workstation'
@@ -148,27 +151,24 @@ Test-WSMan 'SqlInstanceToBaseline' -Credential $localAdmin -Authentication Negot
 
 Below are some key highlight of above code:
 
-Line 1-> Enable/use this variable when the SqlInstanceToBaseline  is not in same domain as inventory server (server from where these scripts are being executed). In this line, we are creating/saving credentials that could take RDP to SqlInstanceToBaseline .
+`Line` 1-> Enable/use this variable when the `SqlInstanceToBaseline`  is not in same domain as inventory server (server from where these scripts are being executed). In this line, we are creating/saving credentials that could take RDP to SqlInstanceToBaseline .
 
-Line 2-> Enable/use this variable when the SqlInstanceToBaseline  is not in same domain as inventory server (server from where these scripts are being executed). In this line, we are creating/saving credentials that could execute elevated SQL Queries against SqlInstanceToBaseline.
+`Line 2`-> Enable/use this variable when the `SqlInstanceToBaseline`  is not in same domain as inventory server (server from where these scripts are being executed). In this line, we are creating/saving credentials that could execute elevated SQL Queries against `SqlInstanceToBaseline`.
 
-Line 3-> Enable/use this variable when the SqlInstanceToBaseline  is not joined to any domain. In this line, we are creating/saving credentials that could take RDP to SqlInstanceToBaseline.
+`Line 3`-> Enable/use this variable when the `SqlInstanceToBaseline`  is not joined to any domain. In this line, we are creating/saving credentials that could take RDP to SqlInstanceToBaseline.
 
-Lines 6-22 → These are the parameters for function Install-SQLMonitor. Enable/use them based on the requirement of various behavior of function. For example, when is from different domain, then SqlCredential & WindowsCredential parameters can be utilized.
+`Lines 7-45` → These are the parameters for function `Install-SQLMonitor`. Enable/use them based on the requirement of various behavior of function. For example, when target server belongs different domain, then SqlCredential & WindowsCredential parameters can be utilized.
 
 ### Setup Grafana Dashboards
 Download Grafana which is open source visualization tool. Install & configure same.
 
-Create a datasource on Grafana that connects to your Inventory Server. Say, we set it with name 'SQLMonitor'. Use `grafana` as login & password while setting up this data source. The `grafana` sql login is created on each server being baselined with `db_datareader` on `<DBA>` database.
+Create a datasource on Grafana that connects to your Inventory Server. Say, we set it with name 'SQLMonitor'. Use `grafana` as login & password while setting up this data source. The `grafana` sql login is created on each server being baselined with `db_datareader` on `DBA` database.
 
-At next step, import all the dashboard *.json files on path ‘D:\Ajay-Dwivedi\GitHub-Personal\SQLMonitor\Grafana-Dashboards’ into `SQLServer` folder on grafana portal. While importing each JSON file, we need to explicitly choose 'SQLMonitor` Data Source & Folder we created in above steps.
+At next step, import all the dashboard `*.json` files on path `D:\Ajay-Dwivedi\GitHub-Personal\SQLMonitor\Grafana-Dashboards` into `SQLServer` folder on grafana portal. While importing each JSON file, we need to explicitly choose `SQLMonitor` Data Source & Folder we created in above steps.
 
-Remove SQLMonitor
-Download SQLMonitor Source Code
-Before we remove SQLMonitor, kindly pull the latest from git repo of SQLMonitor.
-
-Execute Wrapper Script
-Open script 'D:\Ajay-Dwivedi\GitHub-Personal\SQLMonitor\SQLMonitor\Wrapper-RemoveSQLMonitor.ps1'. Replace the appropriate values for parameters, and execute the script.
+## Remove SQLMonitor
+Similar to `Wrapper-InstallSQLMonitor`, we have `Wrapper-RemoveSQLMonitor` that can help us remove SQLMonitor for a particular baselined server.
+Open script `D:\Ajay-Dwivedi\GitHub-Personal\SQLMonitor\SQLMonitor\Wrapper-RemoveSQLMonitor.ps1`. Replace the appropriate values for parameters, and execute the script.
 
 	
 Thanks :smiley:. Subscribe for updates :thumbsup:
