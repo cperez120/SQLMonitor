@@ -1510,7 +1510,20 @@ SELECT	[@server_minor_version_number] = @server_minor_version_number
 	end
 	else
 	begin
-		declare @table_name nvarchar(125) = 'tempdb..'+@result_to_table
+		declare @table_name nvarchar(125);
+		set @result_to_table = ltrim(rtrim(@result_to_table));
+
+		-- set appropriate table name
+		if(left(@result_to_table,1) = '#') -- temp table
+			set @table_name = 'tempdb..'+@result_to_table
+		else
+		begin -- physical table
+			if CHARINDEX('.','dbo.xyz') > 0
+				set @table_name = @result_to_table;
+			else
+				set @table_name = 'dbo.'+@result_to_table;
+		end
+
 		if object_id(@table_name) is not null and @output is null
 		begin
 			set @_sql = "insert "+@result_to_table+" select * from #server_details;";
