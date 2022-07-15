@@ -100,7 +100,7 @@ BEGIN
 
 	-- Stable Info
 	if	( (select count(1) from dbo.all_server_stable_info) <> (select count(distinct sql_instance) from dbo.instance_details) )
-		or ( (select max(collection_time) from  dbo.all_server_stable_info) < dateadd(hour, -4, SYSDATETIME()) )
+		or ( (select max(collection_time) from  dbo.all_server_stable_info) < dateadd(MINUTE, -30, SYSDATETIME()) )
 	begin
 		delete dbo.all_server_stable_info;
 		exec dbo.usp_GetAllServerInfo @result_to_table = 'dbo.all_server_stable_info',

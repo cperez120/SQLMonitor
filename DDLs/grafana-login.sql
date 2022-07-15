@@ -46,3 +46,11 @@ use [DBA]
 if OBJECT_ID('dbo.usp_GetAllServerInfo') is not null
 	exec ('grant execute on object::dbo.usp_GetAllServerInfo TO [grafana]')
 go
+use [DBA]
+if OBJECT_ID('dbo.usp_active_requests_count') is not null
+	exec ('grant execute on object::dbo.usp_active_requests_count TO [grafana]')
+go
+use [DBA]
+if OBJECT_ID('dbo.usp_waits_per_core_per_minute') is not null
+	exec ('grant execute on object::dbo.usp_waits_per_core_per_minute TO [grafana]')
+go
