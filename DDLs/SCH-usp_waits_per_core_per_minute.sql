@@ -121,14 +121,15 @@ BEGIN
 
 	insert @SQLskillsStats1 ([wait_type], [waiting_tasks_count], [wait_time_ms])
 	select [wait_type], [waiting_tasks_count], [wait_time_ms] from dbo.wait_stats ws
-	where collection_time_utc = @collection_time_utc_snap1 and wait_type NOT IN (SELECT wait_type FROM @Waits2Skip);
+	where collection_time_utc = @collection_time_utc_snap1 
+	and wait_type COLLATE SQL_Latin1_General_CP1_CI_AS NOT IN (SELECT wait_type FROM @Waits2Skip);
 
 	-- Take 2nd snapshot at current moment
 	SET @collection_time_utc_snap2 = sysutcdatetime();
 	insert @SQLskillsStats2 ([wait_type], [waiting_tasks_count], [wait_time_ms])
 	SELECT [wait_type], [waiting_tasks_count], [wait_time_ms]
 	FROM sys.dm_os_wait_stats
-	WHERE wait_type NOT IN (SELECT wait_type FROM @Waits2Skip);
+	WHERE wait_type COLLATE SQL_Latin1_General_CP1_CI_AS NOT IN (SELECT wait_type FROM @Waits2Skip);
   
 	;WITH [DiffWaits] ([wait_time_ms]) AS
 	(

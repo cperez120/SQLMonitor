@@ -49,7 +49,7 @@ Param (
     [String]$WhatIsRunningFileName = "SCH-sp_WhatIsRunning.sql",
 
     [Parameter(Mandatory=$false)]
-    [String]$GetAllServerInfoFileName = "SCH-usp_GetAllServerInfo.sql",
+    [String]$UspGetAllServerInfoFileName = "SCH-usp_GetAllServerInfo.sql",
 
     [Parameter(Mandatory=$false)]
     [String]$UspCollectWaitStatsFileName = "SCH-usp_collect_wait_stats.sql",
@@ -65,6 +65,12 @@ Param (
 
     [Parameter(Mandatory=$false)]
     [String]$UspRunWhoIsActiveFileName = "SCH-usp_run_WhoIsActive.sql",
+
+    [Parameter(Mandatory=$false)]
+    [String]$UspActiveRequestsCountFileName = "SCH-usp_active_requests_count.sql",
+
+    [Parameter(Mandatory=$false)]
+    [String]$UspWaitsPerCorePerMinuteFileName = "SCH-usp_waits_per_core_per_minute.sql",
 
     [Parameter(Mandatory=$false)]
     [String]$WhoIsActivePartitionFileName = "SCH-WhoIsActive-Partitioning.sql",
@@ -104,6 +110,12 @@ Param (
 
     [Parameter(Mandatory=$false)]
     [String]$UpdateSqlServerVersionsFileName = "SCH-Job-[(dba) Update-SqlServerVersions].sql",
+
+    [Parameter(Mandatory=$false)]
+    [String]$GetAllServerInfoJobFileName = "SCH-Job-[(dba) Get-AllServerInfo].sql",
+
+    [Parameter(Mandatory=$false)]
+    [String]$InventorySpecificObjectsFileName = "SCH-Create-Inventory-Specific-Objects.sql",
 
     [Parameter(Mandatory=$false)]
     [String]$LinkedServerOnInventoryFileName = "SCH-Linked-Servers-Sample.sql",
@@ -289,7 +301,7 @@ $WhoIsActiveFilePath = "$ddlPath\$WhoIsActiveFileName"
 $AllDatabaseObjectsFilePath = "$ddlPath\$AllDatabaseObjectsFileName"
 $XEventSessionFilePath = "$ddlPath\$XEventSessionFileName"
 $WhatIsRunningFilePath = "$ddlPath\$WhatIsRunningFileName"
-$GetAllServerInfoFilePath = "$ddlPath\$GetAllServerInfoFileName"
+$GetAllServerInfoFilePath = "$ddlPath\$UspGetAllServerInfoFileName"
 $UspCollectWaitStatsFilePath = "$ddlPath\$UspCollectWaitStatsFileName"
 $UspCollectXeventsResourceConsumptionFilePath = "$ddlPath\$UspCollectXeventsResourceConsumptionFileName"
 $UspPartitionMaintenanceFilePath = "$ddlPath\$UspPartitionMaintenanceFileName"
@@ -1128,7 +1140,6 @@ if($stepName -in $Steps2Execute) {
         $sqlWhatIsRunning = [System.IO.File]::ReadAllText($WhatIsRunningFilePath)        
         $sqlWhatIsRunning = $sqlWhatIsRunning.Replace('open_transaction_count = s.open_transaction_count', "open_transaction_count = 0")
         $sqlWhatIsRunning = $sqlWhatIsRunning.Replace('s.database_id', "null")
-        $sqlWhatIsRunning = $sqlWhatIsRunning.Replace('s.open_transaction_count', "0")
 
         Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlWhatIsRunning -SqlCredential $SqlCredential -EnableException
     }
