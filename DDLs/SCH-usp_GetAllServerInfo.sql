@@ -24,7 +24,8 @@ ALTER PROCEDURE dbo.usp_GetAllServerInfo
 (	@servers varchar(max) = null, /* comma separated list of servers to query */
 	@blocked_threshold_seconds int = 60, 
 	@output nvarchar(max) = null, /* comma separated list of columns required in output */
-	@result_to_table nvarchar(125) = null /* temp table that should be populated with result */
+	@result_to_table nvarchar(125) = null, /* temp table that should be populated with result */
+	@verbose bit = 0 /* display debugging messages */
 )
 	WITH EXECUTE AS OWNER --,RECOMPILE
 AS
@@ -138,7 +139,8 @@ BEGIN
 	--set quoted_identifier off;
 	WHILE @@FETCH_STATUS = 0
 	BEGIN
-		print char(10)+'***** Looping through '+quotename(@_srv_name)+' *******';
+		if @verbose = 1
+			print char(10)+'***** Looping through '+quotename(@_srv_name)+' *******';
 		set @_linked_server_failed = 0;
 		set @_at_server_name = NULL;
 		set @_machine_name = NULL;
