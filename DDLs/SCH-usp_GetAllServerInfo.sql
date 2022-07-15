@@ -1281,6 +1281,13 @@ SELECT	[@server_minor_version_number] = @server_minor_version_number
 				set @table_name = 'dbo.'+@result_to_table;
 		end
 
+		-- delete table data
+		if object_id(@table_name) is not null
+		begin
+			set @_sql = "delete from "+@table_name;
+			exec (@_sql);
+		end
+
 		if object_id(@table_name) is not null and @output is null
 		begin
 			set @_sql = "insert "+@result_to_table+" select * from #server_details;";

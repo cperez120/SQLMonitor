@@ -47,9 +47,8 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.all_
 		@os_run_priority=0, @subsystem=N'TSQL', 
 		@command=N'-- Stable Info
 if	( (select count(1) from dbo.all_server_stable_info) <> (select count(distinct sql_instance) from dbo.instance_details) )
-	or ( (select max(collection_time) from  dbo.all_server_stable_info) < dateadd(hour, -4, SYSDATETIME()) )
+	or ( (select max(collection_time) from  dbo.all_server_stable_info) < dateadd(minute, -30, SYSDATETIME()) )
 begin
-	delete dbo.all_server_stable_info;
 	exec dbo.usp_GetAllServerInfo @result_to_table = ''dbo.all_server_stable_info'',
 				@output = ''srv_name, at_server_name, machine_name, server_name, ip, domain, host_name, product_version, edition, sqlserver_start_time_utc, total_physical_memory_kb, os_start_time_utc, cpu_count, scheduler_count, major_version_number, minor_version_number'';
 end', 
@@ -68,7 +67,6 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.all_
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'TSQL', 
 		@command=N'-- Volatile Info
-DELETE dbo.all_server_volatile_info;
 exec dbo.usp_GetAllServerInfo @result_to_table = ''dbo.all_server_volatile_info'',
 			@output = ''srv_name, os_cpu, sql_cpu, pcnt_kernel_mode, page_faults_kb, blocked_counts, blocked_duration_max_seconds, available_physical_memory_kb, system_high_memory_signal_state, physical_memory_in_use_kb, memory_grants_pending, connection_count, active_requests_count, waits_per_core_per_minute'';', 
 		@database_name=N'DBA', 
