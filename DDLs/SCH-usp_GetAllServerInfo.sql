@@ -24,15 +24,16 @@ ALTER PROCEDURE dbo.usp_GetAllServerInfo
 (	@servers varchar(max) = null, /* comma separated list of servers to query */
 	@blocked_threshold_seconds int = 60, 
 	@output nvarchar(max) = null, /* comma separated list of columns required in output */
-	@result_to_table nvarchar(125) = null /* temp table that should be populated with result */
+	@result_to_table nvarchar(125) = null, /* temp table that should be populated with result */
+	@verbose bit = 0 /* display debugging messages */
 )
 	WITH EXECUTE AS OWNER --,RECOMPILE
 AS
 BEGIN
 
 	/*
-		Version:		1.0.0
-		Date:			2022-06-28
+		Version:		1.0.1
+		Date:			2022-07-15
 
 		declare @srv_name varchar(125) = convert(varchar,serverproperty('MachineName'));
 		exec dbo.usp_GetAllServerInfo @servers = @srv_name
@@ -124,19 +125,12 @@ BEGIN
 	SELECT ltrim(rtrim(column_name))
 	FROM t1
 	OPTION (MAXRECURSION 32000);
-	
-
-	--select '@_tbl_servers' as QueryData, * from @_tbl_servers;
-	--select '@_tbl_output_columns' as QueryData, * from @_tbl_output_columns;
 
 	DECLARE cur_servers CURSOR LOCAL FORWARD_ONLY FOR
 		select distinct srvname = sql_instance 
 		from dbo.instance_details
 		where is_available = 1
 		and (@servers is null or sql_instance in (select srv_name from @_tbl_servers))
-		--select distinct srvname from sys.sysservers 
-		--where providername = 'SQLOLEDB' 
-		--and (@servers is null or srvname in (select srv_name from @_tbl_servers))
 		union select convert(varchar,SERVERPROPERTY('ServerName'));
 
 	OPEN cur_servers;
@@ -145,7 +139,8 @@ BEGIN
 	--set quoted_identifier off;
 	WHILE @@FETCH_STATUS = 0
 	BEGIN
-		print char(10)+'***** Looping through '+quotename(@_srv_name)+' *******';
+		if @verbose = 1
+			print char(10)+'***** Looping through '+quotename(@_srv_name)+' *******';
 		set @_linked_server_failed = 0;
 		set @_at_server_name = NULL;
 		set @_machine_name = NULL;
@@ -932,7 +927,6 @@ AND counter_name = N'Memory Grants Pending'
 			set @_sql =  "
 --SET QUOTED_IDENTIFIER ON;
 select count(*) as counts from sys.dm_exec_connections with (nolock)
-
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
@@ -963,41 +957,8 @@ select count(*) as counts from sys.dm_exec_connections with (nolock)
 		begin
 			delete from @_result;
 			set @_sql =  "
---SET QUOTED_IDENTIFIER ON;
-SET NOCOUNT ON; 
-SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
-
---	Query to find what's is running on server
-SELECT	COUNT(*) as active_request_count
-FROM	sys.dm_exec_sessions AS s
-LEFT JOIN sys.dm_exec_requests AS r ON r.session_id = s.session_id
-OUTER APPLY sys.dm_exec_sql_text(r.sql_handle) AS st
-OUTER APPLY sys.dm_exec_query_plan(r.plan_handle) AS bqp
-OUTER APPLY sys.dm_exec_text_query_plan(r.plan_handle,r.statement_start_offset, r.statement_end_offset) as sqp
-WHERE	s.session_id != @@SPID
-	AND (	(CASE	WHEN	s.session_id IN (select ri.blocking_session_id from sys.dm_exec_requests as ri )
-					--	Get sessions involved in blocking (including system sessions)
-					THEN	1
-					WHEN	r.blocking_session_id IS NOT NULL AND r.blocking_session_id <> 0
-					THEN	1
-					ELSE	0
-			END) = 1
-			OR
-			(CASE	WHEN	s.session_id > 50
-							AND r.session_id IS NOT NULL -- either some part of session has active request
-							--AND ISNULL(open_resultset_count,0) > 0 -- some result is open
-							AND s.status <> 'sleeping'
-					THEN	1
-					ELSE	0
-			END) = 1
-			OR
-			(CASE	WHEN	s.session_id > 50
-							AND ISNULL(r.open_transaction_count,0) > 0
-					THEN	1
-					ELSE	0
-			END) = 1
-		);
-
+SET NOCOUNT ON;
+exec usp_active_requests_count;
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
@@ -1028,212 +989,8 @@ WHERE	s.session_id != @@SPID
 		begin
 			delete from @_result;
 			set @_sql =  "
---SET QUOTED_IDENTIFIER ON;
-
-set nocount on;
-declare @schedulers smallint;
-declare @collect_time_utc_snap1 datetime2;
-declare @collect_time_utc_snap2 datetime2;
-
-select @schedulers = count(*) from sys.dm_os_schedulers where status = 'VISIBLE ONLINE' and is_online = 1;
-
-select top 1 @collect_time_utc_snap2 = collection_time_utc
-from dbo.wait_stats s
-order by collection_time_utc desc;
-
-select top 1 @collect_time_utc_snap1 = collection_time_utc
-from dbo.wait_stats s where collection_time_utc < @collect_time_utc_snap2
-order by collection_time_utc desc;
-
---select @collect_time_utc_snap1, @collect_time_utc_snap2;
-
-;with wait_snap1 as (
-	select sum(wait_time_ms)/1000 as wait_time_s
-	from dbo.wait_stats s1
-	where s1.collection_time_utc = @collect_time_utc_snap1
-	and [wait_type] NOT IN (
-        -- These wait types are almost 100% never a problem and so they are
-        -- filtered out to avoid them skewing the results. Click on the URL
-        -- for more information.
-        N'BROKER_EVENTHANDLER',
-        N'BROKER_RECEIVE_WAITFOR',
-        N'BROKER_TASK_STOP',
-        N'BROKER_TO_FLUSH',
-        N'BROKER_TRANSMITTER',
-        N'CHECKPOINT_QUEUE',
-        N'CHKPT',
-        N'CLR_AUTO_EVENT',
-        N'CLR_MANUAL_EVENT',
-        N'CLR_SEMAPHORE', 
-        -- Maybe comment this out if you have parallelism issues
-        N'CXCONSUMER', 
-        -- Maybe comment these four out if you have mirroring issues
-        N'DBMIRROR_DBM_EVENT',
-        N'DBMIRROR_EVENTS_QUEUE',
-        N'DBMIRROR_WORKER_QUEUE',
-        N'DBMIRRORING_CMD',
-        N'DIRTY_PAGE_POLL',
-        N'DISPATCHER_QUEUE_SEMAPHORE',
-        N'EXECSYNC',
-        N'FSAGENT',
-        N'FT_IFTS_SCHEDULER_IDLE_WAIT',
-        N'FT_IFTSHC_MUTEX',  
-       -- Maybe comment these six out if you have AG issues
-        N'HADR_CLUSAPI_CALL',
-        N'HADR_FILESTREAM_IOMGR_IOCOMPLETION',
-        N'HADR_LOGCAPTURE_WAIT',
-        N'HADR_NOTIFICATION_DEQUEUE',
-        N'HADR_TIMER_TASK',
-        N'HADR_WORK_QUEUE', 
-        N'KSOURCE_WAKEUP',
-        N'LAZYWRITER_SLEEP',
-        N'LOGMGR_QUEUE',
-        N'MEMORY_ALLOCATION_EXT',
-        N'ONDEMAND_TASK_QUEUE',
-        N'PARALLEL_REDO_DRAIN_WORKER',
-        N'PARALLEL_REDO_LOG_CACHE',
-        N'PARALLEL_REDO_TRAN_LIST',
-        N'PARALLEL_REDO_WORKER_SYNC',
-        N'PARALLEL_REDO_WORKER_WAIT_WORK',
-        N'PREEMPTIVE_OS_FLUSHFILEBUFFERS',
-        N'PREEMPTIVE_XE_GETTARGETSTATE',
-        N'PVS_PREALLOCATE',
-        N'PWAIT_ALL_COMPONENTS_INITIALIZED',
-        N'PWAIT_DIRECTLOGCONSUMER_GETNEXT',
-        N'PWAIT_EXTENSIBILITY_CLEANUP_TASK',
-        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP',
-        N'QDS_ASYNC_QUEUE',
-        N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP',           
-        N'QDS_SHUTDOWN_QUEUE',
-        N'REDO_THREAD_PENDING_WORK',
-        N'REQUEST_FOR_DEADLOCK_SEARCH',
-        N'RESOURCE_QUEUE',
-        N'SERVER_IDLE_CHECK',
-        N'SLEEP_BPOOL_FLUSH',
-        N'SLEEP_DBSTARTUP',
-        N'SLEEP_DCOMSTARTUP',
-        N'SLEEP_MASTERDBREADY',
-        N'SLEEP_MASTERMDREADY',
-        N'SLEEP_MASTERUPGRADED',
-        N'SLEEP_MSDBSTARTUP',
-        N'SLEEP_SYSTEMTASK',
-        N'SLEEP_TASK',
-        N'SLEEP_TEMPDBSTARTUP',
-        N'SNI_HTTP_ACCEPT',
-        N'SOS_WORK_DISPATCHER',
-        N'SP_SERVER_DIAGNOSTICS_SLEEP',
-        N'SQLTRACE_BUFFER_FLUSH',
-        N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP',
-        N'SQLTRACE_WAIT_ENTRIES',
-        N'VDI_CLIENT_OTHER',
-        N'WAIT_FOR_RESULTS',
-        N'WAITFOR',
-        N'WAITFOR_TASKSHUTDOWN',
-        N'WAIT_XTP_RECOVERY',
-        N'WAIT_XTP_HOST_WAIT',
-        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG',
-        N'WAIT_XTP_CKPT_CLOSE',
-        N'XE_DISPATCHER_JOIN',
-        N'XE_DISPATCHER_WAIT',
-        N'XE_TIMER_EVENT'
-        )
-    AND [waiting_tasks_count] > 0
-)
-,wait_snap2 as (
-	select sum(wait_time_ms)/1000 as wait_time_s
-	from dbo.wait_stats s2
-	where s2.collection_time_utc = @collect_time_utc_snap2
-	and [wait_type] NOT IN (
-        -- These wait types are almost 100% never a problem and so they are
-        -- filtered out to avoid them skewing the results. Click on the URL
-        -- for more information.
-        N'BROKER_EVENTHANDLER',
-        N'BROKER_RECEIVE_WAITFOR',
-        N'BROKER_TASK_STOP',
-        N'BROKER_TO_FLUSH',
-        N'BROKER_TRANSMITTER',
-        N'CHECKPOINT_QUEUE',
-        N'CHKPT',
-        N'CLR_AUTO_EVENT',
-        N'CLR_MANUAL_EVENT',
-        N'CLR_SEMAPHORE', 
-        -- Maybe comment this out if you have parallelism issues
-        N'CXCONSUMER', 
-        -- Maybe comment these four out if you have mirroring issues
-        N'DBMIRROR_DBM_EVENT',
-        N'DBMIRROR_EVENTS_QUEUE',
-        N'DBMIRROR_WORKER_QUEUE',
-        N'DBMIRRORING_CMD',
-        N'DIRTY_PAGE_POLL',
-        N'DISPATCHER_QUEUE_SEMAPHORE',
-        N'EXECSYNC',
-        N'FSAGENT',
-        N'FT_IFTS_SCHEDULER_IDLE_WAIT',
-        N'FT_IFTSHC_MUTEX',  
-       -- Maybe comment these six out if you have AG issues
-        N'HADR_CLUSAPI_CALL',
-        N'HADR_FILESTREAM_IOMGR_IOCOMPLETION',
-        N'HADR_LOGCAPTURE_WAIT',
-        N'HADR_NOTIFICATION_DEQUEUE',
-        N'HADR_TIMER_TASK',
-        N'HADR_WORK_QUEUE', 
-        N'KSOURCE_WAKEUP',
-        N'LAZYWRITER_SLEEP',
-        N'LOGMGR_QUEUE',
-        N'MEMORY_ALLOCATION_EXT',
-        N'ONDEMAND_TASK_QUEUE',
-        N'PARALLEL_REDO_DRAIN_WORKER',
-        N'PARALLEL_REDO_LOG_CACHE',
-        N'PARALLEL_REDO_TRAN_LIST',
-        N'PARALLEL_REDO_WORKER_SYNC',
-        N'PARALLEL_REDO_WORKER_WAIT_WORK',
-        N'PREEMPTIVE_OS_FLUSHFILEBUFFERS',
-        N'PREEMPTIVE_XE_GETTARGETSTATE',
-        N'PVS_PREALLOCATE',
-        N'PWAIT_ALL_COMPONENTS_INITIALIZED',
-        N'PWAIT_DIRECTLOGCONSUMER_GETNEXT',
-        N'PWAIT_EXTENSIBILITY_CLEANUP_TASK',
-        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP',
-        N'QDS_ASYNC_QUEUE',
-        N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP',           
-        N'QDS_SHUTDOWN_QUEUE',
-        N'REDO_THREAD_PENDING_WORK',
-        N'REQUEST_FOR_DEADLOCK_SEARCH',
-        N'RESOURCE_QUEUE',
-        N'SERVER_IDLE_CHECK',
-        N'SLEEP_BPOOL_FLUSH',
-        N'SLEEP_DBSTARTUP',
-        N'SLEEP_DCOMSTARTUP',
-        N'SLEEP_MASTERDBREADY',
-        N'SLEEP_MASTERMDREADY',
-        N'SLEEP_MASTERUPGRADED',
-        N'SLEEP_MSDBSTARTUP',
-        N'SLEEP_SYSTEMTASK',
-        N'SLEEP_TASK',
-        N'SLEEP_TEMPDBSTARTUP',
-        N'SNI_HTTP_ACCEPT',
-        N'SOS_WORK_DISPATCHER',
-        N'SP_SERVER_DIAGNOSTICS_SLEEP',
-        N'SQLTRACE_BUFFER_FLUSH',
-        N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP',
-        N'SQLTRACE_WAIT_ENTRIES',
-        N'VDI_CLIENT_OTHER',
-        N'WAIT_FOR_RESULTS',
-        N'WAITFOR',
-        N'WAITFOR_TASKSHUTDOWN',
-        N'WAIT_XTP_RECOVERY',
-        N'WAIT_XTP_HOST_WAIT',
-        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG',
-        N'WAIT_XTP_CKPT_CLOSE',
-        N'XE_DISPATCHER_JOIN',
-        N'XE_DISPATCHER_WAIT',
-        N'XE_TIMER_EVENT'
-        )
-    AND [waiting_tasks_count] > 0
-)
-select [wait_time_s__per_core__per_minute] = convert(numeric(20,2), (s2.wait_time_s - s1.wait_time_s)*1.0 / @schedulers / datediff(minute,@collect_time_utc_snap1,@collect_time_utc_snap2))
-from wait_snap1 s1, wait_snap2 s2;
-
+SET NOCOUNT ON;
+exec usp_waits_per_core_per_minute;
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
@@ -1510,7 +1267,27 @@ SELECT	[@server_minor_version_number] = @server_minor_version_number
 	end
 	else
 	begin
-		declare @table_name nvarchar(125) = 'tempdb..'+@result_to_table
+		declare @table_name nvarchar(125);
+		set @result_to_table = ltrim(rtrim(@result_to_table));
+
+		-- set appropriate table name
+		if(left(@result_to_table,1) = '#') -- temp table
+			set @table_name = 'tempdb..'+@result_to_table
+		else
+		begin -- physical table
+			if CHARINDEX('.','dbo.xyz') > 0
+				set @table_name = @result_to_table;
+			else
+				set @table_name = 'dbo.'+@result_to_table;
+		end
+
+		-- delete table data
+		if object_id(@table_name) is not null
+		begin
+			set @_sql = "delete from "+@table_name;
+			exec (@_sql);
+		end
+
 		if object_id(@table_name) is not null and @output is null
 		begin
 			set @_sql = "insert "+@result_to_table+" select * from #server_details;";
