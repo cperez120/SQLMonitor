@@ -79,37 +79,37 @@ Param (
     [String]$GrafanaLoginFileName = "grafana-login.sql",
 
     [Parameter(Mandatory=$false)]
-    [String]$CheckInstanceAvailabilityFileName = "SCH-Job-[(dba) Check-InstanceAvailability].sql",
+    [String]$CheckInstanceAvailabilityJobFileName = "SCH-Job-[(dba) Check-InstanceAvailability].sql",
 
     [Parameter(Mandatory=$false)]
-    [String]$CollectDiskSpaceFileName = "SCH-Job-[(dba) Collect-DiskSpace].sql",
+    [String]$CollectDiskSpaceJobFileName = "SCH-Job-[(dba) Collect-DiskSpace].sql",
 
     [Parameter(Mandatory=$false)]
-    [String]$CollectOSProcessesFileName = "SCH-Job-[(dba) Collect-OSProcesses].sql",
+    [String]$CollectOSProcessesJobFileName = "SCH-Job-[(dba) Collect-OSProcesses].sql",
 
     [Parameter(Mandatory=$false)]
-    [String]$CollectPerfmonDataFileName = "SCH-Job-[(dba) Collect-PerfmonData].sql",
+    [String]$CollectPerfmonDataJobFileName = "SCH-Job-[(dba) Collect-PerfmonData].sql",
 
     [Parameter(Mandatory=$false)]
-    [String]$CollectWaitStatsFileName = "SCH-Job-[(dba) Collect-WaitStats].sql",
+    [String]$CollectWaitStatsJobFileName = "SCH-Job-[(dba) Collect-WaitStats].sql",
 
     [Parameter(Mandatory=$false)]
-    [String]$CollectXEventsFileName = "SCH-Job-[(dba) Collect-XEvents].sql",
+    [String]$CollectXEventsJobFileName = "SCH-Job-[(dba) Collect-XEvents].sql",
 
     [Parameter(Mandatory=$false)]
-    [String]$PartitionsMaintenanceFileName = "SCH-Job-[(dba) Partitions-Maintenance].sql",
+    [String]$PartitionsMaintenanceJobFileName = "SCH-Job-[(dba) Partitions-Maintenance].sql",
 
     [Parameter(Mandatory=$false)]
-    [String]$PurgeTablesFileName = "SCH-Job-[(dba) Purge-Tables].sql",
+    [String]$PurgeTablesJobFileName = "SCH-Job-[(dba) Purge-Tables].sql",
 
     [Parameter(Mandatory=$false)]
-    [String]$RemoveXEventFilesFileName = "SCH-Job-[(dba) Remove-XEventFiles].sql",
+    [String]$RemoveXEventFilesJobFileName = "SCH-Job-[(dba) Remove-XEventFiles].sql",
 
     [Parameter(Mandatory=$false)]
-    [String]$RunWhoIsActiveFileName = "SCH-Job-[(dba) Run-WhoIsActive].sql",
+    [String]$RunWhoIsActiveJobFileName = "SCH-Job-[(dba) Run-WhoIsActive].sql",
 
     [Parameter(Mandatory=$false)]
-    [String]$UpdateSqlServerVersionsFileName = "SCH-Job-[(dba) Update-SqlServerVersions].sql",
+    [String]$UpdateSqlServerVersionsJobFileName = "SCH-Job-[(dba) Update-SqlServerVersions].sql",
 
     [Parameter(Mandatory=$false)]
     [String]$GetAllServerInfoJobFileName = "SCH-Job-[(dba) Get-AllServerInfo].sql",
@@ -121,7 +121,7 @@ Param (
     [String]$LinkedServerOnInventoryFileName = "SCH-Linked-Servers-Sample.sql",
 
     [Parameter(Mandatory=$false)]
-    [String]$TestWindowsAdminAccessFileName = "SCH-Job-[(dba) Test-WindowsAdminAccess].sql",
+    [String]$TestWindowsAdminAccessJobFileName = "SCH-Job-[(dba) Test-WindowsAdminAccess].sql",
 
     [Parameter(Mandatory=$true)]
     [String[]]$DbaGroupMailId,
@@ -309,20 +309,20 @@ $UspPurgeTablesFilePath = "$ddlPath\$UspPurgeTablesFileName"
 $UspRunWhoIsActiveFilePath = "$ddlPath\$UspRunWhoIsActiveFileName"
 $WhoIsActivePartitionFilePath = "$ddlPath\$WhoIsActivePartitionFileName"
 $GrafanaLoginFilePath = "$ddlPath\$GrafanaLoginFileName"
-$CheckInstanceAvailabilityFilePath = "$ddlPath\$CheckInstanceAvailabilityFileName"
-$CollectDiskSpaceFilePath = "$ddlPath\$CollectDiskSpaceFileName"
-$CollectOSProcessesFilePath = "$ddlPath\$CollectOSProcessesFileName"
-$CollectPerfmonDataFilePath = "$ddlPath\$CollectPerfmonDataFileName"
-$CollectWaitStatsFilePath = "$ddlPath\$CollectWaitStatsFileName"
-$CollectXEventsFilePath = "$ddlPath\$CollectXEventsFileName"
-$PartitionsMaintenanceFilePath = "$ddlPath\$PartitionsMaintenanceFileName"
-$PurgeTablesFilePath = "$ddlPath\$PurgeTablesFileName"
-$RemoveXEventFilesFilePath = "$ddlPath\$RemoveXEventFilesFileName"
-$RunWhoIsActiveFilePath = "$ddlPath\$RunWhoIsActiveFileName"
-$UpdateSqlServerVersionsFilePath = "$ddlPath\$UpdateSqlServerVersionsFileName"
+$CheckInstanceAvailabilityJobFilePath = "$ddlPath\$CheckInstanceAvailabilityJobFileName"
+$CollectDiskSpaceJobFilePath = "$ddlPath\$CollectDiskSpaceJobFileName"
+$CollectOSProcessesJobFilePath = "$ddlPath\$CollectOSProcessesJobFileName"
+$CollectPerfmonDataJobFilePath = "$ddlPath\$CollectPerfmonDataJobFileName"
+$CollectWaitStatsJobFilePath = "$ddlPath\$CollectWaitStatsJobFileName"
+$CollectXEventsJobFilePath = "$ddlPath\$CollectXEventsJobFileName"
+$PartitionsMaintenanceJobFilePath = "$ddlPath\$PartitionsMaintenanceJobFileName"
+$PurgeTablesJobFilePath = "$ddlPath\$PurgeTablesJobFileName"
+$RemoveXEventFilesJobFilePath = "$ddlPath\$RemoveXEventFilesJobFileName"
+$RunWhoIsActiveJobFilePath = "$ddlPath\$RunWhoIsActiveJobFileName"
+$UpdateSqlServerVersionsJobFilePath = "$ddlPath\$UpdateSqlServerVersionsJobFileName"
 $LinkedServerOnInventoryFilePath = "$ddlPath\$LinkedServerOnInventoryFileName"
 $WhoIsActivePartitionFilePath = "$ddlPath\$WhoIsActivePartitionFileName"
-$TestWindowsAdminAccessFilePath = "$ddlPath\$TestWindowsAdminAccessFileName"
+$TestWindowsAdminAccessJobFilePath = "$ddlPath\$TestWindowsAdminAccessJobFileName"
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$ddlPath = '$ddlPath'"
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$psScriptPath = '$psScriptPath'"
@@ -790,9 +790,9 @@ if( ($SkipPowerShellJobs -or $SkipAllJobs) -and ($SkipWindowsAdminAccessTest -eq
 if($SkipWindowsAdminAccessTest -eq $false)
 {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validate for WindowsCredential if SQL Service Accounts are non-priviledged.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$TestWindowsAdminAccessFilePath = '$TestWindowsAdminAccessFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$TestWindowsAdminAccessJobFilePath = '$TestWindowsAdminAccessJobFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating & executing job [(dba) Test-WindowsAdminAccess] on [$SqlInstanceForPowershellJobs].."
-    $sqlTestWindowsAdminAccessFilePath = [System.IO.File]::ReadAllText($TestWindowsAdminAccessFilePath)
+    $sqlTestWindowsAdminAccessFilePath = [System.IO.File]::ReadAllText($TestWindowsAdminAccessJobFilePath)
     Invoke-DbaQuery -SqlInstance $SqlInstanceForPowershellJobs -Database msdb -Query $sqlTestWindowsAdminAccessFilePath -SqlCredential $SqlCredential -EnableException
 
     $testWindowsAdminAccessJobHistory = @()
@@ -1293,7 +1293,7 @@ if($stepName -in $Steps2Execute)
 {
     $jobName = '(dba) Collect-DiskSpace'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectDiskSpaceFilePath = '$CollectDiskSpaceFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectDiskSpaceJobFilePath = '$CollectDiskSpaceJobFilePath'"
     
     # Append HostName if Job Server is different    
     $jobNameNew = $jobName
@@ -1302,7 +1302,7 @@ if($stepName -in $Steps2Execute)
     }    
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForPowershellJobs].."
-    $sqlCreateJobCollectDiskSpace = [System.IO.File]::ReadAllText($CollectDiskSpaceFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceAsDataDestination`"")
+    $sqlCreateJobCollectDiskSpace = [System.IO.File]::ReadAllText($CollectDiskSpaceJobFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceAsDataDestination`"")
     $sqlCreateJobCollectDiskSpace = $sqlCreateJobCollectDiskSpace.Replace('-Database DBA', "-Database `"$DbaDatabase`"")
     $sqlCreateJobCollectDiskSpace = $sqlCreateJobCollectDiskSpace.Replace('-HostName localhost', "-HostName `"$HostName`"")
     if($jobNameNew -ne $jobName) {
@@ -1334,7 +1334,7 @@ if($stepName -in $Steps2Execute)
 {
     $jobName = '(dba) Collect-OSProcesses'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectOSProcessesFilePath = '$CollectOSProcessesFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectOSProcessesJobFilePath = '$CollectOSProcessesJobFilePath'"
 
     # Append HostName if Job Server is different    
     $jobNameNew = $jobName
@@ -1343,7 +1343,7 @@ if($stepName -in $Steps2Execute)
     }   
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForPowershellJobs].."
-    $sqlCreateJobCollectOSProcesses = [System.IO.File]::ReadAllText($CollectOSProcessesFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceAsDataDestination`"")
+    $sqlCreateJobCollectOSProcesses = [System.IO.File]::ReadAllText($CollectOSProcessesJobFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceAsDataDestination`"")
     $sqlCreateJobCollectOSProcesses = $sqlCreateJobCollectOSProcesses.Replace('-Database DBA', "-Database `"$DbaDatabase`"")
     $sqlCreateJobCollectOSProcesses = $sqlCreateJobCollectOSProcesses.Replace('-HostName localhost', "-HostName `"$HostName`"")
     if($jobNameNew -ne $jobName) {
@@ -1375,7 +1375,7 @@ if($stepName -in $Steps2Execute)
 {
     $jobName = '(dba) Collect-PerfmonData'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectPerfmonDataFilePath = '$CollectPerfmonDataFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectPerfmonDataJobFilePath = '$CollectPerfmonDataJobFilePath'"
 
     # Append HostName if Job Server is different    
     $jobNameNew = $jobName
@@ -1384,7 +1384,7 @@ if($stepName -in $Steps2Execute)
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForPowershellJobs].."
-    $sqlCreateJobCollectPerfmonData = [System.IO.File]::ReadAllText($CollectPerfmonDataFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceAsDataDestination`"")
+    $sqlCreateJobCollectPerfmonData = [System.IO.File]::ReadAllText($CollectPerfmonDataJobFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceAsDataDestination`"")
     $sqlCreateJobCollectPerfmonData = $sqlCreateJobCollectPerfmonData.Replace('-Database DBA', "-Database `"$DbaDatabase`"")
     $sqlCreateJobCollectPerfmonData = $sqlCreateJobCollectPerfmonData.Replace('-HostName localhost', "-HostName `"$HostName`"")
     if($jobNameNew -ne $jobName) {
@@ -1416,7 +1416,7 @@ if($stepName -in $Steps2Execute)
 {
     $jobName = '(dba) Collect-WaitStats'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectWaitStatsFilePath = '$CollectWaitStatsFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectWaitStatsJobFilePath = '$CollectWaitStatsJobFilePath'"
 
     # Append HostName if Job Server is different    
     $jobNameNew = $jobName
@@ -1425,7 +1425,7 @@ if($stepName -in $Steps2Execute)
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
-    $sqlCreateJobCollectWaitStats = [System.IO.File]::ReadAllText($CollectWaitStatsFilePath)
+    $sqlCreateJobCollectWaitStats = [System.IO.File]::ReadAllText($CollectWaitStatsJobFilePath)
     $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
     $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace("''some_dba_mail_id@gmail.com''", "''$($DbaGroupMailId -join ';')'';" )
@@ -1443,7 +1443,7 @@ if($stepName -in $Steps2Execute)
 {
     $jobName = '(dba) Collect-XEvents'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectXEventsFilePath = '$CollectXEventsFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectXEventsJobFilePath = '$CollectXEventsJobFilePath'"
 
     # Append HostName if Job Server is different    
     $jobNameNew = $jobName
@@ -1452,7 +1452,7 @@ if($stepName -in $Steps2Execute)
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
-    $sqlCreateJobCollectXEvents = [System.IO.File]::ReadAllText($CollectXEventsFilePath)
+    $sqlCreateJobCollectXEvents = [System.IO.File]::ReadAllText($CollectXEventsJobFilePath)
     $sqlCreateJobCollectXEvents = $sqlCreateJobCollectXEvents.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
     $sqlCreateJobCollectXEvents = $sqlCreateJobCollectXEvents.Replace('-d DBA', "-d `"$DbaDatabase`"")
     if($jobNameNew -ne $jobName) {
@@ -1469,7 +1469,7 @@ if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false)
 {
     $jobName = '(dba) Partitions-Maintenance'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$PartitionsMaintenanceFilePath = '$PartitionsMaintenanceFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$PartitionsMaintenanceJobFilePath = '$PartitionsMaintenanceJobFilePath'"
 
     # Append HostName if Job Server is different    
     $jobNameNew = $jobName
@@ -1478,7 +1478,7 @@ if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false)
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
-    $sqlPartitionsMaintenance = [System.IO.File]::ReadAllText($PartitionsMaintenanceFilePath)
+    $sqlPartitionsMaintenance = [System.IO.File]::ReadAllText($PartitionsMaintenanceJobFilePath)
     $sqlPartitionsMaintenance = $sqlPartitionsMaintenance.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
     $sqlPartitionsMaintenance = $sqlPartitionsMaintenance.Replace('-d DBA', "-d `"$DbaDatabase`"")
     if($jobNameNew -ne $jobName) {
@@ -1494,7 +1494,7 @@ if($stepName -in $Steps2Execute)
 {
     $jobName = '(dba) Purge-Tables'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$PurgeTablesFilePath = '$PurgeTablesFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$PurgeTablesJobFilePath = '$PurgeTablesJobFilePath'"
 
     # Append HostName if Job Server is different    
     $jobNameNew = $jobName
@@ -1503,7 +1503,7 @@ if($stepName -in $Steps2Execute)
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
-    $sqlPurgeDbaMetrics = [System.IO.File]::ReadAllText($PurgeTablesFilePath)
+    $sqlPurgeDbaMetrics = [System.IO.File]::ReadAllText($PurgeTablesJobFilePath)
     $sqlPurgeDbaMetrics = $sqlPurgeDbaMetrics.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
     $sqlPurgeDbaMetrics = $sqlPurgeDbaMetrics.Replace('-d DBA', "-d `"$DbaDatabase`"")
     if($jobNameNew -ne $jobName) {
@@ -1520,7 +1520,7 @@ if($stepName -in $Steps2Execute)
 {
     $jobName = '(dba) Remove-XEventFiles'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$RemoveXEventFilesFilePath = '$RemoveXEventFilesFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$RemoveXEventFilesJobFilePath = '$RemoveXEventFilesJobFilePath'"
 
     # Append HostName if Job Server is different    
     $jobNameNew = $jobName
@@ -1529,7 +1529,7 @@ if($stepName -in $Steps2Execute)
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForPowershellJobs].."
-    $sqlCreateJobRemoveXEventFiles = [System.IO.File]::ReadAllText($RemoveXEventFilesFilePath)
+    $sqlCreateJobRemoveXEventFiles = [System.IO.File]::ReadAllText($RemoveXEventFilesJobFilePath)
     $sqlCreateJobRemoveXEventFiles = $sqlCreateJobRemoveXEventFiles.Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceToBaseline`"")
     $sqlCreateJobRemoveXEventFiles = $sqlCreateJobRemoveXEventFiles.Replace('-Database DBA', "-Database `"$DbaDatabase`"")
     if($jobNameNew -ne $jobName) {
@@ -1561,7 +1561,7 @@ if($stepName -in $Steps2Execute)
 {
     $jobName = '(dba) Run-WhoIsActive'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$RunWhoIsActiveFilePath = '$RunWhoIsActiveFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$RunWhoIsActiveJobFilePath = '$RunWhoIsActiveJobFilePath'"
 
     # Append HostName if Job Server is different    
     $jobNameNew = $jobName
@@ -1570,7 +1570,7 @@ if($stepName -in $Steps2Execute)
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
-    $sqlRunWhoIsActive = [System.IO.File]::ReadAllText($RunWhoIsActiveFilePath)
+    $sqlRunWhoIsActive = [System.IO.File]::ReadAllText($RunWhoIsActiveJobFilePath)
     $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
     $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace("''some_dba_mail_id@gmail.com''", "''$($DbaGroupMailId -join ';')'';" )
@@ -1587,9 +1587,9 @@ $stepName = '22__CreateJobUpdateSqlServerVersions'
 if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer) 
 {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UpdateSqlServerVersionsFilePath = '$UpdateSqlServerVersionsFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UpdateSqlServerVersionsJobFilePath = '$UpdateSqlServerVersionsJobFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Update-SqlServerVersions] on [$SqlInstanceToBaseline].."
-    $sqlUpdateSqlServerVersions = [System.IO.File]::ReadAllText($UpdateSqlServerVersionsFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceToBaseline`"")
+    $sqlUpdateSqlServerVersions = [System.IO.File]::ReadAllText($UpdateSqlServerVersionsJobFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceToBaseline`"")
 
     if($RemoteSQLMonitorPath -ne 'C:\SQLMonitor') {
         $sqlUpdateSqlServerVersions = $sqlUpdateSqlServerVersions.Replace('C:\SQLMonitor', $RemoteSQLMonitorPath)
@@ -1616,9 +1616,9 @@ $stepName = '23__CreateJobCheckInstanceAvailability'
 if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer) 
 {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CheckInstanceAvailabilityFilePath = '$CheckInstanceAvailabilityFilePath'"
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CheckInstanceAvailabilityJobFilePath = '$CheckInstanceAvailabilityJobFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Check-InstanceAvailability] on [$SqlInstanceToBaseline].."
-    $sqlGetInstanceAvailability = [System.IO.File]::ReadAllText($CheckInstanceAvailabilityFilePath)
+    $sqlGetInstanceAvailability = [System.IO.File]::ReadAllText($CheckInstanceAvailabilityJobFilePath)
     $sqlGetInstanceAvailability = $sqlGetInstanceAvailability.Replace('-InventoryServer localhost', "-InventoryServer `"$SqlInstanceToBaseline`"")
     $sqlGetInstanceAvailability = $sqlGetInstanceAvailability.Replace('-InventoryDatabase DBA', "-InventoryDatabase `"$InventoryDatabase`"")
 
@@ -1852,7 +1852,7 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     Script file containing tsql that creates sql agent job [(dba) Collect-PerfmonData] on server [SqlInstanceForPowerShellJobs] which calls powershell scripts for collecting collecting Perfmon data from server [SqlInstanceToBaseline].
     .PARAMETER CollectWaitStatsFileName
     Script file containing tsql that creates sql agent job [(dba) Collect-WaitStats] on server [SqlInstanceForTsqlJobs] which captures cumulative waits.
-    .PARAMETER CollectXEventsFileName
+    .PARAMETER CollectXEventsJobFileName
     Script file containing tsql that creates sql agent job [(dba) Collect-XEvents] on server [SqlInstanceForTsqlJobs] which reads data from XEvent session [resource_consumption] & pushes it to SQL tables.
     .PARAMETER PartitionsMaintenanceFileName
     Script file containing tsql that creates sql agent job [(dba) Partitions-Maintenance] on server [SqlInstanceForTsqlJobs]. This job adds further partions and purges old partitions from partitioned tables.
