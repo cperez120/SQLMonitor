@@ -22,11 +22,15 @@ go
 ALTER DATABASE CURRENT ADD FILE (name='MemoryOptimized', filename='E:\Data\MemoryOptimized.ndf') TO FILEGROUP MemoryOptimized
 go
 
-IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[all_server_info]') AND type in (N'U'))
-	DROP TABLE [dbo].[all_server_info]
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[all_server_stable_info]') AND type in (N'U'))
+	DROP TABLE [dbo].[all_server_stable_info]
 GO
 
-CREATE TABLE [dbo].[all_server_info]
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[all_server_volatile_info]') AND type in (N'U'))
+	DROP TABLE [dbo].[all_server_volatile_info]
+GO
+
+CREATE TABLE [dbo].[all_server_stable_info]
 (
 	[srv_name] [varchar](125) NOT NULL,
 	[at_server_name] [varchar](125) NULL,
@@ -38,13 +42,27 @@ CREATE TABLE [dbo].[all_server_info]
 	[product_version] [varchar](30) NOT NULL,
 	[edition] [varchar](50) NOT NULL,
 	[sqlserver_start_time_utc] [datetime2](7) NOT NULL,
+	[total_physical_memory_kb] [bigint] NOT NULL,
+	[os_start_time_utc] [datetime2](7) NULL,
+	[cpu_count] [smallint] NOT NULL,
+	[scheduler_count] [smallint] NOT NULL,
+	[major_version_number] [smallint] NOT NULL,
+	[minor_version_number] [smallint] NOT NULL,
+	[collection_time] [datetime2] not null default sysdatetime()
+	CONSTRAINT pk_all_server_stable_info primary key nonclustered ([srv_name])
+)
+WITH (MEMORY_OPTIMIZED = ON, DURABILITY = SCHEMA_AND_DATA);
+GO
+
+CREATE TABLE [dbo].[all_server_volatile_info]
+(
+	[srv_name] [varchar](125) NOT NULL,
 	[os_cpu] [decimal](20, 2) NOT NULL,
 	[sql_cpu] [decimal](20, 2) NOT NULL,
 	[pcnt_kernel_mode] [decimal](20, 2) NULL,
 	[page_faults_kb] [decimal](20, 2) NULL,
 	[blocked_counts] [int] NOT NULL DEFAULT 0,
 	[blocked_duration_max_seconds] [bigint] NOT NULL DEFAULT 0,
-	[total_physical_memory_kb] [bigint] NOT NULL,
 	[available_physical_memory_kb] [bigint] NOT NULL,
 	[system_high_memory_signal_state] [varchar](20) NOT NULL,
 	[physical_memory_in_use_kb] [decimal](20, 2) NOT NULL,
@@ -52,26 +70,52 @@ CREATE TABLE [dbo].[all_server_info]
 	[connection_count] [int] NOT NULL DEFAULT 0,
 	[active_requests_count] [int] NOT NULL DEFAULT 0,
 	[waits_per_core_per_minute] [decimal](20, 2) NULL DEFAULT 0,
-	[os_start_time_utc] [datetime2](7) NULL,
-	[cpu_count] [smallint] NOT NULL,
-	[scheduler_count] [smallint] NOT NULL,
-	[major_version_number] [smallint] NOT NULL,
-	[minor_version_number] [smallint] NOT NULL,
-	CONSTRAINT pk_all_server_info primary key nonclustered ([srv_name])
+	[collection_time] [datetime2] not null default sysdatetime()
+	CONSTRAINT pk_all_server_volatile_info primary key nonclustered ([srv_name])
 )
 WITH (MEMORY_OPTIMIZED = ON, DURABILITY = SCHEMA_AND_DATA);
 GO
+
+if OBJECT_ID('dbo.vw_all_server_info') is null
+	exec ('create view dbo.vw_all_server_info as select 1 as dummy;');
+go
+
+alter view dbo.vw_all_server_info
+--with schemabinding
+as
+	select	si.srv_name, 
+			/* stable info */
+			at_server_name, machine_name, server_name, ip, domain, host_name, product_version, edition, sqlserver_start_time_utc, total_physical_memory_kb, os_start_time_utc, cpu_count, scheduler_count, major_version_number, minor_version_number,
+			/* volatile info */
+			os_cpu, sql_cpu, pcnt_kernel_mode, page_faults_kb, blocked_counts, blocked_duration_max_seconds, available_physical_memory_kb, system_high_memory_signal_state, physical_memory_in_use_kb, memory_grants_pending, connection_count, active_requests_count, waits_per_core_per_minute
+	from dbo.all_server_stable_info as si
+	left join dbo.all_server_volatile_info as vi
+	on si.srv_name = vi.srv_name;
+go
+
 
 IF APP_NAME() = 'Microsoft SQL Server Management Studio - Query'
 BEGIN
 	SET NOCOUNT ON;
 
-	DELETE dbo.all_server_info;
-	exec dbo.usp_GetAllServerInfo @result_to_table = 'dbo.all_server_info';
-	select * from dbo.all_server_info;
+	-- Stable Info
+	if	( (select count(1) from dbo.all_server_stable_info) <> (select count(distinct sql_instance) from dbo.instance_details) )
+		or ( (select max(collection_time) from  dbo.all_server_stable_info) < dateadd(hour, -4, SYSDATETIME()) )
+	begin
+		delete dbo.all_server_stable_info;
+		exec dbo.usp_GetAllServerInfo @result_to_table = 'dbo.all_server_stable_info',
+					@output = 'srv_name, at_server_name, machine_name, server_name, ip, domain, host_name, product_version, edition, sqlserver_start_time_utc, total_physical_memory_kb, os_start_time_utc, cpu_count, scheduler_count, major_version_number, minor_version_number';
+	end
+	select * from dbo.all_server_stable_info;
+
+	-- Volatile Info
+	DELETE dbo.all_server_volatile_info;
+	exec dbo.usp_GetAllServerInfo @result_to_table = 'dbo.all_server_volatile_info',
+				@output = 'srv_name, os_cpu, sql_cpu, pcnt_kernel_mode, page_faults_kb, blocked_counts, blocked_duration_max_seconds, available_physical_memory_kb, system_high_memory_signal_state, physical_memory_in_use_kb, memory_grants_pending, connection_count, active_requests_count, waits_per_core_per_minute';
+	select * from dbo.all_server_volatile_info;
 
 	select * 
-	from dbo.all_server_info si
+	from dbo.vw_all_server_info si
 	where si.srv_name = convert(varchar,SERVERPROPERTY('ServerName'))
 END
 GO

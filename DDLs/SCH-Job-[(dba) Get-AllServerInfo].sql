@@ -5,6 +5,10 @@ if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Get-AllServe
 	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Get-AllServerInfo', @delete_unused_schedule=1
 GO
 
+USE [msdb]
+GO
+
+
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
@@ -31,8 +35,30 @@ https://ajaydwivedi.com/github/sqlmonitor',
 		@owner_login_name=N'sa', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 
-EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'usp_GetAllServerInfo', 
+EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.all_server_stable_info', 
 		@step_id=1, 
+		@cmdexec_success_code=0, 
+		@on_success_action=3, 
+		@on_success_step_id=0, 
+		@on_fail_action=2, 
+		@on_fail_step_id=0, 
+		@retry_attempts=0, 
+		@retry_interval=0, 
+		@os_run_priority=0, @subsystem=N'TSQL', 
+		@command=N'-- Stable Info
+if	( (select count(1) from dbo.all_server_stable_info) <> (select count(distinct sql_instance) from dbo.instance_details) )
+	or ( (select max(collection_time) from  dbo.all_server_stable_info) < dateadd(hour, -4, SYSDATETIME()) )
+begin
+	delete dbo.all_server_stable_info;
+	exec dbo.usp_GetAllServerInfo @result_to_table = ''dbo.all_server_stable_info'',
+				@output = ''srv_name, at_server_name, machine_name, server_name, ip, domain, host_name, product_version, edition, sqlserver_start_time_utc, total_physical_memory_kb, os_start_time_utc, cpu_count, scheduler_count, major_version_number, minor_version_number'';
+end', 
+		@database_name=N'DBA', 
+		@flags=12
+IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
+
+EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.all_server_volatile_info', 
+		@step_id=2, 
 		@cmdexec_success_code=0, 
 		@on_success_action=1, 
 		@on_success_step_id=0, 
@@ -41,11 +67,10 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'usp_GetA
 		@retry_attempts=0, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'TSQL', 
-		@command=N'SET NOCOUNT ON;
-
-delete dbo.all_server_info;
-
-exec dbo.usp_GetAllServerInfo @result_to_table = ''dbo.all_server_info'';', 
+		@command=N'-- Volatile Info
+DELETE dbo.all_server_volatile_info;
+exec dbo.usp_GetAllServerInfo @result_to_table = ''dbo.all_server_volatile_info'',
+			@output = ''srv_name, os_cpu, sql_cpu, pcnt_kernel_mode, page_faults_kb, blocked_counts, blocked_duration_max_seconds, available_physical_memory_kb, system_high_memory_signal_state, physical_memory_in_use_kb, memory_grants_pending, connection_count, active_requests_count, waits_per_core_per_minute'';', 
 		@database_name=N'DBA', 
 		@flags=12
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
@@ -56,14 +81,14 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'(dba) Get
 		@freq_type=4, 
 		@freq_interval=1, 
 		@freq_subday_type=2, 
-		@freq_subday_interval=10, 
+		@freq_subday_interval=20, 
 		@freq_relative_interval=0, 
 		@freq_recurrence_factor=0, 
 		@active_start_date=20220715, 
 		@active_end_date=99991231, 
 		@active_start_time=0, 
 		@active_end_time=235959
-		--,@schedule_uid=N'22a1d237-2ecb-4dd3-9138-71084ff663e7'
+		--,@schedule_uid=N'8dc38708-8287-427d-9f7c-fec4aac2ea02'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_add_jobserver @job_id = @jobId, @server_name = N'(local)'
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
@@ -73,7 +98,6 @@ QuitWithRollback:
     IF (@@TRANCOUNT > 0) ROLLBACK TRANSACTION
 EndSave:
 GO
-
 
 EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Get-AllServerInfo'
 go

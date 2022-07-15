@@ -31,8 +31,8 @@ AS
 BEGIN
 
 	/*
-		Version:		1.0.0
-		Date:			2022-06-28
+		Version:		1.0.1
+		Date:			2022-07-15
 
 		declare @srv_name varchar(125) = convert(varchar,serverproperty('MachineName'));
 		exec dbo.usp_GetAllServerInfo @servers = @srv_name
@@ -124,19 +124,12 @@ BEGIN
 	SELECT ltrim(rtrim(column_name))
 	FROM t1
 	OPTION (MAXRECURSION 32000);
-	
-
-	--select '@_tbl_servers' as QueryData, * from @_tbl_servers;
-	--select '@_tbl_output_columns' as QueryData, * from @_tbl_output_columns;
 
 	DECLARE cur_servers CURSOR LOCAL FORWARD_ONLY FOR
 		select distinct srvname = sql_instance 
 		from dbo.instance_details
 		where is_available = 1
 		and (@servers is null or sql_instance in (select srv_name from @_tbl_servers))
-		--select distinct srvname from sys.sysservers 
-		--where providername = 'SQLOLEDB' 
-		--and (@servers is null or srvname in (select srv_name from @_tbl_servers))
 		union select convert(varchar,SERVERPROPERTY('ServerName'));
 
 	OPEN cur_servers;
@@ -997,7 +990,6 @@ WHERE	s.session_id != @@SPID
 					ELSE	0
 			END) = 1
 		);
-
 "
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
