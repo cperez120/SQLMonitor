@@ -299,6 +299,7 @@ $psScriptPath = Join-Path $SQLMonitorPath "SQLMonitor"
 $mailProfileFilePath = "$ddlPath\$MailProfileFileName"
 $WhoIsActiveFilePath = "$ddlPath\$WhoIsActiveFileName"
 $AllDatabaseObjectsFilePath = "$ddlPath\$AllDatabaseObjectsFileName"
+$InventorySpecificObjectsFilePath = "$ddlPath\$InventorySpecificObjectsFileName"
 $XEventSessionFilePath = "$ddlPath\$XEventSessionFileName"
 $WhatIsRunningFilePath = "$ddlPath\$WhatIsRunningFileName"
 $GetAllServerInfoFilePath = "$ddlPath\$UspGetAllServerInfoFileName"
@@ -307,6 +308,8 @@ $UspCollectXeventsResourceConsumptionFilePath = "$ddlPath\$UspCollectXeventsReso
 $UspPartitionMaintenanceFilePath = "$ddlPath\$UspPartitionMaintenanceFileName"
 $UspPurgeTablesFilePath = "$ddlPath\$UspPurgeTablesFileName"
 $UspRunWhoIsActiveFilePath = "$ddlPath\$UspRunWhoIsActiveFileName"
+$UspActiveRequestsCountFilePath = "$ddlPath\$UspActiveRequestsCountFileName"
+$UspWaitsPerCorePerMinuteFilePath = "$ddlPath\$UspWaitsPerCorePerMinuteFileName"
 $WhoIsActivePartitionFilePath = "$ddlPath\$WhoIsActivePartitionFileName"
 $GrafanaLoginFilePath = "$ddlPath\$GrafanaLoginFileName"
 $CheckInstanceAvailabilityJobFilePath = "$ddlPath\$CheckInstanceAvailabilityJobFileName"
@@ -315,6 +318,7 @@ $CollectOSProcessesJobFilePath = "$ddlPath\$CollectOSProcessesJobFileName"
 $CollectPerfmonDataJobFilePath = "$ddlPath\$CollectPerfmonDataJobFileName"
 $CollectWaitStatsJobFilePath = "$ddlPath\$CollectWaitStatsJobFileName"
 $CollectXEventsJobFilePath = "$ddlPath\$CollectXEventsJobFileName"
+$GetAllServerInfoJobFilePath = "$ddlPath\$GetAllServerInfoJobFileName"
 $PartitionsMaintenanceJobFilePath = "$ddlPath\$PartitionsMaintenanceJobFileName"
 $PurgeTablesJobFilePath = "$ddlPath\$PurgeTablesJobFileName"
 $RemoveXEventFilesJobFilePath = "$ddlPath\$RemoveXEventFilesJobFileName"
@@ -934,21 +938,8 @@ if($stepName -in $Steps2Execute)
     }
 
     # Add extra column on InventoryServer
-    if($SqlInstanceToBaseline -eq $InventoryServer) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Current server is mentioned as Inventory Server, so ensuring column [dbo].[instance_details].[is_available] is present.."
-        $sqlAddInstanceDetailsColumns = @"
-if not exists (select * from sys.columns c where c.object_id = OBJECT_ID('dbo.instance_details') and c.name = 'is_available')
-    alter table dbo.instance_details add [is_available] bit not null default 1;
-go
-if not exists (select * from sys.columns c where c.object_id = OBJECT_ID('dbo.instance_details') and c.name = 'created_date_utc')
-    alter table dbo.instance_details add [created_date_utc] datetime2 not null default SYSUTCDATETIME();
-go
-if not exists (select * from sys.columns c where c.object_id = OBJECT_ID('dbo.instance_details') and c.name = 'last_unavailability_time_utc')
-    alter table dbo.instance_details add [last_unavailability_time_utc] datetime2 null;
-go
-"@
-        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAddInstanceDetailsColumns -SqlCredential $SqlCredential -EnableException
-    }
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update objects on Inventory Server.."
+    Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -File $InventorySpecificObjectsFilePath -SqlCredential $SqlCredential -EnableException
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspCollectWaitStatsFilePath = '$UspCollectWaitStatsFilePath'"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspCollectWaitStatsFilePath -SqlCredential $SqlCredential -EnableException
@@ -961,6 +952,12 @@ go
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspPurgeTablesFilePath = '$UspPurgeTablesFilePath'"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspPurgeTablesFilePath -SqlCredential $SqlCredential -EnableException
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspActiveRequestsCountFilePath = '$UspActiveRequestsCountFilePath'"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspActiveRequestsCountFilePath -SqlCredential $SqlCredential -EnableException
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspWaitsPerCorePerMinuteFilePath = '$UspWaitsPerCorePerMinuteFilePath'"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspWaitsPerCorePerMinuteFilePath -SqlCredential $SqlCredential -EnableException
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspRunWhoIsActiveFilePath = '$UspRunWhoIsActiveFilePath'"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspRunWhoIsActiveFilePath -SqlCredential $SqlCredential -EnableException
