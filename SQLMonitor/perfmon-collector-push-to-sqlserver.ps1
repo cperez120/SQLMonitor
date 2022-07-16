@@ -106,7 +106,7 @@ foreach($file in $pfCollectorFiles)
     {
         #Import-Counter -Path "$pfCollectorFolder\$file" -EA silentlycontinue | Select-Object -ExpandProperty CounterSamples | 
         Import-Counter -Path "$("\\$computerName\"+$pfCollectorFolder.Replace(':','$'))\$file" -EA silentlycontinue | Select-Object -ExpandProperty CounterSamples | 
-                Select-Object @{l='collection_time_utc';e={($_.TimeStamp).ToUniversalTime()}}, @{l='host_name';e={$computerName}}, @{l='path';e={$_.Path}}, `
+                Select-Object @{l='collection_time_utc';e={($_.TimeStamp).ToUniversalTime()}}, @{l='host_name';e={$computerName}}, `
                               @{l='object';e={
                                     $path = $_.Path; 
                                     $pathWithoutComputerName = ($path -replace "$computerName","").TrimStart('\\');

@@ -218,8 +218,8 @@
           <FullPath>QRY-sys.dm_io_virtual_file_stats.sql</FullPath>
         </FileNode>
         <FileNode Name="what-is-running-whoisactive.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>what-is-running-whoisactive.sql</FullPath>
         </FileNode>
