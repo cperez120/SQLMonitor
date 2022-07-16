@@ -229,6 +229,12 @@
           <AssociatedConnUserName />
           <FullPath>SCH-usp_collect_xevents_resource_consumption.sql</FullPath>
         </FileNode>
+        <FileNode Name="SCH-usp_enable_page_compression.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-usp_enable_page_compression.sql</FullPath>
+        </FileNode>
         <FileNode Name="SCH-usp_GetAllServerInfo.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
