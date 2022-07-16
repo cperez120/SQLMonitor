@@ -20,5 +20,7 @@ if not exists (select 1 from sys.partitions p inner join sys.tables t on p.objec
 	ALTER TABLE dbo.performance_counters REBUILD PARTITION = ALL WITH (DATA_COMPRESSION = PAGE);   
 GO
 
+alter table dbo.performance_counters drop column [path];
+
 
 

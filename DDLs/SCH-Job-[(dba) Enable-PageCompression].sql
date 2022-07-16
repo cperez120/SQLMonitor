@@ -10,7 +10,12 @@ EXEC dbo.sp_add_job
 			@notify_level_eventlog=0,
 			@notify_level_email=2, 
 			@notify_level_page=2,
-			@delete_level=1
+			@delete_level=1,
+			@description=N'This job purges data from SQLMonitor tables mentioned in dbo.purge_table.
+
+https://ajaydwivedi.com/github/sqlmonitor', 
+			@category_name=N'(dba) SQLMonitor', 
+			@owner_login_name=N'sa'
 GO  
 
 EXEC sp_add_jobstep  
