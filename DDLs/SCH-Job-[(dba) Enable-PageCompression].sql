@@ -5,7 +5,7 @@ if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Enable-PageC
 	EXEC msdb.dbo.sp_delete_job @job_name=N'(dba) Enable-PageCompression', @delete_unused_schedule=1
 GO
 
-EXEC dbo.sp_add_job  
+EXEC msdb.dbo.sp_add_job  
 			@job_name = N'(dba) Enable-PageCompression',
 			@notify_level_eventlog=0,
 			@notify_level_email=2, 
@@ -18,7 +18,7 @@ https://ajaydwivedi.com/github/sqlmonitor',
 			@owner_login_name=N'sa'
 GO  
 
-EXEC sp_add_jobstep  
+EXEC msdb.dbo.sp_add_jobstep  
 			@job_name = N'(dba) Enable-PageCompression',  
 			@step_name = N'Enable-PageCompression',  
 			@subsystem = N'TSQL', 
@@ -28,18 +28,18 @@ EXEC sp_add_jobstep
 			@retry_interval = 1;
 GO  
 
-EXEC dbo.sp_add_schedule  
+EXEC msdb.dbo.sp_add_schedule  
 			@schedule_name = N'(dba) Enable-PageCompression',  
 			@freq_type = 1,
 			@enabled=1;
 GO
 
-EXEC sp_attach_schedule  
+EXEC msdb.dbo.sp_attach_schedule  
    @job_name = N'(dba) Enable-PageCompression',  
    @schedule_name = N'(dba) Enable-PageCompression';  
 GO  
 
-EXEC dbo.sp_add_jobserver  
+EXEC msdb.dbo.sp_add_jobserver  
     @job_name = N'(dba) Enable-PageCompression';  
 GO
 
