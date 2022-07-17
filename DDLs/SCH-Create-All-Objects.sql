@@ -161,7 +161,7 @@ begin
 	(
 		[collection_time_utc] [datetime2](7) NOT NULL,
 		[host_name] [varchar](255) NOT NULL,
-		[path] [nvarchar](2000) NOT NULL,
+		--[path] [nvarchar](2000) NOT NULL,
 		[object] [varchar](255) NOT NULL,
 		[counter] [varchar](255) NOT NULL,
 		[value] numeric(38,10) NULL,
@@ -205,12 +205,12 @@ go
 alter view dbo.vw_performance_counters
 --with schemabinding
 as
-with cte_counters_local as (select collection_time_utc, host_name, path, object, counter, value, instance from dbo.performance_counters)
---,cte_counters_datasource as (select collection_time_utc, host_name, path, object, counter, value, instance from [SQL2019].DBA.dbo.performance_counters)
+with cte_counters_local as (select collection_time_utc, host_name, object, counter, value, instance from dbo.performance_counters)
+--,cte_counters_datasource as (select collection_time_utc, host_name, object, counter, value, instance from [SQL2019].DBA.dbo.performance_counters)
 
-select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_local --with (forceseek)
+select collection_time_utc, host_name, object, counter, value, instance from cte_counters_local --with (forceseek)
 --union all
---select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_datasource
+--select collection_time_utc, host_name, object, counter, value, instance from cte_counters_datasource
 go
 
 
@@ -272,6 +272,8 @@ begin
 	create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [host_name], [task_name]) on ps_dba ([collection_time_utc])
 end
 go
+
+/*
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'nci_user_name')
 begin
 	create nonclustered index nci_user_name on [dbo].[os_task_list] ([collection_time_utc], [host_name], [user_name]) on ps_dba ([collection_time_utc])
@@ -292,6 +294,7 @@ begin
 	create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_time_utc], [host_name], [memory_kb]) on ps_dba ([collection_time_utc])
 end
 go
+*/
 
 if not exists (select 1 from dbo.purge_table where table_name = 'dbo.os_task_list')
 begin

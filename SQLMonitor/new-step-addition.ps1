@@ -1,7 +1,7 @@
 ﻿[CmdletBinding()]
 Param (
     [Parameter(Mandatory=$false)]
-    [String]$NewStepName = "24__CreateJobGetAllServerInfo",
+    [String]$NewStepName = "26__EnablePageCompression",
     
     [Parameter(Mandatory=$false)]
     [String[]]$AllSteps = @( "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
@@ -11,9 +11,9 @@ Param (
                 "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData",
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
-                "22__CreateJobUpdateSqlServerVersions", "23__CreateJobCheckInstanceAvailability", "24__WhoIsActivePartition",
-                "25__GrafanaLogin", "26__LinkedServerOnInventory", "27__LinkedServerForDataDestinationInstance",
-                "28__AlterViewsForDataDestinationInstance"
+                "22__CreateJobUpdateSqlServerVersions", "23__CreateJobCheckInstanceAvailability", "24__CreateJobGetAllServerInfo",
+                "25__WhoIsActivePartition", "26__GrafanaLogin", "27__LinkedServerOnInventory",
+                "28__LinkedServerForDataDestinationInstance", "29__AlterViewsForDataDestinationInstance"
                 ),
 
     [Parameter(Mandatory=$false)]

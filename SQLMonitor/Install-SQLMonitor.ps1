@@ -73,6 +73,9 @@ Param (
     [String]$UspWaitsPerCorePerMinuteFileName = "SCH-usp_waits_per_core_per_minute.sql",
 
     [Parameter(Mandatory=$false)]
+    [String]$UspEnablePageCompressionFileName = "SCH-usp_enable_page_compression.sql",
+
+    [Parameter(Mandatory=$false)]
     [String]$WhoIsActivePartitionFileName = "SCH-WhoIsActive-Partitioning.sql",
 
     [Parameter(Mandatory=$false)]
@@ -135,8 +138,8 @@ Param (
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
                 "22__CreateJobUpdateSqlServerVersions", "23__CreateJobCheckInstanceAvailability", "24__CreateJobGetAllServerInfo",
-                "25__WhoIsActivePartition", "26__GrafanaLogin", "27__LinkedServerOnInventory",
-                "28__LinkedServerForDataDestinationInstance", "29__AlterViewsForDataDestinationInstance")]
+                "25__WhoIsActivePartition", "26__EnablePageCompression", "27__GrafanaLogin",
+                "28__LinkedServerOnInventory", "29__LinkedServerForDataDestinationInstance", "30__AlterViewsForDataDestinationInstance")]
     [String]$StartAtStep = "1__sp_WhoIsActive",
 
     [Parameter(Mandatory=$false)]
@@ -148,8 +151,8 @@ Param (
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
                 "22__CreateJobUpdateSqlServerVersions", "23__CreateJobCheckInstanceAvailability", "24__CreateJobGetAllServerInfo",
-                "25__WhoIsActivePartition", "26__GrafanaLogin", "27__LinkedServerOnInventory",
-                "28__LinkedServerForDataDestinationInstance", "29__AlterViewsForDataDestinationInstance")]
+                "25__WhoIsActivePartition", "26__EnablePageCompression", "27__GrafanaLogin",
+                "28__LinkedServerOnInventory", "29__LinkedServerForDataDestinationInstance", "30__AlterViewsForDataDestinationInstance")]
     [String[]]$SkipSteps,
 
     [Parameter(Mandatory=$false)]
@@ -161,8 +164,8 @@ Param (
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
                 "22__CreateJobUpdateSqlServerVersions", "23__CreateJobCheckInstanceAvailability", "24__CreateJobGetAllServerInfo",
-                "25__WhoIsActivePartition", "26__GrafanaLogin", "27__LinkedServerOnInventory",
-                "28__LinkedServerForDataDestinationInstance", "29__AlterViewsForDataDestinationInstance")]
+                "25__WhoIsActivePartition", "26__EnablePageCompression", "27__GrafanaLogin",
+                "28__LinkedServerOnInventory", "29__LinkedServerForDataDestinationInstance", "30__AlterViewsForDataDestinationInstance")]
     [String]$StopAtStep,
 
     [Parameter(Mandatory=$false)]
@@ -196,6 +199,9 @@ Param (
     [bool]$skipCollationCheck = $false,
 
     [Parameter(Mandatory=$false)]
+    [bool]$skipPageCompression = $false,
+
+    [Parameter(Mandatory=$false)]
     [bool]$ConfirmValidationOfMultiInstance = $false,
 
     [Parameter(Mandatory=$false)]
@@ -211,8 +217,8 @@ $AllSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession"
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
                 "22__CreateJobUpdateSqlServerVersions", "23__CreateJobCheckInstanceAvailability", "24__CreateJobGetAllServerInfo",
-                "25__WhoIsActivePartition", "26__GrafanaLogin", "27__LinkedServerOnInventory",
-                "28__LinkedServerForDataDestinationInstance", "29__AlterViewsForDataDestinationInstance")
+                "25__WhoIsActivePartition", "26__EnablePageCompression", "27__GrafanaLogin",
+                "28__LinkedServerOnInventory", "29__LinkedServerForDataDestinationInstance", "30__AlterViewsForDataDestinationInstance")
 
 # TSQL Jobs
 $TsqlJobSteps = @(
@@ -241,6 +247,11 @@ if($SkipRDPSessionSteps) {
 # Add $TsqlJobSteps to Skip Jobs
 if($SkipTsqlJobs) {
     $SkipSteps = $SkipSteps + $($TsqlJobSteps | % {if($_ -notin $SkipSteps){$_}});
+}
+
+# Skip Compression
+if($skipPageCompression -and ('26__EnablePageCompression' -notin $SkipSteps)) {
+    $SkipSteps += @('26__EnablePageCompression')
 }
 
 # For backward compatability
@@ -310,6 +321,7 @@ $UspPurgeTablesFilePath = "$ddlPath\$UspPurgeTablesFileName"
 $UspRunWhoIsActiveFilePath = "$ddlPath\$UspRunWhoIsActiveFileName"
 $UspActiveRequestsCountFilePath = "$ddlPath\$UspActiveRequestsCountFileName"
 $UspWaitsPerCorePerMinuteFilePath = "$ddlPath\$UspWaitsPerCorePerMinuteFileName"
+$UspEnablePageCompressionFilePath = "$ddlPath\$UspEnablePageCompressionFileName"
 $WhoIsActivePartitionFilePath = "$ddlPath\$WhoIsActivePartitionFileName"
 $GrafanaLoginFilePath = "$ddlPath\$GrafanaLoginFileName"
 $CheckInstanceAvailabilityJobFilePath = "$ddlPath\$CheckInstanceAvailabilityJobFileName"
@@ -435,6 +447,8 @@ if($dbServiceInfo.ProductVersion -match "(?'MajorVersion'\d+)\.\d+\.(?'MinorVers
 {
     [int]$MajorVersion = $Matches['MajorVersion']
     [int]$MinorVersion = $Matches['MinorVersion']
+    [bool]$IsCompressionSupported = $false
+
     if($dbServiceInfo.Edition -like 'Enterprise*' -or $dbServiceInfo.Edition -like 'Developer*') {
         $IsNonPartitioned = $false
     }
@@ -446,6 +460,13 @@ if($dbServiceInfo.ProductVersion -match "(?'MajorVersion'\d+)\.\d+\.(?'MinorVers
         elseif ($MajorVersion -eq 13 -and $MinorVersion -ge 4001) {
             $IsNonPartitioned = $false
         }
+    }
+
+    if($MajorVersion -ge 13) {
+        $IsCompressionSupported = $true
+    }
+    elseif ($dbServiceInfo.Edition -like 'Enterprise*' -or $dbServiceInfo.Edition -like 'Developer*') {
+        $IsCompressionSupported = $true
     }
 }
 
@@ -979,6 +1000,9 @@ if($stepName -in $Steps2Execute)
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspWaitsPerCorePerMinuteFilePath = '$UspWaitsPerCorePerMinuteFilePath'"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspWaitsPerCorePerMinuteFilePath -SqlCredential $SqlCredential -EnableException
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspEnablePageCompressionFilePath = '$UspEnablePageCompressionFilePath'"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspEnablePageCompressionFilePath -SqlCredential $SqlCredential -EnableException
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspRunWhoIsActiveFilePath = '$UspRunWhoIsActiveFilePath'"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspRunWhoIsActiveFilePath -SqlCredential $SqlCredential -EnableException
@@ -1685,8 +1709,19 @@ if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) {
 }
 
 
-# 26__GrafanaLogin
-$stepName = '26__GrafanaLogin'
+# 26__EnablePageCompression
+$stepName = '26__EnablePageCompression'
+if( ($stepName -in $Steps2Execute) -and ($skipPageCompression -eq $false) -and $IsCompressionSupported) {
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Execute procdure [usp_enable_page_compression] on [$SqlInstanceToBaseline].."
+    $sqlExecuteUspEnablePageCompression = "exec dbo.usp_enable_page_compression;"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlExecuteUspEnablePageCompression -SqlCredential $SqlCredential -EnableException
+}
+
+
+# 27__GrafanaLogin
+$stepName = '27__GrafanaLogin'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$GrafanaLoginFilePath = '$GrafanaLoginFilePath'"
@@ -1697,8 +1732,8 @@ if($stepName -in $Steps2Execute) {
 }
 
 
-# 27__LinkedServerOnInventory
-$stepName = '27__LinkedServerOnInventory'
+# 28__LinkedServerOnInventory
+$stepName = '28__LinkedServerOnInventory'
 if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -ne $InventoryServer) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$LinkedServerOnInventoryFilePath = '$LinkedServerOnInventoryFilePath'"
@@ -1716,8 +1751,8 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -ne $InventoryServer
 }
 
 
-# 28__LinkedServerForDataDestinationInstance
-$stepName = '28__LinkedServerForDataDestinationInstance'
+# 29__LinkedServerForDataDestinationInstance
+$stepName = '29__LinkedServerForDataDestinationInstance'
 if( ($stepName -in $Steps2Execute) -and ($SqlInstanceToBaseline -ne $SqlInstanceAsDataDestination) )
 {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
@@ -1741,8 +1776,8 @@ if( ($stepName -in $Steps2Execute) -and ($SqlInstanceToBaseline -ne $SqlInstance
 }
 
 
-# 29__AlterViewsForDataDestinationInstance
-$stepName = '29__AlterViewsForDataDestinationInstance'
+# 30__AlterViewsForDataDestinationInstance
+$stepName = '30__AlterViewsForDataDestinationInstance'
 if( ($stepName -in $Steps2Execute) -and ($SqlInstanceToBaseline -ne $SqlInstanceAsDataDestination) )
 {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
@@ -1752,12 +1787,12 @@ if( ($stepName -in $Steps2Execute) -and ($SqlInstanceToBaseline -ne $SqlInstance
     $sqlAlterViewPerformanceCounters = @"
 alter view dbo.vw_performance_counters
 as
-with cte_counters_local as (select collection_time_utc, host_name, path, object, counter, value, instance from dbo.performance_counters)
-,cte_counters_datasource as (select collection_time_utc, host_name, path, object, counter, value, instance from [$SqlInstanceAsDataDestination].[$DbaDatabase].dbo.performance_counters)
+with cte_counters_local as (select collection_time_utc, host_name, object, counter, value, instance from dbo.performance_counters)
+,cte_counters_datasource as (select collection_time_utc, host_name, object, counter, value, instance from [$SqlInstanceAsDataDestination].[$DbaDatabase].dbo.performance_counters)
 
-select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_local
+select collection_time_utc, host_name, object, counter, value, instance from cte_counters_local
 union all
-select collection_time_utc, host_name, path, object, counter, value, instance from cte_counters_datasource
+select collection_time_utc, host_name, object, counter, value, instance from cte_counters_datasource
 "@
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAlterViewPerformanceCounters -SqlCredential $SqlCredential -EnableException
 
@@ -1925,7 +1960,7 @@ $params = @{
     #SqlCredential = $saAdmin
     #WindowsCredential = $LabCredential
     #SkipSteps = @("11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
-    #StartAtStep = '26__GrafanaLogin'
+    #StartAtStep = '27__GrafanaLogin'
     #StopAtStep = '21__WhoIsActivePartition'
     #DropCreatePowerShellJobs = $true
     #DryRun = $false
@@ -1952,7 +1987,7 @@ $params = @{
     SqlCredential = $saAdmin
     WindowsCredential = $LabCredential
     #SkipSteps = @("11__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
-    #StartAtStep = '26__GrafanaLogin'
+    #StartAtStep = '27__GrafanaLogin'
     #StopAtStep = '21__WhoIsActivePartition'
     #DropCreatePowerShellJobs = $true
     #DryRun = $false
@@ -1971,4 +2006,5 @@ Owner Ajay Kumar Dwivedi (ajay.dwivedi2007@gmail.com)
     https://ajaydwivedi.com/blog/sqlmonitor
     https://ajaydwivedi.com/youtube/sqlmonitor
 #>
+
 
