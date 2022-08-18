@@ -1,6 +1,6 @@
 USE [DBA_Admin]
 -- Find long running statements of session
-declare @table_name nvarchar(225) = 'SaleData';
+declare @table_name nvarchar(225) = 'V_CommonScrip_MasterForDividend';
 ;with xmlnamespaces ('http://schemas.microsoft.com/sqlserver/2004/07/showplan' as qp),
 t_queries as (
 	select	* 
@@ -14,15 +14,14 @@ t_queries as (
 			--,[early_abart_reason] = query_plan.value('(/*:ShowPlanXML/*:BatchSequence/*:Batch/*:Statements/*:StmtSimple)[1]/@StatementOptmEarlyAbortReason', 'sysname')
 			--,[CardinalityEstimationModelVersion] = query_plan.value('(/*:ShowPlanXML/*:BatchSequence/*:Batch/*:Statements/*:StmtSimple)[1]/@CardinalityEstimationModelVersion','int')
 			,[used_memory_mb] = convert(numeric(20,2),convert(bigint,replace(used_memory,',',''))*8.0/1024)
-	from DBA_Admin.dbo.WhoIsActive w	
-	where w.collection_time >= dateadd(day,-7,getdate()) and w.collection_time <= getdate()
+	from dbo.WhoIsActive w	
+	where w.collection_time >= dateadd(day,-2,getdate()) and w.collection_time <= getdate()
 	and additional_info.value('(/additional_info/command_type)[1]','varchar(50)') not in ('ALTER INDEX','UPDATE STATISTICS','DBCC','BACKUP LOG','BACKUP DATABASE')
 	--and w.database_name = 'KYC_CI'
 	and (	convert(nvarchar(max),w.sql_text) like ('%[[. ]'+@table_name+'[!] ]%') escape '!'
 			or convert(nvarchar(max),w.query_plan) like ('%Table="!['+@table_name+'!]"%') escape '!'
 		)
 	--and duration_minutes >= 5
-	--dbo.Tbl_Kyc_CloudStage_ClientInfo.IX_Tbl_Kyc_CloudStage_ClientInfo_PartyCode_CodeActivationDate (43)
 	--and convert(varchar(max),w.query_plan) like '%Database="![remisior!]" Schema="![dbo!]" Table="![AddBrkTrnx!]" Index="![IX_updt_cltcode!]"%' escape '!'
 )
 ,t_capture_interval as (
