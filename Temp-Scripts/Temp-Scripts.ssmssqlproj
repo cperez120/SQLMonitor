@@ -15,6 +15,18 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="196.1.115.167:E84947">
+          <Created>2022-08-22T10:05:42.9287434+05:30</Created>
+          <Type>SQL</Type>
+          <Server>196.1.115.167</Server>
+          <UserName>E84947</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB>master</InitialDB>
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="196.1.115.195:E84947">
           <Created>2022-08-12T09:14:37.5216804+05:30</Created>
           <Type>SQL</Type>
@@ -96,6 +108,12 @@
           <AssociatedConnSrvName>196.1.115.195</AssociatedConnSrvName>
           <AssociatedConnUserName>E84947</AssociatedConnUserName>
           <FullPath>QRY-Get-Statistics-Info.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-Index-Existence-check.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.167:False:E84947</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>196.1.115.167</AssociatedConnSrvName>
+          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <FullPath>QRY-Index-Existence-check.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-sp_BlitzIndex-PT.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.195:False:E84947</AssociatedConnectionMoniker>
