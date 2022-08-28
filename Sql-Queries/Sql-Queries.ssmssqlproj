@@ -15,6 +15,18 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="172.31.12.40:E84947">
+          <Created>2022-08-16T17:05:13.3633017+05:30</Created>
+          <Type>SQL</Type>
+          <Server>172.31.12.40</Server>
+          <UserName>E84947</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="172.31.16.151:E84947">
           <Created>2022-05-24T09:33:01.7047787+05:30</Created>
           <Type>SQL</Type>
@@ -55,6 +67,30 @@
           <Created>2022-08-03T09:00:50.3032136+05:30</Created>
           <Type>SQL</Type>
           <Server>196.1.115.167</Server>
+          <UserName>E84947</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="196.1.115.195:E84947">
+          <Created>2022-08-11T17:53:23.5900691+05:30</Created>
+          <Type>SQL</Type>
+          <Server>196.1.115.195</Server>
+          <UserName>E84947</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="196.1.115.196:E84947">
+          <Created>2022-08-26T15:48:40.0893208+05:30</Created>
+          <Type>SQL</Type>
+          <Server>196.1.115.196</Server>
           <UserName>E84947</UserName>
           <Authentication>SQL</Authentication>
           <InitialDB />
@@ -235,6 +271,18 @@
           <AssociatedConnUserName />
           <FullPath>QRY-Estimate-Page-Compression.sql</FullPath>
         </FileNode>
+        <FileNode Name="QRY-ResourceConsumption-Infra.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:172.31.12.40:False:E84947</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>172.31.12.40</AssociatedConnSrvName>
+          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <FullPath>QRY-ResourceConsumption-Infra.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-sp_BlitzCache-Specific.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.195:False:E84947</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>196.1.115.195</AssociatedConnSrvName>
+          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <FullPath>QRY-sp_BlitzCache-Specific.sql</FullPath>
+        </FileNode>
         <FileNode Name="QRY-sp_WhoIsActive-Usages.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.167:False:E84947</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>196.1.115.167</AssociatedConnSrvName>
@@ -247,9 +295,15 @@
           <AssociatedConnUserName />
           <FullPath>QRY-sys.dm_io_virtual_file_stats.sql</FullPath>
         </FileNode>
+        <FileNode Name="QRY-Wait-Stats-Since-Startup.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.196:False:E84947</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>196.1.115.196</AssociatedConnSrvName>
+          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <FullPath>QRY-Wait-Stats-Since-Startup.sql</FullPath>
+        </FileNode>
         <FileNode Name="QRY-WhoIsActive-Infra.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.167:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>196.1.115.167</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.195:False:E84947</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>196.1.115.195</AssociatedConnSrvName>
           <AssociatedConnUserName>E84947</AssociatedConnUserName>
           <FullPath>QRY-WhoIsActive-Infra.sql</FullPath>
         </FileNode>
