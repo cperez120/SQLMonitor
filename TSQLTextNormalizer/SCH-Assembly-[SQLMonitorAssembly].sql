@@ -4,6 +4,14 @@
 
 	Path of assembly file
 	C:\SQLMonitor\TSQLTextNormalizer.dll
+
+	MS_SQLEnableSystemAssemblyLoadingKey
+	SQLMonitor_TSQLTextNormalizer_Key
+
+	select *
+	from sys.asymmetric_keys ak
+	join sys.server_principals p
+	on p.sid = ak.sid
 */
 
 USE master;
@@ -17,12 +25,14 @@ GO
 CREATE LOGIN SQLMonitor_TSQLTextNormalizer_Key_Login FROM ASYMMETRIC KEY SQLMonitor_TSQLTextNormalizer_Key;
 --DROP LOGIN SQLMonitor_ScriptDom_Key_Login
 CREATE LOGIN SQLMonitor_ScriptDom_Key_Login FROM ASYMMETRIC KEY SQLMonitor_ScriptDom_Key;
+--CREATE LOGIN SQLMonitor_ScriptDom_Key_Login FROM ASYMMETRIC KEY MS_SQLEnableSystemAssemblyLoadingKey;
 GO
+
 GRANT UNSAFE ASSEMBLY TO SQLMonitor_TSQLTextNormalizer_Key_Login;
 GRANT UNSAFE ASSEMBLY TO SQLMonitor_ScriptDom_Key_Login;
 GO
 
-USE DBA;
+USE DBA_Admin;
 GO
 --DROP USER SQLMonitor_TSQLTextNormalizer_Key_Login
 CREATE USER SQLMonitor_TSQLTextNormalizer_Key_Login FOR LOGIN SQLMonitor_TSQLTextNormalizer_Key_Login;
@@ -48,7 +58,10 @@ Go
 EXEC sp_configure 'clr enabled', 1;
 RECONFIGURE;
 
--- select sqlsig = dbo.normalized_sql_text('exec sp_WhoIsActive 110',150,0)
+select * from sys.configurations c
+where c.name like '%clr%'
+
+-- select sqlsig = DBA_Admin.dbo.normalized_sql_text('exec sp_WhoIsActive 110',150,0)
 
 declare @c_sql_text nvarchar(max);
 declare cur_rows cursor local fast_forward for

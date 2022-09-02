@@ -1,6 +1,6 @@
 USE [DBA_Admin]
 -- Find long running statements of session
-declare @table_name nvarchar(225) = 'V_CommonScrip_MasterForDividend';
+declare @table_name nvarchar(225) = 'CLIENT_BROK_DETAILS';
 ;with xmlnamespaces ('http://schemas.microsoft.com/sqlserver/2004/07/showplan' as qp),
 t_queries as (
 	select	* 
@@ -15,7 +15,7 @@ t_queries as (
 			--,[CardinalityEstimationModelVersion] = query_plan.value('(/*:ShowPlanXML/*:BatchSequence/*:Batch/*:Statements/*:StmtSimple)[1]/@CardinalityEstimationModelVersion','int')
 			,[used_memory_mb] = convert(numeric(20,2),convert(bigint,replace(used_memory,',',''))*8.0/1024)
 	from dbo.WhoIsActive w	
-	where w.collection_time >= dateadd(day,-2,getdate()) and w.collection_time <= getdate()
+	where w.collection_time >= dateadd(day,-7,getdate()) and w.collection_time <= getdate()
 	and additional_info.value('(/additional_info/command_type)[1]','varchar(50)') not in ('ALTER INDEX','UPDATE STATISTICS','DBCC','BACKUP LOG','BACKUP DATABASE')
 	--and w.database_name = 'KYC_CI'
 	and (	convert(nvarchar(max),w.sql_text) like ('%[[. ]'+@table_name+'[!] ]%') escape '!'
