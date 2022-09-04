@@ -1,129 +1,68 @@
 use DBA_Admin
 go
 
-declare @top_filter int = 30;
-declare @start_time_snap1	datetime2 = '2022-08-09 07:30';
-declare @start_time_snap2	datetime2 = '2022-08-16 07:30';
-declare @end_time_snap1		datetime2 = '2022-08-09 16:00';
-declare @end_time_snap2		datetime2 = '2022-08-16 16:00';
+declare @start_time datetime = dateadd(day,-7,getdate())
+declare @end_time datetime = getdate()
 
-if object_id('tempdb..#current') is not null drop table #current;
-;with cte as (
-	select --top 100 
-			[query] = 'total-stats',
-			[date] = convert(date,event_time), 
-			[row_rank] = row_number()over(partition by convert(date,event_time) order by sum(logical_reads) desc),
-			--database_name, username, client_app_name, client_hostname, client_app_name,
-			username,
-			logical_reads_gb = convert(numeric(20,2),sum(logical_reads)*8.0/1024/1024), 
-			logical_reads_mb = convert(numeric(20,2),sum(logical_reads)*8.0/1024), 
-			--cpu_time_hours = (sum(cpu_time)/1e+6)/60/60,
-			cpu_time = convert(varchar,floor((sum(cpu_time)/1e+6)/60/60/24)) + ' Day '+ convert(varchar,dateadd(second,(sum(cpu_time)/1e+6),'1900-01-01 00:00:00'),108)
-			,[executions > 5 sec] = count(1)
-	from dbo.resource_consumption rc
-	where rc.event_time between @start_time_snap2 and @end_time_snap2
-	group by convert(date,event_time), 
-			--database_name, username, client_app_name, client_hostname, client_app_name
-			username
+if object_id('tempdb..#queries') is not null drop table #queries;
+;with cte_group as (
+	select	[grouping-key] = (case when client_app_name like 'SQL Job = %' then client_app_name else left(DBA_Admin.dbo.normalized_sql_text(sql_text,150,0),30) end), 
+			[cpu_time_minutes] = sum(cpu_time/1000000)/60,
+			[cpu_time_seconds_avg] = sum(cpu_time/1000000)/count(*),
+			[logical_reads_gb] = convert(numeric(20,2),sum(logical_reads)*8.0/1024/1024), 
+			[logical_reads_gb_avg] = convert(numeric(20,2),sum(logical_reads)*8.0/1024/1024/count(*)),
+			[logical_reads_mb_avg] = convert(numeric(20,2),sum(logical_reads)*8.0/1024/count(*)),
+			[writes_gb] = convert(numeric(20,2),sum(writes)*8.0/1024/1024),
+			[writes_mb] = convert(numeric(20,2),sum(writes)*8.0/1024),
+			[writes_gb_avg] = convert(numeric(20,2),sum(writes)*8.0/1024/1024/count(*)),
+			[writes_mb_avg] = convert(numeric(20,2),sum(writes)*8.0/1024/count(*)),
+			[duration_minutes] = sum(rc.duration_seconds)/60,
+			[duration_minutes_avg] = sum(rc.duration_seconds)/60/count(*),
+			[duration_seconds_avg] = sum(rc.duration_seconds)/count(*),
+			[counts] = count(*)
+	from DBA_Admin.dbo.resource_consumption rc
+	where rc.event_time between @start_time and @end_time
+	and rc.database_name = 'MSAJAG'
+	and rc.sql_text like '%CLIENT_BROK_DETAILS%'
+	and result = 'OK'
+	group by (case when client_app_name like 'SQL Job = %' then client_app_name else left(DBA_Admin.dbo.normalized_sql_text(sql_text,150,0),30) end)
 )
-select * into #current from cte where row_rank <= @top_filter
-order by [date],[row_rank];
-
-if object_id('tempdb..#previous') is not null drop table #previous;
-;with cte as (
-	select --top 100 
-			[query] = 'total-stats',
-			[date] = convert(date,event_time),
-			[row_rank] = row_number()over(partition by convert(date,event_time) order by sum(logical_reads) desc),
-			--database_name, username, client_app_name, client_hostname, client_app_name,
-			username,
-			logical_reads_gb = convert(numeric(20,2),sum(logical_reads)*8.0/1024/1024), 
-			logical_reads_mb = convert(numeric(20,2),sum(logical_reads)*8.0/1024), 
-			--cpu_time_hours = (sum(cpu_time)/1e+6)/60/60,
-			cpu_time = convert(varchar,floor((sum(cpu_time)/1e+6)/60/60/24)) + ' Day '+ convert(varchar,dateadd(second,(sum(cpu_time)/1e+6),'1900-01-01 00:00:00'),108)
-			,[executions > 5 sec] = count(1)
-	from dbo.resource_consumption rc
-	where rc.event_time between @start_time_snap1 and @end_time_snap1
-	group by convert(date,event_time), 
-			--database_name, username, client_app_name, client_hostname, client_app_name
-			username
-)
-select * into #previous from cte where row_rank <= @top_filter
-order by [date],[row_rank];
-
-select	[query] = coalesce(c.query,p.query), 		
-		[date-snap1] = coalesce(p.date, prev_date),
-		[date-snap2] = coalesce(c.date, cur_date), 
-		username = coalesce(c.username,p.username),
-		[logical_reads_gb-snap1] = p.logical_reads_gb,
-		[logical_reads_gb-snap2] = c.logical_reads_gb,		
-		[logical_reads_gb (??)] = case when isnull(c.logical_reads_gb,0.0) > isnull(p.logical_reads_gb,0.0) 
-										then convert(varchar,isnull(c.logical_reads_gb,0.0) - isnull(p.logical_reads_gb,0.0))+N' ?'
-										when isnull(c.logical_reads_gb,0.0) = isnull(p.logical_reads_gb,0.0) then '='
-										else convert(varchar,isnull(p.logical_reads_gb,0.0)-isnull(c.logical_reads_gb,0.0))+N' ?' end,
-		[cpu_time-snap1] = p.cpu_time,
-		[cpu_time-snap2] = c.cpu_time,		
-		[executions > 5 sec - snap1] = p.[executions > 5 sec],
-		[executions > 5 sec - snap2] = c.[executions > 5 sec],
-		[executions (??)] = case when isnull(c.[executions > 5 sec],0) > isnull(p.[executions > 5 sec],0) 
-										then convert(varchar,isnull(c.[executions > 5 sec],0) - isnull(p.[executions > 5 sec],0))+N' ?'
-										when isnull(c.[executions > 5 sec],0) = isnull(p.[executions > 5 sec],0) then '='
-										else convert(varchar,isnull(p.[executions > 5 sec],0)-isnull(c.[executions > 5 sec],0))+N' ?' end
-		,[logical_reads_gb_TOTAL (??)] = case when (sum(c.logical_reads_gb)over()) - (sum(p.logical_reads_gb)over()) >= 0.0 
-												then convert(varchar,(sum(c.logical_reads_gb)over()) - (sum(p.logical_reads_gb)over()))+N' ?'
-											  else convert(varchar,(sum(p.logical_reads_gb)over())-(sum(c.logical_reads_gb)over()))+N' ?'
-											  end
-from #current c full outer join #previous p on c.username = p.username
-outer apply (select top 1 i.date as cur_date from #current i) cur
-outer apply (select top 1 i.date as prev_date from #previous i) prev
-where abs(isnull(c.logical_reads_gb,0.0) - isnull(p.logical_reads_gb,0.0)) >= 10
-order by abs(isnull(c.logical_reads_gb,0.0) - isnull(p.logical_reads_gb,0.0)) desc
+select *
+into #queries
+from cte_group ct
+--order by [logical_reads_gb] desc
+--select *
+--from dbo.resource_consumption rc
+--where (	rc.start_time between @start_time and @end_time or rc.event_time between @start_time and @end_time )
+--order by writes_gb desc,  writes_mb_avg desc;
 go
+
+declare @start_time datetime = dateadd(day,-7,getdate())
+declare @end_time datetime = getdate()
+
+select top 200 rc.sql_text, q.*, rc.*
+from #queries q
+outer apply (select top 1 * from dbo.resource_consumption rc 
+			where rc.event_time between @start_time and @end_time
+			and rc.database_name = 'MSAJAG'
+			and rc.sql_text like '%CLIENT_BROK_DETAILS%'
+			and result = 'OK'
+			and q.[grouping-key] = (case when rc.client_app_name like 'SQL Job = %' then rc.client_app_name else left(DBA_Admin.dbo.normalized_sql_text(rc.sql_text,150,0),30) end)
+			--order by rc.logical_reads desc
+			) rc
+--where [grouping-key] not like '(dba) %'
+--order by [logical_reads_mb] desc
+order by [counts] desc
 
 /*
---	GROUP BY LOGIN --
-;with cte as (
-	select  --top 10 with ties
-			[query] = 'hourly-stats',
-			[date] = convert(date,event_time), [hour] = right('00'+convert(varchar,datepart(hour,event_time)),2),
-			[row_rank] = row_number()over(partition by convert(date,event_time), right('00'+convert(varchar,datepart(hour,event_time)),2) order by sum(logical_reads) desc),
-			--database_name, username, client_app_name, client_hostname, client_app_name,
-			username,
-			logical_reads_gb = convert(numeric(20,2),sum(logical_reads)*8.0/1024/1024), 
-			logical_reads_mb = convert(numeric(20,2),sum(logical_reads)*8.0/1024), 
-			--cpu_time_hours = (sum(cpu_time)/1e+6)/60/60,
-			cpu_time = convert(varchar,floor((sum(cpu_time)/1e+6)/60/60/24)) + ' Day '+ convert(varchar,dateadd(second,(sum(cpu_time)/1e+6),'1900-01-01 00:00:00'),108)
-			,[executions > 5 sec] = count(1)
-	from dbo.resource_consumption rc
-	where rc.event_time between '2022-08-16 07:30' and '2022-08-16 16:00'
-	group by convert(date,event_time), right('00'+convert(varchar,datepart(hour,event_time)),2), 
-			--database_name, username, client_app_name, client_hostname, client_app_name
-			username
-)
-select * from cte where row_rank <= 3
-order by [date],[hour],[row_rank]
-go
-
-;with cte as (
-	select --top 20 
-			[query] = 'hourly-stats',
-			[date] = convert(date,event_time), [hour] = right('00'+convert(varchar,datepart(hour,event_time)),2),
-			[row_rank] = row_number()over(partition by convert(date,event_time), right('00'+convert(varchar,datepart(hour,event_time)),2) order by sum(logical_reads) desc),
-			--database_name, username, client_app_name, client_hostname, client_app_name,
-			username,
-			logical_reads_gb = convert(numeric(20,2),sum(logical_reads)*8.0/1024/1024), 
-			logical_reads_mb = convert(numeric(20,2),sum(logical_reads)*8.0/1024), 
-			--cpu_time_hours = (sum(cpu_time)/1e+6)/60/60,
-			cpu_time = convert(varchar,floor((sum(cpu_time)/1e+6)/60/60/24)) + ' Day '+ convert(varchar,dateadd(second,(sum(cpu_time)/1e+6),'1900-01-01 00:00:00'),108)
-			,[executions > 5 sec] = count(1)
-	from dbo.resource_consumption rc
-	where rc.event_time between '2022-08-09 07:30' and '2022-08-09 16:00'
-	group by convert(date,event_time), right('00'+convert(varchar,datepart(hour,event_time)),2), 
-			--database_name, username, client_app_name, client_hostname, client_app_name
-			username
-)
-select * from cte where row_rank <= 3
-order by [date],[hour],[row_rank]
-go
-
+select top 1000 
+		sqlsig = DBA_Admin.dbo.normalized_sql_text(sql_text,150,0), 
+		*
+from DBA_Admin.dbo.resource_consumption rc
+where rc.event_time >= dateadd(day,-1,getdate())
+and rc.database_name = 'MSAJAG'
+and rc.sql_text like '%CLIENT_BROK_DETAILS%'
+and result = 'OK'
+--order by logical_reads desc
 */
+
