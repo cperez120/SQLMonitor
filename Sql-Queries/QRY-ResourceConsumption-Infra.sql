@@ -1,7 +1,7 @@
 use DBA_Admin
 go
 
-declare @start_time datetime = dateadd(day,-1,getdate())
+declare @start_time datetime = dateadd(day,-7,getdate())
 declare @end_time datetime = getdate()
 
 if object_id('tempdb..#queries') is not null drop table #queries;
@@ -37,7 +37,7 @@ from cte_group ct
 --order by writes_gb desc,  writes_mb_avg desc;
 go
 
-declare @start_time datetime = dateadd(day,-1,getdate())
+declare @start_time datetime = dateadd(day,-7,getdate())
 declare @end_time datetime = getdate()
 
 select top 200 rc.sql_text, q.*, rc.*
