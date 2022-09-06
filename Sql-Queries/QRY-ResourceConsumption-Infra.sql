@@ -5,7 +5,7 @@ declare @start_time datetime = dateadd(day,-15,getdate());
 declare @end_time datetime = getdate();
 declare @database_name nvarchar(255) = 'MSAJAG';
 declare @str_length smallint = 50;
-declare @table_name nvarchar(500) = 'Clientbrok_Scheme';
+declare @table_name nvarchar(500) = 'COMMON_CONTRACT_DATA';
 declare @sql_string nvarchar(max);
 
 if object_id('tempdb..#queries') is not null drop table #queries;
