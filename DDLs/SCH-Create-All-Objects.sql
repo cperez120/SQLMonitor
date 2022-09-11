@@ -273,29 +273,6 @@ begin
 end
 go
 
-/*
-if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'nci_user_name')
-begin
-	create nonclustered index nci_user_name on [dbo].[os_task_list] ([collection_time_utc], [host_name], [user_name]) on ps_dba ([collection_time_utc])
-end
-go
-if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'nci_window_title')
-begin
-	create nonclustered index nci_window_title on [dbo].[os_task_list] ([collection_time_utc], [host_name], [window_title]) on ps_dba ([collection_time_utc])
-end
-go
-if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'nci_cpu_time_seconds')
-begin
-	create nonclustered index nci_cpu_time_seconds on [dbo].[os_task_list] ([collection_time_utc], [host_name], [cpu_time_seconds]) on ps_dba ([collection_time_utc])
-end
-go
-if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'nci_memory_kb')
-begin
-	create nonclustered index nci_memory_kb on [dbo].[os_task_list] ([collection_time_utc], [host_name], [memory_kb]) on ps_dba ([collection_time_utc])
-end
-go
-*/
-
 if not exists (select 1 from dbo.purge_table where table_name = 'dbo.os_task_list')
 begin
 	insert dbo.purge_table
@@ -438,12 +415,12 @@ set @dbname=quotename(db_name());
 
 if not exists (select * from sys.databases where name = DB_NAME() and is_trustworthy_on = 1)
 begin
-	print 'Set '+quotename(@dbname)+' trustworthy on';
+	print 'Set '+@dbname+' trustworthy on';
 	exec('alter database '+@dbname+' set trustworthy on');
 end
 if not exists (select * from sys.databases where name = DB_NAME() and owner_sid = SUSER_SID('sa'))
 begin
-	print 'Set '+quotename(@dbname)+' owner to [sa]';
+	print 'Set '+@dbname+' owner to [sa]';
 	exec('alter authorization on database::'+@dbname+' to [sa]');
 end
 go

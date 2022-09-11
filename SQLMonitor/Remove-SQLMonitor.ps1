@@ -7,6 +7,15 @@ Param (
     $DbaDatabase,
 
     [Parameter(Mandatory=$false)]
+    $SqlInstanceAsDataDestination,
+
+    [Parameter(Mandatory=$false)]
+    $SqlInstanceForTsqlJobs,
+
+    [Parameter(Mandatory=$false)]
+    $SqlInstanceForPowershellJobs,
+
+    [Parameter(Mandatory=$false)]
     $InventoryServer,
 
     [Parameter(Mandatory=$false)]
@@ -321,13 +330,10 @@ try {
 }
 catch {
     $errMessage = $_
-    
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "SQL Connection to [$SqlInstanceToBaseline] failed."
-    if([String]::IsNullOrEmpty($SqlCredential)) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide SqlCredentials." | Write-Host -ForegroundColor Red
-    } else {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Provided SqlCredentials seems to be NOT working." | Write-Host -ForegroundColor Red
-    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Could not fetch details from dbo.instance_details info." | Write-Host -ForegroundColor Red
+    $($errMessage.Exception.Message -Split [Environment]::NewLine) | % {"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "$_"} | Write-Host -ForegroundColor Red
+
     Write-Error "Stop here. Fix above issue."
 }
 
@@ -362,9 +368,13 @@ if([String]::IsNullOrEmpty($HostName)) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Extract HostName from dbo.instance_details.."
     $HostName = $instanceDetailsForRemoval.host_name;
 }
-$SqlInstanceAsDataDestination = $instanceDetailsForRemoval.data_destination_sql_instance
-$SqlInstanceForTsqlJobs = $instanceDetailsForRemoval.collector_tsql_jobs_server
-$SqlInstanceForPowershellJobs = $instanceDetailsForRemoval.collector_powershell_jobs_server
+
+# If parameter values are not provided, then auto-fill them
+if([String]::IsNullOrEmpty($SqlInstanceAsDataDestination)) { $SqlInstanceAsDataDestination = $instanceDetailsForRemoval.data_destination_sql_instance }
+if([String]::IsNullOrEmpty($SqlInstanceForTsqlJobs)) { $SqlInstanceForTsqlJobs = $instanceDetailsForRemoval.collector_tsql_jobs_server }
+if([String]::IsNullOrEmpty($SqlInstanceForTsqlJobs)) { $SqlInstanceForTsqlJobs = $SqlInstanceToBaseline }
+if([String]::IsNullOrEmpty($SqlInstanceForPowershellJobs)) { $SqlInstanceForPowershellJobs = $instanceDetailsForRemoval.collector_powershell_jobs_server }
+if([String]::IsNullOrEmpty($SqlInstanceForPowershellJobs)) { $SqlInstanceForPowershellJobs = $SqlInstanceToBaseline }
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$HostName = [$HostName]"
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceAsDataDestination = [$SqlInstanceAsDataDestination]"
@@ -470,10 +480,10 @@ if( ($SkipRemovePowerShellJobs -eq $false) -or ('8__RemoveJob_RemoveXEventFiles'
         if([String]::IsNullOrEmpty($SqlInstanceAsDataDestination) -or (-not $ConfirmValidationOfMultiInstance)) 
         {
             if([String]::IsNullOrEmpty($SqlInstanceAsDataDestination)) {
-                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide value for parameter SqlInstanceAsDataDestination as host has multiple database engine services.`n`t`t`t`t Perfmon data can be saved only on one SQLInstance." | Write-Host -ForegroundColor Red
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide value for parameter SqlInstanceAsDataDestination as host has multiple database engine services.`n`t`t`t`t`t`t This should be SqlInstance with Perfmon data." | Write-Host -ForegroundColor Red
             }
             if(-not $ConfirmValidationOfMultiInstance) {
-                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly set ConfirmValidationOfMultiInstance parameter to true as host has multiple database engine services.`n`t`t`t`t Perfmon data can be saved only on one SQLInstance." | Write-Host -ForegroundColor Red
+                "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly set ConfirmValidationOfMultiInstance parameter to true as host has multiple database engine services." | Write-Host -ForegroundColor Red
             }
 
             "STOP here, and fix above issue." | Write-Error

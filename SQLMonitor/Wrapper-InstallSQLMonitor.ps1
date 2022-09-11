@@ -24,12 +24,12 @@ $params = @{
                 "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData",
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
-                "22__CreateJobUpdateSqlServerVersions", "23__CreateJobCheckInstanceAvailability", "24__WhoIsActivePartition",
-                "25__GrafanaLogin", "26__LinkedServerOnInventory", "27__LinkedServerForDataDestinationInstance",
-                "28__AlterViewsForDataDestinationInstance")
+                "22__CreateJobUpdateSqlServerVersions", "23__CreateJobCheckInstanceAvailability", "24__CreateJobGetAllServerInfo",
+                "25__WhoIsActivePartition", "26__EnablePageCompression", "27__GrafanaLogin",
+                "28__LinkedServerOnInventory", "29__LinkedServerForDataDestinationInstance", "30__AlterViewsForDataDestinationInstance")
     #>
     #StartAtStep = '1__sp_WhoIsActive'
-    #StopAtStep = '28__AlterViewsForDataDestinationInstance'
+    #StopAtStep = '30__AlterViewsForDataDestinationInstance'
     #DropCreatePowerShellJobs = $true
     DryRun = $false
     #SkipRDPSessionSteps = $true

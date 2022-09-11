@@ -638,10 +638,13 @@ if( ($SkipPowerShellJobs -eq $false) -or ('20__CreateJobRemoveXEventFiles' -in $
             
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Validate if Perfmon data is not being collected already on [$SqlInstanceAsDataDestination] for same host.."
             $sqlPerfmonRecord = @"
-select top 1 'dbo.performance_counters' as QueryData, getutcdate() as current_time_utc, collection_time_utc, pc.host_name
-from dbo.performance_counters pc with (nolock)
-where pc.collection_time_utc >= DATEADD(minute,-20,GETUTCDATE()) and host_name = '$HostName'
-order by pc.collection_time_utc desc
+if OBJECT_ID('dbo.performance_counters') is not null
+begin
+	select top 1 'dbo.performance_counters' as QueryData, getutcdate() as current_time_utc, collection_time_utc, pc.host_name
+	from dbo.performance_counters pc with (nolock)
+	where pc.collection_time_utc >= DATEADD(minute,-20,GETUTCDATE()) and host_name = '$HostName'
+	order by pc.collection_time_utc desc
+end
 "@
             $resultPerfmonRecord = @()
             $resultPerfmonRecord += Invoke-DbaQuery -SqlInstance $SqlInstanceAsDataDestination -Database $DbaDatabase -Query $sqlPerfmonRecord -SqlCredential $SqlCredential -EnableException
@@ -970,11 +973,23 @@ if($stepName -in $Steps2Execute)
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$AllDatabaseObjectsFilePath = '$tempAllDatabaseObjectsFilePath'"
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $tempAllDatabaseObjectsFilePath -SqlCredential $SqlCredential -EnableException
+    try {
+        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $tempAllDatabaseObjectsFilePath -SqlCredential $SqlCredential -EnableException
+    }
+    catch {
+        $errMessage = $_
+
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Below error occurred while trying to execute script '$tempAllDatabaseObjectsFilePath'." | Write-Host -ForegroundColor Red
+        $($errMessage.Exception.Message -Split [Environment]::NewLine) | % {"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "$_"} | Write-Host -ForegroundColor Red
+
+        Write-Error "Stop here. Fix above issue."
+    }
     if($IsNonPartitioned) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove temp file '$tempAllDatabaseObjectsFilePath'.."
         Remove-Item -Path $tempAllDatabaseObjectsFilePath | Out-Null
     }
+
+    Write-Debug "Inside 2__AllDatabaseObjects"
 
     # Update InventoryServer Objects
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update objects on Inventory Server.."
@@ -1675,7 +1690,7 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
     $sqlGetAllServerInfoJobFileText = [System.IO.File]::ReadAllText($GetAllServerInfoJobFilePath)
     $sqlGetAllServerInfoJobFileText = $sqlGetAllServerInfoJobFileText.Replace("@database_name=N'DBA'", "@database_name=N'$InventoryDatabase'")
 
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlGetInstanceAvailability -SqlCredential $SqlCredential -EnableException
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlGetAllServerInfoJobFileText -SqlCredential $SqlCredential -EnableException
 }
 
 
