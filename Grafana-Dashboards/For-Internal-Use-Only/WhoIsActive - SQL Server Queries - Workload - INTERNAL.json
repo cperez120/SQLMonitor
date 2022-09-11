@@ -1,48 +1,4 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_SQLMONITOR",
-      "label": "SqlMonitor",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "mssql",
-      "pluginName": "Microsoft SQL Server"
-    },
-    {
-      "name": "VAR_WHOISACTIVE_TABLE_NAME",
-      "type": "constant",
-      "label": "WhoIsActive Table Name",
-      "value": "dbo.WhoIsActive",
-      "description": ""
-    }
-  ],
-  "__elements": [],
-  "__requires": [
-    {
-      "type": "panel",
-      "id": "dashlist",
-      "name": "Dashboard list",
-      "version": ""
-    },
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "9.0.2"
-    },
-    {
-      "type": "datasource",
-      "id": "mssql",
-      "name": "Microsoft SQL Server",
-      "version": "1.0.0"
-    },
-    {
-      "type": "panel",
-      "id": "table",
-      "name": "Table",
-      "version": ""
-    }
-  ],
   "annotations": {
     "list": [
       {
@@ -69,8 +25,8 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
-  "iteration": 1662915878120,
+  "id": 9,
+  "iteration": 1662915878126,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -91,7 +47,7 @@
         {
           "datasource": {
             "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
+            "uid": "5Qr_lHw7z"
           },
           "description": "exec dbo.sp_WhatIsRunning ",
           "fieldConfig": {
@@ -183,7 +139,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "${DS_SQLMONITOR}"
+                "uid": "5Qr_lHw7z"
               },
               "format": "table",
               "rawSql": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\ndeclare @program_name nvarchar(500);\ndeclare @login_name nvarchar(255);\ndeclare @database nvarchar(500);\ndeclare @session_id int;\ndeclare @session_host_name nvarchar(125);\ndeclare @query_pattern nvarchar(500);\n\nif len(ltrim(rtrim('$program_name'))) > 0\n  set @program_name = '$program_name'\nif len(ltrim(rtrim('$login_name'))) > 0\n  set @login_name = '$login_name'\nif len(ltrim(rtrim('$database'))) > 0\n  set @database = '$database'\nif len(ltrim(rtrim('$session_host_name'))) > 0\n  set @session_host_name = '$session_host_name'\nif len(ltrim(rtrim('$query_pattern'))) > 0\n  set @query_pattern = '$query_pattern'\nif len(ltrim(rtrim('$session_id'))) > 0 and (case when '$session_id' like '%[^0-9.]%' then 'invalid' when '$session_id' like '%.%.%' then 'invalid' else 'valid' end) = 'valid'\n  set @session_id = convert(int,'$session_id');\nexec dbo.sp_WhatIsRunning \n                  @program_name = @program_name, \n                  @login_name = @login_name,\n                  @database_name = @database,\n                  @session_id = @session_id,\n                  @session_host_name = @session_host_name,\n                  @query_pattern = @query_pattern;\n\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
@@ -224,7 +180,7 @@
         {
           "datasource": {
             "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
+            "uid": "${datasource}"
           },
           "fieldConfig": {
             "defaults": {
@@ -314,7 +270,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "${DS_SQLMONITOR}"
+                "uid": "${datasource}"
               },
               "format": "table",
               "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\n--declare @delta_minutes int;\ndeclare @program_name nvarchar(500);\ndeclare @login_name nvarchar(255);\ndeclare @database nvarchar(500);\ndeclare @session_id int;\ndeclare @session_host_name nvarchar(125);\ndeclare @query_pattern nvarchar(500);\n\nif len(ltrim(rtrim('$program_name'))) > 0\n  set @program_name = '$program_name'\nif len(ltrim(rtrim('$login_name'))) > 0\n  set @login_name = '$login_name'\nif len(ltrim(rtrim('$database'))) > 0\n  set @database = '$database'\nif len(ltrim(rtrim('$session_host_name'))) > 0\n  set @session_host_name = '$session_host_name'\nif len(ltrim(rtrim('$query_pattern'))) > 0\n  set @query_pattern = '$query_pattern'\nif len(ltrim(rtrim('$session_id'))) > 0 and (case when '$session_id' like '%[^0-9.]%' then 'invalid' when '$session_id' like '%.%.%' then 'invalid' else 'valid' end) = 'valid'\n  set @session_id = convert(int,'$session_id');\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2,\n\t\t\t\t@program_name nvarchar(500), @login_name nvarchar(255), @database nvarchar(500),\n\t\t\t\t@session_id int, @session_host_name nvarchar(125), @query_pattern nvarchar(500)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\t\n\n;with cte_sessions as (\n  select [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), w.collection_time), w.session_id, \n  \t\tw.[dd hh:mm:ss.mss], w.program_name, w.login_name, w.database_name, w.host_name,\n  \t\tw.status, w.CPU, w.used_memory, w.open_tran_count, \n  \t\tw.wait_info, \n  \t\tsql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n  \t\t\t\t\t\t\telse left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n  \t\tw.blocked_session_count, \n  \t\tw.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, \n  \t\tw.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n  from $whoisactive_table_name w with (nolock)\n  where w.collection_time = (select top 1 i.collection_time from $whoisactive_table_name i with (nolock)order by i.collection_time desc)\n)\nselect *\nfrom cte_sessions w\nwhere 1 = 1\"\n\nif @program_name is not null\n\tset @sql = @sql + @crlf + \"and w.program_name like ('%'+@program_name+'%')\"\nif @database is not null\n\tset @sql = @sql + @crlf + \"and w.database_name like ('%'+@database+'%')\"\nif @login_name is not null\n\tset @sql = @sql + @crlf + \"and w.login_name like ('%'+@login_name+'%')\"\nif @session_host_name is not null\n\tset @sql = @sql + @crlf + \"and w.host_name like ('%'+@session_host_name+'%')\"\nif @query_pattern is not null\n\tset @sql = @sql + @crlf + \"and w.sql_command like ('%'+@query_pattern+'%')\"\nif @session_id is not null\n\tset @sql = @sql + @crlf + \"and w.session_id = @session_id\"\nset @sql = @sql + @crlf + \"order by w.collection_time DESC, w.start_time ASC\";\n\nset quoted_identifier on;\n--print @sql\n\nif (@sql_instance = SERVERPROPERTY('SERVERNAME'))\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, \n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, @query_pattern;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc,\n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, @query_pattern;",
@@ -355,7 +311,7 @@
         {
           "datasource": {
             "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
+            "uid": "${datasource}"
           },
           "fieldConfig": {
             "defaults": {
@@ -433,7 +389,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "${DS_SQLMONITOR}"
+                "uid": "${datasource}"
               },
               "format": "table",
               "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\n--declare @delta_minutes int;\ndeclare @program_name nvarchar(500);\ndeclare @login_name nvarchar(255);\ndeclare @database nvarchar(500);\ndeclare @session_id int;\ndeclare @session_host_name nvarchar(125);\ndeclare @query_pattern nvarchar(500);\n\nif len(ltrim(rtrim('$program_name'))) > 0\n  set @program_name = '$program_name'\nif len(ltrim(rtrim('$login_name'))) > 0\n  set @login_name = '$login_name'\nif len(ltrim(rtrim('$database'))) > 0\n  set @database = '$database'\nif len(ltrim(rtrim('$session_host_name'))) > 0\n  set @session_host_name = '$session_host_name'\nif len(ltrim(rtrim('$query_pattern'))) > 0\n  set @query_pattern = '$query_pattern'\nif len(ltrim(rtrim('$session_id'))) > 0 and (case when '$session_id' like '%[^0-9.]%' then 'invalid' when '$session_id' like '%.%.%' then 'invalid' else 'valid' end) = 'valid'\n  set @session_id = convert(int,'$session_id');\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2,\n\t\t\t\t@program_name nvarchar(500), @login_name nvarchar(255), @database nvarchar(500),\n\t\t\t\t@session_id int, @session_host_name nvarchar(125), @query_pattern nvarchar(500)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\n\t\t\n;with t_sessions as (\n\tselect command = additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), *\n\tfrom $whoisactive_table_name w with (nolock)\n\twhere w.collection_time = (select top 1 i.collection_time from $whoisactive_table_name i with (nolock) order by i.collection_time desc)\n)\nselect  [start_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), w.start_time),w.[dd hh:mm:ss.mss],  \n        w.command, w.percent_complete, w.session_id, w.login_name,\n\t\t    sql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n\t\t\t\t\t\t\telse left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n\t\t\t\tw.database_name, w.program_name, w.host_name, w.status, w.CPU, w.used_memory, w.open_tran_count, w.wait_info, \n\t\t    w.blocked_session_count, w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, w.tasks\nfrom t_sessions w\nwhere (\tw.command in ('DBCC', 'RESTORE HEADERONLY','BACKUP LOG','BACKUP DATABASE','RESTORE DATABASE','UPDATE STATISTICS') )\norder by w.collection_time DESC, w.start_time ASC\n\"\n/*\nif @program_name is not null\n\tset @sql = @sql + @crlf + \"and w.program_name like ('%'+@program_name+'%')\"\nif @database is not null\n\tset @sql = @sql + @crlf + \"and w.database_name like ('%'+@database+'%')\"\nif @login_name is not null\n\tset @sql = @sql + @crlf + \"and w.login_name like ('%'+@login_name+'%')\"\nif @session_host_name is not null\n\tset @sql = @sql + @crlf + \"and w.host_name like ('%'+@session_host_name+'%')\"\nif @query_pattern is not null\n\tset @sql = @sql + @crlf + \"and w.sql_command like ('%'+@query_pattern+'%')\"\nif @session_id is not null\n\tset @sql = @sql + @crlf + \"and w.session_id = @session_id\"\nset @sql = @sql + @crlf + \"order by w.collection_time DESC, w.start_time ASC\";\n*/\nset quoted_identifier on;\n--print @sql\n\nif (@sql_instance = SERVERPROPERTY('SERVERNAME'))\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, \n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, @query_pattern;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc,\n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, @query_pattern;",
@@ -474,7 +430,7 @@
         {
           "datasource": {
             "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
+            "uid": "${datasource}"
           },
           "fieldConfig": {
             "defaults": {
@@ -552,7 +508,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "${DS_SQLMONITOR}"
+                "uid": "${datasource}"
               },
               "format": "table",
               "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\n--declare @delta_minutes int;\ndeclare @program_name nvarchar(500);\ndeclare @login_name nvarchar(255);\ndeclare @database nvarchar(500);\ndeclare @session_id int;\ndeclare @session_host_name nvarchar(125);\ndeclare @query_pattern nvarchar(500);\n\nif len(ltrim(rtrim('$program_name'))) > 0\n  set @program_name = '$program_name'\nif len(ltrim(rtrim('$login_name'))) > 0\n  set @login_name = '$login_name'\nif len(ltrim(rtrim('$database'))) > 0\n  set @database = '$database'\nif len(ltrim(rtrim('$session_host_name'))) > 0\n  set @session_host_name = '$session_host_name'\nif len(ltrim(rtrim('$query_pattern'))) > 0\n  set @query_pattern = '$query_pattern'\nif len(ltrim(rtrim('$session_id'))) > 0 and (case when '$session_id' like '%[^0-9.]%' then 'invalid' when '$session_id' like '%.%.%' then 'invalid' else 'valid' end) = 'valid'\n  set @session_id = convert(int,'$session_id');\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2,\n\t\t\t\t@program_name nvarchar(500), @login_name nvarchar(255), @database nvarchar(500),\n\t\t\t\t@session_id int, @session_host_name nvarchar(125), @query_pattern nvarchar(500)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\t\t\t\n;with t_sessions as (\n\tselect command = additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), *\n\tfrom $whoisactive_table_name w with (nolock)\n\twhere w.collection_time = (select top 1 i.collection_time from $whoisactive_table_name i with (nolock) order by i.collection_time desc)\n)\nselect  [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), w.collection_time), w.start_time, \n        w.program_name, w.percent_complete, w.[dd hh:mm:ss.mss], w.session_id, w.login_name,\n\t\t    sql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n\t\t\t\t\t\t\telse left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n\t\t\t\tw.database_name, w.host_name, w.status, w.CPU, w.used_memory, w.open_tran_count, w.wait_info, \n\t\t    w.blocked_session_count, w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, w.tasks\nfrom t_sessions w\nwhere ( w.program_name like 'SQL Job%' or w.program_name like 'SQLAgent%' )\norder by w.collection_time DESC, w.start_time ASC\n\"\n\n/*\nif @program_name is not null\n\tset @sql = @sql + @crlf + \"and w.program_name like ('%'+@program_name+'%')\"\nif @database is not null\n\tset @sql = @sql + @crlf + \"and w.database_name like ('%'+@database+'%')\"\nif @login_name is not null\n\tset @sql = @sql + @crlf + \"and w.login_name like ('%'+@login_name+'%')\"\nif @session_host_name is not null\n\tset @sql = @sql + @crlf + \"and w.host_name like ('%'+@session_host_name+'%')\"\nif @query_pattern is not null\n\tset @sql = @sql + @crlf + \"and w.sql_command like ('%'+@query_pattern+'%')\"\nif @session_id is not null\n\tset @sql = @sql + @crlf + \"and w.session_id = @session_id\"\nset @sql = @sql + @crlf + \"order by w.collection_time DESC, w.start_time ASC\";\n*/\n\nset quoted_identifier on;\n--print @sql\n\nif (@sql_instance = SERVERPROPERTY('SERVERNAME'))\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, \n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, @query_pattern;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc,\n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, @query_pattern;",
@@ -593,7 +549,7 @@
         {
           "datasource": {
             "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
+            "uid": "${datasource}"
           },
           "fieldConfig": {
             "defaults": {
@@ -671,7 +627,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "${DS_SQLMONITOR}"
+                "uid": "${datasource}"
               },
               "format": "table",
               "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\n--declare @delta_minutes int;\ndeclare @program_name nvarchar(500);\ndeclare @login_name nvarchar(255);\ndeclare @database nvarchar(500);\ndeclare @session_id int;\ndeclare @session_host_name nvarchar(125);\ndeclare @query_pattern nvarchar(500);\ndeclare @duration int;\n\nset @duration = case when ltrim(rtrim('$duration')) <> '' then $duration else 0 end;\nif len(ltrim(rtrim('$program_name'))) > 0\n  set @program_name = '$program_name'\nif len(ltrim(rtrim('$login_name'))) > 0\n  set @login_name = '$login_name'\nif len(ltrim(rtrim('$database'))) > 0\n  set @database = '$database'\nif len(ltrim(rtrim('$session_host_name'))) > 0\n  set @session_host_name = '$session_host_name'\nif len(ltrim(rtrim('$query_pattern'))) > 0\n  set @query_pattern = '$query_pattern'\nif len(ltrim(rtrim('$session_id'))) > 0 and (case when '$session_id' like '%[^0-9.]%' then 'invalid' when '$session_id' like '%.%.%' then 'invalid' else 'valid' end) = 'valid'\n  set @session_id = convert(int,'$session_id');\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2,\n\t\t\t\t@program_name nvarchar(500), @login_name nvarchar(255), @database nvarchar(500),\n\t\t\t\t@session_id int, @session_host_name nvarchar(125), @query_pattern nvarchar(500),\n\t\t\t\t@duration int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\t\t\t\nif exists ( select * from $whoisactive_table_name w with (nolock)\n            where w.collection_time = (select max(i.collection_time) from $whoisactive_table_name i with (nolock)) \n            and datediff(minute,start_time,collection_time) >= @duration )\nbegin\n  select [collection_time] = convert(varchar,w.collection_time,120), w.session_id, \n  \t\tw.[dd hh:mm:ss.mss], w.program_name, w.login_name, w.database_name, w.host_name,\n  \t\tw.status, w.CPU, w.used_memory, w.open_tran_count, \n  \t\tw.wait_info, \n  \t\tsql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n  \t\t\t\t\t\t\telse left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n  \t\tw.blocked_session_count, \n  \t\tw.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, \n  \t\tw.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n  from $whoisactive_table_name w with (nolock)\n  where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i with (nolock))\n  and datediff(minute,start_time,collection_time) >= @duration\n  order by w.collection_time DESC, w.start_time ASC\nend\nELSE\n  select 'No long running query found for time window' as [No Result]\n\"\n\n/*\nif @program_name is not null\n\tset @sql = @sql + @crlf + \"and w.program_name like ('%'+@program_name+'%')\"\nif @database is not null\n\tset @sql = @sql + @crlf + \"and w.database_name like ('%'+@database+'%')\"\nif @login_name is not null\n\tset @sql = @sql + @crlf + \"and w.login_name like ('%'+@login_name+'%')\"\nif @session_host_name is not null\n\tset @sql = @sql + @crlf + \"and w.host_name like ('%'+@session_host_name+'%')\"\nif @query_pattern is not null\n\tset @sql = @sql + @crlf + \"and w.sql_command like ('%'+@query_pattern+'%')\"\nif @session_id is not null\n\tset @sql = @sql + @crlf + \"and w.session_id = @session_id\"\nset @sql = @sql + @crlf + \"order by w.collection_time DESC, w.start_time ASC\";\n*/\n\nset quoted_identifier on;\n--print @sql\n\nif (@sql_instance = SERVERPROPERTY('SERVERNAME'))\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, \n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, \n\t\t\t\t\t@query_pattern, @duration;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc,\n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, \n\t\t\t\t\t@query_pattern, @duration;",
@@ -712,7 +668,7 @@
         {
           "datasource": {
             "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
+            "uid": "${datasource}"
           },
           "description": "",
           "fieldConfig": {
@@ -803,7 +759,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "${DS_SQLMONITOR}"
+                "uid": "${datasource}"
               },
               "format": "table",
               "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\n--declare @delta_minutes int;\ndeclare @program_name nvarchar(500);\ndeclare @login_name nvarchar(255);\ndeclare @database nvarchar(500);\ndeclare @session_id int;\ndeclare @session_host_name nvarchar(125);\ndeclare @query_pattern nvarchar(500);\ndeclare @duration int;\n\nset @duration = case when ltrim(rtrim('$duration')) <> '' then $duration else 0 end;\nif len(ltrim(rtrim('$program_name'))) > 0\n  set @program_name = '$program_name'\nif len(ltrim(rtrim('$login_name'))) > 0\n  set @login_name = '$login_name'\nif len(ltrim(rtrim('$database'))) > 0\n  set @database = '$database'\nif len(ltrim(rtrim('$session_host_name'))) > 0\n  set @session_host_name = '$session_host_name'\nif len(ltrim(rtrim('$query_pattern'))) > 0\n  set @query_pattern = '$query_pattern'\nif len(ltrim(rtrim('$session_id'))) > 0 and (case when '$session_id' like '%[^0-9.]%' then 'invalid' when '$session_id' like '%.%.%' then 'invalid' else 'valid' end) = 'valid'\n  set @session_id = convert(int,'$session_id');\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2,\n\t\t\t\t@program_name nvarchar(500), @login_name nvarchar(255), @database nvarchar(500),\n\t\t\t\t@session_id int, @session_host_name nvarchar(125), @query_pattern nvarchar(500),\n\t\t\t\t@duration int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\n\n;with cte_sessions as (\n  select [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), w.collection_time), w.session_id, \n  \t\tw.[dd hh:mm:ss.mss], w.program_name, w.login_name, w.database_name, w.host_name,\n  \t\tw.status, w.CPU, w.used_memory, w.open_tran_count, \n  \t\tw.wait_info, \n  \t\tsql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n  \t\t\t\t\t\t\telse left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n  \t\tw.blocked_session_count, \n  \t\tw.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, \n  \t\tw.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n  from $whoisactive_table_name w with (nolock)\n  where w.collection_time between DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @start_time_utc) and DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @end_time_utc)\n  and datediff(minute,start_time,collection_time) >= @duration\n)\nselect *\nfrom cte_sessions w\nwhere 1 = 1\n\"\n\nif @program_name is not null\n\tset @sql = @sql + @crlf + \"and w.program_name like ('%'+@program_name+'%')\"\nif @database is not null\n\tset @sql = @sql + @crlf + \"and w.database_name like ('%'+@database+'%')\"\nif @login_name is not null\n\tset @sql = @sql + @crlf + \"and w.login_name like ('%'+@login_name+'%')\"\nif @session_host_name is not null\n\tset @sql = @sql + @crlf + \"and w.host_name like ('%'+@session_host_name+'%')\"\nif @query_pattern is not null\n\tset @sql = @sql + @crlf + \"and w.sql_command like ('%'+@query_pattern+'%')\"\nif @session_id is not null\n\tset @sql = @sql + @crlf + \"and w.session_id = @session_id\"\nset @sql = @sql + @crlf + \"order by w.collection_time DESC, w.start_time ASC\";\n\nset quoted_identifier on;\n--print @sql\n\nif (@sql_instance = SERVERPROPERTY('SERVERNAME'))\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, \n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, \n\t\t\t\t\t@query_pattern, @duration;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc,\n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, \n\t\t\t\t\t@query_pattern, @duration;",
@@ -890,10 +846,14 @@
   "templating": {
     "list": [
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "SqlMonitor",
+          "value": "SqlMonitor"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "select distinct srvname = sql_instance from dbo.instance_details with (nolock)\nwhere is_available = 1\nunion select convert(varchar,SERVERPROPERTY('ServerName'))",
         "hide": 0,
@@ -970,10 +930,14 @@
         "type": "datasource"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "DBA",
+          "value": "DBA"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "SELECT DB_NAME() as [db_name]",
         "hide": 2,
@@ -1011,10 +975,14 @@
         "type": "textbox"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "192.168.56.16",
+          "value": "192.168.56.16"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,  CONNECTIONPROPERTY('local_net_address') ) as [ip]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
         "description": "IP Address of Sql Instance",
@@ -1032,10 +1000,14 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "SQLMONITOR",
+          "value": "SQLMONITOR"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) as [host_name]\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
         "hide": 2,
@@ -1052,10 +1024,14 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "SqlMonitor.Lab.com",
+          "value": "SqlMonitor.Lab.com"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @fqdn nvarchar(100);\nexec usp_extended_results @fqdn = @fqdn output;\n\nselect case when default_domain() = 'WORKGROUP' then 'WORKGROUP' ELSE @fqdn END\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
         "hide": 2,
@@ -1072,10 +1048,14 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "1662915875175",
+          "value": "1662915875175"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect top 1 collection_time_utc\nfrom [$inventory_db].dbo.vw_performance_counters\nwhere host_name = '$host_name'\norder by collection_time_utc desc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
         "hide": 2,
@@ -1095,27 +1075,19 @@
         "hide": 2,
         "label": "WhoIsActive Table Name",
         "name": "whoisactive_table_name",
-        "query": "${VAR_WHOISACTIVE_TABLE_NAME}",
+        "query": "dbo.WhoIsActive",
         "skipUrlSync": false,
-        "type": "constant",
-        "current": {
-          "value": "${VAR_WHOISACTIVE_TABLE_NAME}",
-          "text": "${VAR_WHOISACTIVE_TABLE_NAME}",
-          "selected": false
-        },
-        "options": [
-          {
-            "value": "${VAR_WHOISACTIVE_TABLE_NAME}",
-            "text": "${VAR_WHOISACTIVE_TABLE_NAME}",
-            "selected": false
-          }
-        ]
+        "type": "constant"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "1662912610723",
+          "value": "1662912610723"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect top 1 DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), collection_time )\nfrom [$inventory_db].$whoisactive_table_name\norder by collection_time desc\n\"\nSET QUOTED_IDENTIFIER ON\nIF ('$server' = SERVERPROPERTY('ServerName'))\nBEGIN\n  EXEC (@sql);\nEND;\nELSE\nBEGIN\n  EXEC (@sql) AT [$server];\nEND;",
         "hide": 2,
@@ -1213,10 +1185,14 @@
         "type": "textbox"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "DBA",
+          "value": "DBA"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "declare @sql nvarchar(max);\ndeclare @sql_instance varchar(255);\nset @sql_instance = '$server';\n\nset quoted_identifier off;\nset @sql = \"select [database] from dbo.instance_details id\nwhere id.sql_instance = @sql_instance\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql, N'@sql_instance varchar(255)', @sql_instance;",
         "hide": 2,

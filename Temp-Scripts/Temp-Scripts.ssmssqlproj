@@ -51,13 +51,25 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="Localhost:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="Localhost:LAB\adwivedi">
           <Created>2022-04-27T21:59:21.1315078+05:30</Created>
           <Type>SQL</Type>
           <Server>Localhost</Server>
           <UserName />
           <Authentication>Windows Authentication</Authentication>
           <InitialDB>tempdb</InitialDB>
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="WORKSTATION:LAB\adwivedi">
+          <Created>2022-09-11T13:54:28.4063405+05:30</Created>
+          <Type>SQL</Type>
+          <Server>WORKSTATION</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB>master</InitialDB>
           <LoginTimeout>30</LoginTimeout>
           <ExecutionTimeout>0</ExecutionTimeout>
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
