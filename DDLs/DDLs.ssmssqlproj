@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="(local)\SQL2014:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="(local)\SQL2014:LAB\adwivedi">
           <Created>2022-06-01T03:49:36.5223563+05:30</Created>
           <Type>SQL</Type>
           <Server>(local)\SQL2014</Server>
@@ -51,7 +51,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="LOCALHOST:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="LOCALHOST:LAB\adwivedi">
           <Created>2020-10-18T21:11:28.7072242+05:30</Created>
           <Type>SQL</Type>
           <Server>LOCALHOST</Server>
@@ -63,7 +63,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="SqlMonitor:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="SqlMonitor:LAB\adwivedi">
           <Created>2022-06-27T15:53:15.6091394+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlMonitor</Server>
@@ -75,7 +75,19 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="Workstation\SQL2014:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="SqlPractice:LAB\adwivedi">
+          <Created>2022-09-12T08:01:17.4774233+05:30</Created>
+          <Type>SQL</Type>
+          <Server>SqlPractice</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="Workstation\SQL2014:LAB\adwivedi">
           <Created>2022-07-15T22:00:49.6425554+05:30</Created>
           <Type>SQL</Type>
           <Server>Workstation\SQL2014</Server>
@@ -87,7 +99,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="WORKSTATION\SQLEXPRESS:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="WORKSTATION\SQLEXPRESS:LAB\adwivedi">
           <Created>2022-07-15T22:01:02.7284228+05:30</Created>
           <Type>SQL</Type>
           <Server>WORKSTATION\SQLEXPRESS</Server>
@@ -138,6 +150,12 @@
           <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Create-XEvents.sql</FullPath>
+        </FileNode>
+        <FileNode Name="SCH-fn_get_hash_for_string.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-fn_get_hash_for_string.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Check-InstanceAvailability].sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
