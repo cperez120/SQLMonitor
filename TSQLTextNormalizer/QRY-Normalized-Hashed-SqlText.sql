@@ -1,4 +1,4 @@
-use DBA
+use [DBA]
 go
 
 /*
@@ -6,10 +6,13 @@ go
 			\SQLMonitor\DDLs\SCH-fn_get_hash_for_string.sql in [DBA] database
 	2) Create CLR function 
 			\SQLMonitor\TSQLTextNormalizer\SCH-Assembly-[SQLMonitorAssembly].sql
+	3) Create procedure 
+			\SQLMonitor\DDLs\SCH-usp_collect_xevents_resource_consumption_hashed
+	4) Change Job [(dba) Collect-XEvents] to use [usp_collect_xevents_resource_consumption_hashed]
 */
 go
 
-select hs.sqlsig, counts = count(rc.session_id)over(partition by hs.sqlsig), *
+select top 100 hs.sqlsig, counts = count(rc.session_id)over(partition by hs.sqlsig), *
 --update rc set query_hash = hs.sqlsig
 from dbo.resource_consumption rc
 outer apply (select sqlsig = hs.varbinary_value
@@ -28,6 +31,6 @@ go
 select *
 from dbo.resource_consumption rc
 where 1=1
-and rc.event_time >= dateadd(hour,-24,getdate())
+and rc.event_time >= dateadd(MINUTE,-10,getdate())
 go
 
