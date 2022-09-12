@@ -1,6 +1,5 @@
 use [DBA]
 go
---drop function dbo.fn_get_hash_for_string
 if object_id('dbo.fn_get_hash_for_string') is null
 	exec ('create function dbo.fn_get_hash_for_string () returns table as return select 1 as [varbinary_value];')
 go

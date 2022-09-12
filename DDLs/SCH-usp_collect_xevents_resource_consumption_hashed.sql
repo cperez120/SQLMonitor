@@ -29,6 +29,37 @@ BEGIN
 		drop table #xe_files;
 	create table #xe_files (directory nvarchar(2000), subdirectory nvarchar(255), depth tinyint, is_file bit);
 
+	if OBJECT_ID('tempdb..#t_data_extracted') is not null
+		drop table #t_data_extracted;
+	create table #t_data_extracted
+	(
+		[start_time] as ( DATEADD(second,-(duration_seconds),event_time) ) persisted,
+		[event_name] [nvarchar](60) NOT NULL,
+		[event_time] [datetime2](7) NULL,
+		[cpu_time] [bigint] NULL,
+		[duration_seconds] [bigint] NULL,
+		[physical_reads] [bigint] NULL,
+		[logical_reads] [bigint] NULL,
+		[writes] [bigint] NULL,
+		[spills] [bigint] NULL,
+		[row_count] [bigint] NULL,
+		[result] [varchar](7) NOT NULL,
+		[username] [varchar](255) NULL,
+		[sql_text] [varchar](max) NULL,
+		[query_hash] [varbinary](255) NULL,
+		[query_plan_hash] [varbinary](255) NULL,
+		[database_name] [varchar](255) NULL,
+		[client_hostname] [varchar](255) NULL,
+		[client_app_name] [varchar](255) NULL,
+		[session_resource_pool_id] [int] NULL,
+		[session_resource_group_id] [int] NULL,
+		[session_id] [int] NULL,
+		[request_id] [int] NULL,
+		[scheduler_id] [int] NULL,
+
+		index [ci_#t_data_extracted] clustered (event_time, start_time)
+	)
+
 	-- Get XEvent files directory
 	;with targets_xml as (
 		select	target_data_xml = CONVERT(XML, target_data)
@@ -70,6 +101,7 @@ BEGIN
 			select subdirectory
 			from #xe_files f
 			where f.subdirectory like ('resource_consumption%')
+			and not exists (select * from dbo.resource_consumption_Processed_XEL_Files f where f.file_path = (@xe_directory+subdirectory) and f.is_processed = 1)
 			order by f.subdirectory asc;
 
 	open cur_files;
@@ -84,6 +116,11 @@ BEGIN
 		begin
 			insert dbo.resource_consumption_Processed_XEL_Files (file_path,collection_time_utc)
 			select @c_file_path as file_path, @current_time as collection_time_utc;
+
+			truncate table #t_data_extracted;
+
+			--select [** wip **] = 'Processing file '+@c_file_path;
+			print 'Processing file '+@c_file_path;
 
 			;with t_event_data as (
 				select xf.object_name as event_name, xf.file_name, event_data = convert(xml,xf.event_data) --,xf.timestamp_utc, 
@@ -124,36 +161,44 @@ BEGIN
 						,[scheduler_id] = event_data.value('(/event/action[@name="scheduler_id"]/value)[1]','int')
 				from t_event_data ed
 			)
+			insert #t_data_extracted
+			(event_name, event_time, cpu_time, duration_seconds, physical_reads, logical_reads, writes, spills, row_count, result, username, sql_text, query_hash, query_plan_hash, database_name, client_hostname, client_app_name, session_resource_pool_id, session_resource_group_id, session_id, request_id, scheduler_id)
+			select event_name, event_time, cpu_time, duration_seconds, physical_reads, logical_reads, writes, spills, row_count, result, username, sql_text, query_hash, query_plan_hash, database_name, client_hostname, client_app_name, session_resource_pool_id, session_resource_group_id, session_id, request_id, scheduler_id
+			from t_data_extracted de
+			where not exists (select 1 from [dbo].[resource_consumption] t 
+								where 1=1
+								and t.duration_seconds = de.duration_seconds
+								and t.event_time = de.event_time
+								and t.event_name = de.event_name
+								and t.session_id = de.session_id
+								and t.request_id = de.request_id);
+
 			insert [dbo].[resource_consumption]
 			(	start_time, event_time, event_name, session_id, request_id, result, database_name, client_app_name, username, cpu_time, duration_seconds, 
 				logical_reads, physical_reads, row_count, writes, spills, sql_text, 
 				query_hash, query_plan_hash, client_hostname, session_resource_pool_id, session_resource_group_id, scheduler_id --, context_info
 			)
-			select	start_time = DATEADD(second,-(duration_seconds),event_time), event_time, event_name, session_id, request_id, result, 
-					database_name, --client_app_name, 
+			select	--start_time = DATEADD(second,-(duration_seconds),event_time), 
+					start_time, event_time, event_name, session_id, request_id, result, 
+					database_name,
 					[client_app_name] = CASE	WHEN	[client_app_name] like 'SQLAgent - TSQL JobStep %'
-						THEN	(	select	top 1 'SQL Job = '+j.name 
-									from msdb.dbo.sysjobs (nolock) as j
-									inner join msdb.dbo.sysjobsteps (nolock) AS js on j.job_id=js.job_id
-									where right(cast(js.job_id as nvarchar(50)),10) = RIGHT(substring([client_app_name],30,34),10) 
-								) + ' ( '+SUBSTRING(LTRIM(RTRIM([client_app_name])), CHARINDEX(': Step ',LTRIM(RTRIM([client_app_name])))+2,LEN(LTRIM(RTRIM([client_app_name])))-CHARINDEX(': Step ',LTRIM(RTRIM([client_app_name])))-2)+' )'
-						ELSE	[client_app_name]
-						END,
+												THEN	(	select	top 1 'SQL Job = '+j.name 
+															from msdb.dbo.sysjobs (nolock) as j
+															inner join msdb.dbo.sysjobsteps (nolock) AS js on j.job_id=js.job_id
+															where right(cast(js.job_id as nvarchar(50)),10) = RIGHT(substring([client_app_name],30,34),10) 
+														) + ' ( '+SUBSTRING(LTRIM(RTRIM([client_app_name])), CHARINDEX(': Step ',LTRIM(RTRIM([client_app_name])))+2,LEN(LTRIM(RTRIM([client_app_name])))-CHARINDEX(': Step ',LTRIM(RTRIM([client_app_name])))-2)+' )'
+												ELSE	[client_app_name]
+												END,
 					username, cpu_time, duration_seconds, logical_reads, physical_reads, row_count, 
 					writes, spills, sql_text, 
 					query_hash = hs.sqlsig, 
 					query_plan_hash, 
 					client_hostname, session_resource_pool_id, session_resource_group_id, scheduler_id--, context_info
-			from t_data_extracted de
-			outer apply (select sqlsig = hs.varbinary_value
-						from dbo.fn_get_hash_for_string(dbo.normalized_sql_text(de.sql_text,150,0)) hs  
+			from #t_data_extracted de
+			outer apply (select [sqlsig] = (case when de.result IN ('OK','Abort') then (select sqlsig = hs.varbinary_value
+						from dbo.fn_get_hash_for_string(dbo.normalized_sql_text(de.sql_text,150,0)) hs) else null end)
 						) hs
-			where not exists (select 1 from [dbo].[resource_consumption] t 
-								where t.start_time = DATEADD(second,-(de.duration_seconds),de.event_time)
-								and t.event_time = de.event_time
-								and t.event_name = de.event_name
-								and t.session_id = de.session_id
-								and t.request_id = de.request_id)
+			where 1=1
 			option (maxrecursion 0);
 
 			update f set is_processed = 1
