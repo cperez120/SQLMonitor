@@ -2,7 +2,7 @@ use DBA_Admin
 go
 declare @start_time datetime = dateadd(day,-15,getdate());
 declare @database_name nvarchar(255) --= 'ACCOUNT';
-declare @table_name nvarchar(500) = 'BillMatch';
+declare @table_name nvarchar(500) = 'Financial_Ledger_OneTime_NXT';
 declare @str_length smallint = 50;
 declare @end_time datetime = getdate();
 declare @sql_string nvarchar(max);

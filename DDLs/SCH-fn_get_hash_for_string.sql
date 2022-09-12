@@ -1,4 +1,4 @@
-use DBA
+use [DBA]
 go
 --drop function dbo.fn_get_hash_for_string
 if object_id('dbo.fn_get_hash_for_string') is null
@@ -24,7 +24,8 @@ return
         From hashbytes_val h, cte_params
         where Len(substring([string],st,lv))>0
     )
-    Select Top 1 [varbinary_value] = hashval From hashbytes_val Order by st desc
+    Select Top 1 [varbinary_value] = hashval From hashbytes_val	Order by st desc	
+	--option (maxrecursion 0)
 go
 
 --select * from dbo.fn_get_hash_for_string('EXEC dbo.usp_run_WhoIsActive @recipients = ''sqlagentservice@gmail.com'';')

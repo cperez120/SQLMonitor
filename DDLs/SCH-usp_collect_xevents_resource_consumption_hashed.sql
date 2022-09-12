@@ -154,6 +154,7 @@ BEGIN
 								and t.event_name = de.event_name
 								and t.session_id = de.session_id
 								and t.request_id = de.request_id)
+			option (maxrecursion 0);
 
 			update f set is_processed = 1
 			from dbo.resource_consumption_Processed_XEL_Files f

@@ -44,6 +44,7 @@ begin
 				) hs
 	where 1=1
 	and result = 'OK'
-	and rc.query_hash is null;
+	and rc.query_hash is null
+	option (maxrecursion 0);
 end
 go
