@@ -34,3 +34,16 @@ where 1=1
 and rc.event_time >= dateadd(MINUTE,-10,getdate())
 go
 
+/*	Update existing records with Hash */
+while exists (select 1 from dbo.resource_consumption where query_hash is null and result = 'OK')
+begin
+	update top (3000) rc set query_hash = hs.sqlsig
+	from dbo.resource_consumption rc
+	cross apply (select sqlsig = hs.varbinary_value
+				from dbo.fn_get_hash_for_string(dbo.normalized_sql_text(rc.sql_text,150,0)) hs  
+				) hs
+	where 1=1
+	and result = 'OK'
+	and rc.query_hash is null;
+end
+go
