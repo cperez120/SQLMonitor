@@ -10,13 +10,24 @@ go
 go
 
 select hs.sqlsig, counts = count(rc.session_id)over(partition by hs.sqlsig), *
+--update rc set query_hash = hs.sqlsig
 from dbo.resource_consumption rc
 outer apply (select sqlsig = hs.varbinary_value
 			from dbo.fn_get_hash_for_string(dbo.normalized_sql_text(rc.sql_text,150,0)) hs  
 			) hs
-where rc.event_time >= dateadd(hour,-24,getdate())
+where 1=1
+and rc.query_hash is null
+and rc.event_time >= dateadd(hour,-24,getdate())
 order by rc.start_time, rc.event_time
 go
 
 -- dbo.fn_get_hash_for_string('EXEC dbo.usp_run_WhoIsActive @recipients = ''sqlagentservice@gmail.com'';')
 -- select sqlsig = DBA.dbo.normalized_sql_text('exec sp_WhoIsActive 110',150,0)
+go
+
+select *
+from dbo.resource_consumption rc
+where 1=1
+and rc.event_time >= dateadd(hour,-24,getdate())
+go
+
