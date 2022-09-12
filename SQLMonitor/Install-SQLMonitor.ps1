@@ -989,14 +989,15 @@ if($stepName -in $Steps2Execute)
         Remove-Item -Path $tempAllDatabaseObjectsFilePath | Out-Null
     }
 
-    Write-Debug "Inside 2__AllDatabaseObjects"
-
     # Update InventoryServer Objects
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update objects on Inventory Server.."
-     $InventorySpecificObjectsFileText = [System.IO.File]::ReadAllText($InventorySpecificObjectsFilePath)
-     $dbaDatabaseParentPath = Split-Path $dbaDatabasePath -Parent
-     $InventorySpecificObjectsFileText = $InventorySpecificObjectsFileText.Replace('E:\Data\MemoryOptimized.ndf', "$(Join-Path $dbaDatabaseParentPath 'MemoryOptimized.ndf')")
-    Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $InventorySpecificObjectsFileText -SqlCredential $SqlCredential -EnableException
+    if($InventoryServer -eq $SqlInstanceToBaseline)
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update objects on Inventory Server.."
+        $InventorySpecificObjectsFileText = [System.IO.File]::ReadAllText($InventorySpecificObjectsFilePath)
+        $dbaDatabaseParentPath = Split-Path $dbaDatabasePath -Parent
+        $InventorySpecificObjectsFileText = $InventorySpecificObjectsFileText.Replace('E:\Data\MemoryOptimized.ndf', "$(Join-Path $dbaDatabaseParentPath 'MemoryOptimized.ndf')")
+        Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $InventorySpecificObjectsFileText -SqlCredential $SqlCredential -EnableException
+    }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspCollectWaitStatsFilePath = '$UspCollectWaitStatsFilePath'"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspCollectWaitStatsFilePath -SqlCredential $SqlCredential -EnableException
