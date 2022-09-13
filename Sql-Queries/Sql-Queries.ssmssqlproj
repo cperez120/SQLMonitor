@@ -271,11 +271,23 @@
           <AssociatedConnUserName />
           <FullPath>QRY-Estimate-Page-Compression.sql</FullPath>
         </FileNode>
-        <FileNode Name="QRY-Grafana-Dynamic-Sql-Remote-With-Params.sql">
+        <FileNode Name="QRY-Grafana-Dynamic-Sql-Database-Filter.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:WORKSTATION:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>WORKSTATION</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>QRY-Grafana-Dynamic-Sql-Remote-With-Params.sql</FullPath>
+          <FullPath>QRY-Grafana-Dynamic-Sql-Database-Filter.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-Grafana-Dynamic-Sql-Multiple-Filters.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:WORKSTATION:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>WORKSTATION</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>QRY-Grafana-Dynamic-Sql-Multiple-Filters.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-Grafana-Dynamic-Sql-Simplified.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:WORKSTATION:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>WORKSTATION</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>QRY-Grafana-Dynamic-Sql-Simplified.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-ResourceConsumption-Infra.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.196:False:E84947</AssociatedConnectionMoniker>
