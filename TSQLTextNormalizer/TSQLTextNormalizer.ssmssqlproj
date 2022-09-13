@@ -15,7 +15,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="localhost:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="localhost:LAB\adwivedi">
           <Created>2022-08-29T18:01:31.8378328+05:30</Created>
           <Type>SQL</Type>
           <Server>localhost</Server>
@@ -27,7 +27,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="SqlMonitor:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="SqlMonitor:LAB\adwivedi">
           <Created>2022-09-12T07:54:55.9216451+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlMonitor</Server>
@@ -39,7 +39,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="SqlPractice:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="SqlPractice:LAB\adwivedi">
           <Created>2022-09-12T07:57:19.8115247+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlPractice</Server>
@@ -56,9 +56,9 @@
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
         <FileNode Name="QRY-Normalized-Hashed-SqlText.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.196:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>196.1.115.196</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>QRY-Normalized-Hashed-SqlText.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Assembly-[SQLMonitorAssembly].sql">

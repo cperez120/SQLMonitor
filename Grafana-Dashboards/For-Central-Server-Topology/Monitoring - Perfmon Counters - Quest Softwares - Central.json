@@ -29,7 +29,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "8.4.6"
+      "version": "9.0.2"
     },
     {
       "type": "datasource",
@@ -48,7 +48,10 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -70,12 +73,16 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1652564929063,
+  "iteration": 1663052444753,
   "links": [],
   "liveNow": false,
   "panels": [
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -278,11 +285,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "CPU & Processor - [$fqdn] - [$ip] - [$perfmon_host_name\\$instance_name] - @ ${collection_time_utc:date:YYYY-MM-DD HH.mm}",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -578,11 +598,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "OS Memory & Paging Performance Counters ",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -808,11 +841,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "MSSQL Data Access Performance Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1012,11 +1058,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQL Server: Memory Manager Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1307,11 +1366,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "Logical Disk Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1604,11 +1676,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "Physical Disk Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1713,11 +1798,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "Network Interface Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1933,11 +2031,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "MSSQL Databases - Size Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -2244,11 +2355,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "MSSQL User Database - Performance Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -2354,11 +2478,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQL Server - SQL Statistics - Auto Parameterization",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -2656,11 +2793,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "MSSQL Buffer Manager & Memory Performance Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -2864,11 +3014,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "MSSQL “How is My Memory Being Used” Performance Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -3261,11 +3424,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "MSSQL Workload Performance Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -3660,11 +3836,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQL Server : Plan Cache : Cache Manager Instance",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -4036,11 +4225,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQLServer:Transactions",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -4247,11 +4449,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQLServer:General Statistics",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -4552,11 +4767,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "MSSQL Locks Performance Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -4751,11 +4979,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "MSSQL Latches Performance Counters",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -4953,11 +5194,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQLServer:Replication",
       "type": "row"
     },
     {
       "collapsed": true,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -5063,11 +5317,24 @@
         }
       ],
       "repeat": "datasource",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQLAgent:Jobs",
       "type": "row"
     },
     {
       "collapsed": false,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -5076,11 +5343,24 @@
       },
       "id": 143,
       "panels": [],
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQLServer:Database Mirroring",
       "type": "row"
     },
     {
       "collapsed": false,
+      "datasource": {
+        "type": "mssql",
+        "uid": "5Qr_lHw7z"
+      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -5089,12 +5369,21 @@
       },
       "id": 145,
       "panels": [],
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "refId": "A"
+        }
+      ],
       "title": "SQLServer:Resource Pool Stats",
       "type": "row"
     }
   ],
   "refresh": "1m",
-  "schemaVersion": 35,
+  "schemaVersion": 36,
   "style": "dark",
   "tags": [
     "SqlServer",
