@@ -1,14 +1,14 @@
 use DBA
 go
-?
+
 declare @host_name varchar(125);
 declare @database_name varchar(125);
 declare @object_name varchar(255);
-?
+
 select @host_name = host_name from dbo.instance_details;
 set @object_name = (case when @@SERVICENAME = 'MSSQLSERVER' then 'SQLServer' else 'MSSQL$'+@@SERVICENAME end);
 set @database_name = 'DBA'
-?
+
 ;with t_size_start as (
 	select top 1 'InitialSize' as QueryData, *
 	from dbo.performance_counters pc

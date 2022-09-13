@@ -35,7 +35,7 @@ from sys.databases order by name;
 
 set quoted_identifier off;
 set @sql = "
-select [Server] = @@servername, [Date], "+@databases+"
+select [Query] = 'Db-Size-Over-Time-GB', [Server] = @@servername, [Date], "+@databases+"
 from (select [Date], [Database], [TotalSize_gb]   from #DatabaseSize) up
 pivot ( max([TotalSize_gb]) for [Database] in ("+@databases+") ) pvt
 order by 1"
