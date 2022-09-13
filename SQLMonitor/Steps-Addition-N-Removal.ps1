@@ -1,7 +1,11 @@
 ﻿[CmdletBinding()]
 Param (
     [Parameter(Mandatory=$false)]
-    [String]$NewStepName = "12__RemoveJob_PurgeDbaMetrics",
+    [ValidateSet("AddStep", "RemoveStep")]
+    [String]$Action = "AddStep",
+
+    [Parameter(Mandatory=$false)]
+    [String]$StepName = "5__SomeNewStepName",
     
     [Parameter(Mandatory=$false)]
     [String[]]$AllSteps = @( "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
@@ -14,9 +18,9 @@ Param (
                 "22__DropXEvent_ResourceConsumption", "23__DropLinkedServer", "24__DropLogin_Grafana",
                 "25__DropTable_ResourceConsumption", "26__DropTable_ResourceConsumptionProcessedXELFiles", "27__DropTable_WhoIsActive_Staging",
                 "28__DropTable_WhoIsActive", "29__DropTable_PerformanceCounters", "30__DropTable_PurgeTable",
-                "31__DropTable_PerfmonFiles", "32__DropTable_InstanceHosts", "33__DropTable_OsTaskList",
-                "34__DropTable_BlitzWho", "35__DropTable_BlitzCache", "36__DropTable_ConnectionHistory",
-                "37__DropTable_BlitzFirst", "38__DropTable_BlitzFirstFileStats", "39__DropTable_InstanceDetails",
+                "31__DropTable_PerfmonFiles", "32__DropTable_InstanceDetails", "33__DropTable_InstanceHosts",
+                "34__DropTable_OsTaskList", "35__DropTable_BlitzWho", "36__DropTable_BlitzCache",
+                "37__DropTable_ConnectionHistory", "38__DropTable_BlitzFirst", "39__DropTable_BlitzFirstFileStats",
                 "40__DropTable_DiskSpace", "41__DropTable_BlitzFirstPerfmonStats", "42__DropTable_BlitzFirstWaitStats",
                 "43__DropTable_BlitzFirstWaitStatsCategories", "44__DropTable_WaitStats", "45__RemovePerfmonFilesFromDisk",
                 "46__RemoveXEventFilesFromDisk", "47__DropProxy", "48__DropCredential", "49__RemoveInstanceFromInventory"
@@ -26,46 +30,61 @@ Param (
     [Bool]$PrintUserFriendlyFormat = $true,
 
     [Parameter(Mandatory=$false)]
-    [String]$ScriptFile = #'F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1'
-                          'F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1'
+    [String]$ScriptFile = 'F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1'
+                          #'F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1'
 )
 
 cls
 
 # Placeholders
-$newSteps = @()
+$finalSteps = @()
 
 # Calculations
-[int]$newStepNo = $NewStepName -replace "__\w+", ''
-$preStep = $newStepNo-2;
-$postStep = $newStepNo-1;
-$lastStep = $AllSteps.Count-1;
+[int]$paramStepNo = $StepName -replace "__\w+", ''
+$preStep = $paramStepNo-2;
+if($Action -eq "AddStep") { # Add New Step
+    $postStep = $paramStepNo-1;
+    $lastStep = $AllSteps.Count-1;
+}
+else { # Remove Existing Step
+    $postStep = $paramStepNo;
+    $lastStep = $AllSteps.Count-1;
+}
 
 #"Pre-Steps" | Write-Host -ForegroundColor Green
 $preNewSteps = @()
 $preNewSteps += $AllSteps[0..$preStep]
 
-#"`nAdd step '$NewStepName' here`n" | Write-Host -ForegroundColor Cyan
+#"`nAdd step '$StepName' here`n" | Write-Host -ForegroundColor Cyan
 
 #"Post-Steps" | Write-Host -ForegroundColor Green
 $postNewSteps = @()
-$postNewSteps += $AllSteps[$postStep..$lastStep] | ForEach-Object {[int]$stepNo = $_ -replace "__\w+", ''; $_.Replace("$stepNo", "$($stepNo+1)")}
+if($Action -eq "AddStep") { # Add New Step
+    $postNewSteps += $AllSteps[$postStep..$lastStep] | 
+        ForEach-Object {[int]$stepNo = $_ -replace "__\w+", ''; $_.Replace("$stepNo", "$($stepNo+1)")}
+    $finalSteps = $preNewSteps + @($StepName) + $postNewSteps
+}
+else { # Remove Existing Step
+    $postNewSteps += $AllSteps[$postStep..$lastStep] | 
+        ForEach-Object {[int]$stepNo = $_ -replace "__\w+", ''; $_.Replace("$stepNo", "$($stepNo-1)")}
+    $finalSteps = $preNewSteps + $postNewSteps
+}
 
-$newSteps = $preNewSteps + @($NewStepName) + $postNewSteps
+
 
 "All New Steps => `n`n " | Write-Host -ForegroundColor Green
 if($PrintUserFriendlyFormat) {
-    foreach($num in $(0..$([Math]::Floor($newSteps.Count/3)))) {
+    foreach($num in $(0..$([Math]::Floor($finalSteps.Count/3)))) {
         $numStart = ($num*3)
         $numEnd = ($num*3)+2
         #"`$num = $num, `$numStart = $numStart, `$numEnd = $numEnd"        
         
-        "                " + $(($newSteps[$numStart..$numEnd] | ForEach-Object {'"'+$_+'"'}) -join ', ') + $(if($num -ne $([Math]::Floor($newSteps.Count/3))){","})
+        "                " + $(($finalSteps[$numStart..$numEnd] | ForEach-Object {'"'+$_+'"'}) -join ', ') + $(if($num -ne $([Math]::Floor($finalSteps.Count/3))){","})
         
     }
 }
 else {
-    $newSteps
+    $finalSteps
 }
 
 if([String]::IsNullOrEmpty($ScriptFile)) {
@@ -73,9 +92,14 @@ if([String]::IsNullOrEmpty($ScriptFile)) {
 } else {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Read file content.."
     $fileContent = [System.IO.File]::ReadAllText($ScriptFile)
-    foreach($index in $($postStep..$($AllSteps.Count-1))) {
-        #"Replace '$($AllSteps[$index])' with '$($newSteps[$index])'"
-        $fileContent = $fileContent.Replace($AllSteps[$index],$newSteps[$index+1]);
+    foreach($index in $($postStep..$($AllSteps.Count-1))) 
+    {
+        if($Action -eq "AddStep") { # Add New Step
+            $fileContent = $fileContent.Replace($AllSteps[$index],$finalSteps[$index+1]);
+        }
+        else { # Remove Existing Step
+            $fileContent = $fileContent.Replace($AllSteps[$index],$finalSteps[$index-1]);
+        }
     }
     $newScriptFile = $ScriptFile.Replace('.ps1',' __bak.ps1')
     $fileContent | Out-File -FilePath $newScriptFile
@@ -83,8 +107,4 @@ if([String]::IsNullOrEmpty($ScriptFile)) {
     "Updated data saved into file '$newScriptFile'." | Write-Host -ForegroundColor Green
     "Opening saved file '$newScriptFile'." | Write-Host -ForegroundColor Green
 }
-
-
-
-
 
