@@ -259,17 +259,23 @@
           <AssociatedConnUserName />
           <FullPath>datetime-conversions.sql</FullPath>
         </FileNode>
-        <FileNode Name="QRY-Estimate-Database-Growth.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>QRY-Estimate-Database-Growth.sql</FullPath>
-        </FileNode>
         <FileNode Name="QRY-Estimate-Page-Compression.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>QRY-Estimate-Page-Compression.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-Forecast-Database-Growth.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>QRY-Forecast-Database-Growth.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-Get-Database-Growth-Over-Time.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>QRY-Get-Database-Growth-Over-Time.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-Grafana-Dynamic-Sql-Database-Filter.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:WORKSTATION:True</AssociatedConnectionMoniker>
@@ -318,6 +324,12 @@
           <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>QRY-sys.dm_io_virtual_file_stats.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-Waits-Per-Core.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>QRY-Waits-Per-Core.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-Wait-Stats-Since-Startup.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.196:False:E84947</AssociatedConnectionMoniker>
