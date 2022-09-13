@@ -52,8 +52,10 @@ order by 1, 2;
 --select * from #DatabaseSize order by 1,2;
 
 declare @databases nvarchar(max);
-select @databases = coalesce(@databases + ', '+ quotename(name), quotename(name)) 
-from sys.databases order by name;
+
+select @databases = coalesce(@databases + ', '+ quotename([Database]), quotename([Database])) 
+from (select distinct [Database] from #DatabaseSize ) l
+order by [Database];
 
 set quoted_identifier off;
 set @sql = "
