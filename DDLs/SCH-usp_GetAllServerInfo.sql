@@ -42,7 +42,7 @@ BEGIN
 		https://stackoverflow.com/questions/10191193/how-to-test-linkedservers-connectivity-in-tsql
 
 		exec dbo.usp_GetAllServerInfo 
-				@servers = '172.31.12.40'
+				@servers = 'SqlPractice'
 				,@output = 'memory_grants_pending'
 				,@verbose = 2
 	*/
