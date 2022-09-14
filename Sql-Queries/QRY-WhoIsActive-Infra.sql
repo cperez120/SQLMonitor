@@ -1,6 +1,6 @@
 USE [DBA_Admin]
 -- Find long running statements of session
-declare @table_name nvarchar(225) = 'Financial_Ledger_OneTime_NXT';
+declare @table_name nvarchar(225) = 'FORMULA_CLIENT_MASTER';
 declare @no_of_days tinyint = 7;
 declare @database_name nvarchar(255);
 declare @index_name nvarchar(255);
