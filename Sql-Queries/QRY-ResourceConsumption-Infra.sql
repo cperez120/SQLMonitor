@@ -2,10 +2,11 @@ use DBA_Admin
 go
 declare @start_time datetime = dateadd(day,-15,getdate());
 declare @database_name nvarchar(255) --= 'ACCOUNT';
-declare @table_name nvarchar(500) = 'Financial_Ledger_OneTime_NXT';
+declare @table_name nvarchar(500) = 'FORMULA_CLIENT_MASTER';
 declare @str_length smallint = 50;
 declare @end_time datetime = getdate();
 declare @sql_string nvarchar(max);
+declare @my_login varchar(255) = suser_name();
 
 if object_id('tempdb..#queries') is not null drop table #queries;
 CREATE TABLE #queries
@@ -48,6 +49,7 @@ set @sql_string = "
 	"+(CASE WHEN @database_name IS NULL THEN "--" ELSE "" END)+"and rc.database_name = @database_name
 	and rc.sql_text like ('%'+@table_name+'%')
 	and result = 'OK'
+	and rc.username <> @my_login
 	group by (case when client_app_name like 'SQL Job = %' then client_app_name else left(DBA_Admin.dbo.normalized_sql_text(sql_text,150,0),@str_length) end)
 )
 select *
@@ -62,8 +64,8 @@ OPTION (RECOMPILE)
 set quoted_identifier on;
 
 insert #queries
-exec sp_ExecuteSql @sql_string, N'@database_name nvarchar(255), @start_time datetime, @end_time datetime, @str_length smallint, @table_name nvarchar(500)', 
-					@database_name, @start_time, @end_time, @str_length, @table_name;
+exec sp_ExecuteSql @sql_string, N'@database_name nvarchar(255), @start_time datetime, @end_time datetime, @str_length smallint, @table_name nvarchar(500), @my_login varchar(255)', 
+					@database_name, @start_time, @end_time, @str_length, @table_name, @my_login;
 
 set quoted_identifier off;
 set @sql_string = "

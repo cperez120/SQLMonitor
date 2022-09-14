@@ -25,21 +25,26 @@ ALTER PROCEDURE dbo.usp_GetAllServerInfo
 	@blocked_threshold_seconds int = 60, 
 	@output nvarchar(max) = null, /* comma separated list of columns required in output */
 	@result_to_table nvarchar(125) = null, /* temp table that should be populated with result */
-	@verbose bit = 0 /* display debugging messages */
+	@verbose tinyint = 0 /* display debugging messages. 0 = No messages. 1 = Only print messages. 2 = Print & Table Results */
 )
 	WITH EXECUTE AS OWNER --,RECOMPILE
 AS
 BEGIN
 
 	/*
-		Version:		1.0.1
-		Date:			2022-07-15
+		Version:		1.0.2
+		Date:			2022-09-14
 
 		declare @srv_name varchar(125) = convert(varchar,serverproperty('MachineName'));
 		exec dbo.usp_GetAllServerInfo @servers = @srv_name
 		--exec dbo.usp_GetAllServerInfo @servers = 'Workstation,SqlPractice,SqlMonitor' ,@output = 'srv_name, os_start_time_utc'
 		--exec dbo.usp_GetAllServerInfo @servers = 'SQLMONITOR' ,@output = 'system_high_memory_signal_state'
 		https://stackoverflow.com/questions/10191193/how-to-test-linkedservers-connectivity-in-tsql
+
+		exec dbo.usp_GetAllServerInfo 
+				@servers = '172.31.12.40'
+				,@output = 'memory_grants_pending'
+				,@verbose = 2
 	*/
 	SET NOCOUNT ON; 
 	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
@@ -89,8 +94,14 @@ BEGIN
 	declare @_scheduler_count int;
 	declare @_major_version_number smallint;
 	declare @_minor_version_number smallint;
+	declare @_int_variable int;
+	declare @_smallint_variable smallint;
+	declare @_tinyint_variable tinyint;
+	declare @_bigint_variable bigint;
 	declare @_result table (col_bigint bigint null, col_int int null, col_varchar varchar(125) null, col_decimal decimal(20,2) null, col_datetime datetime2 null);
 
+	IF @verbose >= 1
+		PRINT 'Extracting server names from @servers ('+@servers+') parameter value..';
 	;WITH t1(srv_name, [Servers]) AS 
 	(
 		SELECT	CAST(LEFT(@servers, CHARINDEX(',',@servers+',')-1) AS VARCHAR(500)) as srv_name,
@@ -107,6 +118,14 @@ BEGIN
 	SELECT ltrim(rtrim(srv_name))
 	FROM t1
 	OPTION (MAXRECURSION 32000);
+
+	IF @verbose >= 2
+	BEGIN
+		SELECT @_int_variable = COUNT(1) FROM @_tbl_servers;
+		PRINT 'No of servers to process => '+CONVERT(varchar,@_int_variable)+'';
+		SELECT [RunningQuery] = 'select * from @_tbl_servers', *
+		FROM @_tbl_servers;
+	END
 
 	-- Extract output column names
 	;WITH t1(column_name, [Columns]) AS 
@@ -126,12 +145,19 @@ BEGIN
 	FROM t1
 	OPTION (MAXRECURSION 32000);
 
+	IF @verbose >= 2
+	BEGIN
+		SELECT @_int_variable = COUNT(1) FROM @_tbl_output_columns;
+		PRINT 'No of columns to return in result => '+CONVERT(varchar,@_int_variable)+'';
+		SELECT [RunningQuery] = 'select * from @_tbl_output_columns', *
+		FROM @_tbl_output_columns;
+	END
+
 	DECLARE cur_servers CURSOR LOCAL FORWARD_ONLY FOR
 		select distinct srvname = sql_instance 
 		from dbo.instance_details
 		where is_available = 1
-		and (@servers is null or sql_instance in (select srv_name from @_tbl_servers))
-		union select convert(varchar,SERVERPROPERTY('ServerName'));
+		and (@servers is null or sql_instance in (select srv_name from @_tbl_servers));
 
 	OPEN cur_servers;
 	FETCH NEXT FROM cur_servers INTO @_srv_name;
