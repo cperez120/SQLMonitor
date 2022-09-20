@@ -277,6 +277,12 @@
           <AssociatedConnUserName />
           <FullPath>QRY-Get-Database-Growth-Over-Time.sql</FullPath>
         </FileNode>
+        <FileNode Name="QRY-Get-Partitions-Record-Count-Metrics.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>QRY-Get-Partitions-Record-Count-Metrics.sql</FullPath>
+        </FileNode>
         <FileNode Name="QRY-Grafana-Dynamic-Sql-Database-Filter.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:WORKSTATION:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>WORKSTATION</AssociatedConnSrvName>
