@@ -18,6 +18,8 @@ Navigation
 ## Why SQLMonitor?
 SQLMonitor is designed as opensource tool to replace expensive enterprise monitoring or to simply fill the gap and monitor all environments such as DEV, TEST, QA/UAT & PROD.
 
+[![YouTube Tutorial on SQLMonitor](https://github.com/imajaydwivedi/Images/blob/master/SQLMonitor/YouTube-Thumbnail-Live-All-Servers.png)](https://ajaydwivedi.com/youtube/sqlmonitor)<br>
+
 ### Features
 - Highly customizable granularity to capture important spikes in server workload.
 - Grafana for real-time dashboarding
