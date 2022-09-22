@@ -2,7 +2,7 @@ use DBA_Admin
 go
 declare @start_time datetime = dateadd(day,-15,getdate());
 declare @database_name nvarchar(255) --= 'ACCOUNT';
-declare @table_name nvarchar(500) = 'FORMULA_CLIENT_MASTER';
+declare @table_name nvarchar(500) = 'V2_Uploaded_Files';
 declare @str_length smallint = 50;
 declare @end_time datetime = getdate();
 declare @sql_string nvarchar(max);
@@ -74,7 +74,7 @@ select top 200 rc.sql_text, q.counts, q.cpu_time_seconds_avg, q.logical_reads_gb
 		rc.database_name, rc.client_app_name, rc.username, rc.client_hostname, rc.row_count
 		/* ,q.* ,rc.* */
 from #queries q
-outer apply (select top 1 * from dbo.resource_consumption rc 
+cross apply (select top 1 * from dbo.resource_consumption rc 
 			where rc.event_time between @start_time and @end_time
 			"+(CASE WHEN @database_name IS NULL THEN "--" ELSE "" END)+"and rc.database_name = @database_name
 			and rc.sql_text like ('%'+@table_name+'%')
@@ -82,8 +82,13 @@ outer apply (select top 1 * from dbo.resource_consumption rc
 			and q.[grouping-key] = (case when rc.client_app_name like 'SQL Job = %' then rc.client_app_name else left(DBA_Admin.dbo.normalized_sql_text(rc.sql_text,150,0),@str_length) end)
 			--order by rc.logical_reads desc
 			) rc
---where [grouping-key] not like '(dba) %'
---order by [logical_reads_mb] desc
+--where q.[grouping-key] like 'SELECT%'
+--and q.[grouping-key] like '%INTO%'
+--and q.[grouping-key] like '%FROM%'
+--and q.[grouping-key] like '%dbo.led'
+--and rc.database_name = 'ACCOUNT'
+--and rc.username like 'AWS_Vendor%'
+--and rc.client_app_name like 'python%'
 order by [counts] desc
 option (recompile)
 "
@@ -91,6 +96,14 @@ set quoted_identifier on;
 
 exec sp_ExecuteSql @sql_string, N'@database_name nvarchar(255), @start_time datetime, @end_time datetime, @str_length smallint, @table_name nvarchar(500)', 
 					@database_name, @start_time, @end_time, @str_length, @table_name
+
+--select *
+--from #queries q
+--where q.[grouping-key] like 'SELECT%'
+--and q.[grouping-key] like '%INTO%'
+--and q.[grouping-key] like '%FROM%'
+--and q.[grouping-key] like '%dbo.led'
+
 /*
 select top 1000 
 		sqlsig = DBA_Admin.dbo.normalized_sql_text(sql_text,150,0), 

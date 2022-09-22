@@ -1,6 +1,6 @@
 USE [DBA_Admin]
--- Find long running statements of session
-declare @table_name nvarchar(225) = 'FORMULA_CLIENT_MASTER';
+-- Find long running statements
+declare @table_name nvarchar(225) = 'V2_Uploaded_Files';
 declare @no_of_days tinyint = 7;
 declare @database_name nvarchar(255);
 declare @index_name nvarchar(255);
@@ -49,6 +49,7 @@ t_queries as (
 																		  when [sql_handle] is not null then [sql_handle]
 																		  else isnull(convert(varchar(max), sql_text),convert(varchar(max), [sql_command]))
 																		  end))
+			,[query_plan_count] = COUNT(1) over (partition by [query_hash], [query_plan_hash])
 			,[query_identifier_rowid] = ROW_NUMBER()over(partition by left((case when [query_hash] is not null then [query_hash] 
 											when [sql_handle] is not null then [sql_handle]
 											else isnull(convert(varchar(max), sql_text),convert(varchar(max), [sql_command])) 
