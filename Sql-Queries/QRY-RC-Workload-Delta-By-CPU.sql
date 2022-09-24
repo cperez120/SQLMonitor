@@ -1,12 +1,12 @@
-use DBA_Admin
+use DBA
 go
 
 set nocount on;
 declare @top_filter int = 30;
-declare @start_time_snap1	datetime2 = '2022-09-22 07:30';
-declare @start_time_snap2	datetime2 = '2022-09-23 07:30';
-declare @end_time_snap1		datetime2 = '2022-09-22 08:40';
-declare @end_time_snap2		datetime2 = '2022-09-23 08:40';
+declare @start_time_snap1	datetime2 = '2022-09-22 20:35';
+declare @start_time_snap2	datetime2 = '2022-09-23 20:35';
+declare @end_time_snap1		datetime2 = '2022-09-22 21:30';
+declare @end_time_snap2		datetime2 = '2022-09-23 21:30';
 
 if object_id('tempdb..#current') is not null 
 	drop table #current;

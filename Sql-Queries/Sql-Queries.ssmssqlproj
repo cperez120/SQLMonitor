@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="(local)\SQL2014:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="(local)\SQL2014:LAB\adwivedi">
           <Created>2022-07-06T20:24:56.7104104+05:30</Created>
           <Type>SQL</Type>
           <Server>(local)\SQL2014</Server>
@@ -147,7 +147,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="Demo\SQL2019:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="Demo\SQL2019:LAB\adwivedi">
           <Created>2022-05-25T21:03:07.4495467+05:30</Created>
           <Type>SQL</Type>
           <Server>Demo\SQL2019</Server>
@@ -183,7 +183,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="Localhost:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="Localhost:LAB\adwivedi">
           <Created>2022-04-22T22:49:27.0461072+05:30</Created>
           <Type>SQL</Type>
           <Server>Localhost</Server>
@@ -195,7 +195,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="SqlMonitor:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="SqlMonitor:LAB\adwivedi">
           <Created>2022-05-19T09:35:03.9545125+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlMonitor</Server>
@@ -207,7 +207,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="SqlPractice:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="SqlPractice:LAB\adwivedi">
           <Created>2022-07-07T20:00:25.5159543+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlPractice</Server>
@@ -219,7 +219,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="WORKSTATION:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="WORKSTATION:LAB\adwivedi">
           <Created>2022-05-19T08:46:41.5053748+05:30</Created>
           <Type>SQL</Type>
           <Server>WORKSTATION</Server>
@@ -231,7 +231,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="Workstation\SQL2014:21L-LTPABL-1187\Ajay">
+        <ConnectionNode Name="Workstation\SQL2014:LAB\adwivedi">
           <Created>2022-07-10T09:54:14.6355193+05:30</Created>
           <Type>SQL</Type>
           <Server>Workstation\SQL2014</Server>
@@ -308,9 +308,9 @@
           <FullPath>QRY-Grafana-Dynamic-Sql-Simplified.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-RC-Workload-Delta-By-CPU.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.207:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>196.1.115.207</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>QRY-RC-Workload-Delta-By-CPU.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-RC-Workload-Delta-By-Reads.sql">
