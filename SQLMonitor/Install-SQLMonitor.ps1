@@ -1306,7 +1306,14 @@ $stepName = '12__CreateCredentialProxy'
 if( $requireProxy -and ($stepName -in $Steps2Execute) ) 
 {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    $credentialName = $WindowsCredential.UserName
+    
+    # If non-domain server, then added HostName in credential name
+    if( $domain -in @('WORKGROUP','WORKGROUP.com') -and (-not $WindowsCredential.UserName.Contains('\')) ) {
+        $credentialName = "$HostName\$($WindowsCredential.UserName)"
+    }
+    else {
+        $credentialName = $WindowsCredential.UserName
+    }
     $credentialPassword = $WindowsCredential.Password
 
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Create new SQL Credential [$credentialName] on [$SqlInstanceForPowershellJobs].."
