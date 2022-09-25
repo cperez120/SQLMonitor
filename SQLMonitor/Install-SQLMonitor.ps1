@@ -1300,14 +1300,10 @@ if($stepName -in $Steps2Execute) {
     }
 }
 
-
-# 12__CreateCredentialProxy. Create Credential & Proxy on SQL Server. If Instance being baselined is same as data collector job owner
-$stepName = '12__CreateCredentialProxy'
-if( $requireProxy -and ($stepName -in $Steps2Execute) ) 
+# If non-domain server, then added HostName in credential name
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Add hostname in Credential name if non-domain server.."
+if(-not [String]::IsNullOrEmpty($WindowsCredential))
 {
-    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
-    
-    # If non-domain server, then added HostName in credential name
     if( $domain -in @('WORKGROUP','WORKGROUP.com') -and (-not $WindowsCredential.UserName.Contains('\')) ) {
         $credentialName = "$HostName\$($WindowsCredential.UserName)"
     }
@@ -1315,6 +1311,13 @@ if( $requireProxy -and ($stepName -in $Steps2Execute) )
         $credentialName = $WindowsCredential.UserName
     }
     $credentialPassword = $WindowsCredential.Password
+}
+
+# 12__CreateCredentialProxy. Create Credential & Proxy on SQL Server. If Instance being baselined is same as data collector job owner
+$stepName = '12__CreateCredentialProxy'
+if( $requireProxy -and ($stepName -in $Steps2Execute) ) 
+{
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
 
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Create new SQL Credential [$credentialName] on [$SqlInstanceForPowershellJobs].."
     $dbaCredential = @()
@@ -1633,9 +1636,10 @@ if($stepName -in $Steps2Execute)
 $stepName = '22__CreateJobUpdateSqlServerVersions'
 if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer) 
 {
+    $jobName = '(dba) Update-SqlServerVersions'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UpdateSqlServerVersionsJobFilePath = '$UpdateSqlServerVersionsJobFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Update-SqlServerVersions] on [$SqlInstanceToBaseline].."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobName] on [$SqlInstanceToBaseline].."
     $sqlUpdateSqlServerVersions = [System.IO.File]::ReadAllText($UpdateSqlServerVersionsJobFilePath).Replace('-SqlInstance localhost', "-SqlInstance `"$SqlInstanceToBaseline`"")
 
     if($RemoteSQLMonitorPath -ne 'C:\SQLMonitor') {
@@ -1648,11 +1652,11 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlUpdateSqlServerVersions -SqlCredential $SqlCredential -EnableException
 
     if($requireProxy) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [(dba) Update-SqlServerVersions] to run under proxy [$credentialName].."
-        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'Update-SqlServerVersions', @step_id=1 ,@proxy_name=N'$credentialName';"
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [$jobName] to run under proxy [$credentialName].."
+        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'$jobName', @step_id=1 ,@proxy_name=N'$credentialName';"
         Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlUpdateJob -SqlCredential $SqlCredential -EnableException
     }
-    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Update-SqlServerVersions';"
+    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'$jobName';"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlStartJob -SqlCredential $SqlCredential -EnableException
 }
 
@@ -1662,9 +1666,10 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
 $stepName = '23__CreateJobCheckInstanceAvailability'
 if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer) 
 {
+    $jobName = '(dba) Check-InstanceAvailability'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CheckInstanceAvailabilityJobFilePath = '$CheckInstanceAvailabilityJobFilePath'"
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [(dba) Check-InstanceAvailability] on [$SqlInstanceToBaseline].."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobName] on [$SqlInstanceToBaseline].."
     $sqlGetInstanceAvailability = [System.IO.File]::ReadAllText($CheckInstanceAvailabilityJobFilePath)
     $sqlGetInstanceAvailability = $sqlGetInstanceAvailability.Replace('-InventoryServer localhost', "-InventoryServer `"$SqlInstanceToBaseline`"")
     $sqlGetInstanceAvailability = $sqlGetInstanceAvailability.Replace('-InventoryDatabase DBA', "-InventoryDatabase `"$InventoryDatabase`"")
@@ -1679,11 +1684,11 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlGetInstanceAvailability -SqlCredential $SqlCredential -EnableException
 
     if($requireProxy) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [(dba) Check-InstanceAvailability] to run under proxy [$credentialName].."
-        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'Check-InstanceAvailability', @step_id=1 ,@proxy_name=N'$credentialName';"
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update job [$jobName] to run under proxy [$credentialName].."
+        $sqlUpdateJob = "EXEC msdb.dbo.sp_update_jobstep @job_name=N'$jobName', @step_id=1 ,@proxy_name=N'$credentialName';"
         Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlUpdateJob -SqlCredential $SqlCredential -EnableException
     }
-    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Check-InstanceAvailability';"
+    $sqlStartJob = "EXEC msdb.dbo.sp_start_job @job_name=N'$jobName';"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database msdb -Query $sqlStartJob -SqlCredential $SqlCredential -EnableException
 }
 
@@ -1737,7 +1742,7 @@ $stepName = '26__EnablePageCompression'
 if( ($stepName -in $Steps2Execute) -and ($skipPageCompression -eq $false) -and $IsCompressionSupported) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
 
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Execute procdure [usp_enable_page_compression] on [$SqlInstanceToBaseline].."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Execute procedure [usp_enable_page_compression] on [$SqlInstanceToBaseline].."
     $sqlExecuteUspEnablePageCompression = "exec dbo.usp_enable_page_compression;"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlExecuteUspEnablePageCompression -SqlCredential $SqlCredential -EnableException
 }
