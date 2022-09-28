@@ -21,14 +21,16 @@ SQLMonitor is designed as opensource tool to replace expensive enterprise monito
 [![YouTube Tutorial on SQLMonitor](https://github.com/imajaydwivedi/Images/blob/master/SQLMonitor/YouTube-Thumbnail-Live-All-Servers.png)](https://ajaydwivedi.com/youtube/sqlmonitor)<br>
 
 ### Features
-- Highly customizable granularity to capture important spikes in server workload.
-- Grafana for real-time dashboarding
-- Minimal performance impact (around 1% on a single core SQL Instance)
-- Out of the box collection with minimal configuration required to get it up and running
-- Zero maintenance. It has been designed to maintain itself.
-- Unlimited scalability. As each instance monitors itself, we are not constraint by the capacity of the monitoring server.
-- Works with all supported SQL Servers (with some limitations on 2008R2).
-- Smart alerting (self clearing) with ability to use Emails, PagerDuty & Slack as target.
+- Simple & customizable as metric collection happens through SQL Agent jobs.
+- Grafana based Central & Individual dashboards to analyze metrics
+- Collection jobs using stored procedures with data loading utilizing very small sized perfmon/xevent files puts very minimal performance overhead.
+- Highly optimized grafana dashboard queries using dynamically Parameterized tsql makes the data visualization to scale well even when dashboard users increase.
+- Near to zero manual configuration required. Purging controlled through just one table/job.
+- Depending on version of SQL Server, tables are automatically "Hourly" partitioned & Compressed. So index or other maintenance not even required.
+- Utilizing Memory Optimized tables on central server for core stability metric storage gives it Unlimited scalability. 
+- Tools has capability to allow same or different sql instance as Data Target. Thus gives high flexibility & scalability.
+- Works with all supported SQL Servers (with some limitations on 2008R2 like XEvent not available).
+- Utilizing Grafana Unified Alerting gives flexibility to create meaningful alerts.
 
 ## Live Dashboard - Basic Metrics
 You can visit [http://ajaydwivedi.ddns.net:3000](http://ajaydwivedi.ddns.net:3000/d/Fg8Q_wSMz/monitoring-live?orgId=1&refresh=30s&from=now-30m&to=now) for live dashboard for basic real time monitoring.<br><br>
