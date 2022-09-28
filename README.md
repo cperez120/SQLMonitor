@@ -22,6 +22,7 @@ SQLMonitor is designed as opensource tool to replace expensive enterprise monito
 
 ### Features
 - Simple & customizable as metric collection happens through SQL Agent jobs.
+- Easy to debug since entire SQLMonitor tools is built of just few tables, stored procedures & sql agent jobs.
 - Grafana based Central & Individual dashboards to analyze metrics
 - Collection jobs using stored procedures with data loading utilizing very small sized perfmon/xevent files puts very minimal performance overhead.
 - Highly optimized grafana dashboard queries using dynamically Parameterized tsql makes the data visualization to scale well even when dashboard users increase.
