@@ -116,7 +116,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1664245863939,
+  "iteration": 1664523435754,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -2095,7 +2095,7 @@
             {
               "targetBlank": true,
               "title": "Wait Stats Dashboard",
-              "url": "d/wait_stats"
+              "url": "d/wait_stats?var-server=${server}"
             }
           ],
           "mappings": [],
@@ -4914,8 +4914,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               },
@@ -6038,6 +6037,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 255,
+  "version": 256,
   "weekStart": ""
 }
