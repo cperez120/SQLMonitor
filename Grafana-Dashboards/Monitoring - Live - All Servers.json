@@ -63,7 +63,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1664523436517,
+  "iteration": 1665508410238,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -547,6 +547,16 @@
               {
                 "id": "displayName",
                 "value": "Waits Per Core Per Minute"
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "Wait Stats Dashboard",
+                    "url": "d/wait_stats?var-server=${__data.fields.srv_name}"
+                  }
+                ]
               }
             ]
           },
@@ -1042,6 +1052,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - All Servers",
   "uid": "distributed_live_dashboard_all_servers",
-  "version": 121,
+  "version": 122,
   "weekStart": ""
 }
