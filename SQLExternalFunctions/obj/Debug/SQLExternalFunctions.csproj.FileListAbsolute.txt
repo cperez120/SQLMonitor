@@ -1,6 +1,0 @@
-D:\GitHub-Personal\SQLMonitor\SQLExternalFunctions\bin\Debug\SQLExternalFunctions.dll
-D:\GitHub-Personal\SQLMonitor\SQLExternalFunctions\bin\Debug\SQLExternalFunctions.pdb
-D:\GitHub-Personal\SQLMonitor\SQLExternalFunctions\obj\Debug\SQLExternalFunctions.csproj.AssemblyReference.cache
-D:\GitHub-Personal\SQLMonitor\SQLExternalFunctions\obj\Debug\SQLExternalFunctions.csproj.CoreCompileInputs.cache
-D:\GitHub-Personal\SQLMonitor\SQLExternalFunctions\obj\Debug\SQLExternalFunctions.dll
-D:\GitHub-Personal\SQLMonitor\SQLExternalFunctions\obj\Debug\SQLExternalFunctions.pdb

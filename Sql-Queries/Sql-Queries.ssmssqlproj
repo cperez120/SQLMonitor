@@ -3,6 +3,18 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
+        <ConnectionNode Name="(local):LAB\adwivedi">
+          <Created>2022-10-11T15:39:50.2848444+05:30</Created>
+          <Type>SQL</Type>
+          <Server>(local)</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="(local)\SQL2014:LAB\adwivedi">
           <Created>2022-07-06T20:24:56.7104104+05:30</Created>
           <Type>SQL</Type>
@@ -219,6 +231,18 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="SqlProd1:LAB\adwivedi">
+          <Created>2022-10-11T06:04:42.6526645+05:30</Created>
+          <Type>SQL</Type>
+          <Server>SqlProd1</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB>DBA</InitialDB>
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="WORKSTATION:LAB\adwivedi">
           <Created>2022-05-19T08:46:41.5053748+05:30</Created>
           <Type>SQL</Type>
@@ -288,6 +312,12 @@
           <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>QRY-Get-Database-Growth-Over-Time.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-Get-Partitions-Record-Count-Metrics.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>QRY-Get-Partitions-Record-Count-Metrics.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-Grafana-Dynamic-Sql-Database-Filter.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:WORKSTATION:True</AssociatedConnectionMoniker>

@@ -950,7 +950,7 @@ else {
 
 # 2__AllDatabaseObjects
 $stepName = '2__AllDatabaseObjects'
-if($stepName -in $Steps2Execute) 
+if($stepName -in $Steps2Execute)
 {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating All Objects in [$DbaDatabase] database.."

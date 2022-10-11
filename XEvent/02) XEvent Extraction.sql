@@ -210,7 +210,7 @@ CREATE TABLE [dbo].[resource_consumption]
 	--,[context_info] [varchar](1000) NULL
 	--,[event_data] [xml] NULL
 	,constraint pk_resource_consumption primary key clustered (event_time,start_time,[row_id])
-) on ps_dba (start_time)
+) on ps_dba_datetime2_hourly (start_time)
 GO
 
 create unique index uq_resource_consumption on [dbo].[resource_consumption]  ([start_time], [event_time], [row_id])

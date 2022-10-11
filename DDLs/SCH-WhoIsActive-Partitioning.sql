@@ -19,5 +19,5 @@ GO
 USE [DBA];
 IF OBJECT_ID('dbo.WhoIsActive') IS NOT NULL AND NOT EXISTS (select * from sys.indexes where [object_id] = OBJECT_ID('dbo.WhoIsActive') and type_desc = 'CLUSTERED')
 	ALTER TABLE dbo.WhoIsActive ADD CONSTRAINT pk_WhoIsActive PRIMARY KEY CLUSTERED  (collection_time, cpu_rank)
-		ON [ps_dba_datetime] (collection_time);
+		ON [ps_dba_datetime_hourly] (collection_time);
 GO

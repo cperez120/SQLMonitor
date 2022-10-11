@@ -49,28 +49,87 @@ IF DB_NAME() = 'master'
 go
 
 /* ****** 1) Partition function for [datetime2] & [datetime] ******* */
---drop partition function pf_dba
+--drop partition function pf_dba_datetime2_hourly
 declare @is_partitioned bit = 1;
-if not exists (select * from sys.partition_functions where name = 'pf_dba') and @is_partitioned = 1
-	exec ('create partition function pf_dba (datetime2) as range right for values (convert(smalldatetime,cast(getdate() as date)))')
+if not exists (select * from sys.partition_functions where name = 'pf_dba_datetime2_hourly') and @is_partitioned = 1
+	exec ('create partition function pf_dba_datetime2_hourly (datetime2) as range right for values (convert(smalldatetime,cast(getdate() as date)))')
 go
---drop partition function pf_dba_datetime
+--drop partition function pf_dba_datetime2_daily
 declare @is_partitioned bit = 1;
-if not exists (select * from sys.partition_functions where name = 'pf_dba_datetime') and @is_partitioned = 1
-	exec ('create partition function pf_dba_datetime (datetime) as range right for values (convert(smalldatetime,cast(getdate() as date)))')
+if not exists (select * from sys.partition_functions where name = 'pf_dba_datetime2_daily') and @is_partitioned = 1
+	exec ('create partition function pf_dba_datetime2_daily (datetime2) as range right for values (convert(smalldatetime,cast(getdate() as date)))')
 go
-
+--drop partition function pf_dba_datetime2_monthly
+declare @is_partitioned bit = 1;
+if not exists (select * from sys.partition_functions where name = 'pf_dba_datetime2_monthly') and @is_partitioned = 1
+	exec ('create partition function pf_dba_datetime2_monthly (datetime2) as range right for values (convert(smalldatetime,cast(getdate() as date)))')
+go
+--drop partition function pf_dba_datetime2_quarterly
+declare @is_partitioned bit = 1;
+if not exists (select * from sys.partition_functions where name = 'pf_dba_datetime2_quarterly') and @is_partitioned = 1
+	exec ('create partition function pf_dba_datetime2_quarterly (datetime2) as range right for values (convert(smalldatetime,cast(getdate() as date)))')
+go
+--drop partition function pf_dba_datetime_hourly
+declare @is_partitioned bit = 1;
+if not exists (select * from sys.partition_functions where name = 'pf_dba_datetime_hourly') and @is_partitioned = 1
+	exec ('create partition function pf_dba_datetime_hourly (datetime) as range right for values (convert(smalldatetime,cast(getdate() as date)))')
+go
+--drop partition function pf_dba_datetime_daily
+declare @is_partitioned bit = 1;
+if not exists (select * from sys.partition_functions where name = 'pf_dba_datetime_daily') and @is_partitioned = 1
+	exec ('create partition function pf_dba_datetime_daily (datetime) as range right for values (convert(smalldatetime,cast(getdate() as date)))')
+go
+--drop partition function pf_dba_datetime_monthly
+declare @is_partitioned bit = 1;
+if not exists (select * from sys.partition_functions where name = 'pf_dba_datetime_monthly') and @is_partitioned = 1
+	exec ('create partition function pf_dba_datetime_monthly (datetime) as range right for values (convert(smalldatetime,cast(getdate() as date)))')
+go
+--drop partition function pf_dba_datetime_quarterly
+declare @is_partitioned bit = 1;
+if not exists (select * from sys.partition_functions where name = 'pf_dba_datetime_quarterly') and @is_partitioned = 1
+	exec ('create partition function pf_dba_datetime_quarterly (datetime) as range right for values (convert(smalldatetime,cast(getdate() as date)))')
+go
 
 /* ****** 2) Partition Scheme for [datetime2] & [datetime] ******* */
---drop partition scheme ps_dba
+--drop partition scheme ps_dba_datetime2_hourly
 declare @is_partitioned bit = 1;
-if not exists (select * from sys.partition_schemes where name = 'ps_dba') and @is_partitioned = 1
-	exec ('create partition scheme ps_dba as partition pf_dba all to ([primary])')
+if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime2_hourly') and @is_partitioned = 1
+	exec ('create partition scheme ps_dba_datetime2_hourly as partition pf_dba_datetime2_hourly all to ([primary])')
 go
---drop partition scheme ps_dba_datetime
+--drop partition scheme ps_dba_datetime2_daily
 declare @is_partitioned bit = 1;
-if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime') and @is_partitioned = 1
-	exec ('create partition scheme ps_dba_datetime as partition pf_dba_datetime all to ([primary])')
+if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime2_daily') and @is_partitioned = 1
+	exec ('create partition scheme ps_dba_datetime2_daily as partition pf_dba_datetime2_daily all to ([primary])')
+go
+--drop partition scheme ps_dba_datetime2_monthly
+declare @is_partitioned bit = 1;
+if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime2_monthly') and @is_partitioned = 1
+	exec ('create partition scheme ps_dba_datetime2_monthly as partition pf_dba_datetime2_monthly all to ([primary])')
+go
+--drop partition scheme ps_dba_datetime2_quarterly
+declare @is_partitioned bit = 1;
+if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime2_quarterly') and @is_partitioned = 1
+	exec ('create partition scheme ps_dba_datetime2_quarterly as partition pf_dba_datetime2_quarterly all to ([primary])')
+go
+--drop partition scheme ps_dba_datetime_hourly
+declare @is_partitioned bit = 1;
+if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime_hourly') and @is_partitioned = 1
+	exec ('create partition scheme ps_dba_datetime_hourly as partition pf_dba_datetime_hourly all to ([primary])')
+go
+--drop partition scheme ps_dba_datetime_daily
+declare @is_partitioned bit = 1;
+if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime_daily') and @is_partitioned = 1
+	exec ('create partition scheme ps_dba_datetime_daily as partition pf_dba_datetime_daily all to ([primary])')
+go
+--drop partition scheme ps_dba_datetime_monthly
+declare @is_partitioned bit = 1;
+if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime_monthly') and @is_partitioned = 1
+	exec ('create partition scheme ps_dba_datetime_monthly as partition pf_dba_datetime_monthly all to ([primary])')
+go
+--drop partition scheme ps_dba_datetime_quarterly
+declare @is_partitioned bit = 1;
+if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime_quarterly') and @is_partitioned = 1
+	exec ('create partition scheme ps_dba_datetime_quarterly as partition pf_dba_datetime_quarterly all to ([primary])')
 go
 
 
@@ -166,20 +225,20 @@ begin
 		[counter] [varchar](255) NOT NULL,
 		[value] numeric(38,10) NULL,
 		[instance] [varchar](255) NULL
-	) on ps_dba ([collection_time_utc])
+	) on ps_dba_datetime2_hourly ([collection_time_utc])
 end
 go
 
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[performance_counters]') and name = 'ci_performance_counters')
 begin
 	create clustered index ci_performance_counters on [dbo].[performance_counters] 
-	([collection_time_utc], [host_name], object, counter, [instance], [value]) on ps_dba ([collection_time_utc])
+	([collection_time_utc], [host_name], object, counter, [instance], [value]) on ps_dba_datetime2_hourly ([collection_time_utc])
 end
 go
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[performance_counters]') and name = 'nci_counter_collection_time_utc')
 begin
 	create nonclustered index nci_counter_collection_time_utc
-	on [dbo].[performance_counters] ([counter],[collection_time_utc]) on ps_dba ([collection_time_utc])
+	on [dbo].[performance_counters] ([counter],[collection_time_utc]) on ps_dba_datetime2_hourly ([collection_time_utc])
 end
 GO
 
@@ -228,8 +287,8 @@ begin
 		(
 			[file_name] ASC,
 			[collection_time_utc] ASC
-		) on ps_dba ([collection_time_utc])
-	) on ps_dba ([collection_time_utc])
+		) on ps_dba_datetime2_hourly ([collection_time_utc])
+	) on ps_dba_datetime2_hourly ([collection_time_utc])
 end
 GO
 
@@ -263,13 +322,13 @@ begin
 		[cpu_time] [char](14) NOT NULL,
 		[cpu_time_seconds] bigint NOT NULL,
 		[window_title] [nvarchar](2000) NULL
-	) on ps_dba ([collection_time_utc])
+	) on ps_dba_datetime2_hourly ([collection_time_utc])
 end
 go
 
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'ci_os_task_list')
 begin
-	create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [host_name], [task_name]) on ps_dba ([collection_time_utc])
+	create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [host_name], [task_name]) on ps_dba_datetime2_hourly ([collection_time_utc])
 end
 go
 
@@ -316,14 +375,14 @@ begin
 		[wait_time_ms] [bigint] NOT NULL,
 		[max_wait_time_ms] [bigint] NOT NULL,
 		[signal_wait_time_ms] [bigint] NOT NULL,
-		constraint pk_wait_stats primary key ([collection_time_utc], [wait_type]) on ps_dba ([collection_time_utc])
-	) on ps_dba ([collection_time_utc])
+		constraint pk_wait_stats primary key ([collection_time_utc], [wait_type]) on ps_dba_datetime2_hourly ([collection_time_utc])
+	) on ps_dba_datetime2_hourly ([collection_time_utc])
 end
 GO
 
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[wait_stats]') and type_desc = 'CLUSTERED')
 begin
-	alter table [dbo].[wait_stats] add constraint pk_wait_stats primary key ([collection_time_utc], [wait_type]) on ps_dba ([collection_time_utc])
+	alter table [dbo].[wait_stats] add constraint pk_wait_stats primary key ([collection_time_utc], [wait_type]) on ps_dba_datetime2_hourly ([collection_time_utc])
 end
 go
 
@@ -480,14 +539,14 @@ BEGIN
 		[session_resource_pool_id] [int] NULL,
 		[session_resource_group_id] [int] NULL,
 		[scheduler_id] [int] NULL
-		,constraint pk_resource_consumption primary key clustered (event_time,start_time,[row_id]) on ps_dba ([event_time])
-	) on ps_dba ([event_time])
+		,constraint pk_resource_consumption primary key clustered (event_time,start_time,[row_id]) on ps_dba_datetime2_hourly ([event_time])
+	) on ps_dba_datetime2_hourly ([event_time])
 END
 GO
 
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[resource_consumption]') and name = 'uq_resource_consumption')
 begin
-	create unique index uq_resource_consumption on [dbo].[resource_consumption]  ([start_time], [event_time], [row_id]) on ps_dba ([start_time])
+	create unique index uq_resource_consumption on [dbo].[resource_consumption]  ([start_time], [event_time], [row_id]) on ps_dba_datetime2_hourly ([start_time])
 end
 GO
 
@@ -545,8 +604,8 @@ begin
 		[block_size] [int] NULL,
 		[filesystem] [varchar](125) NULL,
 
-		constraint pk_disk_space primary key ([collection_time_utc],[host_name],[disk_volume]) on ps_dba ([collection_time_utc])
-	) on ps_dba ([collection_time_utc]);
+		constraint pk_disk_space primary key ([collection_time_utc],[host_name],[disk_volume]) on ps_dba_datetime2_hourly ([collection_time_utc])
+	) on ps_dba_datetime2_hourly ([collection_time_utc]);
 end
 go
 
@@ -591,7 +650,7 @@ begin
 	select top 1 @current_boundary_value = convert(datetime2,prv.value)
 	from sys.partition_range_values prv
 	join sys.partition_functions pf on pf.function_id = prv.function_id
-	where pf.name = 'pf_dba'
+	where pf.name = 'pf_dba_datetime2_hourly'
 	order by prv.value desc;
 
 	-- Set current boundary to current time. So that no time waste in creating old partitions
@@ -607,8 +666,8 @@ begin
 		set @current_boundary_value = DATEADD(hour,1,@current_boundary_value);
 		--print @current_boundary_value
 		begin try
-			alter partition scheme ps_dba next used [primary];
-			alter partition function pf_dba() split range (@current_boundary_value);	
+			alter partition scheme ps_dba_datetime2_hourly next used [primary];
+			alter partition function pf_dba_datetime2_hourly() split range (@current_boundary_value);	
 		end try
 		begin catch
 			print error_message();
@@ -633,7 +692,7 @@ begin
 			select convert(datetime2,prv.value) as boundary_value
 			from sys.partition_range_values prv
 			join sys.partition_functions pf on pf.function_id = prv.function_id
-			where pf.name = 'pf_dba' and convert(datetime2,prv.value) < @target_boundary_value
+			where pf.name = 'pf_dba_datetime2_hourly' and convert(datetime2,prv.value) < @target_boundary_value
 			order by prv.value asc;
 
 	open cur_boundaries;
@@ -641,7 +700,7 @@ begin
 	while @@FETCH_STATUS = 0
 	begin
 		--print @partition_boundary
-		alter partition function pf_dba() merge range (@partition_boundary);
+		alter partition function pf_dba_datetime2_hourly() merge range (@partition_boundary);
 
 		fetch next from cur_boundaries into @partition_boundary;
 	end

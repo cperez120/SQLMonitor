@@ -63,6 +63,18 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="SqlProd1:LAB\adwivedi">
+          <Created>2022-10-10T22:11:13.9722189+05:30</Created>
+          <Type>SQL</Type>
+          <Server>SqlProd1</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB>DBA</InitialDB>
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="WORKSTATION:LAB\adwivedi">
           <Created>2022-09-11T13:54:28.4063405+05:30</Created>
           <Type>SQL</Type>
