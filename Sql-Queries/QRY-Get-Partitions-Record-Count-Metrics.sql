@@ -6,9 +6,9 @@ GO
 		- partition range, partition key, 
 		- partition number, row_counts
 */
-declare @PartitionBoundaryValue_StartDate date = dateadd(day,-3,getdate());
-declare @PartitionBoundaryValue_EndDate_EXCLUSIVE date = dateadd(day,-2,getdate());
-declare @TableName nvarchar(125) = 'WhoIsActive';
+declare @PartitionBoundaryValue_StartDate date --= dateadd(day,-3,getdate());
+declare @PartitionBoundaryValue_EndDate_EXCLUSIVE date --= dateadd(day,-2,getdate());
+declare @TableName nvarchar(125) = 'performance_counters';
 
 declare @sql nvarchar(max);
 
@@ -45,7 +45,7 @@ INNER JOIN sys.columns AS c ON pstats.object_id = c.object_id AND ic.column_id =
 LEFT JOIN sys.partition_range_values AS prv ON pf.function_id = prv.function_id AND pstats.partition_number = (CASE pf.boundary_value_on_right WHEN 0 THEN prv.boundary_id ELSE (prv.boundary_id+1) END)
 WHERE 1=1
 "+(case when @TableName is null then '--' else '' end)+"and (pstats.object_id = OBJECT_ID(@TableName))
-"+(case when @PartitionBoundaryValue_StartDate is null then '--' else '' end)+"and (prv.value >= @PartitionBoundaryValue_StartDate and prv.value < @PartitionBoundaryValue_EndDate_EXCLUSIVE)
+"+(case when @PartitionBoundaryValue_StartDate is null then '--' else '' end)+"and (prv.value >= @PartitionBoundaryValue_StartDate and prv.value < @PartitionBoundaryValue_EndDate_EXCLUSIVE) 
 ORDER BY TableName, PartitionNumber;
 "
 

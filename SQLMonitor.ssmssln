@@ -29,11 +29,11 @@ Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Inventory", "Inventory\Inve
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "SQLMonitor", "SQLMonitor\SQLMonitor.ssmssqlproj", "{A2809BF5-2DC1-4625-8138-85BD21CCC063}"
 EndProject
-Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "SQLExternalFunctions", "SQLExternalFunctions\SQLExternalFunctions.ssmssqlproj", "{2FF5E1CD-BC0D-4C91-8E10-40B9071A2DCA}"
-EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "TSQLTextNormalizer", "TSQLTextNormalizer\TSQLTextNormalizer.ssmssqlproj", "{8361BF0D-D5D7-41F5-A572-E81A55DED3E0}"
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Org-Project-196", "Org-Project-196\Org-Project-196.ssmssqlproj", "{2274180E-7145-420B-AC10-7F94780C22D0}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "z__POC__z", "z__POC__z\z__POC__z.ssmssqlproj", "{0C31F870-692A-460E-9B58-84F20276D137}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,10 +53,10 @@ Global
 		{FD50C689-B82C-4567-A1B8-FD20792E9A73}.Default|Default.ActiveCfg = Default
 		{D2134DE5-7115-43EF-828C-15557CAEF230}.Default|Default.ActiveCfg = Default
 		{A2809BF5-2DC1-4625-8138-85BD21CCC063}.Default|Default.ActiveCfg = Default
-		{2FF5E1CD-BC0D-4C91-8E10-40B9071A2DCA}.Default|Default.ActiveCfg = Default
 		{8361BF0D-D5D7-41F5-A572-E81A55DED3E0}.Default|Default.ActiveCfg = Default
-		{8C1EE8B6-393B-417A-B5D1-BBD958C27ADC}.Default|Default.ActiveCfg = Default
 		{2274180E-7145-420B-AC10-7F94780C22D0}.Default|Default.ActiveCfg = Default
+		{B501736F-5222-4D60-9E93-E48AE71BB826}.Default|Default.ActiveCfg = Default
+		{0C31F870-692A-460E-9B58-84F20276D137}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
