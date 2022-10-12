@@ -1,3 +1,6 @@
+use DBA
+go
+
 IF DB_NAME() = 'master'
 	raiserror ('Kindly execute all queries in [DBA] database', 20, -1) with log;
 go
@@ -30,8 +33,8 @@ AS
 BEGIN
 
 	/*
-		Version:		1.0.1
-		Update:			2022-10-12 - Removed Staging Table Logic. Also removed computed columns to avoid single threaded search.
+		Version:		1.0.0
+		Date:			2022-07-01
 
 		EXEC dbo.usp_run_WhoIsActive @recipients = 'some_dba_mail_id@gmail.com'
 		EXEC dbo.usp_run_WhoIsActive @recipients = 'some_dba_mail_id@gmail.com', @verbose = 2 ,@drop_recreate = 1
