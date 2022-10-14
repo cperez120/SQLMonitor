@@ -10,27 +10,28 @@ SET NUMERIC_ROUNDABORT OFF;
 SET ARITHABORT ON;
 GO
 
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'usp_collect_wait_stats')
-    EXEC ('CREATE PROC dbo.usp_collect_wait_stats AS SELECT ''stub version, to be replaced''')
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'usp_collect_file_io_stats')
+    EXEC ('CREATE PROC dbo.usp_collect_file_io_stats AS SELECT ''stub version, to be replaced''')
 GO
 
-ALTER PROCEDURE dbo.usp_collect_wait_stats
+ALTER PROCEDURE dbo.usp_collect_file_io_stats
 (	@threshold_continous_failure tinyint = 3, /* Send mail only when failure is x times continously */
 	@notification_delay_minutes tinyint = 10, /* Send mail only after a gap of x minutes from last mail */ 
 	@is_test_alert bit = 0, /* enable for alert testing */
 	@verbose tinyint = 0, /* 0 - no messages, 1 - debug messages, 2 = debug messages + table results */
 	@recipients varchar(500) = 'some_dba_mail_id@gmail.com', /* Folks who receive the failure mail */
-	@alert_key varchar(100) = 'Collect-WaitStats', /* Subject of Failure Mail */
+	@alert_key varchar(100) = 'Collect-FileIOStats', /* Subject of Failure Mail */
 	@send_error_mail bit = 1 /* Send mail on failure */
 )
 AS 
 BEGIN
 
 	/*
-		Version:		1.0.0
+		Version:		1.0.1
 		Date:			2022-10-13
 
-		EXEC dbo.usp_collect_wait_stats @recipients = 'some_dba_mail_id@gmail.com'
+		EXEC dbo.usp_collect_file_io_stats @recipients = 'some_dba_mail_id@gmail.com'
+		EXEC dbo.usp_collect_file_io_stats @verbose = 1
 
 		Additional Requirements
 		1) Default Global Mail Profile
@@ -42,7 +43,7 @@ BEGIN
 	SET LOCK_TIMEOUT 60000; -- 60 seconds
 
 	-- Local Variables
-	DECLARE @_sql NVARCHAR(MAX);
+	DECLARE @_s NVARCHAR(MAX);
 	DECLARE @_collection_time datetime = GETDATE();
 	DECLARE @_last_sent_failed_active datetime;
 	DECLARE @_last_sent_failed_cleared datetime;
@@ -51,6 +52,7 @@ BEGIN
 	DECLARE @_job_name nvarchar(500);
 	DECLARE @_continous_failures tinyint = 0;
 	DECLARE @_send_mail bit = 0;
+	DECLARE @_rows_affected bigint = 0;
 
 	SET @_job_name = '(dba) '+@alert_key;
 
@@ -68,12 +70,40 @@ BEGIN
 	BEGIN TRY
 
 		IF @verbose > 0
-			PRINT 'Start Try Block..';	
-		INSERT [dbo].[wait_stats]
-		([collection_time_utc], [wait_type], [waiting_tasks_count], [wait_time_ms], [max_wait_time_ms], [signal_wait_time_ms])
-		SELECT [collection_time_utc] = sysutcdatetime(), [wait_type], [waiting_tasks_count], [wait_time_ms], [max_wait_time_ms], [signal_wait_time_ms]
-		FROM sys.dm_os_wait_stats
-		WHERE [waiting_tasks_count] > 0;
+			PRINT 'Start Try Block..';
+		if @verbose > 0
+			print 'Populate IO Latency Stats..'
+		
+		insert [dbo].[file_io_stats]
+		(	[collection_time_utc], [database_name], [database_id], [file_logical_name], [file_id], [file_location], [sample_ms], 
+			[num_of_reads], [num_of_bytes_read], [io_stall_read_ms], [io_stall_queued_read_ms], [num_of_writes], [num_of_bytes_written], 
+			[io_stall_write_ms], [io_stall_queued_write_ms], [io_stall], [size_on_disk_bytes], [io_pending_count], [io_pending_ms_ticks_total], 
+			[io_pending_ms_ticks_avg], [io_pending_ms_ticks_max], [io_pending_ms_ticks_min]
+		)
+		select  [collection_time_utc] = sysutcdatetime(), 
+				d.name as [database_name], d.database_id, mf.name as file_logical_name, mf.file_id, mf.physical_name as file_location,
+				vfs.sample_ms, vfs.num_of_reads, vfs.num_of_bytes_read, vfs.io_stall_read_ms, vfs.io_stall_queued_read_ms,
+				vfs.num_of_writes, vfs.num_of_bytes_written, vfs.io_stall_write_ms, vfs.io_stall_queued_write_ms, 
+				vfs.io_stall, vfs.size_on_disk_bytes, 
+				ps.io_count, ps.io_pending_ms_ticks_total, ps.io_pending_ms_ticks_avg, ps.io_pending_ms_ticks_max, ps.io_pending_ms_ticks_min
+		from sys.dm_io_virtual_file_stats(null,null) vfs
+		join sys.master_files mf on mf.database_id = vfs.database_id and mf.file_id = vfs.file_id
+		join sys.databases d on d.database_id = mf.database_id
+		left join (	select	r.io_handle, 
+							io_pending_ms_ticks_min = MIN(io_pending_ms_ticks),
+							io_pending_ms_ticks_max = MAX(io_pending_ms_ticks),
+							io_pending_ms_ticks_avg = AVG(io_pending_ms_ticks),
+							io_pending_ms_ticks_total = SUM(io_pending_ms_ticks),
+							io_count = COUNT_BIG(*)
+					from sys.dm_io_pending_io_requests as r 
+					where r.io_type = 'disk'
+					group by r.io_handle
+				) ps
+			on ps.io_handle = vfs.file_handle;
+
+		set @_rows_affected = @@ROWCOUNT;
+
+		print 'Rows affected = '+convert(varchar,@_rows_affected);
 
 	END TRY  -- Perform main logic inside Try/Catch
 	BEGIN CATCH
@@ -97,7 +127,7 @@ BEGIN
 			PRINT CHAR(9)+'Inside Catch Block. Get recent '+cast(@threshold_continous_failure as varchar)+' execution entries from logs..'
 		IF @product_version IS NOT NULL
 		BEGIN
-			SET @_sql = N'
+			SET @_s = N'
 			DECLARE @threshold_continous_failure tinyint = @_threshold_continous_failure;
 			SET @threshold_continous_failure -= 1;
 			SELECT	[run_date_time] = msdb.dbo.agent_datetime(run_date, run_time),
@@ -109,7 +139,7 @@ BEGIN
 		END
 		ELSE
 		BEGIN
-			SET @_sql = N'
+			SET @_s = N'
 			DECLARE @threshold_continous_failure tinyint = @_threshold_continous_failure;
 			SET @threshold_continous_failure -= 1;
 			
@@ -127,9 +157,9 @@ BEGIN
 		END
 
 		IF @verbose > 1
-			PRINT CHAR(9)+@_sql;
+			PRINT CHAR(9)+@_s;
 		INSERT #CommandLog
-		EXEC sp_executesql @_sql, N'@_job_name varchar(500), @_threshold_continous_failure tinyint', @_job_name = @_job_name, @_threshold_continous_failure = @threshold_continous_failure;
+		EXEC sp_executesql @_s, N'@_job_name varchar(500), @_threshold_continous_failure tinyint', @_job_name = @_job_name, @_threshold_continous_failure = @threshold_continous_failure;
 
 		SELECT @_continous_failures = COUNT(*)+1 FROM #CommandLog WHERE [status] = 'Failure';
 
