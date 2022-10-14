@@ -1,3 +1,6 @@
+use DBA
+go
+
 IF DB_NAME() = 'master'
 	raiserror ('Kindly execute all queries in [DBA] database', 20, -1) with log;
 go
@@ -15,24 +18,23 @@ IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'u
 GO
 
 ALTER PROCEDURE dbo.usp_run_WhoIsActive
-(	@drop_recreate bit = 0, /* Drop and recreate table */
-	@destination_table VARCHAR(4000) = 'dbo.WhoIsActive', /* Destination table Name */
-	@send_error_mail bit = 1, /* Send mail on failure */
-	@threshold_continous_failure tinyint = 3, /* Send mail only when failure is x times continously */
-	@notification_delay_minutes tinyint = 15, /* Send mail only after a gap of x minutes from last mail */ 
-	@is_test_alert bit = 0, /* enable for alert testing */
+(	@retention_day int = 30,
+	@drop_recreate bit = 0,
+	@destination_table VARCHAR(4000) = 'dbo.WhoIsActive',
+	@send_error_mail bit = 1,
+	@threshold_continous_failure tinyint = 3,
+	@notification_delay_minutes tinyint = 15,
+	@is_test_alert bit = 0,
 	@verbose tinyint = 0, /* 0 - no messages, 1 - debug messages, 2 = debug messages + table results */
-	@recipients varchar(500) = 'some_dba_mail_id@gmail.com', /* Folks who receive the failure mail */
-	@alert_key varchar(100) = 'Run-WhoIsActive', /* Subject of Failure Mail */
-	@retention_day int = 30, /* No of days for data retention */
-	@purge_flag bit = 1 /* When enabled, then based on @retention_day, old data would be purged */
+	@recipients varchar(500) = 'some_dba_mail_id@gmail.com',
+	@alert_key varchar(100) = 'Run-WhoIsActive'
 )
 AS 
 BEGIN
 
 	/*
-		Version:		1.0.1
-		Update:			2022-10-12 - Removed Staging Table Logic. Also removed computed columns to avoid single threaded search.
+		Version:		1.0.0
+		Date:			2022-07-01
 
 		EXEC dbo.usp_run_WhoIsActive @recipients = 'some_dba_mail_id@gmail.com'
 		EXEC dbo.usp_run_WhoIsActive @recipients = 'some_dba_mail_id@gmail.com', @verbose = 2 ,@drop_recreate = 1
@@ -47,9 +49,9 @@ BEGIN
 	SET LOCK_TIMEOUT 60000; -- 60 seconds
 
 	/* Derived Parameters */
-	--DECLARE @staging_table VARCHAR(4000) = @destination_table+'_Staging';
+	DECLARE @staging_table VARCHAR(4000) = @destination_table+'_Staging';
 
-	IF (@recipients IS NULL OR @recipients = 'some_dba_mail_id@gmail.com') AND @verbose = 0
+	IF @recipients IS NULL OR @recipients = 'some_dba_mail_id@gmail.com'
 		raiserror ('@recipients is mandatory parameter', 20, -1) with log;
 
 	DECLARE @_output VARCHAR(8000);
@@ -173,18 +175,15 @@ BEGIN
 			PRINT 'End Step 02: Add Indexes & computed Columns..'+char(10);
 
 		-- Step 03: Purge Old data
-		IF @purge_flag = 1
-		BEGIN
-			IF @verbose > 0
-				PRINT 'Start Step 03: Purge Old data..';
-			SET @_output += '<br>Execute Step 03: Purge Old data..'+CHAR(10);
-			SET @_sqlString = 'DELETE FROM '+@destination_table+' where collection_time < DATEADD(day,-'+cast(@retention_day as varchar)+',getdate());'
-			IF @verbose > 1
-				PRINT @_tab+@_sqlString;
-			EXEC(@_sqlString);
-			IF @verbose > 0
-				PRINT 'End Step 03: Purge Old data..'+char(10);
-		END
+		IF @verbose > 0
+			PRINT 'Start Step 03: Purge Old data..';
+		SET @_output += '<br>Execute Step 03: Purge Old data..'+CHAR(10);
+		SET @_sqlString = 'DELETE FROM '+@destination_table+' where collection_time < DATEADD(day,-'+cast(@retention_day as varchar)+',getdate());'
+		IF @verbose > 1
+			PRINT @_tab+@_sqlString;
+		EXEC(@_sqlString);
+		IF @verbose > 0
+			PRINT 'End Step 03: Purge Old data..'+char(10);
 
 		-- Step 04: Populate WhoIsActive table
 		IF @verbose > 0

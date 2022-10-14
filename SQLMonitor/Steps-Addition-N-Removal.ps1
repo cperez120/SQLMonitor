@@ -5,33 +5,28 @@ Param (
     [String]$Action = "AddStep",
 
     [Parameter(Mandatory=$false)]
-    [String]$StepName = "5__SomeNewStepName",
+    [String]$StepName = "18__CreateJobCollectFileIOStats",
     
     [Parameter(Mandatory=$false)]
-    [String[]]$AllSteps = @( "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
-                "4__RemoveJob_CollectWaitStats", "5__RemoveJob_CollectXEvents", "6__RemoveJob_PartitionsMaintenance",
-                "7__RemoveJob_PurgeTables", "8__RemoveJob_RemoveXEventFiles", "9__RemoveJob_RunWhoIsActive",
-                "10__RemoveJob_UpdateSqlServerVersions", "11__RemoveJob_CheckInstanceAvailability", "12__DropProc_UspExtendedResults",
-                "13__DropProc_UspCollectWaitStats", "14__DropProc_UspRunWhoIsActive", "15__DropProc_UspCollectXEventsResourceConsumption",
-                "16__DropProc_UspPartitionMaintenance", "17__DropProc_UspPurgeTables", "18__DropProc_SpWhatIsRunning",
-                "19__DropView_VwPerformanceCounters", "20__DropView_VwOsTaskList", "21__DropView_VwWaitStatsDeltas",
-                "22__DropXEvent_ResourceConsumption", "23__DropLinkedServer", "24__DropLogin_Grafana",
-                "25__DropTable_ResourceConsumption", "26__DropTable_ResourceConsumptionProcessedXELFiles", "27__DropTable_WhoIsActive_Staging",
-                "28__DropTable_WhoIsActive", "29__DropTable_PerformanceCounters", "30__DropTable_PurgeTable",
-                "31__DropTable_PerfmonFiles", "32__DropTable_InstanceDetails", "33__DropTable_InstanceHosts",
-                "34__DropTable_OsTaskList", "35__DropTable_BlitzWho", "36__DropTable_BlitzCache",
-                "37__DropTable_ConnectionHistory", "38__DropTable_BlitzFirst", "39__DropTable_BlitzFirstFileStats",
-                "40__DropTable_DiskSpace", "41__DropTable_BlitzFirstPerfmonStats", "42__DropTable_BlitzFirstWaitStats",
-                "43__DropTable_BlitzFirstWaitStatsCategories", "44__DropTable_WaitStats", "45__RemovePerfmonFilesFromDisk",
-                "46__RemoveXEventFilesFromDisk", "47__DropProxy", "48__DropCredential", "49__RemoveInstanceFromInventory"
+    [String[]]$AllSteps = @( "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
+                "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__OlaHallengrenSolutionObjects",
+                "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
+                "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateCredentialProxy",
+                "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData",
+                "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobCollectFileIOStats",
+                "19__CreateJobPartitionsMaintenance", "20__CreateJobPurgeTables", "21__CreateJobRemoveXEventFiles",
+                "22__CreateJobRunWhoIsActive", "23__CreateJobRunBlitzIndex", "24__CreateJobUpdateSqlServerVersions",
+                "25__CreateJobCheckInstanceAvailability", "26__CreateJobGetAllServerInfo", "27__WhoIsActivePartition",
+                "28__EnablePageCompression", "29__GrafanaLogin", "30__LinkedServerOnInventory",
+                "31__LinkedServerForDataDestinationInstance", "32__AlterViewsForDataDestinationInstance"
                 ),
 
     [Parameter(Mandatory=$false)]
     [Bool]$PrintUserFriendlyFormat = $true,
 
     [Parameter(Mandatory=$false)]
-    [String]$ScriptFile = 'F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1'
-                          #'F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1'
+    [String]$ScriptFile = #'F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1'
+                          'F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1'
 )
 
 cls

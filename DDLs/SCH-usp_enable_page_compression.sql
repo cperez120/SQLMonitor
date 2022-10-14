@@ -15,14 +15,16 @@ IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'u
 GO
 
 ALTER PROCEDURE dbo.usp_enable_page_compression
+	@verbose tinyint = 0,
+	@dry_run bit = 0
 WITH EXECUTE AS OWNER AS 
 BEGIN
 
 	/*
-		Version:		1.0.0
-		Date:			2022-07-15
+		Version:		1.0.1
+		Date:			2022-10-15
 
-		exec usp_enable_page_compression;
+		exec usp_enable_page_compression @verbose = 2, @dry_run = 1;
 	*/
 	SET NOCOUNT ON; 
 	declare @table_name nvarchar(125);
@@ -30,6 +32,11 @@ BEGIN
 	declare @sql_text nvarchar(4000);
 	declare @counter int = 1;
 	declare @index_counts int = 0;
+	--declare @sql nvarchar(max);
+	--declare @params nvarchar(max);
+	--declare @err_message nvarchar(2000);
+	declare @crlf nchar(2);
+	declare @tab nchar(1);
 
 	declare @index_table_to_compress table (id int identity(1,1) not null, table_name nvarchar(125) not null, index_name nvarchar(125) null);
 
@@ -45,10 +52,20 @@ BEGIN
 				 ('dbo.wait_stats',NULL),
 				 ('dbo.resource_consumption', NULL),
 				 ('dbo.resource_consumption','uq_resource_consumption'),
-				 ('dbo.disk_space',NULL)
+				 ('dbo.disk_space',NULL),
+				 ('dbo.BlitzIndex',NULL),
+				 ('dbo.WrongName',NULL)
 		) table_indexes(table_name, index_name);
 
 	select @index_counts = count(*) from @index_table_to_compress;
+
+	if @verbose > 0
+	begin
+		select	running_query = '@index_table_to_compress',
+				is_existing = case when OBJECT_ID(table_name) is null then 0 else 1 end, 
+				*
+		from @index_table_to_compress;
+	end
 
 	while @counter <= @index_counts
 	begin
@@ -70,8 +87,16 @@ BEGIN
 						ALTER INDEX '+quotename(@index_name)+' ON '+@table_name+' REBUILD PARTITION = ALL WITH (DATA_COMPRESSION = PAGE);  
 				'+char(10)
 		end
-		--print @sql_text;
-		exec (@sql_text);
+
+		if OBJECT_ID(@table_name) is not null
+		begin
+			if @verbose > 0
+				print @sql_text;
+			if @dry_run = 0
+				exec (@sql_text);
+		end
+		else
+			print 'Table '+@table_name+' does not exist.'
 
 		set @counter = @counter + 1;
 	end

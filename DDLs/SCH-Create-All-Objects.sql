@@ -1,5 +1,5 @@
 /*
-	Version -> v2.0.0
+	Version -> v2.0.1
 	-----------------
 
 	*** Self Pre Steps ***
@@ -29,18 +29,19 @@
 	10) Create View [dbo].[vw_os_task_list] for Multi SqlCluster on same nodes Architecture
 	11) Create table  [dbo].[wait_stats] using Partition scheme
 	12) Create table  [dbo].[BlitzFirst_WaitStats_Categories]
-	13) Create view  [dbo].[wait_stats]
+	13) Create view  [dbo].[vw_wait_stats]
+	14) Create table [dbo].[file_io_stats]
 	15) Create required schemas
-	15) Set DBA database trustworthy & [sa] owner
-	16) Create procedure dbo.usp_extended_results
-	17) Create table [dbo].[resource_consumption]
-	18) Create table [dbo].[resource_consumption_Processed_XEL_Files]
-	19) Create table [dbo].[disk_space] using Partition scheme
-	20) Create View [dbo].[vw_disk_space] for Multi SqlCluster on same nodes Architecture
-	21) Add boundaries to partition. 1 boundary per hour
-	22) Remove boundaries with retention of 3 months
-	23) Validate Partition Data	
-	24) Populate [dbo].[BlitzFirst_WaitStats_Categories]
+	16) Set DBA database trustworthy & [sa] owner
+	17) Create procedure dbo.usp_extended_results
+	18) Create table [dbo].[resource_consumption]
+	19) Create table [dbo].[resource_consumption_Processed_XEL_Files]
+	20) Create table [dbo].[disk_space] using Partition scheme
+	21) Create View [dbo].[vw_disk_space] for Multi SqlCluster on same nodes Architecture
+	22) Add boundaries to partition. 1 boundary per hour
+	23) Remove boundaries with retention of 3 months
+	24) Validate Partition Data	
+	25) Populate [dbo].[BlitzFirst_WaitStats_Categories]
 
 */
 
@@ -151,6 +152,19 @@ begin
 	);
 end
 go
+
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.BlitzIndex')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.BlitzIndex', 
+			date_key = 'run_datetime', 
+			retention_days = 90, 
+			purge_row_size = 100000,
+			reference = 'SQLMonitor Data Collection'
+end
+go
+
 
 
 /* ***** 4) Create table dbo.instance_hosts ***************************** */
@@ -415,7 +429,7 @@ end
 GO
 
 
-/* ***** 13) Create view  [dbo].[wait_stats] ***************** */
+/* ***** 13) Create view  [dbo].[vw_wait_stats] ***************** */
 -- DROP VIEW [dbo].[vw_wait_stats_deltas];
 if OBJECT_ID('[dbo].[vw_wait_stats_deltas]') is null
 	exec ('CREATE VIEW [dbo].[vw_wait_stats_deltas] AS SELECT 1 as Dummy');
@@ -454,7 +468,59 @@ WHERE [w].[wait_time_ms] >= [wPrior].[wait_time_ms]
 GO
 
 
-/* ***** 14) Create required schemas ***************** */
+/* ***** 14) Create table  [dbo].[file_io_stats] using Partition scheme ***************** */
+-- drop table [dbo].[file_io_stats]
+if OBJECT_ID('[dbo].[file_io_stats]') is null
+begin
+	CREATE TABLE [dbo].[file_io_stats]
+	(
+		[collection_time_utc] [datetime2](7) NOT NULL,
+		[database_name] [sysname] NOT NULL,
+		[database_id] [int] NOT NULL,
+		[file_logical_name] [sysname] NOT NULL,
+		[file_id] [int] NOT NULL,
+		[file_location] [nvarchar](260) NOT NULL,
+		[sample_ms] [bigint] NOT NULL,
+		[num_of_reads] [bigint] NOT NULL,
+		[num_of_bytes_read] [bigint] NOT NULL,
+		[io_stall_read_ms] [bigint] NOT NULL,
+		[io_stall_queued_read_ms] [bigint] NOT NULL,
+		[num_of_writes] [bigint] NOT NULL,
+		[num_of_bytes_written] [bigint] NOT NULL,
+		[io_stall_write_ms] [bigint] NOT NULL,
+		[io_stall_queued_write_ms] [bigint] NOT NULL,
+		[io_stall] [bigint] NOT NULL,
+		[size_on_disk_bytes] [bigint] NOT NULL,
+		[io_pending_count] [bigint] NULL DEFAULT 0,
+		[io_pending_ms_ticks_total] [bigint] NULL DEFAULT 0,
+		[io_pending_ms_ticks_avg] [bigint] NULL DEFAULT 0,
+		[io_pending_ms_ticks_max] [bigint] NULL DEFAULT 0,
+		[io_pending_ms_ticks_min] [bigint] NULL DEFAULT 0
+	) on ps_dba_datetime2_hourly ([collection_time_utc]);
+end
+GO
+
+if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[file_io_stats]') and type_desc = 'CLUSTERED')
+begin
+	alter table [dbo].[file_io_stats] add constraint pk_file_io_stats primary key clustered ([collection_time_utc], [database_id], [file_id]) on ps_dba_datetime2_hourly ([collection_time_utc])
+end
+go
+
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.file_io_stats')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.file_io_stats', 
+			date_key = 'collection_time_utc', 
+			retention_days = 15, 
+			purge_row_size = 100000,
+			reference = 'SQLMonitor Data Collection'
+end
+go
+
+
+
+/* ***** 15) Create required schemas ***************** */
 if not exists (select * from sys.schemas where name = 'bkp')
 	exec ('CREATE SCHEMA [bkp]')
 GO
@@ -468,7 +534,7 @@ if not exists (select * from sys.schemas where name = 'tst')
 	exec ('CREATE SCHEMA [tst]')
 GO
 
-/* ***** 15) Set DBA database trustworthy & [sa] owner ***************** */
+/* ***** 16) Set DBA database trustworthy & [sa] owner ***************** */
 declare @dbname nvarchar(255);
 set @dbname=quotename(db_name());
 
@@ -485,7 +551,7 @@ end
 go
 
 
-/* ***** 15) Create procedure dbo.usp_extended_results ***************** */
+/* ***** 17) Create procedure dbo.usp_extended_results ***************** */
 -- drop procedure usp_extended_results
 if OBJECT_ID('dbo.usp_extended_results') is null
 	exec('create procedure dbo.usp_extended_results as select 1 as dummy;')
@@ -509,7 +575,7 @@ end
 go
 
 
-/* ***** 17) Create table [dbo].[resource_consumption] ***************** */
+/* ***** 18) Create table [dbo].[resource_consumption] ***************** */
 -- DROP TABLE [dbo].[resource_consumption]
 IF OBJECT_ID('[dbo].[resource_consumption]') IS NULL
 BEGIN
@@ -562,7 +628,7 @@ begin
 end
 go
 
-/* ***** 18) Create table [dbo].[resource_consumption_Processed_XEL_Files] ***************** */
+/* ***** 19) Create table [dbo].[resource_consumption_Processed_XEL_Files] ***************** */
 -- drop table dbo.resource_consumption_Processed_XEL_Files
 if OBJECT_ID('dbo.resource_consumption_Processed_XEL_Files') is null
 begin
@@ -590,7 +656,7 @@ end
 go
 
 
-/* ***** 19) Create table [dbo].[disk_space] using Partition scheme *********** */
+/* ***** 20) Create table [dbo].[disk_space] using Partition scheme *********** */
 if OBJECT_ID('[dbo].[disk_space]') is null
 begin
 	CREATE TABLE [dbo].[disk_space]
@@ -604,8 +670,8 @@ begin
 		[block_size] [int] NULL,
 		[filesystem] [varchar](125) NULL,
 
-		constraint pk_disk_space primary key ([collection_time_utc],[host_name],[disk_volume]) on ps_dba_datetime2_hourly ([collection_time_utc])
-	) on ps_dba_datetime2_hourly ([collection_time_utc]);
+		constraint pk_disk_space primary key ([collection_time_utc],[host_name],[disk_volume]) on ps_dba_datetime2_daily ([collection_time_utc])
+	) on ps_dba_datetime2_daily ([collection_time_utc]);
 end
 go
 
@@ -621,7 +687,7 @@ begin
 end
 go
 
-/* ***** 20) Create View [dbo].[vw_disk_space] for Multi SqlCluster on same nodes Architecture */
+/* ***** 21) Create View [dbo].[vw_disk_space] for Multi SqlCluster on same nodes Architecture */
 -- drop view dbo.vw_disk_space
 if OBJECT_ID('dbo.vw_disk_space') is null
 	exec ('create view dbo.vw_disk_space as select 1 as dummy;')
@@ -638,7 +704,7 @@ select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb,
 go
 
 
-/* ***** 21) Add boundaries to partition. 1 boundary per hour ***************** */
+/* ***** 22) Add boundaries to partition. 1 boundary per hour ***************** */
 set nocount on;
 declare @is_partitioned bit = 1;
 if @is_partitioned = 1
@@ -677,7 +743,7 @@ end
 go
 
 
-/* ***** 22) Remove boundaries with retention of 3 months ***************** */
+/* ***** 23) Remove boundaries with retention of 3 months ***************** */
 set nocount on;
 declare @is_partitioned bit = 1;
 if @is_partitioned = 1
@@ -710,11 +776,11 @@ end
 go
 
 
-/* ***** 23) Validate Partition Data ***************** */
+/* ***** 24) Validate Partition Data ***************** */
 -- Check query 'SQL-Queries\check-table-partitions.sql'
 
 
-/* ***** 24) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
+/* ***** 25) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
 IF OBJECT_ID('[dbo].[BlitzFirst_WaitStats_Categories]') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM [dbo].[BlitzFirst_WaitStats_Categories])
 BEGIN
 	--TRUNCATE TABLE [dbo].[BlitzFirst_WaitStats_Categories];

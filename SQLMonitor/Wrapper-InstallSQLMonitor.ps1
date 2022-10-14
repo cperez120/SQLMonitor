@@ -5,12 +5,12 @@
 cls
 Import-Module dbatools;
 $params = @{
-    SqlInstanceToBaseline = 'SqlPractice'
+    SqlInstanceToBaseline = 'Workstation'
     DbaDatabase = 'DBA'
     #HostName = 'Workstation'
     #RetentionDays = 7
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
-    RemoteSQLMonitorPath = 'C:\SQLMonitor'
+    #RemoteSQLMonitorPath = 'C:\SQLMonitor'
     InventoryServer = 'SQLMonitor'
     InventoryDatabase = 'DBA'
     DbaGroupMailId = 'some_dba_mail_id@gmail.com'
@@ -22,16 +22,17 @@ $params = @{
                 "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
                 "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateCredentialProxy",
                 "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData",
-                "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
-                "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
-                "22__CreateJobUpdateSqlServerVersions", "23__CreateJobCheckInstanceAvailability", "24__CreateJobGetAllServerInfo",
-                "25__WhoIsActivePartition", "26__EnablePageCompression", "27__GrafanaLogin",
-                "28__LinkedServerOnInventory", "29__LinkedServerForDataDestinationInstance", "30__AlterViewsForDataDestinationInstance")
+                "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobCollectFileIOStats",
+                "19__CreateJobPartitionsMaintenance", "20__CreateJobPurgeTables", "21__CreateJobRemoveXEventFiles",
+                "22__CreateJobRunWhoIsActive", "23__CreateJobRunBlitzIndex", "24__CreateJobUpdateSqlServerVersions",
+                "25__CreateJobCheckInstanceAvailability", "26__CreateJobGetAllServerInfo", "27__WhoIsActivePartition",
+                "28__EnablePageCompression", "29__GrafanaLogin", "30__LinkedServerOnInventory",
+                "31__LinkedServerForDataDestinationInstance", "32__AlterViewsForDataDestinationInstance")
     #>
     #StartAtStep = '1__sp_WhoIsActive'
-    #StopAtStep = '30__AlterViewsForDataDestinationInstance'
+    #StopAtStep = '32__AlterViewsForDataDestinationInstance'
     #DropCreatePowerShellJobs = $true
-    DryRun = $false
+    #DryRun = $false
     #SkipRDPSessionSteps = $true
     #SkipPowerShellJobs = $true
     #SkipTsqlJobs = $true
@@ -46,6 +47,7 @@ $params = @{
 F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params #-Debug
 
 
+# Get-Help F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 -ShowWindow
 #Get-DbaDbMailProfile -SqlInstance '192.168.56.31' -SqlCredential $personalCredential
 #Copy-DbaDbMail -Source '192.168.56.15' -Destination '192.168.56.31' -SourceSqlCredential $personalCredential -DestinationSqlCredential $personalCredential # Lab
 #New-DbaCredential -SqlInstance 'xy' -Identity $LabCredential.UserName -SecurePassword $LabCredential.Password -Force # -SqlCredential $SqlCredential -EnableException
