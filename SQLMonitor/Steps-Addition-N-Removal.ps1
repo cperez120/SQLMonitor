@@ -13,12 +13,12 @@ Param (
                 "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
                 "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateCredentialProxy",
                 "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData",
-                "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
-                "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
-                "22__CreateJobRunBlitzIndex", "23__CreateJobUpdateSqlServerVersions", "24__CreateJobCheckInstanceAvailability",
-                "25__CreateJobGetAllServerInfo", "26__WhoIsActivePartition", "27__EnablePageCompression",
-                "28__GrafanaLogin", "29__LinkedServerOnInventory", "30__LinkedServerForDataDestinationInstance",
-                "31__AlterViewsForDataDestinationInstance"
+                "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobCollectFileIOStats",
+                "19__CreateJobPartitionsMaintenance", "20__CreateJobPurgeTables", "21__CreateJobRemoveXEventFiles",
+                "22__CreateJobRunWhoIsActive", "23__CreateJobRunBlitzIndex", "24__CreateJobUpdateSqlServerVersions",
+                "25__CreateJobCheckInstanceAvailability", "26__CreateJobGetAllServerInfo", "27__WhoIsActivePartition",
+                "28__EnablePageCompression", "29__GrafanaLogin", "30__LinkedServerOnInventory",
+                "31__LinkedServerForDataDestinationInstance", "32__AlterViewsForDataDestinationInstance"
                 ),
 
     [Parameter(Mandatory=$false)]

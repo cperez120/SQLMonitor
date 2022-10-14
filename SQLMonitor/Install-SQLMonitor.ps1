@@ -223,6 +223,12 @@ Param (
     [bool]$DryRun = $false
 )
 
+$startTime = Get-Date
+$ErrorActionPreference = "Stop"
+
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline] with [$DbaDatabase] database." | Write-Host -ForegroundColor Yellow
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "For help, kindly reach out to 'Ajay Dwivedi <ajay.dwivedi2007@gmail.com>'`n" | Write-Host -ForegroundColor Yellow
+
 # All Steps
 $AllSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
                 "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__OlaHallengrenSolutionObjects",
@@ -261,6 +267,10 @@ if($SkipRDPSessionSteps) {
     $SkipSteps = $SkipSteps + $($RDPSessionSteps | % {if($_ -notin $SkipSteps){$_}});
 }
 
+# Print Job Step names
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$PowerShellJobSteps => `n`n`t`t`t`t$($PowerShellJobSteps -join "`n`t`t`t`t")`n"
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$RDPSessionSteps => `n`n`t`t`t`t$($RDPSessionSteps -join "`n`t`t`t`t")`n"
+
 # Add $TsqlJobSteps to Skip Jobs
 if($SkipTsqlJobs) {
     $SkipSteps = $SkipSteps + $($TsqlJobSteps | % {if($_ -notin $SkipSteps){$_}});
@@ -277,10 +287,6 @@ if($SkipTsqlJobs -and $SkipPowerShellJobs) {
     $SkipAllJobs = $true
 }
 
-cls
-$startTime = Get-Date
-$ErrorActionPreference = "Stop"
-
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Clearing old PSSessions.."
 Get-PSSession | Remove-PSSession
 
@@ -289,8 +295,10 @@ if($SqlInstanceToBaseline -eq '.' -or $SqlInstanceToBaseline -eq 'localhost') {
     Write-Error "Stop here. Fix above issue."
 }
 
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline] with [$DbaDatabase] database." | Write-Host -ForegroundColor Yellow
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "For help, kindly reach out to 'Ajay Dwivedi <ajay.dwivedi2007@gmail.com>'`n" | Write-Host -ForegroundColor Yellow
+if($DbaGroupMailId -eq 'some_dba_mail_id@gmail.com') {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide a valid value for DbaGroupMailId parameter." | Write-Host -ForegroundColor Red
+    Write-Error "Stop here. Fix above issue."
+}
 
 # Evaluate path of SQLMonitor folder
 if( (-not [String]::IsNullOrEmpty($PSScriptRoot)) -or ((-not [String]::IsNullOrEmpty($SQLMonitorPath)) -and $(Test-Path $SQLMonitorPath)) ) {
@@ -1043,8 +1051,8 @@ if($stepName -in $Steps2Execute)
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspRunWhoIsActiveFilePath = '$UspRunWhoIsActiveFilePath'"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspRunWhoIsActiveFilePath -SqlCredential $SqlCredential -EnableException
 
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspCollectFileIOStatsFileName = '$UspCollectFileIOStatsFileName'"
-    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspCollectFileIOStatsFileName -SqlCredential $SqlCredential -EnableException
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspCollectFileIOStatsFilePath = '$UspCollectFileIOStatsFilePath'"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspCollectFileIOStatsFilePath -SqlCredential $SqlCredential -EnableException
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$SqlInstanceToBaseline].[$DbaDatabase].[dbo].[instance_hosts].."
     $sqlAddInstanceHost = @"
@@ -1110,13 +1118,15 @@ if($stepName -in $Steps2Execute)
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Since Express Edition, setting retention to $RetentionDays days.." | Write-Host -ForegroundColor Cyan
         }
         else {
-            if([String]::IsNullOrEmpty($RetentionDays)) {
+            if([String]::IsNullOrEmpty($RetentionDays) -or $RetentionDays -eq 0) {
                 $RetentionDays = 14
             }
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Setting retention to $RetentionDays days.." | Write-Host -ForegroundColor Cyan
         }
         
-        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query "update dbo.purge_table set retention_days = $RetentionDays where retention_days > $RetentionDays" -SqlCredential $SqlCredential -EnableException
+        $sqlSetPurgeThreshold = "update dbo.purge_table set retention_days = $RetentionDays where retention_days > $RetentionDays"
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$sqlSetPurgeThreshold => `n`n`t$sqlSetPurgeThreshold"
+        Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlSetPurgeThreshold -SqlCredential $SqlCredential -EnableException
     }
 }
 
@@ -1124,7 +1134,7 @@ if($stepName -in $Steps2Execute)
 # 3__XEventSession
 $stepName = '3__XEventSession'
 if( ($stepName -in $Steps2Execute) -and ($MajorVersion -ge 11) ) {
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$XEventSessionFilePath = '$XEventSessionFilePath'"
 
     $dbaDatabasePathParent = Split-Path $dbaDatabasePath -Parent
@@ -1673,11 +1683,11 @@ if($stepName -in $Steps2Execute)
     $sqlRunWhoIsActive = [System.IO.File]::ReadAllText($RunWhoIsActiveJobFilePath)
     $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
     $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace('-d DBA', "-d `"$DbaDatabase`"")
-    $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace("''some_dba_mail_id@gmail.com''", "''$($DbaGroupMailId -join ';')'';" )
+    $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace("''some_dba_mail_id@gmail.com''", "''$($DbaGroupMailId -join ';')''" )
     if($jobNameNew -ne $jobName) {
         $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace($jobName, $jobNameNew)
     }
-
+    
     Invoke-DbaQuery -SqlInstance $SqlInstanceForTsqlJobs -Database msdb -Query $sqlRunWhoIsActive -SqlCredential $SqlCredential -EnableException
 }
 
