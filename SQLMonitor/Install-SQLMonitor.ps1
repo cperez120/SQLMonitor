@@ -1075,8 +1075,8 @@ if($stepName -in $Steps2Execute)
 
     # Populate $InventoryServer
     if($InventoryServer -ne $SqlInstanceToBaseline) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$InventoryServer].[$DbaDatabase].[dbo].[instance_hosts].."
-        Invoke-DbaQuery -SqlInstance $InventoryServer -Database $DbaDatabase -Query $sqlAddInstanceHost -SqlCredential $SqlCredential -EnableException | ft -AutoSize
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$InventoryServer].[$InventoryDatabase].[dbo].[instance_hosts].."
+        Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $sqlAddInstanceHost -SqlCredential $SqlCredential -EnableException | ft -AutoSize
     }
 
 
@@ -1107,7 +1107,7 @@ if($stepName -in $Steps2Execute)
 
     # Populate $InventoryServer
     if($InventoryServer -ne $SqlInstanceToBaseline) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$InventoryServer].[$DbaDatabase].[dbo].[instance_details].."
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$InventoryServer].[$InventoryDatabase].[dbo].[instance_details].."
         Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $sqlAddInstanceHostMapping -SqlCredential $SqlCredential -EnableException | ft -AutoSize
     }
 
@@ -1226,10 +1226,10 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$GetAllServerInfoFilePath = '$GetAllServerInfoFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating usp_GetAllServerInfo procedure in [$DbaDatabase] database.."
     if([String]::IsNullOrEmpty($SqlCredential)) {
-        Invoke-Sqlcmd -ServerInstance $InventoryServer -Database $DbaDatabase -InputFile $GetAllServerInfoFilePath
+        Invoke-Sqlcmd -ServerInstance $InventoryServer -Database $InventoryDatabase -InputFile $GetAllServerInfoFilePath
     }
     else {
-        Invoke-Sqlcmd -ServerInstance $InventoryServer -Database $DbaDatabase -InputFile $GetAllServerInfoFilePath -Credential $SqlCredential
+        Invoke-Sqlcmd -ServerInstance $InventoryServer -Database $InventoryDatabase -InputFile $GetAllServerInfoFilePath -Credential $SqlCredential
     }
     #Invoke-DbaQuery -SqlInstance $InventoryServer -Database $DbaDatabase -File $GetAllServerInfoFilePath -EnableException
 }
