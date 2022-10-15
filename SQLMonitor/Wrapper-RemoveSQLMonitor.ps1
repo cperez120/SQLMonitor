@@ -5,22 +5,25 @@
 cls
 Import-Module dbatools;
 $params = @{
-    SqlInstanceToBaseline = 'Demo\SQL2019'
-    DbaDatabase = 'DBA_Admin'
+    SqlInstanceToBaseline = 'Experiment\SQL2019'
+    DbaDatabase = 'DBA'
+    HostName = 'Experiment'
     InventoryServer = 'SQLMonitor'
     InventoryDatabase = 'DBA'
     RemoteSQLMonitorPath = 'C:\SQLMonitor'
     #SqlCredential = $saAdmin
-    #WindowsCredential = $DomainCredential
+    #WindowsCredential = $localAdmin
     #SkipSteps = @("43__RemovePerfmonFilesFromDisk")
-    #StartAtStep = '22__DropLogin_Grafana'
-    #StopAtStep = '10__RemoveJob_UpdateSqlServerVersions'
-    SkipDropTable = $true
+    #StartAtStep = '10__RemoveJob_CollectFileIOStats'
+    #StopAtStep = '11__RemoveJob_RunBlitzIndex'
+    #SqlInstanceForTsqlJobs = 'Experiment\SQL2019'
+    #SqlInstanceAsDataDestination = 'Experiment\SQL2019'
+    #SqlInstanceForPowershellJobs = 'Experiment\SQL2019'
+    #SkipDropTable = $true
     #SkipRemoveJob = $true
     #SkipDropProc = $true
     #SkipDropView = $true
-    ConfirmValidationOfMultiInstance = $true
-    SqlInstanceAsDataDestination = 'Demo\SQL2019'
+    #ConfirmValidationOfMultiInstance = $true
     DryRun = $false
 }
 F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1 @Params #-Debug
