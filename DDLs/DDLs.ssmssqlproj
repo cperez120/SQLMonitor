@@ -169,6 +169,12 @@
           <AssociatedConnUserName>E84947</AssociatedConnUserName>
           <FullPath>grafana-login.sql</FullPath>
         </FileNode>
+        <FileNode Name="SCH-BlitzIndex-Partitioning.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-BlitzIndex-Partitioning.sql</FullPath>
+        </FileNode>
         <FileNode Name="SCH-Create-All-Objects.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>(local)</AssociatedConnSrvName>

@@ -5,36 +5,28 @@ Param (
     [String]$Action = "AddStep",
 
     [Parameter(Mandatory=$false)]
-    [String]$StepName = "52__DropTable_FileIOStats",
+    [String]$StepName = "28__BlitzIndexPartition",
     
     [Parameter(Mandatory=$false)]
-    [String[]]$AllSteps = @( "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
-                "4__RemoveJob_CollectWaitStats", "5__RemoveJob_CollectXEvents", "6__RemoveJob_PartitionsMaintenance",
-                "7__RemoveJob_PurgeTables", "8__RemoveJob_RemoveXEventFiles", "9__RemoveJob_RunWhoIsActive",
-                "10__RemoveJob_CollectFileIOStats", "11__RemoveJob_RunBlitzIndex", "12__RemoveJob_UpdateSqlServerVersions",
-                "13__RemoveJob_CheckInstanceAvailability", "14__DropProc_UspExtendedResults", "15__DropProc_UspCollectWaitStats",
-                "16__DropProc_UspRunWhoIsActive", "17__DropProc_UspCollectXEventsResourceConsumption", "18__DropProc_UspPartitionMaintenance",
-                "19__DropProc_UspPurgeTables", "20__DropProc_SpWhatIsRunning", "21__DropProc_UspActiveRequestsCount",
-                "22__DropProc_UspCollectFileIOStats", "23__DropProc_UspEnablePageCompression", "24__DropProc_UspWaitsPerCorePerMinute",
-                "25__DropView_VwPerformanceCounters", "26__DropView_VwOsTaskList", "27__DropView_VwWaitStatsDeltas",
-                "28__DropXEvent_ResourceConsumption", "29__DropLinkedServer", "30__DropLogin_Grafana",
-                "31__DropTable_ResourceConsumption", "32__DropTable_ResourceConsumptionProcessedXELFiles", "33__DropTable_WhoIsActive_Staging",
-                "34__DropTable_WhoIsActive", "35__DropTable_PerformanceCounters", "36__DropTable_PurgeTable",
-                "37__DropTable_PerfmonFiles", "38__DropTable_InstanceDetails", "39__DropTable_InstanceHosts",
-                "40__DropTable_OsTaskList", "41__DropTable_BlitzWho", "42__DropTable_BlitzCache",
-                "43__DropTable_ConnectionHistory", "44__DropTable_BlitzFirst", "45__DropTable_BlitzFirstFileStats",
-                "46__DropTable_DiskSpace", "47__DropTable_BlitzFirstPerfmonStats", "48__DropTable_BlitzFirstWaitStats",
-                "49__DropTable_BlitzFirstWaitStatsCategories", "50__DropTable_WaitStats", "51__DropTable_BlitzIndex",
-                "52__DropTable_FileIOStats", "53__RemovePerfmonFilesFromDisk", "54__RemoveXEventFilesFromDisk",
-                "55__DropProxy", "56__DropCredential", "57__RemoveInstanceFromInventory"
+    [String[]]$AllSteps = @( "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
+                "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__OlaHallengrenSolutionObjects",
+                "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
+                "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateCredentialProxy",
+                "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData",
+                "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobCollectFileIOStats",
+                "19__CreateJobPartitionsMaintenance", "20__CreateJobPurgeTables", "21__CreateJobRemoveXEventFiles",
+                "22__CreateJobRunWhoIsActive", "23__CreateJobRunBlitzIndex", "24__CreateJobUpdateSqlServerVersions",
+                "25__CreateJobCheckInstanceAvailability", "26__CreateJobGetAllServerInfo", "27__WhoIsActivePartition",
+                "28__EnablePageCompression", "29__GrafanaLogin", "30__LinkedServerOnInventory",
+                "31__LinkedServerForDataDestinationInstance", "32__AlterViewsForDataDestinationInstance"
                 ),
 
     [Parameter(Mandatory=$false)]
     [Bool]$PrintUserFriendlyFormat = $true,
 
     [Parameter(Mandatory=$false)]
-    [String]$ScriptFile = 'F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1'
-                          #'F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1'
+    [String]$ScriptFile = #'F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1'
+                          'F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1'
 )
 
 cls
