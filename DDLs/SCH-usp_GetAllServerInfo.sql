@@ -32,8 +32,8 @@ AS
 BEGIN
 
 	/*
-		Version:		1.0.2
-		Date:			2022-09-14
+		Version:		1.0.3
+		Date:			2022-10-16 - Bug/Fix - Inventory server not appearing when Named Instance
 
 		declare @srv_name varchar(125) = convert(varchar,serverproperty('MachineName'));
 		exec dbo.usp_GetAllServerInfo @servers = @srv_name
@@ -198,7 +198,9 @@ BEGIN
 		set @_minor_version_number = NULL;
 
 		-- If not local server
-		if (CONVERT(varchar,SERVERPROPERTY('MachineName')) = @_srv_name)
+		if ( (CONVERT(varchar,SERVERPROPERTY('MachineName')) = @_srv_name) 
+			or (CONVERT(varchar,SERVERPROPERTY('ServerName')) = @_srv_name)
+			)
 			set @_isLocalHost = 1
 		else
 		begin
