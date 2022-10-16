@@ -1509,7 +1509,7 @@ if($stepName -in $Steps2Execute)
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
     $sqlCreateJobCollectWaitStats = [System.IO.File]::ReadAllText($CollectWaitStatsJobFilePath)
-    $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace('-S localhost', "-S `"$SqlInstanceToBaseline`"")
     $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace("''some_dba_mail_id@gmail.com''", "''$($DbaGroupMailId -join ';')'';" )
     if($jobNameNew -ne $jobName) {
@@ -1536,7 +1536,7 @@ if($stepName -in $Steps2Execute)
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
     $sqlCreateJobCollectXEvents = [System.IO.File]::ReadAllText($CollectXEventsJobFilePath)
-    $sqlCreateJobCollectXEvents = $sqlCreateJobCollectXEvents.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlCreateJobCollectXEvents = $sqlCreateJobCollectXEvents.Replace('-S localhost', "-S `"$SqlInstanceToBaseline`"")
     $sqlCreateJobCollectXEvents = $sqlCreateJobCollectXEvents.Replace('-d DBA', "-d `"$DbaDatabase`"")
     if($jobNameNew -ne $jobName) {
         $sqlCreateJobCollectXEvents = $sqlCreateJobCollectXEvents.Replace($jobName, $jobNameNew)
@@ -1562,7 +1562,7 @@ if($stepName -in $Steps2Execute)
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
     $sqlCreateJobFileIOStats = [System.IO.File]::ReadAllText($CollectFileIOStatsJobFilePath)
-    $sqlCreateJobFileIOStats = $sqlCreateJobFileIOStats.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlCreateJobFileIOStats = $sqlCreateJobFileIOStats.Replace('-S localhost', "-S `"$SqlInstanceToBaseline`"")
     $sqlCreateJobFileIOStats = $sqlCreateJobFileIOStats.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlCreateJobFileIOStats = $sqlCreateJobFileIOStats.Replace("''some_dba_mail_id@gmail.com''", "''$($DbaGroupMailId -join ';')'';" )
     if($jobNameNew -ne $jobName) {
@@ -1589,7 +1589,7 @@ if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false)
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
     $sqlPartitionsMaintenance = [System.IO.File]::ReadAllText($PartitionsMaintenanceJobFilePath)
-    $sqlPartitionsMaintenance = $sqlPartitionsMaintenance.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlPartitionsMaintenance = $sqlPartitionsMaintenance.Replace('-S localhost', "-S `"$SqlInstanceToBaseline`"")
     $sqlPartitionsMaintenance = $sqlPartitionsMaintenance.Replace('-d DBA', "-d `"$DbaDatabase`"")
     if($jobNameNew -ne $jobName) {
         $sqlPartitionsMaintenance = $sqlPartitionsMaintenance.Replace($jobName, $jobNameNew)
@@ -1614,7 +1614,7 @@ if($stepName -in $Steps2Execute)
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
     $sqlPurgeDbaMetrics = [System.IO.File]::ReadAllText($PurgeTablesJobFilePath)
-    $sqlPurgeDbaMetrics = $sqlPurgeDbaMetrics.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlPurgeDbaMetrics = $sqlPurgeDbaMetrics.Replace('-S localhost', "-S `"$SqlInstanceToBaseline`"")
     $sqlPurgeDbaMetrics = $sqlPurgeDbaMetrics.Replace('-d DBA', "-d `"$DbaDatabase`"")
     if($jobNameNew -ne $jobName) {
         $sqlPurgeDbaMetrics = $sqlPurgeDbaMetrics.Replace($jobName, $jobNameNew)
@@ -1681,7 +1681,7 @@ if($stepName -in $Steps2Execute)
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
     $sqlRunWhoIsActive = [System.IO.File]::ReadAllText($RunWhoIsActiveJobFilePath)
-    $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace('-S localhost', "-S `"$SqlInstanceToBaseline`"")
     $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace("''some_dba_mail_id@gmail.com''", "''$($DbaGroupMailId -join ';')''" )
     if($jobNameNew -ne $jobName) {
@@ -1708,7 +1708,7 @@ if($stepName -in $Steps2Execute)
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
     $sqlRunBlitzIndexJob = [System.IO.File]::ReadAllText($RunBlitzIndexJobFilePath)
-    $sqlRunBlitzIndexJob = $sqlRunBlitzIndexJob.Replace('-S Localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlRunBlitzIndexJob = $sqlRunBlitzIndexJob.Replace('-S localhost', "-S `"$SqlInstanceToBaseline`"")
     $sqlRunBlitzIndexJob = $sqlRunBlitzIndexJob.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlRunBlitzIndexJob = $sqlRunBlitzIndexJob.Replace("''DBA''", "''$DbaDatabase''" )
     $sqlRunBlitzIndexJob = $sqlRunBlitzIndexJob.Replace("''some_dba_mail_id@gmail.com''", "''$($DbaGroupMailId -join ';')'';" )
