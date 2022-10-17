@@ -194,7 +194,12 @@ if($SqlInstanceToBaseline -eq '.' -or $SqlInstanceToBaseline -eq 'localhost') {
     Write-Error "Stop here. Fix above issue."
 }
 
-"`n`n`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline] with [$DbaDatabase] database." | Write-Host -ForegroundColor Yellow
+if([String]::IsNullOrEmpty($DbaDatabase)) {
+    "`n`n`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline].." | Write-Host -ForegroundColor Yellow
+}
+else {
+    "`n`n`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline] with [$DbaDatabase] database." | Write-Host -ForegroundColor Yellow
+}
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "For help, kindly reach out to 'Ajay Dwivedi <ajay.dwivedi2007@gmail.com>'.`n" | Write-Host -ForegroundColor Yellow
 
 # Set windows credential if valid AD credential is provided as SqlCredential
@@ -384,6 +389,12 @@ $instanceDetailsForRemoval = $instanceDetails[0]
 if([String]::IsNullOrEmpty($HostName)) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Extract HostName from dbo.instance_details.."
     $HostName = $instanceDetailsForRemoval.host_name;
+}
+
+# Fetch DbaDatabase from SqlInstance if NULL
+if([String]::IsNullOrEmpty($DbaDatabase)) {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Extract DbaDatabase from dbo.instance_details.."
+    $DbaDatabase = $instanceDetailsForRemoval.database;
 }
 
 # If parameter values are not provided, then auto-fill them
