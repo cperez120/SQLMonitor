@@ -29,6 +29,7 @@ $params = @{
                 "28__EnablePageCompression", "29__GrafanaLogin", "30__LinkedServerOnInventory",
                 "31__LinkedServerForDataDestinationInstance", "32__AlterViewsForDataDestinationInstance")
     #>
+    #SkipSteps = @("21__CreateJobRemoveXEventFiles","32__LinkedServerForDataDestinationInstance")
     #StartAtStep = '1__sp_WhoIsActive'
     #StopAtStep = '32__AlterViewsForDataDestinationInstance'
     #DropCreatePowerShellJobs = $true

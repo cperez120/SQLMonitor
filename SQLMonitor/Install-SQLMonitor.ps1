@@ -228,8 +228,20 @@ Param (
 
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
+$sqlmonitorVersion = '1.1.0'
+$releaseDiscussionURL = "https://ajaydwivedi.com/sqlmonitor/v$($sqlmonitorVersion.Replace('.',''))"
+<#
+    v1.1.0 - 2022-Oct-17
+        -> Added columns [dba_group_mail_id],[sqlmonitor_script_path],[sqlmonitor_version] in dbo.instance_details
+        -> Added dbo.BlitzIndex table
+        -> Added dbo.file_io_stats
+        -> Updated dbo.WhoIsActice table design
+        -> Install-SQLMonitor.ps1 modified for smooth Upgrade of SQLMonitor
+#>
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline] with [$DbaDatabase] database." | Write-Host -ForegroundColor Yellow
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Deplying SQLMonitor v$sqlmonitorVersion.." | Write-Host -ForegroundColor Yellow
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "For issues with this version, kindly visit $releaseDiscussionURL" | Write-Host -ForegroundColor Yellow
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "For help, kindly reach out to 'Ajay Dwivedi <ajay.dwivedi2007@gmail.com>'`n" | Write-Host -ForegroundColor Yellow
 
 # All Steps
@@ -295,11 +307,6 @@ Get-PSSession | Remove-PSSession
 
 if($SqlInstanceToBaseline -eq '.' -or $SqlInstanceToBaseline -eq 'localhost') {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "'localhost' or '.' are not validate SQLInstance names." | Write-Host -ForegroundColor Red
-    Write-Error "Stop here. Fix above issue."
-}
-
-if($DbaGroupMailId -eq 'some_dba_mail_id@gmail.com') {
-    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide a valid value for DbaGroupMailId parameter." | Write-Host -ForegroundColor Red
     Write-Error "Stop here. Fix above issue."
 }
 
@@ -507,6 +514,109 @@ if($dbServiceInfo.ProductVersion -match "(?'MajorVersion'\d+)\.\d+\.(?'MinorVers
 if([String]::IsNullOrEmpty($domain)) {
     $domain = $dbServiceInfo.domain+'.com'
 }
+
+# Get dbo.instance_details info
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching info from [dbo].[instance_details].."
+$instanceDetails = @()
+if([String]::IsNullOrEmpty($HostName)) {
+    $sqlInstanceDetails = "select * from dbo.instance_details where sql_instance = '$SqlInstanceToBaseline'"
+}
+else {
+    $sqlInstanceDetails = "select * from dbo.instance_details where sql_instance = '$SqlInstanceToBaseline' and [host_name] = '$HostName'"
+}
+try {
+    $instanceDetails += Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $sqlInstanceDetails -SqlCredential $SqlCredential
+    if($instanceDetails.Count -eq 0) {
+        $instanceDetails += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlInstanceDetails -SqlCredential $SqlCredential -EnableException
+    }
+}
+catch {
+    $errMessage = $_
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Could not fetch details from dbo.instance_details info."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "So assuming fresh installation of SQLMonitor."
+}
+
+# If no instance details found, then throw error
+if ( $instanceDetails.Count -gt 0 ) 
+{
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Instance details found in [dbo].[instance_details]."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Using available info from this table."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Incase details of [dbo].[instance_details] are outdated, `n`t`t`t`tconsider updating same 1st on Inventory & Local Instance both."
+    $instanceDetails | ft -AutoSize
+
+    # If more than 1 host is found, then confirm from user
+    if ( $instanceDetails.Count -gt 1 ) 
+    {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Multiple Hosts detected for SqlInstance [$SqlInstanceToBaseline]." | Write-Host -ForegroundColor Red
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly specify HostName parameter related to SqlInstance [$SqlInstanceToBaseline]." | Write-Host -ForegroundColor Red
+        
+        "STOP here, and fix above issue." | Write-Error
+    }    
+
+    if([String]::IsNullOrEmpty($DbaGroupMailId)) {
+        $DbaGroupMailId += $($instanceDetails.dba_group_mail_id -split ';')
+    }
+
+    if( ($RemoteSQLMonitorPath -ne $instanceDetails.sqlmonitor_script_path) -and $RemoteSQLMonitorPath -ne 'C:\SQLMonitor' ) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "RemoteSQLMonitorPath parameter value does not match with dbo.instance_details." | Write-Host -ForegroundColor Red
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Consider updating detaisl of dbo.instance_details on Inventory & Local Instance both."
+        
+        "STOP here, and fix above issue." | Write-Error
+    }else {
+        if( ($RemoteSQLMonitorPath -ne $instanceDetails.sqlmonitor_script_path) -and $RemoteSQLMonitorPath -eq 'C:\SQLMonitor' ) {
+            $RemoteSQLMonitorPath = $instanceDetails.sqlmonitor_script_path
+        }
+    }
+    Write-Debug "Line 559"
+
+    if ([String]::IsNullOrEmpty($SqlInstanceAsDataDestination)) {
+        $SqlInstanceAsDataDestination = $instanceDetails.data_destination_sql_instance
+    }
+    else {
+        if( $SqlInstanceAsDataDestination -ne $instanceDetails.data_destination_sql_instance ) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "SqlInstanceAsDataDestination parameter value does not match with dbo.instance_details." | Write-Host -ForegroundColor Red
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Consider updating detaisl of dbo.instance_details on Inventory & Local Instance both."
+        
+            "STOP here, and fix above issue." | Write-Error
+        }
+    }
+
+    if ([String]::IsNullOrEmpty($SqlInstanceForPowershellJobs)) {
+        $SqlInstanceForPowershellJobs = $instanceDetails.collector_powershell_jobs_server
+    }
+    else {
+        if( $SqlInstanceForPowershellJobs -ne $instanceDetails.collector_powershell_jobs_server ) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "SqlInstanceForPowershellJobs parameter value does not match with dbo.instance_details." | Write-Host -ForegroundColor Red
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Consider updating detaisl of dbo.instance_details on Inventory & Local Instance both."
+        
+            "STOP here, and fix above issue." | Write-Error
+        }
+    }
+    
+    if ([String]::IsNullOrEmpty($SqlInstanceForTsqlJobs)) {
+        $SqlInstanceForTsqlJobs = $instanceDetails.collector_tsql_jobs_server
+    }
+    else {
+        if( $SqlInstanceForTsqlJobs -ne $instanceDetails.collector_tsql_jobs_server ) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "SqlInstanceForTsqlJobs parameter value does not match with dbo.instance_details." | Write-Host -ForegroundColor Red
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Consider updating detaisl of dbo.instance_details on Inventory & Local Instance both."
+        
+            "STOP here, and fix above issue." | Write-Error
+        }
+    }
+
+    if(-not $ConfirmValidationOfMultiInstance) {
+        $ConfirmValidationOfMultiInstance = $true
+    }
+
+}
+
+if($DbaGroupMailId -eq 'some_dba_mail_id@gmail.com') {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Kindly provide a valid value for DbaGroupMailId parameter." | Write-Host -ForegroundColor Red
+    Write-Error "Stop here. Fix above issue."
+}
+
 
 # Fetch HostName for SqlInstance if NULL in parameter value
 if([String]::IsNullOrEmpty($HostName)) {
@@ -1087,13 +1197,20 @@ if($stepName -in $Steps2Execute)
     $sqlAddInstanceHostMapping = @"
     if not exists (select * from dbo.instance_details where sql_instance = '$SqlInstanceToBaseline' and [host_name] = '$HostName')
     begin
-	    insert dbo.instance_details ( [sql_instance], [host_name], [database], [collector_tsql_jobs_server], [collector_powershell_jobs_server], [data_destination_sql_instance] )
+	    insert dbo.instance_details 
+            (   [sql_instance], [host_name], [database], [collector_tsql_jobs_server], 
+                [collector_powershell_jobs_server], [data_destination_sql_instance],
+                [dba_group_mail_id], [sqlmonitor_script_path], [sqlmonitor_version] 
+            )
 	    select	[sql_instance] = '$SqlInstanceToBaseline',
 			    [host_name] = '$Hostname',
                 [database] = '$DbaDatabase',
 			    [collector_tsql_jobs_server] = '$SqlInstanceForTsqlJobs',
                 [collector_powershell_jobs_server] = '$SqlInstanceForPowershellJobs',
-                [data_destination_sql_instance] = '$SqlInstanceAsDataDestination'
+                [data_destination_sql_instance] = '$SqlInstanceAsDataDestination',
+                [dba_group_mail_id] = '$($DbaGroupMailId -join ';')',
+			    [sqlmonitor_script_path] = '$SQLMonitorPath',
+                [sqlmonitor_version] = ''
 
         select 'dbo.instance_details' as RunningQuery, * from dbo.instance_details where [sql_instance] = '$SqlInstanceToBaseline';
     end
@@ -1976,6 +2093,35 @@ go
 "@
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAlterViewDiskSpace -SqlCredential $SqlCredential -EnableException
 }
+
+
+# Update Version No
+if( $true )
+{
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update SQLMonitor Version Number.."
+
+    $sqlUpdateSQLMonitorVersion = @"
+update dbo.instance_details set [sqlmonitor_version] = '$sqlmonitorVersion'
+where sql_instance = '$SqlInstanceToBaseline'
+and host_name = '$HostName'
+"@
+    # Update dbo.instance_details on SqlInstanceToBaseline
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update SQLMonitor version on [$SqlInstanceToBaseline].."
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlUpdateSQLMonitorVersion -SqlCredential $SqlCredential -EnableException
+
+    # Update dbo.instance_details on SqlInstanceAsDataDestination
+    if($SqlInstanceAsDataDestination -ne $SqlInstanceToBaseline) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update SQLMonitor version on [$SqlInstanceAsDataDestination].."
+        Invoke-DbaQuery -SqlInstance $SqlInstanceAsDataDestination -Database $DbaDatabase -Query $sqlUpdateSQLMonitorVersion -SqlCredential $SqlCredential -EnableException
+    }
+
+    # Update dbo.instance_details on InventoryServer
+    if($InventoryServer -ne $SqlInstanceToBaseline) {        
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update SQLMonitor version on [$InventoryServer].."
+        Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $sqlUpdateSQLMonitorVersion -SqlCredential $SqlCredential -EnableException
+    }
+}
+
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Clearing old PSSessions.."
 Get-PSSession | Remove-PSSession

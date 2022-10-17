@@ -200,6 +200,9 @@ begin
 		[collector_tsql_jobs_server] varchar(255) null default convert(varchar,serverproperty('MachineName')),
 		[collector_powershell_jobs_server] varchar(255) null default convert(varchar,serverproperty('MachineName')),
 		[data_destination_sql_instance] varchar(255) null default convert(varchar,serverproperty('MachineName')),
+		[dba_group_mail_id] varchar(2000) not null default 'some_dba_mail_id@gmail.com',
+		[sqlmonitor_script_path] varchar(2000) not null default 'C:\SQLMonitor',
+		[sqlmonitor_version] varchar(20) not null default '1.1.0',
 
 		constraint pk_instance_details primary key clustered ([sql_instance], [host_name]), 
 		constraint fk_host_name foreign key ([host_name]) references dbo.instance_hosts ([host_name])
@@ -209,7 +212,11 @@ go
 
 if ( (APP_NAME() = 'Microsoft SQL Server Management Studio - Query') and (not exists (select * from dbo.instance_details where sql_instance = convert(varchar,serverproperty('MachineName')))) )
 begin
-	insert dbo.instance_details ( [sql_instance], [host_name], [database], [collector_tsql_jobs_server], [collector_powershell_jobs_server], [data_destination_sql_instance] )
+	insert dbo.instance_details 
+		(	[sql_instance], [host_name], [database], [collector_tsql_jobs_server], 
+			[collector_powershell_jobs_server], [data_destination_sql_instance],
+			[dba_group_mail_id], [sqlmonitor_script_path]
+		)
 	select	[sql_instance] = convert(varchar,serverproperty('MachineName')),
 			--[ip] = convert(varchar,CONNECTIONPROPERTY('local_net_address')),
 			[host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')),
@@ -219,9 +226,10 @@ begin
 			--[collector_tsql_jobs_server] = convert(varchar,CONNECTIONPROPERTY('local_net_address')),
 			[collector_powershell_jobs_server] = convert(varchar,serverproperty('MachineName')),
 			--[collector_powershell_jobs_server] = convert(varchar,CONNECTIONPROPERTY('local_net_address')),
-			[data_destination_sql_instance] = convert(varchar,serverproperty('MachineName'))
-			--[data_destination_sql_instance] = convert(varchar,CONNECTIONPROPERTY('local_net_address'))
-
+			[data_destination_sql_instance] = convert(varchar,serverproperty('MachineName')),
+			--[data_destination_sql_instance] = convert(varchar,CONNECTIONPROPERTY('local_net_address')),
+			[dba_group_mail_id] = 'some_dba_mail_id@gmail.com',
+			[sqlmonitor_script_path] = 'C:\SQLMonitor'
 end
 go
 
