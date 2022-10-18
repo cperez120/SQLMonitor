@@ -164,9 +164,9 @@
           <FullPath>FirstResponderKit-Install-All-Scripts.sql</FullPath>
         </FileNode>
         <FileNode Name="grafana-login.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:172.31.16.57:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>172.31.16.57</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>grafana-login.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-BlitzIndex-Partitioning.sql">

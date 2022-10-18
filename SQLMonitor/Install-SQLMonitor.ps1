@@ -568,7 +568,6 @@ if ( $instanceDetails.Count -gt 0 )
             $RemoteSQLMonitorPath = $instanceDetails.sqlmonitor_script_path
         }
     }
-    Write-Debug "Line 559"
 
     if ([String]::IsNullOrEmpty($SqlInstanceAsDataDestination)) {
         $SqlInstanceAsDataDestination = $instanceDetails.data_destination_sql_instance
