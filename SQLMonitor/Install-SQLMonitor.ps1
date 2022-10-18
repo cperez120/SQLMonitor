@@ -228,7 +228,7 @@ Param (
 
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
-$sqlmonitorVersion = '1.1.0'
+$sqlmonitorVersion = '1.1.1'
 $releaseDiscussionURL = "https://ajaydwivedi.com/sqlmonitor/v$($sqlmonitorVersion.Replace('.',''))"
 <#
     v1.1.0 - 2022-Oct-17
@@ -1831,6 +1831,7 @@ if($stepName -in $Steps2Execute)
     $sqlRunBlitzIndexJob = $sqlRunBlitzIndexJob.Replace('-S localhost', "-S `"$SqlInstanceToBaseline`"")
     $sqlRunBlitzIndexJob = $sqlRunBlitzIndexJob.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlRunBlitzIndexJob = $sqlRunBlitzIndexJob.Replace("''DBA''", "''$DbaDatabase''" )
+    $sqlRunBlitzIndexJob = $sqlRunBlitzIndexJob.Replace("'DBA'", "'$DbaDatabase'" )
     $sqlRunBlitzIndexJob = $sqlRunBlitzIndexJob.Replace("''some_dba_mail_id@gmail.com''", "''$($DbaGroupMailId -join ';')'';" )
     if($jobNameNew -ne $jobName) {
         $sqlRunBlitzIndexJob = $sqlRunBlitzIndexJob.Replace($jobName, $jobNameNew)
