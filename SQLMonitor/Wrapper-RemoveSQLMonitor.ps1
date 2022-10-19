@@ -5,21 +5,21 @@
 cls
 Import-Module dbatools;
 $params = @{
-    SqlInstanceToBaseline = 'Experiment\SQL2019'
-    DbaDatabase = 'DBA'
-    HostName = 'Experiment'
+    SqlInstanceToBaseline = 'Experiment'
+    #DbaDatabase = 'DBA_Admin'
+    #HostName = 'Experiment'
     InventoryServer = 'SQLMonitor'
     InventoryDatabase = 'DBA'
-    RemoteSQLMonitorPath = 'C:\SQLMonitor'
+    #RemoteSQLMonitorPath = 'C:\SQLMonitor'
     #SqlCredential = $saAdmin
     #WindowsCredential = $localAdmin
     #SkipSteps = @("43__RemovePerfmonFilesFromDisk")
-    #StartAtStep = '10__RemoveJob_CollectFileIOStats'
+    #StartAtStep = '30__DropLogin_Grafana'
     #StopAtStep = '11__RemoveJob_RunBlitzIndex'
     #SqlInstanceForTsqlJobs = 'Experiment\SQL2019'
     #SqlInstanceAsDataDestination = 'Experiment\SQL2019'
     #SqlInstanceForPowershellJobs = 'Experiment\SQL2019'
-    #SkipDropTable = $true
+    SkipDropTable = $true
     #SkipRemoveJob = $true
     #SkipDropProc = $true
     #SkipDropView = $true
