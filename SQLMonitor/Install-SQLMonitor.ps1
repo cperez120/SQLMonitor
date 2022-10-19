@@ -1243,7 +1243,12 @@ if($stepName -in $Steps2Execute)
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Setting retention to $RetentionDays days.." | Write-Host -ForegroundColor Cyan
         }
         
-        $sqlSetPurgeThreshold = "update dbo.purge_table set retention_days = $RetentionDays where retention_days > $RetentionDays"
+        # Update retention only when table is recently added. For already existing tables, retention should be modified manually
+        $sqlSetPurgeThreshold = @"
+update dbo.purge_table set retention_days = $RetentionDays 
+where retention_days > $RetentionDays
+and created_date >= DATEADD(hour,-2,getdate())
+"@
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$sqlSetPurgeThreshold => `n`n`t$sqlSetPurgeThreshold"
         Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlSetPurgeThreshold -SqlCredential $SqlCredential -EnableException
     }

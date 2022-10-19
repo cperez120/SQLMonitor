@@ -67,12 +67,12 @@ QuitWithRollback:
 EndSave:
 GO
 
-
+EXEC dbo.sp_BlitzIndex @DatabaseName = 'master', @Mode = 2, @BringThePain = 1, 
+			@OutputDatabaseName = 'DBA', @OutputSchemaName = 'dbo', @OutputTableName = 'BlitzIndex';
+GO
 
 EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Run-BlitzIndex'
 go
 
-EXEC dbo.sp_BlitzIndex @DatabaseName = 'master', @Mode = 2, @BringThePain = 1, 
-			@OutputDatabaseName = 'DBA', @OutputSchemaName = 'dbo', @OutputTableName = 'BlitzIndex';
-GO
+
 
