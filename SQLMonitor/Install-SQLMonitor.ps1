@@ -228,7 +228,7 @@ Param (
 
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
-$sqlmonitorVersion = '1.1.1'
+$sqlmonitorVersion = '1.1.2'
 $releaseDiscussionURL = "https://ajaydwivedi.com/sqlmonitor/v$($sqlmonitorVersion.Replace('.',''))"
 <#
     v1.1.0 - 2022-Oct-17
@@ -1199,7 +1199,7 @@ if($stepName -in $Steps2Execute)
 	    insert dbo.instance_details 
             (   [sql_instance], [host_name], [database], [collector_tsql_jobs_server], 
                 [collector_powershell_jobs_server], [data_destination_sql_instance],
-                [dba_group_mail_id], [sqlmonitor_script_path], [sqlmonitor_version] 
+                [dba_group_mail_id], [sqlmonitor_script_path]
             )
 	    select	[sql_instance] = '$SqlInstanceToBaseline',
 			    [host_name] = '$Hostname',
@@ -1208,8 +1208,7 @@ if($stepName -in $Steps2Execute)
                 [collector_powershell_jobs_server] = '$SqlInstanceForPowershellJobs',
                 [data_destination_sql_instance] = '$SqlInstanceAsDataDestination',
                 [dba_group_mail_id] = '$($DbaGroupMailId -join ';')',
-			    [sqlmonitor_script_path] = '$SQLMonitorPath',
-                [sqlmonitor_version] = ''
+			    [sqlmonitor_script_path] = '$RemoteSQLMonitorPath'
 
         select 'dbo.instance_details' as RunningQuery, * from dbo.instance_details where [sql_instance] = '$SqlInstanceToBaseline';
     end

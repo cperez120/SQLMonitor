@@ -26,8 +26,8 @@ $params = @{
                 "19__CreateJobPartitionsMaintenance", "20__CreateJobPurgeTables", "21__CreateJobRemoveXEventFiles",
                 "22__CreateJobRunWhoIsActive", "23__CreateJobRunBlitzIndex", "24__CreateJobUpdateSqlServerVersions",
                 "25__CreateJobCheckInstanceAvailability", "26__CreateJobGetAllServerInfo", "27__WhoIsActivePartition",
-                "28__EnablePageCompression", "29__GrafanaLogin", "30__LinkedServerOnInventory",
-                "31__LinkedServerForDataDestinationInstance", "32__AlterViewsForDataDestinationInstance")
+                "28__BlitzIndexPartition", "29__EnablePageCompression", "30__GrafanaLogin",
+                "31__LinkedServerOnInventory", "32__LinkedServerForDataDestinationInstance", "33__AlterViewsForDataDestinationInstance"
     #>
     #SkipSteps = @("21__CreateJobRemoveXEventFiles","32__LinkedServerForDataDestinationInstance")
     #StartAtStep = '1__sp_WhoIsActive'
