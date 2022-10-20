@@ -18,8 +18,8 @@ ALTER PROCEDURE dbo.usp_collect_xevents_resource_consumption
 AS 
 BEGIN
 	/*
-		Version:		1.0.0
-		Date:			2022-07-01
+		Version:		1.0.1
+		Date:			2022-10-20
 
 		EXEC dbo.usp_collect_xevents_resource_consumption
 
@@ -158,7 +158,7 @@ BEGIN
 			where not exists (select 1 from [dbo].[resource_consumption] t 
 								where t.start_time = DATEADD(second,-(de.duration_seconds),de.event_time)
 								and t.event_time = de.event_time
-								and t.event_name = de.event_name
+								and t.event_name = de.event_name  COLLATE SQL_Latin1_General_CP1_CI_AS
 								and t.session_id = de.session_id
 								and t.request_id = de.request_id)
 
@@ -174,4 +174,3 @@ BEGIN
 	deallocate cur_files;
 END
 GO
-
