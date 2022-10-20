@@ -228,8 +228,8 @@ Param (
 
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
-$sqlmonitorVersion = '1.1.2'
-$releaseDiscussionURL = "https://ajaydwivedi.com/sqlmonitor/v$($sqlmonitorVersion.Replace('.',''))"
+$sqlmonitorVersion = '1.1.3'
+$releaseDiscussionURL = "https://ajaydwivedi.com/sqlmonitor/common-errors"
 <#
     v1.1.0 - 2022-Oct-17
         -> Added columns [dba_group_mail_id],[sqlmonitor_script_path],[sqlmonitor_version] in dbo.instance_details
@@ -239,7 +239,7 @@ $releaseDiscussionURL = "https://ajaydwivedi.com/sqlmonitor/v$($sqlmonitorVersio
         -> Install-SQLMonitor.ps1 modified for smooth Upgrade of SQLMonitor
 #>
 
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline] with [$DbaDatabase] database." | Write-Host -ForegroundColor Yellow
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline]." | Write-Host -ForegroundColor Yellow
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Deplying SQLMonitor v$sqlmonitorVersion.." | Write-Host -ForegroundColor Yellow
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "For issues with this version, kindly visit $releaseDiscussionURL" | Write-Host -ForegroundColor Yellow
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "For help, kindly reach out to 'Ajay Dwivedi <ajay.dwivedi2007@gmail.com>'`n" | Write-Host -ForegroundColor Yellow
@@ -560,7 +560,7 @@ if ( $instanceDetails.Count -gt 0 )
 
     if( ($RemoteSQLMonitorPath -ne $instanceDetails.sqlmonitor_script_path) -and $RemoteSQLMonitorPath -ne 'C:\SQLMonitor' ) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "RemoteSQLMonitorPath parameter value does not match with dbo.instance_details." | Write-Host -ForegroundColor Red
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Consider updating detaisl of dbo.instance_details on Inventory & Local Instance both."
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Consider updating details of dbo.instance_details on Inventory & Local Instance both."
         
         "STOP here, and fix above issue." | Write-Error
     }else {
@@ -575,7 +575,7 @@ if ( $instanceDetails.Count -gt 0 )
     else {
         if( $SqlInstanceAsDataDestination -ne $instanceDetails.data_destination_sql_instance ) {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "SqlInstanceAsDataDestination parameter value does not match with dbo.instance_details." | Write-Host -ForegroundColor Red
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Consider updating detaisl of dbo.instance_details on Inventory & Local Instance both."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Consider updating details of dbo.instance_details on Inventory & Local Instance both."
         
             "STOP here, and fix above issue." | Write-Error
         }
@@ -587,7 +587,7 @@ if ( $instanceDetails.Count -gt 0 )
     else {
         if( $SqlInstanceForPowershellJobs -ne $instanceDetails.collector_powershell_jobs_server ) {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "SqlInstanceForPowershellJobs parameter value does not match with dbo.instance_details." | Write-Host -ForegroundColor Red
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Consider updating detaisl of dbo.instance_details on Inventory & Local Instance both."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Consider updating details of dbo.instance_details on Inventory & Local Instance both."
         
             "STOP here, and fix above issue." | Write-Error
         }
@@ -599,9 +599,20 @@ if ( $instanceDetails.Count -gt 0 )
     else {
         if( $SqlInstanceForTsqlJobs -ne $instanceDetails.collector_tsql_jobs_server ) {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "SqlInstanceForTsqlJobs parameter value does not match with dbo.instance_details." | Write-Host -ForegroundColor Red
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Consider updating detaisl of dbo.instance_details on Inventory & Local Instance both."
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Consider updating details of dbo.instance_details on Inventory & Local Instance both."
         
             "STOP here, and fix above issue." | Write-Error
+        }
+    }
+
+    if( ($DbaDatabase -ne $instanceDetails.database) -and $DbaDatabase -ne 'DBA' ) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "DbaDatabase parameter value does not match with dbo.instance_details." | Write-Host -ForegroundColor Red
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Consider updating details of dbo.instance_details on Inventory & Local Instance both."
+        
+        "STOP here, and fix above issue." | Write-Error
+    }else {
+        if( ($DbaDatabase -ne $instanceDetails.database) -and $DbaDatabase -eq 'DBA' ) {
+            $DbaDatabase = $instanceDetails.database
         }
     }
 
@@ -813,6 +824,7 @@ if([String]::IsNullOrEmpty($SqlInstanceForPowershellJobs)) {
     $SqlInstanceForPowershellJobs = $SqlInstanceToBaseline
 }
 
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$DbaDatabase = [$DbaDatabase]" | Write-Host -ForegroundColor Yellow
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceAsDataDestination = [$SqlInstanceAsDataDestination]"
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceForTsqlJobs = [$SqlInstanceForTsqlJobs]"
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceForPowershellJobs = [$SqlInstanceForPowershellJobs]"
@@ -2308,5 +2320,4 @@ Owner Ajay Kumar Dwivedi (ajay.dwivedi2007@gmail.com)
     https://ajaydwivedi.com/youtube/sqlmonitor
     https://ajaydwivedi.com/blog/sqlmonitor    
 #>
-
 

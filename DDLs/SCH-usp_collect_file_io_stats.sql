@@ -27,8 +27,8 @@ AS
 BEGIN
 
 	/*
-		Version:		1.0.1
-		Date:			2022-10-13
+		Version:		1.1.2
+		Date:			2022-10-20
 
 		EXEC dbo.usp_collect_file_io_stats @recipients = 'some_dba_mail_id@gmail.com'
 		EXEC dbo.usp_collect_file_io_stats @verbose = 1
@@ -53,8 +53,10 @@ BEGIN
 	DECLARE @_continous_failures tinyint = 0;
 	DECLARE @_send_mail bit = 0;
 	DECLARE @_rows_affected bigint = 0;
+	DECLARE @_server_major_version INT;
 
 	SET @_job_name = '(dba) '+@alert_key;
+	SET @_server_major_version = CONVERT(INT,SERVERPROPERTY ('ProductMajorVersion'));
 
 	IF (@recipients IS NULL OR @recipients = 'some_dba_mail_id@gmail.com') AND @verbose = 0
 		raiserror ('@recipients is mandatory parameter', 20, -1) with log;
@@ -74,12 +76,8 @@ BEGIN
 		if @verbose > 0
 			print 'Populate IO Latency Stats..'
 		
-		insert [dbo].[file_io_stats]
-		(	[collection_time_utc], [database_name], [database_id], [file_logical_name], [file_id], [file_location], [sample_ms], 
-			[num_of_reads], [num_of_bytes_read], [io_stall_read_ms], [io_stall_queued_read_ms], [num_of_writes], [num_of_bytes_written], 
-			[io_stall_write_ms], [io_stall_queued_write_ms], [io_stall], [size_on_disk_bytes], [io_pending_count], [io_pending_ms_ticks_total], 
-			[io_pending_ms_ticks_avg], [io_pending_ms_ticks_max], [io_pending_ms_ticks_min]
-		)
+		IF @_server_major_version >= 12
+			set @_s = '
 		select  [collection_time_utc] = sysutcdatetime(), 
 				d.name as [database_name], d.database_id, mf.name as file_logical_name, mf.file_id, mf.physical_name as file_location,
 				vfs.sample_ms, vfs.num_of_reads, vfs.num_of_bytes_read, vfs.io_stall_read_ms, vfs.io_stall_queued_read_ms,
@@ -96,10 +94,42 @@ BEGIN
 							io_pending_ms_ticks_total = SUM(io_pending_ms_ticks),
 							io_count = COUNT_BIG(*)
 					from sys.dm_io_pending_io_requests as r 
-					where r.io_type = 'disk'
+					where r.io_type = ''disk''
 					group by r.io_handle
 				) ps
-			on ps.io_handle = vfs.file_handle;
+			on ps.io_handle = vfs.file_handle;';
+		ELSE
+			set @_s = '
+		select  [collection_time_utc] = sysutcdatetime(), 
+				d.name as [database_name], d.database_id, mf.name as file_logical_name, mf.file_id, mf.physical_name as file_location,
+				vfs.sample_ms, vfs.num_of_reads, vfs.num_of_bytes_read, vfs.io_stall_read_ms, 
+				io_stall_queued_read_ms = 0,
+				vfs.num_of_writes, vfs.num_of_bytes_written, vfs.io_stall_write_ms, 
+				io_stall_queued_write_ms = 0, 
+				vfs.io_stall, vfs.size_on_disk_bytes, 
+				ps.io_count, ps.io_pending_ms_ticks_total, ps.io_pending_ms_ticks_avg, ps.io_pending_ms_ticks_max, ps.io_pending_ms_ticks_min
+		from sys.dm_io_virtual_file_stats(null,null) vfs
+		join sys.master_files mf on mf.database_id = vfs.database_id and mf.file_id = vfs.file_id
+		join sys.databases d on d.database_id = mf.database_id
+		left join (	select	r.io_handle, 
+							io_pending_ms_ticks_min = MIN(io_pending_ms_ticks),
+							io_pending_ms_ticks_max = MAX(io_pending_ms_ticks),
+							io_pending_ms_ticks_avg = AVG(io_pending_ms_ticks),
+							io_pending_ms_ticks_total = SUM(io_pending_ms_ticks),
+							io_count = COUNT_BIG(*)
+					from sys.dm_io_pending_io_requests as r 
+					where r.io_type = ''disk''
+					group by r.io_handle
+				) ps
+			on ps.io_handle = vfs.file_handle;';
+
+		insert [dbo].[file_io_stats]
+		(	[collection_time_utc], [database_name], [database_id], [file_logical_name], [file_id], [file_location], [sample_ms], 
+			[num_of_reads], [num_of_bytes_read], [io_stall_read_ms], [io_stall_queued_read_ms], [num_of_writes], [num_of_bytes_written], 
+			[io_stall_write_ms], [io_stall_queued_write_ms], [io_stall], [size_on_disk_bytes], [io_pending_count], [io_pending_ms_ticks_total], 
+			[io_pending_ms_ticks_avg], [io_pending_ms_ticks_max], [io_pending_ms_ticks_min]
+		)
+		exec (@_s);
 
 		set @_rows_affected = @@ROWCOUNT;
 
