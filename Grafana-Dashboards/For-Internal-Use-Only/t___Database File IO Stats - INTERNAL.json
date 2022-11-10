@@ -26,7 +26,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 20,
-  "iteration": 1668058990420,
+  "iteration": 1668058990507,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -1453,9 +1453,9 @@
         {
           "datasource": {
             "type": "mssql",
-            "uid": "5Qr_lHw7z"
+            "uid": "${datasource}"
           },
-          "description": "select * from dbo.BlitzFirst_WaitStats_Deltas\nhttps://www.sqlskills.com/blogs/paul/wait-statistics-or-please-tell-me-where-it-hurts/",
+          "description": "exec sp_BlitzFirst @seconds = 60, @ExpertMode = 1",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1494,7 +1494,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   }
                 ]
               },
@@ -1509,17 +1510,17 @@
                 "properties": [
                   {
                     "id": "unit",
-                    "value": "ms"
+                    "value": "decbytes"
                   }
                 ]
               }
             ]
           },
           "gridPos": {
-            "h": 19,
+            "h": 15,
             "w": 24,
             "x": 0,
-            "y": 14
+            "y": 3
           },
           "id": 2,
           "options": {
@@ -1544,14 +1545,14 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "5Qr_lHw7z"
+                "uid": "${datasource}"
               },
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n--declare @delta_minutes int;\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\ndeclare @WaitStatsTop tinyint = 10;\ndeclare @WaitsPercentTop int = 99;\n\n;WITH [Waits] AS\n(\n\tSELECT\t[collection_time_utc], \n\t\t\t[wait_type], \n\t\t\t[WaitCategory], \n\t\t\t[Ignorable], \n\t\t\t[ElapsedSeconds], \n\t\t\t[wait_time_ms_delta], \n\t\t\t[wait_time_minutes_delta], \n\t\t\t[wait_time_minutes_per_minute], \n\t\t\t([wait_time_ms_delta] - [signal_wait_time_ms_delta]) as [resource_wait_time_ms_delta],\n\t\t\t[signal_wait_time_ms_delta], \n\t\t\t[waiting_tasks_count_delta],\n\t\t\tROW_NUMBER() OVER(PARTITION BY [collection_time_utc] ORDER BY [wait_time_ms_delta] DESC) AS [WaitsRank],\n\t\t\t(100.0 * [wait_time_ms_delta]) / (SUM ([wait_time_ms_delta]) OVER (PARTITION BY [collection_time_utc])) AS [Percentage]\n\t\t\t,(100.0 * (SUM([wait_time_ms_delta]) OVER(PARTITION BY [collection_time_utc] ORDER BY [wait_time_ms_delta] DESC, [waiting_tasks_count_delta] DESC, [wait_type]))) / (SUM ([wait_time_ms_delta]) OVER (PARTITION BY [collection_time_utc])) AS [PercentageTotal]\n\tFROM dbo.[vw_wait_stats_deltas] AS [Waits]\n\tWHERE collection_time_utc between @start_time_utc and @end_time_utc\n\tAND [wait_type] NOT IN (\n        -- These wait types are almost 100% never a problem and so they are\n        -- filtered out to avoid them skewing the results. Click on the URL\n        -- for more information.\n        N'BROKER_EVENTHANDLER', -- https://www.sqlskills.com/help/waits/BROKER_EVENTHANDLER\n        N'BROKER_RECEIVE_WAITFOR', -- https://www.sqlskills.com/help/waits/BROKER_RECEIVE_WAITFOR\n        N'BROKER_TASK_STOP', -- https://www.sqlskills.com/help/waits/BROKER_TASK_STOP\n        N'BROKER_TO_FLUSH', -- https://www.sqlskills.com/help/waits/BROKER_TO_FLUSH\n        N'BROKER_TRANSMITTER', -- https://www.sqlskills.com/help/waits/BROKER_TRANSMITTER\n        N'CHECKPOINT_QUEUE', -- https://www.sqlskills.com/help/waits/CHECKPOINT_QUEUE\n        N'CHKPT', -- https://www.sqlskills.com/help/waits/CHKPT\n        N'CLR_AUTO_EVENT', -- https://www.sqlskills.com/help/waits/CLR_AUTO_EVENT\n        N'CLR_MANUAL_EVENT', -- https://www.sqlskills.com/help/waits/CLR_MANUAL_EVENT\n        N'CLR_SEMAPHORE', -- https://www.sqlskills.com/help/waits/CLR_SEMAPHORE\n        \n        --N'CXCONSUMER', -- https://www.sqlskills.com/help/waits/CXCONSUMER\n \n        -- Maybe comment these four out if you have mirroring issues\n        /*\n        N'DBMIRROR_DBM_EVENT', -- https://www.sqlskills.com/help/waits/DBMIRROR_DBM_EVENT\n        N'DBMIRROR_EVENTS_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_EVENTS_QUEUE\n        N'DBMIRROR_WORKER_QUEUE', -- https://www.sqlskills.com/help/waits/DBMIRROR_WORKER_QUEUE\n        N'DBMIRRORING_CMD', -- https://www.sqlskills.com/help/waits/DBMIRRORING_CMD\n        */\n        \n        N'DIRTY_PAGE_POLL', -- https://www.sqlskills.com/help/waits/DIRTY_PAGE_POLL\n        N'DISPATCHER_QUEUE_SEMAPHORE', -- https://www.sqlskills.com/help/waits/DISPATCHER_QUEUE_SEMAPHORE\n        N'EXECSYNC', -- https://www.sqlskills.com/help/waits/EXECSYNC\n        N'FSAGENT', -- https://www.sqlskills.com/help/waits/FSAGENT\n        N'FT_IFTS_SCHEDULER_IDLE_WAIT', -- https://www.sqlskills.com/help/waits/FT_IFTS_SCHEDULER_IDLE_WAIT\n        N'FT_IFTSHC_MUTEX', -- https://www.sqlskills.com/help/waits/FT_IFTSHC_MUTEX\n \n        -- Maybe comment these six out if you have AG issues\n        N'HADR_CLUSAPI_CALL', -- https://www.sqlskills.com/help/waits/HADR_CLUSAPI_CALL\n        N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', -- https://www.sqlskills.com/help/waits/HADR_FILESTREAM_IOMGR_IOCOMPLETION\n        N'HADR_LOGCAPTURE_WAIT', -- https://www.sqlskills.com/help/waits/HADR_LOGCAPTURE_WAIT\n        N'HADR_NOTIFICATION_DEQUEUE', -- https://www.sqlskills.com/help/waits/HADR_NOTIFICATION_DEQUEUE\n        N'HADR_TIMER_TASK', -- https://www.sqlskills.com/help/waits/HADR_TIMER_TASK\n        N'HADR_WORK_QUEUE', -- https://www.sqlskills.com/help/waits/HADR_WORK_QUEUE\n \n        N'KSOURCE_WAKEUP', -- https://www.sqlskills.com/help/waits/KSOURCE_WAKEUP\n        N'LAZYWRITER_SLEEP', -- https://www.sqlskills.com/help/waits/LAZYWRITER_SLEEP\n        N'LOGMGR_QUEUE', -- https://www.sqlskills.com/help/waits/LOGMGR_QUEUE\n        N'MEMORY_ALLOCATION_EXT', -- https://www.sqlskills.com/help/waits/MEMORY_ALLOCATION_EXT\n        N'ONDEMAND_TASK_QUEUE', -- https://www.sqlskills.com/help/waits/ONDEMAND_TASK_QUEUE\n        N'PARALLEL_REDO_DRAIN_WORKER', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_DRAIN_WORKER\n        N'PARALLEL_REDO_LOG_CACHE', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_LOG_CACHE\n        N'PARALLEL_REDO_TRAN_LIST', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_TRAN_LIST\n        N'PARALLEL_REDO_WORKER_SYNC', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_SYNC\n        N'PARALLEL_REDO_WORKER_WAIT_WORK', -- https://www.sqlskills.com/help/waits/PARALLEL_REDO_WORKER_WAIT_WORK\n        N'PREEMPTIVE_XE_GETTARGETSTATE', -- https://www.sqlskills.com/help/waits/PREEMPTIVE_XE_GETTARGETSTATE\n        N'PWAIT_ALL_COMPONENTS_INITIALIZED', -- https://www.sqlskills.com/help/waits/PWAIT_ALL_COMPONENTS_INITIALIZED\n        N'PWAIT_DIRECTLOGCONSUMER_GETNEXT', -- https://www.sqlskills.com/help/waits/PWAIT_DIRECTLOGCONSUMER_GETNEXT\n        N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP', -- https://www.sqlskills.com/help/waits/QDS_PERSIST_TASK_MAIN_LOOP_SLEEP\n        N'QDS_ASYNC_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_ASYNC_QUEUE\n        N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP',\n            -- https://www.sqlskills.com/help/waits/QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP\n        N'QDS_SHUTDOWN_QUEUE', -- https://www.sqlskills.com/help/waits/QDS_SHUTDOWN_QUEUE\n        N'REDO_THREAD_PENDING_WORK', -- https://www.sqlskills.com/help/waits/REDO_THREAD_PENDING_WORK\n        N'REQUEST_FOR_DEADLOCK_SEARCH', -- https://www.sqlskills.com/help/waits/REQUEST_FOR_DEADLOCK_SEARCH\n        N'RESOURCE_QUEUE', -- https://www.sqlskills.com/help/waits/RESOURCE_QUEUE\n        N'SERVER_IDLE_CHECK', -- https://www.sqlskills.com/help/waits/SERVER_IDLE_CHECK\n        N'SLEEP_BPOOL_FLUSH', -- https://www.sqlskills.com/help/waits/SLEEP_BPOOL_FLUSH\n        N'SLEEP_DBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DBSTARTUP\n        N'SLEEP_DCOMSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_DCOMSTARTUP\n        N'SLEEP_MASTERDBREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERDBREADY\n        N'SLEEP_MASTERMDREADY', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERMDREADY\n        N'SLEEP_MASTERUPGRADED', -- https://www.sqlskills.com/help/waits/SLEEP_MASTERUPGRADED\n        N'SLEEP_MSDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_MSDBSTARTUP\n        N'SLEEP_SYSTEMTASK', -- https://www.sqlskills.com/help/waits/SLEEP_SYSTEMTASK\n        N'SLEEP_TASK', -- https://www.sqlskills.com/help/waits/SLEEP_TASK\n        N'SLEEP_TEMPDBSTARTUP', -- https://www.sqlskills.com/help/waits/SLEEP_TEMPDBSTARTUP\n        N'SNI_HTTP_ACCEPT', -- https://www.sqlskills.com/help/waits/SNI_HTTP_ACCEPT\n        N'SOS_WORK_DISPATCHER', -- https://www.sqlskills.com/help/waits/SOS_WORK_DISPATCHER\n        N'SP_SERVER_DIAGNOSTICS_SLEEP', -- https://www.sqlskills.com/help/waits/SP_SERVER_DIAGNOSTICS_SLEEP\n        N'SQLTRACE_BUFFER_FLUSH', -- https://www.sqlskills.com/help/waits/SQLTRACE_BUFFER_FLUSH\n        N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', -- https://www.sqlskills.com/help/waits/SQLTRACE_INCREMENTAL_FLUSH_SLEEP\n        N'SQLTRACE_WAIT_ENTRIES', -- https://www.sqlskills.com/help/waits/SQLTRACE_WAIT_ENTRIES\n        N'WAIT_FOR_RESULTS', -- https://www.sqlskills.com/help/waits/WAIT_FOR_RESULTS\n        N'WAITFOR', -- https://www.sqlskills.com/help/waits/WAITFOR\n        N'WAITFOR_TASKSHUTDOWN', -- https://www.sqlskills.com/help/waits/WAITFOR_TASKSHUTDOWN\n        N'WAIT_XTP_RECOVERY', -- https://www.sqlskills.com/help/waits/WAIT_XTP_RECOVERY\n        N'WAIT_XTP_HOST_WAIT', -- https://www.sqlskills.com/help/waits/WAIT_XTP_HOST_WAIT\n        N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', -- https://www.sqlskills.com/help/waits/WAIT_XTP_OFFLINE_CKPT_NEW_LOG\n        N'WAIT_XTP_CKPT_CLOSE', -- https://www.sqlskills.com/help/waits/WAIT_XTP_CKPT_CLOSE\n        N'XE_DISPATCHER_JOIN', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_JOIN\n        N'XE_DISPATCHER_WAIT', -- https://www.sqlskills.com/help/waits/XE_DISPATCHER_WAIT\n        N'XE_TIMER_EVENT' -- https://www.sqlskills.com/help/waits/XE_TIMER_EVENT\n    )\n)\nSELECT\ttime = [collection_time_utc]\n\t\t,[metric] =  [WaitCategory]+ ' (__ '+[wait_type]+' __)'\n\t\t--,[WaitCategory]\n\t\t--,[WaitsRank]\n\t\t--,[Percentage]\n\t\t--,[Ignorable]\n\t\t--,[ElapsedSeconds]\n\t\t,[value] = [wait_time_ms_delta]\n\t\t--,[wait_time_minutes_delta]\n\t\t--,[wait_time_minutes_per_minute]\n\t\t--,[signal_wait_time_ms_delta]\n\t\t--,[waiting_tasks_count_delta]\n\t\t--,ISNULL((CAST([wait_time_ms_delta] AS DECIMAL(38,2))/NULLIF(CAST([waiting_tasks_count_delta] AS DECIMAL(38,2)),0)),0) AS [wait_time_ms_per_wait]\n\t\t--,[PercentageTotal]\nFROM [Waits] as cur\nWHERE [WaitsRank] <= @WaitStatsTop\nAND [PercentageTotal] <= @WaitsPercentTop\nORDER BY [time] ASC, [wait_time_ms_delta] DESC, [waiting_tasks_count_delta] DESC\nOPTION(RECOMPILE);\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n--declare @delta_minutes int;\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\ndeclare @FileIOStatsTop tinyint = 10;\ndeclare @StatsPercentTop int = 99;\n\n;WITH [Stats] AS\n(\n\tSELECT\t[collection_time_utc],\n\t\t\t[database_name],\n\t\t\t--[database_id],\n\t\t\t[file_logical_name],\n\t\t\t--[file_id],\n\t\t\t[file_location],\n\t\t\t[sample_ms_delta],\n\t\t\t--[num_of_reads],\n\t\t\t[read_write_bytes_delta],\n\t\t\t[read_bytes_delta],\n\t\t\t--[io_stall_read_ms],\n\t\t\t--[io_stall_queued_read_ms],\n\t\t\t--[num_of_writes],\n\t\t\t[writes_bytes_delta],\n\t\t\t--[io_stall_write_ms],\n\t\t\t--[io_stall_queued_write_ms],\n\t\t\t--[io_stall],\n\t\t\t[io_stall_delta],\n\t\t\t--[size_on_disk_bytes],\n\t\t\t--[io_pending_count],\n\t\t\t--[io_pending_ms_ticks_total],\n\t\t\t--[io_pending_ms_ticks_avg],\n\t\t\t--[io_pending_ms_ticks_max],\n\t\t\t--[io_pending_ms_ticks_min]\n\t\t\t[StatsRank] = ROW_NUMBER() OVER(PARTITION BY [collection_time_utc] ORDER BY read_write_bytes_delta DESC),\n\t\t\t[Percentage] = ((100.0 * [read_write_bytes_delta]) / (SUM ([read_write_bytes_delta]) OVER (PARTITION BY [collection_time_utc]))),\n\t\t\t[PercentageTotal] = ( (100.0 * ( SUM([read_write_bytes_delta]) \n\t\t\t\t\t\t\t\t\t\t\t OVER(PARTITION BY [collection_time_utc] \n\t\t\t\t\t\t\t\t\t\t\t ORDER BY [read_write_bytes_delta] DESC, [io_stall_delta] desc) )\n\t\t\t\t\t\t\t\t  ) / (SUM ([read_write_bytes_delta]) OVER (PARTITION BY [collection_time_utc])) )\n\tFROM dbo.[vw_file_io_stats_deltas] AS [Stats]\n\tWHERE collection_time_utc between @start_time_utc and @end_time_utc\n\t\n)\nSELECT\ttime = [collection_time_utc]\n\t\t--,[database_name]\n\t\t,[metric] =  [database_name]+ ' (__ '+[file_logical_name]+' __)'\n\t\t--,[file_logical_name]\n\t\t--,[file_location]\n\t\t--,[sample_ms_delta]\n\t\t--,[read_write_bytes_delta]\n\t\t--,[read_bytes_delta]\n\t\t--,[writes_bytes_delta]\n\t\t--,[StatsRank]\n\t\t--,[Percentage]\n\t\t--,[PercentageTotal]\n\t\t,[value] = [read_write_bytes_delta]\nFROM [Stats] as cur\nWHERE [StatsRank] <= @FileIOStatsTop\nAND [PercentageTotal] <= @StatsPercentTop\nORDER BY [time] ASC, [read_write_bytes_delta] DESC, [io_stall_delta] DESC\nOPTION(RECOMPILE);\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
               "refId": "A"
             }
           ],
-          "title": "[${server}] - WaitStats",
+          "title": "[${server}] - Db File IO Stats - Read/Writes Data",
           "type": "timeseries"
         }
       ],
@@ -1566,11 +1567,130 @@
           "refId": "A"
         }
       ],
-      "title": "** IN PROGRESS ** IO Stats - Histogram -  [$fqdn] - [$ip] - @ ${collection_time_utc:date:YYYY-MM-DD HH.mm}",
+      "title": "Db Files IO Stats - Reads/Writes (Data) - Histogram -  [$fqdn] - [$ip] - @ ${collection_time_utc:date:YYYY-MM-DD HH.mm}",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 21,
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${datasource}"
+          },
+          "description": "exec sp_BlitzFirst @seconds = 60, @ExpertMode = 1",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisLabel": "Wait Stats (ms)",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "bars",
+                "fillOpacity": 100,
+                "gradientMode": "hue",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 1,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "normal"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "ms"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byFrameRefID",
+                  "options": "A"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 15,
+            "w": 24,
+            "x": 0,
+            "y": 4
+          },
+          "id": 19,
+          "options": {
+            "legend": {
+              "calcs": [
+                "sum",
+                "last"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "sortBy": "Total",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "8.4.4",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${datasource}"
+              },
+              "format": "time_series",
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n--declare @delta_minutes int;\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\ndeclare @FileIOStatsTop tinyint = 10;\ndeclare @StatsPercentTop int = 99;\n\n;WITH [Stats] AS\n(\n\tSELECT\t[collection_time_utc],\n\t\t\t[database_name],\n\t\t\t--[database_id],\n\t\t\t[file_logical_name],\n\t\t\t--[file_id],\n\t\t\t[file_location],\n\t\t\t[sample_ms_delta],\n\t\t\t--[num_of_reads],\n\t\t\t[read_write_bytes_delta],\n\t\t\t[read_writes_delta],\n\t\t\t[read_bytes_delta],\n\t\t\t--[io_stall_read_ms],\n\t\t\t--[io_stall_queued_read_ms],\n\t\t\t--[num_of_writes],\n\t\t\t[writes_bytes_delta],\n\t\t\t--[io_stall_write_ms],\n\t\t\t--[io_stall_queued_write_ms],\n\t\t\t--[io_stall],\n\t\t\t[io_stall_delta],\n\t\t\t--[size_on_disk_bytes],\n\t\t\t--[io_pending_count],\n\t\t\t--[io_pending_ms_ticks_total],\n\t\t\t--[io_pending_ms_ticks_avg],\n\t\t\t--[io_pending_ms_ticks_max],\n\t\t\t--[io_pending_ms_ticks_min]\n\t\t\t[StatsRank] = ROW_NUMBER() OVER(PARTITION BY [collection_time_utc] ORDER BY read_writes_delta DESC),\n\t\t\t[Percentage] = ((100.0 * [read_writes_delta]) / (SUM ([read_writes_delta]) OVER (PARTITION BY [collection_time_utc]))),\n\t\t\t[PercentageTotal] = ( (100.0 * ( SUM([read_writes_delta]) \n\t\t\t\t\t\t\t\t\t\t\t OVER(PARTITION BY [collection_time_utc] \n\t\t\t\t\t\t\t\t\t\t\t ORDER BY [read_writes_delta] DESC, [io_stall_delta] desc) )\n\t\t\t\t\t\t\t\t  ) / (SUM ([read_writes_delta]) OVER (PARTITION BY [collection_time_utc])) )\n\tFROM dbo.[vw_file_io_stats_deltas] AS [Stats]\n\tWHERE collection_time_utc between @start_time_utc and @end_time_utc\n\t\n)\nSELECT\ttime = [collection_time_utc]\n\t\t--,[database_name]\n\t\t,[metric] =  [database_name]+ ' (__ '+[file_logical_name]+' __)'\n\t\t--,[file_logical_name]\n\t\t--,[file_location]\n\t\t--,[sample_ms_delta]\n\t\t--,[read_write_bytes_delta]\n\t\t--,[read_bytes_delta]\n\t\t--,[writes_bytes_delta]\n\t\t--,[StatsRank]\n\t\t--,[Percentage]\n\t\t--,[PercentageTotal]\n\t\t,[value] = [read_writes_delta]\nFROM [Stats] as cur\nWHERE [StatsRank] <= @FileIOStatsTop\nAND [PercentageTotal] <= @StatsPercentTop\nORDER BY [time] ASC, [read_writes_delta] DESC, [io_stall_delta] DESC\nOPTION(RECOMPILE);\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
+              "refId": "A"
+            }
+          ],
+          "title": "[${server}] - Db File IO Stats - # Read/Writes",
+          "type": "timeseries"
+        }
+      ],
+      "title": "Db Files IO Stats - Read/Writes (#) - Histogram -  [$fqdn] - [$ip] - @ ${collection_time_utc:date:YYYY-MM-DD HH.mm}",
       "type": "row"
     }
   ],
-  "refresh": "5m",
+  "refresh": "15m",
   "schemaVersion": 36,
   "style": "dark",
   "tags": [
@@ -1745,8 +1865,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1668070200935",
-          "value": "1668070200935"
+          "text": "1668078601904",
+          "value": "1668078601904"
         },
         "datasource": {
           "type": "mssql",
@@ -1835,6 +1955,6 @@
   "timezone": "",
   "title": "t___Database File IO Stats",
   "uid": "database_file_io_stats",
-  "version": 30,
+  "version": 32,
   "weekStart": ""
 }
