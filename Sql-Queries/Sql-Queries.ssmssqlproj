@@ -307,6 +307,12 @@
           <AssociatedConnUserName />
           <FullPath>QRY-FileIoStats-Since-Startup.sql</FullPath>
         </FileNode>
+        <FileNode Name="QRY-FileIOStats-Since-Startup-Before-Duration.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>QRY-FileIOStats-Since-Startup-Before-Duration.sql</FullPath>
+        </FileNode>
         <FileNode Name="QRY-Forecast-Database-Growth.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>

@@ -63,17 +63,6 @@ select @schedulers = count(*) from sys.dm_os_schedulers where status = 'VISIBLE 
 			[avg_bytes_per_read] = convert(numeric(20,2), case when [num_of_reads] = 0 then 0 else ( ([num_of_bytes_read] * 1.0) / [num_of_reads] ) end),
 			[avg_bytes_per_write] = convert(numeric(20,2), case when [num_of_writes] = 0 then 0 else ( ([num_of_bytes_written] * 1.0) / [num_of_writes] ) end),
 			[avg_bytes_per_transfer] = convert(numeric(20,2), case when [num_of_reads] = 0 and [num_of_writes] = 0 then 0 else ( (([num_of_bytes_read]+[num_of_bytes_written]) * 1.0) / ([num_of_reads]+[num_of_writes]) ) end)
-			
-			/*
-			[wait_time_ms] / 1000.0 AS [WaitS],
-				[wait_time_ms],
-			([wait_time_ms] - [signal_wait_time_ms]) / 1000.0 AS [ResourceS],
-			[signal_wait_time_ms] / 1000.0 AS [SignalS],
-			[waiting_tasks_count] AS [WaitCount],
-			*/
-
-			--100.0 * [wait_time_ms] / SUM ([wait_time_ms]) OVER() AS [Percentage],
-			--ROW_NUMBER() OVER(ORDER BY [wait_time_ms] DESC) AS [RowNum]
 		FROM dbo.file_io_stats fis
 		OUTER APPLY (
 				select top 1 dd.disk_volume
