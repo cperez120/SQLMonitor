@@ -301,6 +301,24 @@
           <AssociatedConnUserName />
           <FullPath>QRY-Estimate-Page-Compression.sql</FullPath>
         </FileNode>
+        <FileNode Name="QRY-FileIOStats-Histogram.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>QRY-FileIOStats-Histogram.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-FileIoStats-Since-Startup.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>QRY-FileIoStats-Since-Startup.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-FileIOStats-Since-Startup-Before-Duration.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>QRY-FileIOStats-Since-Startup-Before-Duration.sql</FullPath>
+        </FileNode>
         <FileNode Name="QRY-Forecast-Database-Growth.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
@@ -314,8 +332,8 @@
           <FullPath>QRY-Get-Database-Growth-Over-Time.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-Get-Partitions-Record-Count-Metrics.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>QRY-Get-Partitions-Record-Count-Metrics.sql</FullPath>
         </FileNode>
@@ -344,9 +362,9 @@
           <FullPath>QRY-RC-Workload-Delta-By-CPU.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-RC-Workload-Delta-By-Reads.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.207:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>196.1.115.207</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>QRY-RC-Workload-Delta-By-Reads.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-ResourceConsumption-Infra.sql">
