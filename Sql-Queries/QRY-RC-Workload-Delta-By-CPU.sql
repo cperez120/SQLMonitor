@@ -3,10 +3,12 @@ go
 
 set nocount on;
 declare @top_filter int = 30;
-declare @start_time_snap1	datetime2 = '2022-09-22 20:35';
-declare @start_time_snap2	datetime2 = '2022-09-23 20:35';
-declare @end_time_snap1		datetime2 = '2022-09-22 21:30';
-declare @end_time_snap2		datetime2 = '2022-09-23 21:30';
+
+declare @start_time_snap1	datetime2 = '2022-11-03 00:00';
+declare @end_time_snap1		datetime2 = '2022-11-03 06:00';
+--
+declare @start_time_snap2	datetime2 = '2022-11-04 00:00';
+declare @end_time_snap2		datetime2 = '2022-11-04 06:00';
 
 if object_id('tempdb..#current') is not null 
 	drop table #current;
