@@ -52,6 +52,7 @@ BEGIN
 				 ('dbo.wait_stats',NULL),
 				 ('dbo.resource_consumption', NULL),
 				 ('dbo.resource_consumption','uq_resource_consumption'),
+				 ('dbo.resource_consumption_queries', NULL),
 				 ('dbo.disk_space',NULL),
 				 ('dbo.BlitzIndex',NULL),
 				 ('dbo.WrongName',NULL)

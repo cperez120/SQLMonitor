@@ -1,5 +1,5 @@
 /*
-	Version -> v1.1.4
+	Version -> v1.1.5
 	-----------------
 
 	*** Self Pre Steps ***
@@ -35,14 +35,17 @@
 	16) Set DBA database trustworthy & [sa] owner
 	17) Create procedure dbo.usp_extended_results
 	18) Create table [dbo].[resource_consumption]
-	19) Create table [dbo].[resource_consumption_Processed_XEL_Files]
-	20) Create table [dbo].[disk_space] using Partition scheme
-	21) Create View [dbo].[vw_disk_space] for Multi SqlCluster on same nodes Architecture
-	22) Create view  [dbo].[vw_file_io_stats_deltas]
-	23) Add boundaries to partition. 1 boundary per hour
-	24) Remove boundaries with retention of 3 months
-	25) Validate Partition Data	
-	26) Populate [dbo].[BlitzFirst_WaitStats_Categories]
+	19) Create table [dbo].[resource_consumption_queries]
+	20) Create view  [dbo].[vw_resource_consumption]
+	21) Create Trigger [tgr_insert_resource_consumption]
+	22) Create table [dbo].[resource_consumption_Processed_XEL_Files]
+	23) Create table [dbo].[disk_space] using Partition scheme
+	24) Create View [dbo].[vw_disk_space] for Multi SqlCluster on same nodes Architecture
+	25) Create view  [dbo].[vw_file_io_stats_deltas]
+	26) Add boundaries to partition. 1 boundary per hour
+	27) Remove boundaries with retention of 3 months
+	28) Validate Partition Data	
+	29) Populate [dbo].[BlitzFirst_WaitStats_Categories]
 
 */
 
@@ -589,7 +592,7 @@ IF OBJECT_ID('[dbo].[resource_consumption]') IS NULL
 BEGIN
 	CREATE TABLE [dbo].[resource_consumption]
 	(
-		[row_id] [bigint] identity(1,1) NOT NULL,
+		[row_id] [bigint] NOT NULL,
 		[start_time] [datetime2](7) NOT NULL,
 		[event_time] [datetime2](7) NOT NULL,
 		[event_name] [nvarchar](60) NOT NULL,
@@ -606,9 +609,9 @@ BEGIN
 		[row_count] [bigint] NULL,
 		[writes] [bigint] NULL,
 		[spills] [bigint] NULL,
-		[sql_text] [varchar](max) NULL,
-		[query_hash] [varbinary](255) NULL,
-		[query_plan_hash] [varbinary](255) NULL,
+		--[sql_text] [varchar](max) NULL,
+		--[query_hash] [varbinary](255) NULL,
+		--[query_plan_hash] [varbinary](255) NULL,
 		[client_hostname] [varchar](255) NULL,
 		[session_resource_pool_id] [int] NULL,
 		[session_resource_group_id] [int] NULL,
@@ -636,7 +639,80 @@ begin
 end
 go
 
-/* ***** 19) Create table [dbo].[resource_consumption_Processed_XEL_Files] ***************** */
+
+/* ***** 19) Create table [dbo].[resource_consumption_queries] ***************** */
+-- DROP TABLE [dbo].[resource_consumption_queries]
+IF OBJECT_ID('[dbo].[resource_consumption_queries]') IS NULL
+BEGIN
+	CREATE TABLE [dbo].[resource_consumption_queries]
+	(
+		[row_id] [bigint] NOT NULL,
+		[start_time] [datetime2](7) NOT NULL,
+		[event_time] [datetime2](7) NOT NULL,
+		[sql_text] [varchar](max) NULL
+		,constraint pk_resource_consumption_queries primary key clustered (event_time,start_time,[row_id]) on ps_dba_datetime2_hourly ([event_time])
+	) on ps_dba_datetime2_hourly ([event_time])
+END
+GO
+
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.resource_consumption_queries')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.resource_consumption_queries', 
+			date_key = 'event_time', 
+			retention_days = 30, 
+			purge_row_size = 100000,
+			reference = 'SQLMonitor Data Collection'
+end
+go
+
+
+/* ***** 20) Create view  [dbo].[vw_resource_consumption] ***************** */
+-- DROP VIEW [dbo].[vw_resource_consumption];
+if OBJECT_ID('[dbo].[vw_resource_consumption]') is null
+	exec ('CREATE VIEW [dbo].[vw_resource_consumption] AS SELECT 1 as Dummy');
+go
+ALTER VIEW [dbo].[vw_resource_consumption]
+WITH SCHEMABINDING 
+AS
+SELECT rc.[row_id], rc.[start_time], rc.[event_time], rc.[event_name], rc.[session_id], rc.[request_id], rc.[result], rc.[database_name], rc.[client_app_name], rc.[username], rc.[cpu_time], rc.[duration_seconds], rc.[logical_reads], rc.[physical_reads], rc.[row_count], rc.[writes], rc.[spills], txt.[sql_text], /* rc.[query_hash], rc.[query_plan_hash], */ rc.[client_hostname], rc.[session_resource_pool_id], rc.[session_resource_group_id], rc.[scheduler_id]
+FROM [dbo].[resource_consumption] rc
+LEFT JOIN [dbo].[resource_consumption_queries] txt
+	ON rc.event_time = txt.event_time
+	AND rc.start_time = txt.start_time
+	AND rc.row_id = txt.row_id
+GO
+
+
+/* ***** 21) Create Trigger [tgr_insert_resource_consumption] on View  [dbo].[vw_resource_consumption] ***************** */
+if exists (select * from sys.objects where [name] = N'tgr_insert_resource_consumption' and [type] = 'TR')
+	drop trigger [dbo].tgr_insert_resource_consumption
+GO
+create trigger dbo.tgr_insert_resource_consumption on dbo.vw_resource_consumption
+instead of insert as
+begin
+	set nocount on;
+
+	insert dbo.resource_consumption_partitioned
+	(	[row_id], [start_time], [event_time], [event_name], [session_id], [request_id], [result], [database_name], 
+		[client_app_name], [username], [cpu_time], [duration_seconds], [logical_reads], [physical_reads], [row_count], 
+		[writes], [spills], [client_hostname], [session_resource_pool_id], [session_resource_group_id], [scheduler_id] )
+	select [row_id], [start_time], [event_time], [event_name], [session_id], [request_id], [result], [database_name], 
+		[client_app_name], [username], [cpu_time], [duration_seconds], [logical_reads], [physical_reads], [row_count], 
+		[writes], [spills], [client_hostname], [session_resource_pool_id], [session_resource_group_id], [scheduler_id]
+	from inserted;
+
+	insert dbo.resource_consumption_queries
+	(	[row_id], [start_time], [event_time], [sql_text] )
+	select [row_id], [start_time], [event_time], [sql_text]
+	from inserted;
+end
+go
+
+
+
+/* ***** 22) Create table [dbo].[resource_consumption_Processed_XEL_Files] ***************** */
 -- drop table dbo.resource_consumption_Processed_XEL_Files
 if OBJECT_ID('dbo.resource_consumption_Processed_XEL_Files') is null
 begin
@@ -664,7 +740,7 @@ end
 go
 
 
-/* ***** 20) Create table [dbo].[disk_space] using Partition scheme *********** */
+/* ***** 23) Create table [dbo].[disk_space] using Partition scheme *********** */
 if OBJECT_ID('[dbo].[disk_space]') is null
 begin
 	CREATE TABLE [dbo].[disk_space]
@@ -695,7 +771,7 @@ begin
 end
 go
 
-/* ***** 21) Create View [dbo].[vw_disk_space] for Multi SqlCluster on same nodes Architecture */
+/* ***** 24) Create View [dbo].[vw_disk_space] for Multi SqlCluster on same nodes Architecture */
 -- drop view dbo.vw_disk_space
 if OBJECT_ID('dbo.vw_disk_space') is null
 	exec ('create view dbo.vw_disk_space as select 1 as dummy;')
@@ -712,7 +788,7 @@ select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb,
 go
 
 
-/* ***** 22) Create view  [dbo].[vw_file_io_stats_deltas] ***************** */
+/* ***** 25) Create view  [dbo].[vw_file_io_stats_deltas] ***************** */
 -- DROP VIEW [dbo].[vw_file_io_stats_deltas];
 if OBJECT_ID('[dbo].[vw_file_io_stats_deltas]') is null
 	exec ('CREATE VIEW [dbo].[vw_file_io_stats_deltas] AS SELECT 1 as Dummy');
@@ -766,7 +842,7 @@ WHERE [s].[io_stall] >= [sPrior].[io_stall]
 GO
 
 
-/* ***** 23) Add boundaries to partition. 1 boundary per hour ***************** */
+/* ***** 26) Add boundaries to partition. 1 boundary per hour ***************** */
 set nocount on;
 declare @is_partitioned bit = 1;
 if @is_partitioned = 1
@@ -805,7 +881,7 @@ end
 go
 
 
-/* ***** 24) Remove boundaries with retention of 3 months ***************** */
+/* ***** 27) Remove boundaries with retention of 3 months ***************** */
 set nocount on;
 declare @is_partitioned bit = 1;
 if @is_partitioned = 1
@@ -838,11 +914,11 @@ end
 go
 
 
-/* ***** 25) Validate Partition Data ***************** */
+/* ***** 28) Validate Partition Data ***************** */
 -- Check query 'SQL-Queries\check-table-partitions.sql'
 
 
-/* ***** 26) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
+/* ***** 29) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
 IF OBJECT_ID('[dbo].[BlitzFirst_WaitStats_Categories]') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM [dbo].[BlitzFirst_WaitStats_Categories])
 BEGIN
 	--TRUNCATE TABLE [dbo].[BlitzFirst_WaitStats_Categories];

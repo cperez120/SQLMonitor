@@ -3,6 +3,18 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
+        <ConnectionNode Name="(local):LAB\adwivedi">
+          <Created>2022-11-11T13:42:27.5821988+05:30</Created>
+          <Type>SQL</Type>
+          <Server>(local)</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB>master</InitialDB>
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="172.31.25.106:E84947">
           <Created>2022-05-24T09:32:13.0393293+05:30</Created>
           <Type>SQL</Type>
@@ -181,11 +193,23 @@
           <AssociatedConnUserName>E84947</AssociatedConnUserName>
           <FullPath>QRY-Validate-Data.sql</FullPath>
         </FileNode>
+        <FileNode Name="SCH-[resource_consumption_queries].sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-[resource_consumption_queries].sql</FullPath>
+        </FileNode>
         <FileNode Name="SCH-[sp_HumanEvents].sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>SCH-[sp_HumanEvents].sql</FullPath>
+        </FileNode>
+        <FileNode Name="SCH-[usp_collect_xevents_resource_consumption]-Partitioned.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-[usp_collect_xevents_resource_consumption]-Partitioned.sql</FullPath>
         </FileNode>
         <FileNode Name="vw_file_io_stats_deltas.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
