@@ -228,7 +228,7 @@ Param (
 
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
-$sqlmonitorVersion = '1.1.3'
+$sqlmonitorVersion = '1.1.5'
 $releaseDiscussionURL = "https://ajaydwivedi.com/sqlmonitor/common-errors"
 <#
     v1.1.0 - 2022-Oct-17
