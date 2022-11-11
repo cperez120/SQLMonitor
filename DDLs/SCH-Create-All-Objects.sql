@@ -694,7 +694,7 @@ instead of insert as
 begin
 	set nocount on;
 
-	insert dbo.resource_consumption_partitioned
+	insert dbo.resource_consumption
 	(	[row_id], [start_time], [event_time], [event_name], [session_id], [request_id], [result], [database_name], 
 		[client_app_name], [username], [cpu_time], [duration_seconds], [logical_reads], [physical_reads], [row_count], 
 		[writes], [spills], [client_hostname], [session_resource_pool_id], [session_resource_group_id], [scheduler_id] )
