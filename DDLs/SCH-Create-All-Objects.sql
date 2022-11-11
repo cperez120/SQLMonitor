@@ -616,14 +616,14 @@ BEGIN
 		[session_resource_pool_id] [int] NULL,
 		[session_resource_group_id] [int] NULL,
 		[scheduler_id] [int] NULL
-		,constraint pk_resource_consumption primary key clustered (event_time,start_time,[row_id]) on ps_dba_datetime2_hourly ([event_time])
-	) on ps_dba_datetime2_hourly ([event_time])
+		,constraint pk_resource_consumption primary key clustered (event_time,start_time,[row_id]) on ps_dba_datetime2_daily ([event_time])
+	) on ps_dba_datetime2_daily ([event_time])
 END
 GO
 
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[resource_consumption]') and name = 'uq_resource_consumption')
 begin
-	create unique index uq_resource_consumption on [dbo].[resource_consumption]  ([start_time], [event_time], [row_id]) on ps_dba_datetime2_hourly ([start_time])
+	create unique index uq_resource_consumption on [dbo].[resource_consumption]  ([start_time], [event_time], [row_id]) on ps_dba_datetime2_daily ([start_time])
 end
 GO
 
@@ -650,8 +650,8 @@ BEGIN
 		[start_time] [datetime2](7) NOT NULL,
 		[event_time] [datetime2](7) NOT NULL,
 		[sql_text] [varchar](max) NULL
-		,constraint pk_resource_consumption_queries primary key clustered (event_time,start_time,[row_id]) on ps_dba_datetime2_hourly ([event_time])
-	) on ps_dba_datetime2_hourly ([event_time])
+		,constraint pk_resource_consumption_queries primary key clustered (event_time,start_time,[row_id]) on ps_dba_datetime2_daily ([event_time])
+	) on ps_dba_datetime2_daily ([event_time])
 END
 GO
 

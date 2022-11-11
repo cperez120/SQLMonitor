@@ -295,6 +295,12 @@
           <AssociatedConnUserName />
           <FullPath>datetime-conversions.sql</FullPath>
         </FileNode>
+        <FileNode Name="POC-[resource_consumption]-Partitioning.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>POC-[resource_consumption]-Partitioning.sql</FullPath>
+        </FileNode>
         <FileNode Name="QRY-Estimate-Page-Compression.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
