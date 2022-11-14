@@ -40,7 +40,7 @@ You can visit [http://ajaydwivedi.ddns.net:3000](http://ajaydwivedi.ddns.net:300
 
 
 ## Live Dashboard - Perfmon Counters - Quest Softwares
-Visit [http://ajaydwivedi.ddns.net:3000](http://ajaydwivedi.ddns.net:3000/d/_dioLINMk/monitoring-perfmon-counters-quest-softwares?orgId=1&refresh=1m) for live dashboard of all Perfmon counters suggested in [SQL Server Perfmon Counters of Interest - Quest Software](https://drive.google.com/file/d/1LB7Joo6055T1FfPcholXByazOX55e5b8/view?usp=sharing).<br><br>
+Visit [http://ajaydwivedi.ddns.net:3000](http://ajaydwivedi.ddns.net:3000/) for live dashboard of all Perfmon counters suggested in [SQL Server Perfmon Counters of Interest - Quest Software](https://drive.google.com/file/d/1LB7Joo6055T1FfPcholXByazOX55e5b8/view?usp=sharing).<br><br>
 
 ![](https://github.com/imajaydwivedi/Images/blob/master/SQLMonitor/Quest-Dashboards-All.gif) <br>
 

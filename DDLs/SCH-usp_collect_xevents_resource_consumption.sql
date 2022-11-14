@@ -18,8 +18,8 @@ ALTER PROCEDURE dbo.usp_collect_xevents_resource_consumption
 AS 
 BEGIN
 	/*
-		Version:		1.0.1
-		Date:			2022-10-20
+		Version:		1.1.5
+		Date:			2022-11-11
 
 		EXEC dbo.usp_collect_xevents_resource_consumption
 
@@ -124,8 +124,8 @@ BEGIN
 											then ltrim(rtrim(event_data.value('(/event/data[@name="statement"]/value)[1]','varchar(max)')))
 											else ltrim(rtrim(event_data.value('(/event/action[@name="sql_text"]/value)[1]','varchar(max)')))
 										end
-						,[query_hash] = event_data.value('(/event/action[@name="query_hash"]/value)[1]','varbinary(255)')
-						,[query_plan_hash] = event_data.value('(/event/action[@name="query_plan_hash"]/value)[1]','varbinary(255)')
+						--,[query_hash] = event_data.value('(/event/action[@name="query_hash"]/value)[1]','varbinary(255)')
+						--,[query_plan_hash] = event_data.value('(/event/action[@name="query_plan_hash"]/value)[1]','varbinary(255)')
 						,[database_name] = event_data.value('(/event/action[@name="database_name"]/value)[1]','varchar(255)')
 						,[client_hostname] = event_data.value('(/event/action[@name="client_hostname"]/value)[1]','varchar(255)')
 						,[client_app_name] = event_data.value('(/event/action[@name="client_app_name"]/value)[1]','varchar(255)')
@@ -136,13 +136,14 @@ BEGIN
 						,[scheduler_id] = event_data.value('(/event/action[@name="scheduler_id"]/value)[1]','int')
 				from t_event_data ed
 			)
-			insert [dbo].[resource_consumption]
-			(	start_time, event_time, event_name, session_id, request_id, result, database_name, client_app_name, username, cpu_time, duration_seconds, 
-				logical_reads, physical_reads, row_count, writes, spills, sql_text, 
-				query_hash, query_plan_hash, client_hostname, session_resource_pool_id, session_resource_group_id, scheduler_id --, context_info
+			insert [dbo].[vw_resource_consumption]
+			(	row_id, start_time, event_time, event_name, session_id, request_id, result, database_name, client_app_name, username, cpu_time, duration_seconds, 
+				logical_reads, physical_reads, row_count, writes, spills, sql_text, /* query_hash, query_plan_hash, */
+				client_hostname, session_resource_pool_id, session_resource_group_id, scheduler_id --, context_info
 			)
-			select	start_time = DATEADD(second,-(duration_seconds),event_time), event_time, event_name, session_id, request_id, result, 
-					database_name, --client_app_name, 
+			select	[row_id] = ROW_NUMBER()over(order by event_time, duration_seconds desc, session_id, request_id),
+					start_time = DATEADD(second,-(duration_seconds),event_time), event_time, event_name, 
+					session_id, request_id, result, database_name,
 					[client_app_name] = CASE	WHEN	[client_app_name] like 'SQLAgent - TSQL JobStep %'
 						THEN	(	select	top 1 'SQL Job = '+j.name 
 									from msdb.dbo.sysjobs (nolock) as j
@@ -152,7 +153,7 @@ BEGIN
 						ELSE	[client_app_name]
 						END,
 					username, cpu_time, duration_seconds, logical_reads, physical_reads, row_count, 
-					writes, spills, sql_text, query_hash, query_plan_hash, 
+					writes, spills, sql_text, /* query_hash, query_plan_hash, */
 					client_hostname, session_resource_pool_id, session_resource_group_id, scheduler_id--, context_info
 			from t_data_extracted de
 			where not exists (select 1 from [dbo].[resource_consumption] t 
