@@ -8,7 +8,7 @@ GO
 */
 declare @PartitionBoundaryValue_StartDate date --= dateadd(day,-3,getdate());
 declare @PartitionBoundaryValue_EndDate_EXCLUSIVE date --= dateadd(day,-2,getdate());
-declare @TableName nvarchar(125) = 'resource_consumption';
+declare @TableName nvarchar(125) = 'disk_space';
 
 declare @sql nvarchar(max);
 

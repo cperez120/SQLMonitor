@@ -313,8 +313,8 @@ begin
 		(
 			[file_name] ASC,
 			[collection_time_utc] ASC
-		) on ps_dba_datetime2_hourly ([collection_time_utc])
-	) on ps_dba_datetime2_hourly ([collection_time_utc])
+		) on ps_dba_datetime2_daily ([collection_time_utc])
+	) on ps_dba_datetime2_daily ([collection_time_utc])
 end
 GO
 
@@ -348,13 +348,13 @@ begin
 		[cpu_time] [char](14) NOT NULL,
 		[cpu_time_seconds] bigint NOT NULL,
 		[window_title] [nvarchar](2000) NULL
-	) on ps_dba_datetime2_hourly ([collection_time_utc])
+	) on ps_dba_datetime2_daily ([collection_time_utc])
 end
 go
 
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[os_task_list]') and name = 'ci_os_task_list')
 begin
-	create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [host_name], [task_name]) on ps_dba_datetime2_hourly ([collection_time_utc])
+	create clustered index ci_os_task_list on [dbo].[os_task_list] ([collection_time_utc], [host_name], [task_name]) on ps_dba_datetime2_daily ([collection_time_utc])
 end
 go
 
