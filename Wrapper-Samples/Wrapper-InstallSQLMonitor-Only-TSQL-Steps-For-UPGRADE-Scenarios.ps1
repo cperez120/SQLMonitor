@@ -3,17 +3,22 @@
 #$localAdmin = Get-Credential -UserName 'Administrator' -Message 'Local Admin'
 
 cls
-Import-Module dbatools;
+import-module dbatools
+$sqlDropTable = @"
+Do something here
+go
+select 'Done' as result;
+"@
 $params = @{
     SqlInstanceToBaseline = 'SqlPractice'
-    DbaDatabase = 'DBA'
+    #DbaDatabase = 'DBA'
     #HostName = 'Workstation'
     #RetentionDays = 7
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
     #RemoteSQLMonitorPath = 'C:\SQLMonitor'
     InventoryServer = 'SQLMonitor'
     InventoryDatabase = 'DBA'
-    DbaGroupMailId = 'some_dba_mail_id@gmail.com'
+    #DbaGroupMailId = 'some_dba_mail_id@gmail.com'
     #SqlCredential = $saAdmin
     #WindowsCredential = $DomainCredential
     <#
@@ -51,7 +56,7 @@ $params = @{
     #SqlInstanceForTsqlJobs = 'Workstation'
     #ConfirmValidationOfMultiInstance = $true
 }
-F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params #-Debug
+F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params #-PreQuery $sqlDropTable #-Debug
 
 
 # Get-Help F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 -ShowWindow

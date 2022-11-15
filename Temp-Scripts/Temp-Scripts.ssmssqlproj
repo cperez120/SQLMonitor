@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="(local):LAB\adwivedi">
+        <ConnectionNode Name="(local):21L-LTPABL-1187\Ajay">
           <Created>2022-11-11T13:42:27.5821988+05:30</Created>
           <Type>SQL</Type>
           <Server>(local)</Server>
@@ -63,7 +63,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="Localhost:LAB\adwivedi">
+        <ConnectionNode Name="Localhost:21L-LTPABL-1187\Ajay">
           <Created>2022-04-27T21:59:21.1315078+05:30</Created>
           <Type>SQL</Type>
           <Server>Localhost</Server>
@@ -75,7 +75,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="SqlPractice:LAB\adwivedi">
+        <ConnectionNode Name="SqlPractice:21L-LTPABL-1187\Ajay">
           <Created>2022-11-10T14:44:02.2012778+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlPractice</Server>
@@ -87,7 +87,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="SqlProd1:LAB\adwivedi">
+        <ConnectionNode Name="SqlProd1:21L-LTPABL-1187\Ajay">
           <Created>2022-10-10T22:11:13.9722189+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlProd1</Server>
@@ -99,7 +99,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="WORKSTATION:LAB\adwivedi">
+        <ConnectionNode Name="WORKSTATION:21L-LTPABL-1187\Ajay">
           <Created>2022-09-11T13:54:28.4063405+05:30</Created>
           <Type>SQL</Type>
           <Server>WORKSTATION</Server>
@@ -222,6 +222,12 @@
           <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-[usp_collect_xevents_resource_consumption]-Partitioned.sql</FullPath>
+        </FileNode>
+        <FileNode Name="SQLMonitor-Upgrade.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:172.31.25.106:False:E84947</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>172.31.25.106</AssociatedConnSrvName>
+          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <FullPath>SQLMonitor-Upgrade.sql</FullPath>
         </FileNode>
         <FileNode Name="vw_file_io_stats_deltas.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
