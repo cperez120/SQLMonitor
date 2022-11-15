@@ -138,7 +138,7 @@ Param (
     [Parameter(Mandatory=$false)]
     [String]$RunBlitzIndexJobFileName = "SCH-Job-[(dba) Run-BlitzIndex].sql",
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false)]
     [String[]]$DbaGroupMailId,
 
     [Parameter(Mandatory=$false)]
@@ -223,7 +223,13 @@ Param (
     [bool]$ConfirmValidationOfMultiInstance = $false,
 
     [Parameter(Mandatory=$false)]
-    [bool]$DryRun = $false
+    [bool]$DryRun = $false,
+
+    [Parameter(Mandatory=$false)]
+    [String]$PreQuery,
+
+    [Parameter(Mandatory=$false)]
+    [String]$PostQuery
 )
 
 $startTime = Get-Date
@@ -554,7 +560,8 @@ if ( $instanceDetails.Count -gt 0 )
         "STOP here, and fix above issue." | Write-Error
     }    
 
-    if([String]::IsNullOrEmpty($DbaGroupMailId)) {
+    # If no DBA Mail provided, then fetch from dbo.instance_details
+    if($DbaGroupMailId.Count -eq 0) {
         $DbaGroupMailId += $($instanceDetails.dba_group_mail_id -split ';')
     }
 
@@ -591,6 +598,10 @@ if ( $instanceDetails.Count -gt 0 )
         
             "STOP here, and fix above issue." | Write-Error
         }
+    }
+
+    if ($DbaGroupMailId.Count -eq 0) {
+        $DbaGroupMailId += 'some_dba_mail_id@gmail.com'
     }
     
     if ([String]::IsNullOrEmpty($SqlInstanceForTsqlJobs)) {
@@ -1061,6 +1072,13 @@ WHERE pp.is_default = 1
 
         Write-Error "Stop here. Fix above issue."
     }
+}
+
+
+# Execute PreQuery
+if(-not [String]::IsNullOrEmpty($PreQuery)) {
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Executing PreQuery on [$SqlInstanceToBaseline].." | Write-Host -ForegroundColor Cyan
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $PreQuery -SqlCredential $SqlCredential -EnableException
 }
 
 
@@ -2116,6 +2134,13 @@ select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb,
 go
 "@
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlAlterViewDiskSpace -SqlCredential $SqlCredential -EnableException
+}
+
+
+# Execute PostQuery
+if(-not [String]::IsNullOrEmpty($PostQuery)) {
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Executing PostQuery on [$SqlInstanceToBaseline].." | Write-Host -ForegroundColor Cyan
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $PostQuery -SqlCredential $SqlCredential -EnableException
 }
 
 
