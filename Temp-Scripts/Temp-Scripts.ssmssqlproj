@@ -133,6 +133,12 @@
           <AssociatedConnUserName />
           <FullPath>approach.sql</FullPath>
         </FileNode>
+        <FileNode Name="check-domain-ip-hostname.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>check-domain-ip-hostname.sql</FullPath>
+        </FileNode>
         <FileNode Name="conversion-status.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
@@ -157,6 +163,18 @@
           <AssociatedConnUserName />
           <FullPath>performance_counters.sql</FullPath>
         </FileNode>
+        <FileNode Name="QRY-Add-Fetch-Credentials.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>QRY-Add-Fetch-Credentials.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-BlitzCache-Result.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>QRY-BlitzCache-Result.sql</FullPath>
+        </FileNode>
         <FileNode Name="QRY-BlitzCache-Usages.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.196:False:E84947</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>196.1.115.196</AssociatedConnSrvName>
@@ -174,6 +192,12 @@
           <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>QRY-Drive-IO-Stats-Selective.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-file_io_stats-Histogram.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>QRY-file_io_stats-Histogram.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-Find-Table-Queries-RC-Infra.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.196:False:E84947</AssociatedConnectionMoniker>
@@ -222,12 +246,6 @@
           <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-[usp_collect_xevents_resource_consumption]-Partitioned.sql</FullPath>
-        </FileNode>
-        <FileNode Name="SQLMonitor-Upgrade.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:172.31.25.106:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>172.31.25.106</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
-          <FullPath>SQLMonitor-Upgrade.sql</FullPath>
         </FileNode>
         <FileNode Name="vw_file_io_stats_deltas.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>

@@ -8,7 +8,7 @@ GO
 */
 declare @PartitionBoundaryValue_StartDate date --= dateadd(day,-3,getdate());
 declare @PartitionBoundaryValue_EndDate_EXCLUSIVE date --= dateadd(day,-2,getdate());
-declare @TableName nvarchar(125) = 'resource_consumption';
+declare @TableName nvarchar(125) = 'disk_space';
 
 declare @sql nvarchar(max);
 
@@ -61,6 +61,7 @@ LEFT JOIN sys.partition_range_values AS prv ON pf.function_id = prv.function_id
 --	ON dds.partition_scheme_id = ps.data_space_id and dds.data_space_id = ds.data_space_id
 WHERE 1=1
 "+(case when @TableName is null then '--' else '' end)+"and (i.object_id = OBJECT_ID(@TableName))
+and i.index_id <= 1
 "+(case when @PartitionBoundaryValue_StartDate is null then '--' else '' end)+"and (prv.value >= @PartitionBoundaryValue_StartDate and prv.value < @PartitionBoundaryValue_EndDate_EXCLUSIVE) 
 ORDER BY [ObjectName], PartitionNumber
 option (recompile)
