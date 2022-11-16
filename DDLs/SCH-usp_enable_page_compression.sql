@@ -55,6 +55,7 @@ BEGIN
 				 --('dbo.resource_consumption_queries', NULL),
 				 ('dbo.disk_space',NULL),
 				 ('dbo.BlitzIndex',NULL),
+				 ('dbo.file_io_stats',NULL),
 				 ('dbo.WrongName',NULL)
 		) table_indexes(table_name, index_name);
 
