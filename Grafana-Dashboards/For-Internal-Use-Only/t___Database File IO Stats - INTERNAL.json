@@ -26,7 +26,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 20,
-  "iteration": 1668597921994,
+  "iteration": 1668600929648,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -1693,6 +1693,116 @@
         "x": 0,
         "y": 4
       },
+      "id": 45,
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${datasource}"
+          },
+          "description": "exec sp_BlitzFirst @seconds = 60, @ExpertMode = 1",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisLabel": "Read/Writes (Data)",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "opacity",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineStyle": {
+                  "fill": "solid"
+                },
+                "lineWidth": 1,
+                "pointSize": 4,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "always",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "decbytes"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 15,
+            "w": 24,
+            "x": 0,
+            "y": 5
+          },
+          "id": 43,
+          "options": {
+            "legend": {
+              "calcs": [
+                "sum",
+                "last",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "sortBy": "Total",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "pluginVersion": "8.4.4",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${datasource}"
+              },
+              "format": "time_series",
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n--declare @delta_minutes int;\ndeclare @disk_drive varchar(255) = '$disk_drive';\ndeclare @database varchar(255) = '$database';\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @disk_drive = case when ltrim(rtrim(@disk_drive)) = '__All__' then null else @disk_drive end;\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @disk_drive varchar(255), @database varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\ndeclare @FileIOStatsTop tinyint = 10;\ndeclare @StatsPercentTop int = 99;\n\n;WITH [Stats] AS\n(\n\tSELECT\t[collection_time_utc],\n\t\t\t[database_name],\n\t\t\t--[database_id],\n\t\t\t[file_logical_name],\n\t\t\t--[file_id],\n\t\t\t[file_location],\n\t\t\t[sample_ms_delta],\n\t\t\t--[num_of_reads],\n\t\t\t[read_write_bytes_delta],\n\t\t\t[read_bytes_delta],\n\t\t\t--[io_stall_read_ms],\n\t\t\t--[io_stall_queued_read_ms],\n\t\t\t--[num_of_writes],\n\t\t\t[writes_bytes_delta],\n\t\t\t--[io_stall_write_ms],\n\t\t\t--[io_stall_queued_write_ms],\n\t\t\t--[io_stall],\n\t\t\t[io_stall_delta],\n\t\t\t--[size_on_disk_bytes],\n\t\t\t--[io_pending_count],\n\t\t\t--[io_pending_ms_ticks_total],\n\t\t\t--[io_pending_ms_ticks_avg],\n\t\t\t--[io_pending_ms_ticks_max],\n\t\t\t--[io_pending_ms_ticks_min]\n\t\t\t[StatsRank] = ROW_NUMBER() OVER(PARTITION BY [collection_time_utc] ORDER BY read_write_bytes_delta DESC),\n\t\t\t[Percentage] = ((100.0 * [read_write_bytes_delta]) / (SUM ([read_write_bytes_delta]) OVER (PARTITION BY [collection_time_utc]))),\n\t\t\t[PercentageTotal] = ( (100.0 * ( SUM([read_write_bytes_delta]) \n\t\t\t\t\t\t\t\t\t\t\t OVER(PARTITION BY [collection_time_utc] \n\t\t\t\t\t\t\t\t\t\t\t ORDER BY [read_write_bytes_delta] DESC, [io_stall_delta] desc) )\n\t\t\t\t\t\t\t\t  ) / (SUM ([read_write_bytes_delta]) OVER (PARTITION BY [collection_time_utc])) )\n\tFROM dbo.[vw_file_io_stats_deltas] AS [Stats]\n\tWHERE collection_time_utc between @start_time_utc and @end_time_utc\n\t\"+(case when @database is null then '-- ' else '' end)+\"AND [Stats].[database_name] = @database\n\t\"+(case when @disk_drive is null then '-- ' else '' end)+\"and [Stats].disk_volume = @disk_drive\n)\nSELECT\ttime = [collection_time_utc],\n\t\t[metric] =  [database_name],\n\t\t[value] = SUM([read_write_bytes_delta])\nFROM [Stats] as cur\nWHERE 1=1\n--AND [StatsRank] <= @FileIOStatsTop\n--AND [PercentageTotal] <= @StatsPercentTop\nGROUP BY [collection_time_utc], [database_name]\nORDER BY [time] ASC, [value] DESC;\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @disk_drive, @database;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @disk_drive, @database;",
+              "refId": "A"
+            }
+          ],
+          "title": "[${server}] - Db File IO Stats - Read/Writes Data",
+          "type": "timeseries"
+        }
+      ],
+      "title": "Database IO Stats - Reads/Writes  - Trend  -  [$fqdn] - [$ip] - @ ${collection_time_utc:date:YYYY-MM-DD HH.mm}",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
       "id": 36,
       "panels": [
         {
@@ -1965,7 +2075,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 5
+            "y": 6
           },
           "id": 34,
           "options": {
@@ -2010,7 +2120,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 6
       },
       "id": 40,
       "panels": [
@@ -2638,7 +2748,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 7
       },
       "id": 24,
       "panels": [
@@ -2957,7 +3067,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 8
       },
       "id": 30,
       "panels": [
@@ -3751,8 +3861,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1668597601278",
-          "value": "1668597601278"
+          "text": "1668600600637",
+          "value": "1668600600637"
         },
         "datasource": {
           "type": "mssql",
@@ -3889,6 +3999,6 @@
   "timezone": "",
   "title": "t___Database File IO Stats",
   "uid": "database_file_io_stats",
-  "version": 69,
+  "version": 71,
   "weekStart": ""
 }
