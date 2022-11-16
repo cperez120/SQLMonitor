@@ -1,4 +1,4 @@
-use DBA
+use DBA_Admin
 go
 
 declare @pk_name nvarchar(125) = null;
