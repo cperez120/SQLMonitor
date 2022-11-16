@@ -26,7 +26,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 20,
-  "iteration": 1668600929648,
+  "iteration": 1668606278531,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -1784,7 +1784,7 @@
                 "uid": "${datasource}"
               },
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n--declare @delta_minutes int;\ndeclare @disk_drive varchar(255) = '$disk_drive';\ndeclare @database varchar(255) = '$database';\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @disk_drive = case when ltrim(rtrim(@disk_drive)) = '__All__' then null else @disk_drive end;\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @disk_drive varchar(255), @database varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\ndeclare @FileIOStatsTop tinyint = 10;\ndeclare @StatsPercentTop int = 99;\n\n;WITH [Stats] AS\n(\n\tSELECT\t[collection_time_utc],\n\t\t\t[database_name],\n\t\t\t--[database_id],\n\t\t\t[file_logical_name],\n\t\t\t--[file_id],\n\t\t\t[file_location],\n\t\t\t[sample_ms_delta],\n\t\t\t--[num_of_reads],\n\t\t\t[read_write_bytes_delta],\n\t\t\t[read_bytes_delta],\n\t\t\t--[io_stall_read_ms],\n\t\t\t--[io_stall_queued_read_ms],\n\t\t\t--[num_of_writes],\n\t\t\t[writes_bytes_delta],\n\t\t\t--[io_stall_write_ms],\n\t\t\t--[io_stall_queued_write_ms],\n\t\t\t--[io_stall],\n\t\t\t[io_stall_delta],\n\t\t\t--[size_on_disk_bytes],\n\t\t\t--[io_pending_count],\n\t\t\t--[io_pending_ms_ticks_total],\n\t\t\t--[io_pending_ms_ticks_avg],\n\t\t\t--[io_pending_ms_ticks_max],\n\t\t\t--[io_pending_ms_ticks_min]\n\t\t\t[StatsRank] = ROW_NUMBER() OVER(PARTITION BY [collection_time_utc] ORDER BY read_write_bytes_delta DESC),\n\t\t\t[Percentage] = ((100.0 * [read_write_bytes_delta]) / (SUM ([read_write_bytes_delta]) OVER (PARTITION BY [collection_time_utc]))),\n\t\t\t[PercentageTotal] = ( (100.0 * ( SUM([read_write_bytes_delta]) \n\t\t\t\t\t\t\t\t\t\t\t OVER(PARTITION BY [collection_time_utc] \n\t\t\t\t\t\t\t\t\t\t\t ORDER BY [read_write_bytes_delta] DESC, [io_stall_delta] desc) )\n\t\t\t\t\t\t\t\t  ) / (SUM ([read_write_bytes_delta]) OVER (PARTITION BY [collection_time_utc])) )\n\tFROM dbo.[vw_file_io_stats_deltas] AS [Stats]\n\tWHERE collection_time_utc between @start_time_utc and @end_time_utc\n\t\"+(case when @database is null then '-- ' else '' end)+\"AND [Stats].[database_name] = @database\n\t\"+(case when @disk_drive is null then '-- ' else '' end)+\"and [Stats].disk_volume = @disk_drive\n)\nSELECT\ttime = [collection_time_utc],\n\t\t[metric] =  [database_name],\n\t\t[value] = SUM([read_write_bytes_delta])\nFROM [Stats] as cur\nWHERE 1=1\n--AND [StatsRank] <= @FileIOStatsTop\n--AND [PercentageTotal] <= @StatsPercentTop\nGROUP BY [collection_time_utc], [database_name]\nORDER BY [time] ASC, [value] DESC;\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @disk_drive, @database;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @disk_drive, @database;",
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n--declare @delta_minutes int;\ndeclare @disk_drive varchar(255) = '$disk_drive';\ndeclare @database varchar(255) = '$database';\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @disk_drive = case when ltrim(rtrim(@disk_drive)) = '__All__' then null else @disk_drive end;\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @disk_drive varchar(255), @database varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nif object_id('tempdb..#file_io_stats') is not null\n\tdrop table #file_io_stats;\nselect\tfis.[collection_time_utc],\n\t\tfis.[database_name],\n\t\t[files_count] = count(*),\n\t\t[num_of_bytes_read_written] = sum(fis.num_of_bytes_read + fis.num_of_bytes_written)\ninto #file_io_stats\nfrom dbo.file_io_stats fis\nwhere fis.collection_time_utc >= (select max(i.collection_time_utc) from dbo.file_io_stats as i where i.collection_time_utc < @start_time_utc)\n  and fis.collection_time_utc <= @end_time_utc\n\t\"+(case when @database is null then '-- ' else '' end)+\"AND fis.[database_name] = @database\ngroup by fis.[collection_time_utc], fis.[database_name]\n\n;with fis_delta as (\n\tselect\tfis.collection_time_utc, fis.database_name, [files_count],\n\t\t\tfis.[num_of_bytes_read_written],\n\t\t\t[num_of_bytes_read_written_previous] = lag([num_of_bytes_read_written]) over (partition by fis.database_name order by fis.collection_time_utc)\n\tfrom #file_io_stats fis\n)\nselect\t[time] = fis.collection_time_utc, [metric] = fis.database_name, \n\t\t[value] = fis.[num_of_bytes_read_written] - fis.[num_of_bytes_read_written_previous]\nfrom fis_delta fis\nwhere [num_of_bytes_read_written_previous] is not null\norder by [time] asc, [value] desc\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @disk_drive, @database;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @disk_drive, @database;",
               "refId": "A"
             }
           ],
@@ -3861,8 +3861,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1668600600637",
-          "value": "1668600600637"
+          "text": "1668606001278",
+          "value": "1668606001278"
         },
         "datasource": {
           "type": "mssql",
@@ -3999,6 +3999,6 @@
   "timezone": "",
   "title": "t___Database File IO Stats",
   "uid": "database_file_io_stats",
-  "version": 71,
+  "version": 72,
   "weekStart": ""
 }
