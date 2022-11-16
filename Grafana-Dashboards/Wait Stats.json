@@ -63,7 +63,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1665939454455,
+  "iteration": 1668597961140,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -98,6 +98,7 @@
         "type": "mssql",
         "uid": "${DS_SQLMONITOR}"
       },
+      "description": "exec sp_BlitzFirst @seconds = 60, @ExpertMode = 1",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -357,6 +358,7 @@
             "type": "mssql",
             "uid": "${DS_SQLMONITOR}"
           },
+          "description": "exec sp_BlitzFirst @seconds = 60, @ExpertMode = 1",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -649,7 +651,7 @@
               "refId": "A"
             }
           ],
-          "title": "Since Startup Before Duration",
+          "title": "Wait Stats ____Since Startup ___ till ___ ${__from:date:YYYY-MM-DD HH.mm}___",
           "type": "table"
         },
         {
@@ -657,6 +659,7 @@
             "type": "mssql",
             "uid": "${DS_SQLMONITOR}"
           },
+          "description": "exec sp_BlitzFirst @seconds = 60, @ExpertMode = 1",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -901,7 +904,7 @@
               "refId": "A"
             }
           ],
-          "title": "In Selected Time Duration",
+          "title": "Wait Stats ____In Selected Time Duration____Since____${__from:date:YYYY-MM-DD HH.mm}___till___${__to:date:YYYY-MM-DD HH.mm}____",
           "type": "table"
         }
       ],
@@ -1261,7 +1264,7 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-2h",
     "to": "now"
   },
   "timepicker": {
@@ -1279,6 +1282,6 @@
   "timezone": "",
   "title": "Wait Stats",
   "uid": "wait_stats",
-  "version": 74,
+  "version": 81,
   "weekStart": ""
 }

@@ -26,7 +26,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 16,
-  "iteration": 1665939454457,
+  "iteration": 1668597961142,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -61,6 +61,7 @@
         "type": "mssql",
         "uid": "${datasource}"
       },
+      "description": "exec sp_BlitzFirst @seconds = 60, @ExpertMode = 1",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -320,6 +321,7 @@
             "type": "mssql",
             "uid": "${datasource}"
           },
+          "description": "exec sp_BlitzFirst @seconds = 60, @ExpertMode = 1",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -612,7 +614,7 @@
               "refId": "A"
             }
           ],
-          "title": "Since Startup Before Duration",
+          "title": "Wait Stats ____Since Startup ___ till ___ ${__from:date:YYYY-MM-DD HH.mm}___",
           "type": "table"
         },
         {
@@ -620,6 +622,7 @@
             "type": "mssql",
             "uid": "${datasource}"
           },
+          "description": "exec sp_BlitzFirst @seconds = 60, @ExpertMode = 1",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -864,7 +867,7 @@
               "refId": "A"
             }
           ],
-          "title": "In Selected Time Duration",
+          "title": "Wait Stats ____In Selected Time Duration____Since____${__from:date:YYYY-MM-DD HH.mm}___till___${__to:date:YYYY-MM-DD HH.mm}____",
           "type": "table"
         }
       ],
@@ -1044,8 +1047,8 @@
       {
         "current": {
           "selected": false,
-          "text": "SqlMonitor",
-          "value": "SqlMonitor"
+          "text": "SqlPractice",
+          "value": "SqlPractice"
         },
         "datasource": {
           "type": "mssql",
@@ -1092,8 +1095,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1",
-          "value": "1"
+          "text": "0",
+          "value": "0"
         },
         "datasource": {
           "type": "mssql",
@@ -1140,8 +1143,8 @@
       {
         "current": {
           "selected": false,
-          "text": "192.168.29.18",
-          "value": "192.168.29.18"
+          "text": "192.168.29.22",
+          "value": "192.168.29.22"
         },
         "datasource": {
           "type": "mssql",
@@ -1164,8 +1167,8 @@
       {
         "current": {
           "selected": false,
-          "text": "SqlMonitor.Lab.com",
-          "value": "SqlMonitor.Lab.com"
+          "text": "SqlPractice.Lab.com",
+          "value": "SqlPractice.Lab.com"
         },
         "datasource": {
           "type": "mssql",
@@ -1188,8 +1191,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1665939000232",
-          "value": "1665939000232"
+          "text": "1668597601356",
+          "value": "1668597601356"
         },
         "datasource": {
           "type": "mssql",
@@ -1212,8 +1215,8 @@
       {
         "current": {
           "selected": false,
-          "text": "8",
-          "value": "8"
+          "text": "4",
+          "value": "4"
         },
         "datasource": {
           "type": "mssql",
@@ -1236,8 +1239,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1665884353670",
-          "value": "1665884353670"
+          "text": "1668143138470",
+          "value": "1668143138470"
         },
         "datasource": {
           "type": "mssql",
@@ -1260,7 +1263,7 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-2h",
     "to": "now"
   },
   "timepicker": {
@@ -1278,6 +1281,6 @@
   "timezone": "",
   "title": "Wait Stats",
   "uid": "wait_stats",
-  "version": 74,
+  "version": 81,
   "weekStart": ""
 }
