@@ -31,11 +31,11 @@
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
-        <FileNode Name="_README.sql">
+        <FileNode Name="_README-Grafana-Variables.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>_README.sql</FullPath>
+          <FullPath>_README-Grafana-Variables.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>
