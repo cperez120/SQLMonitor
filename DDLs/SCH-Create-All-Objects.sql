@@ -401,14 +401,14 @@ begin
 		[wait_time_ms] [bigint] NOT NULL,
 		[max_wait_time_ms] [bigint] NOT NULL,
 		[signal_wait_time_ms] [bigint] NOT NULL,
-		constraint pk_wait_stats primary key ([collection_time_utc], [wait_type]) on ps_dba_datetime2_hourly ([collection_time_utc])
-	) on ps_dba_datetime2_hourly ([collection_time_utc])
+		constraint pk_wait_stats primary key ([collection_time_utc], [wait_type]) on ps_dba_datetime2_daily ([collection_time_utc])
+	) on ps_dba_datetime2_daily ([collection_time_utc])
 end
 GO
 
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[wait_stats]') and type_desc = 'CLUSTERED')
 begin
-	alter table [dbo].[wait_stats] add constraint pk_wait_stats primary key ([collection_time_utc], [wait_type]) on ps_dba_datetime2_hourly ([collection_time_utc])
+	alter table [dbo].[wait_stats] add constraint pk_wait_stats primary key ([collection_time_utc], [wait_type]) on ps_dba_datetime2_daily ([collection_time_utc])
 end
 go
 
@@ -508,13 +508,13 @@ begin
 		[io_pending_ms_ticks_avg] [bigint] NULL DEFAULT 0,
 		[io_pending_ms_ticks_max] [bigint] NULL DEFAULT 0,
 		[io_pending_ms_ticks_min] [bigint] NULL DEFAULT 0
-	) on ps_dba_datetime2_hourly ([collection_time_utc]);
+	) on ps_dba_datetime2_daily ([collection_time_utc]);
 end
 GO
 
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[file_io_stats]') and type_desc = 'CLUSTERED')
 begin
-	alter table [dbo].[file_io_stats] add constraint pk_file_io_stats primary key clustered ([collection_time_utc], [database_id], [file_id]) on ps_dba_datetime2_hourly ([collection_time_utc])
+	alter table [dbo].[file_io_stats] add constraint pk_file_io_stats primary key clustered ([collection_time_utc], [database_id], [file_id]) on ps_dba_datetime2_daily ([collection_time_utc])
 end
 go
 
