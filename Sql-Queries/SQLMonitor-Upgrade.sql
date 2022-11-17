@@ -5,6 +5,10 @@ where 1=1
 and sqlmonitor_version <> '1.1.5'
 order by server_counts asc, id.collector_powershell_jobs_server, sql_instance
 
+select *
+from dbo.instance_details id
+where id.sql_instance <> id.collector_tsql_jobs_server
+
 /*
 select *
 -- update id set sqlmonitor_version = '1.1.5'

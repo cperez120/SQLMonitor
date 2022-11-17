@@ -157,6 +157,12 @@ begin
 end
 go
 
+if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[purge_table]') and type_desc = 'CLUSTERED')
+begin
+	alter table [dbo].[purge_table] add constraint pk_purge_table primary key ([table_name])
+end
+go
+
 if not exists (select 1 from dbo.purge_table where table_name = 'dbo.BlitzIndex')
 begin
 	insert dbo.purge_table
@@ -287,7 +293,12 @@ if OBJECT_ID('dbo.vw_performance_counters') is null
 	exec ('create view dbo.vw_performance_counters as select 1 as dummy;');
 go
 
-alter view dbo.vw_performance_counters
+declare @recreate_multi_server_views bit = 1;
+declare @sql nvarchar(max);
+if @recreate_multi_server_views = 1
+begin
+	set quoted_identifier off;
+	set @sql = "alter view dbo.vw_performance_counters
 --with schemabinding
 as
 with cte_counters_local as (select collection_time_utc, host_name, object, counter, value, instance from dbo.performance_counters)
@@ -295,7 +306,11 @@ with cte_counters_local as (select collection_time_utc, host_name, object, count
 
 select collection_time_utc, host_name, object, counter, value, instance from cte_counters_local --with (forceseek)
 --union all
---select collection_time_utc, host_name, object, counter, value, instance from cte_counters_datasource
+--select collection_time_utc, host_name, object, counter, value, instance from cte_counters_datasource"
+	set quoted_identifier on;
+
+	exec (@sql);
+end
 go
 
 
@@ -376,7 +391,12 @@ go
 if OBJECT_ID('dbo.vw_os_task_list') is null
 	exec ('create view dbo.vw_os_task_list as select 1 as dummy;')
 go
-alter view dbo.vw_os_task_list
+declare @recreate_multi_server_views bit = 1;
+declare @sql nvarchar(max);
+if @recreate_multi_server_views = 1
+begin
+	set quoted_identifier off;
+	set @sql = "alter view dbo.vw_os_task_list
 --with schemabinding
 as
 with cte_os_tasks_local as (select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from dbo.os_task_list)
@@ -384,7 +404,11 @@ with cte_os_tasks_local as (select [collection_time_utc], [host_name], [task_nam
 
 select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_local
 --union all
---select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_datasource
+--select [collection_time_utc], [host_name], [task_name], [pid], [session_name], [memory_kb], [status], [user_name], [cpu_time], [cpu_time_seconds], [window_title] from cte_os_tasks_datasource"
+	set quoted_identifier on;
+
+	exec (@sql);
+end
 go
 
 
@@ -776,7 +800,12 @@ go
 if OBJECT_ID('dbo.vw_disk_space') is null
 	exec ('create view dbo.vw_disk_space as select 1 as dummy;')
 go
-alter view dbo.vw_disk_space
+declare @recreate_multi_server_views bit = 1;
+declare @sql nvarchar(max);
+if @recreate_multi_server_views = 1
+begin
+	set quoted_identifier off;
+	set @sql = "alter view dbo.vw_disk_space
 --with schemabinding
 as
 with cte_disk_space_local as (select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from dbo.disk_space)
@@ -784,7 +813,11 @@ with cte_disk_space_local as (select collection_time_utc, host_name, disk_volume
 
 select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_local
 --union all
---select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_datasource
+--select collection_time_utc, host_name, disk_volume, label, capacity_mb, free_mb, block_size, filesystem from cte_disk_space_datasource"
+	set quoted_identifier on;
+
+	exec (@sql);
+end
 go
 
 

@@ -202,6 +202,9 @@ Param (
     [bool]$SkipPowerShellJobs = $false,
 
     [Parameter(Mandatory=$false)]
+    [bool]$SkipMultiServerviewsUpgrade = $true,
+
+    [Parameter(Mandatory=$false)]
     [bool]$SkipTsqlJobs = $false,
 
     [Parameter(Mandatory=$false)]
@@ -237,7 +240,7 @@ $ErrorActionPreference = "Stop"
 $sqlmonitorVersion = '1.1.5'
 $releaseDiscussionURL = "https://ajaydwivedi.com/sqlmonitor/common-errors"
 <#
-    v1.1.0 - 2022-Oct-17
+    v1.1.6 - 2022-Nov-17
         -> Added columns [dba_group_mail_id],[sqlmonitor_script_path],[sqlmonitor_version] in dbo.instance_details
         -> Added dbo.BlitzIndex table
         -> Added dbo.file_io_stats
@@ -347,6 +350,7 @@ $WindowsCredential | ft -AutoSize
 # Construct File Path Variables
 $ddlPath = Join-Path $SQLMonitorPath "DDLs"
 $psScriptPath = Join-Path $SQLMonitorPath "SQLMonitor"
+$isUpgradeScenario = $false
 
 $mailProfileFilePath = "$ddlPath\$MailProfileFileName"
 $WhoIsActiveFilePath = "$ddlPath\$WhoIsActiveFileName"
@@ -543,7 +547,7 @@ catch {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "So assuming fresh installation of SQLMonitor."
 }
 
-# If no instance details found, then throw error
+# If instance details found, then use same to initiate empty parameters
 if ( $instanceDetails.Count -gt 0 ) 
 {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Instance details found in [dbo].[instance_details]."
@@ -631,6 +635,12 @@ if ( $instanceDetails.Count -gt 0 )
         $ConfirmValidationOfMultiInstance = $true
     }
 
+    $isUpgradeScenario = $true
+}
+
+# If fresh install, then set SkipMultiServerviewsUpgrade to False
+if($isUpgradeScenario = $false) {
+    $SkipMultiServerviewsUpgrade = $false
 }
 
 if($DbaGroupMailId -eq 'some_dba_mail_id@gmail.com') {
@@ -1125,22 +1135,31 @@ if($stepName -in $Steps2Execute)
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating All Objects in [$DbaDatabase] database.."
 
-    # Retrieve actual content
-    $tempAllDatabaseObjectsFilePath = $AllDatabaseObjectsFilePath
+    # Retrieve actual content & dump in temporary file
+    $tempAllDatabaseObjectsFileName = "$($AllDatabaseObjectsFileName -replace '.sql','')-RuntimeUsedFile.sql"
+    $tempAllDatabaseObjectsFilePath = Join-Path $ddlPath $tempAllDatabaseObjectsFileName
+
+    $AllDatabaseObjectsFileContent = [System.IO.File]::ReadAllText($AllDatabaseObjectsFilePath)
+
+    # MultiServerViews ~ [vw_performance_counters],[vw_disk_space],[vw_os_task_list]
+    if($SkipMultiServerviewsUpgrade -eq $true) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "MultiServerViews are being skipped for upgrade."
+        $AllDatabaseObjectsFileContent = $AllDatabaseObjectsFileContent.Replace("declare @recreate_multi_server_views bit = 1;", "declare @recreate_multi_server_views bit = 0;")
+    }
+    else {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "MultiServerViews are considered for upgrade."
+    }
 
     # Modify content if SQL Server does not support Partitioning
     if($IsNonPartitioned) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Partitioning is not supported on current server."
-        $AllDatabaseObjectsFileContent = [System.IO.File]::ReadAllText($AllDatabaseObjectsFilePath)
-
-        $tempAllDatabaseObjectsFileName = "$($AllDatabaseObjectsFileName -replace '.sql','')-NonSupportedVersions.sql"
-        $tempAllDatabaseObjectsFilePath = Join-Path $ddlPath $tempAllDatabaseObjectsFileName
 
         $AllDatabaseObjectsFileContent = $AllDatabaseObjectsFileContent.Replace('declare @is_partitioned bit = 1;', 'declare @is_partitioned bit = 0;')
         $AllDatabaseObjectsFileContent = $AllDatabaseObjectsFileContent.Replace(' on ps_dba', ' --on ps_dba')
-        $AllDatabaseObjectsFileContent | Out-File -FilePath $tempAllDatabaseObjectsFilePath
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Non-partitioned code is generated."
     }
+
+    $AllDatabaseObjectsFileContent | Out-File -FilePath $tempAllDatabaseObjectsFilePath
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Runtime All Server Objects file code is generated."
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$AllDatabaseObjectsFilePath = '$tempAllDatabaseObjectsFilePath'"
     try {
@@ -1154,7 +1173,9 @@ if($stepName -in $Steps2Execute)
 
         Write-Error "Stop here. Fix above issue."
     }
-    if($IsNonPartitioned) {
+
+    # Cleanup temporary file path
+    if($true) {
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Remove temp file '$tempAllDatabaseObjectsFilePath'.."
         Remove-Item -Path $tempAllDatabaseObjectsFilePath | Out-Null
     }
