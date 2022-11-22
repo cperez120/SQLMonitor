@@ -40,16 +40,17 @@ Param (
                 "19__DropProc_UspPurgeTables", "20__DropProc_SpWhatIsRunning", "21__DropProc_UspActiveRequestsCount",
                 "22__DropProc_UspCollectFileIOStats", "23__DropProc_UspEnablePageCompression", "24__DropProc_UspWaitsPerCorePerMinute",
                 "25__DropView_VwPerformanceCounters", "26__DropView_VwOsTaskList", "27__DropView_VwWaitStatsDeltas",
-                "28__DropXEvent_ResourceConsumption", "29__DropLinkedServer", "30__DropLogin_Grafana",
-                "31__DropTable_ResourceConsumption", "32__DropTable_ResourceConsumptionProcessedXELFiles", "33__DropTable_WhoIsActive_Staging",
-                "34__DropTable_WhoIsActive", "35__DropTable_PerformanceCounters", "36__DropTable_PurgeTable",
-                "37__DropTable_PerfmonFiles", "38__DropTable_InstanceDetails", "39__DropTable_InstanceHosts",
-                "40__DropTable_OsTaskList", "41__DropTable_BlitzWho", "42__DropTable_BlitzCache",
-                "43__DropTable_ConnectionHistory", "44__DropTable_BlitzFirst", "45__DropTable_BlitzFirstFileStats",
-                "46__DropTable_DiskSpace", "47__DropTable_BlitzFirstPerfmonStats", "48__DropTable_BlitzFirstWaitStats",
-                "49__DropTable_BlitzFirstWaitStatsCategories", "50__DropTable_WaitStats", "51__DropTable_BlitzIndex",
-                "52__DropTable_FileIOStats", "53__RemovePerfmonFilesFromDisk", "54__RemoveXEventFilesFromDisk",
-                "55__DropProxy", "56__DropCredential", "57__RemoveInstanceFromInventory")]
+                "28__DropView_vw_file_io_stats_deltas", "29__DropView_vw_resource_consumption", "30__DropXEvent_ResourceConsumption",
+                "31__DropLinkedServer", "32__DropLogin_Grafana", "33__DropTable_ResourceConsumption",
+                "34__DropTable_resource_consumption_queries", "35__DropTable_ResourceConsumptionProcessedXELFiles", "36__DropTable_WhoIsActive_Staging",
+                "37__DropTable_WhoIsActive", "38__DropTable_PerformanceCounters", "39__DropTable_PurgeTable",
+                "40__DropTable_PerfmonFiles", "41__DropTable_InstanceDetails", "42__DropTable_InstanceHosts",
+                "43__DropTable_OsTaskList", "44__DropTable_BlitzWho", "45__DropTable_BlitzCache",
+                "46__DropTable_ConnectionHistory", "47__DropTable_BlitzFirst", "48__DropTable_BlitzFirstFileStats",
+                "49__DropTable_DiskSpace", "50__DropTable_BlitzFirstPerfmonStats", "51__DropTable_BlitzFirstWaitStats",
+                "52__DropTable_BlitzFirstWaitStatsCategories", "53__DropTable_WaitStats", "54__DropTable_BlitzIndex",
+                "55__DropTable_FileIOStats", "56__RemovePerfmonFilesFromDisk", "57__RemoveXEventFilesFromDisk",
+                "58__DropProxy", "59__DropCredential", "60__RemoveInstanceFromInventory")]
     [String]$StartAtStep = "1__RemoveJob_CollectDiskSpace",
 
     [Parameter(Mandatory=$false)]
@@ -62,16 +63,17 @@ Param (
                 "19__DropProc_UspPurgeTables", "20__DropProc_SpWhatIsRunning", "21__DropProc_UspActiveRequestsCount",
                 "22__DropProc_UspCollectFileIOStats", "23__DropProc_UspEnablePageCompression", "24__DropProc_UspWaitsPerCorePerMinute",
                 "25__DropView_VwPerformanceCounters", "26__DropView_VwOsTaskList", "27__DropView_VwWaitStatsDeltas",
-                "28__DropXEvent_ResourceConsumption", "29__DropLinkedServer", "30__DropLogin_Grafana",
-                "31__DropTable_ResourceConsumption", "32__DropTable_ResourceConsumptionProcessedXELFiles", "33__DropTable_WhoIsActive_Staging",
-                "34__DropTable_WhoIsActive", "35__DropTable_PerformanceCounters", "36__DropTable_PurgeTable",
-                "37__DropTable_PerfmonFiles", "38__DropTable_InstanceDetails", "39__DropTable_InstanceHosts",
-                "40__DropTable_OsTaskList", "41__DropTable_BlitzWho", "42__DropTable_BlitzCache",
-                "43__DropTable_ConnectionHistory", "44__DropTable_BlitzFirst", "45__DropTable_BlitzFirstFileStats",
-                "46__DropTable_DiskSpace", "47__DropTable_BlitzFirstPerfmonStats", "48__DropTable_BlitzFirstWaitStats",
-                "49__DropTable_BlitzFirstWaitStatsCategories", "50__DropTable_WaitStats", "51__DropTable_BlitzIndex",
-                "52__DropTable_FileIOStats", "53__RemovePerfmonFilesFromDisk", "54__RemoveXEventFilesFromDisk",
-                "55__DropProxy", "56__DropCredential", "57__RemoveInstanceFromInventory")]
+                "28__DropView_vw_file_io_stats_deltas", "29__DropView_vw_resource_consumption", "30__DropXEvent_ResourceConsumption",
+                "31__DropLinkedServer", "32__DropLogin_Grafana", "33__DropTable_ResourceConsumption",
+                "34__DropTable_resource_consumption_queries", "35__DropTable_ResourceConsumptionProcessedXELFiles", "36__DropTable_WhoIsActive_Staging",
+                "37__DropTable_WhoIsActive", "38__DropTable_PerformanceCounters", "39__DropTable_PurgeTable",
+                "40__DropTable_PerfmonFiles", "41__DropTable_InstanceDetails", "42__DropTable_InstanceHosts",
+                "43__DropTable_OsTaskList", "44__DropTable_BlitzWho", "45__DropTable_BlitzCache",
+                "46__DropTable_ConnectionHistory", "47__DropTable_BlitzFirst", "48__DropTable_BlitzFirstFileStats",
+                "49__DropTable_DiskSpace", "50__DropTable_BlitzFirstPerfmonStats", "51__DropTable_BlitzFirstWaitStats",
+                "52__DropTable_BlitzFirstWaitStatsCategories", "53__DropTable_WaitStats", "54__DropTable_BlitzIndex",
+                "55__DropTable_FileIOStats", "56__RemovePerfmonFilesFromDisk", "57__RemoveXEventFilesFromDisk",
+                "58__DropProxy", "59__DropCredential", "60__RemoveInstanceFromInventory")]
     [String[]]$SkipSteps,
 
     [Parameter(Mandatory=$false)]
@@ -84,16 +86,17 @@ Param (
                 "19__DropProc_UspPurgeTables", "20__DropProc_SpWhatIsRunning", "21__DropProc_UspActiveRequestsCount",
                 "22__DropProc_UspCollectFileIOStats", "23__DropProc_UspEnablePageCompression", "24__DropProc_UspWaitsPerCorePerMinute",
                 "25__DropView_VwPerformanceCounters", "26__DropView_VwOsTaskList", "27__DropView_VwWaitStatsDeltas",
-                "28__DropXEvent_ResourceConsumption", "29__DropLinkedServer", "30__DropLogin_Grafana",
-                "31__DropTable_ResourceConsumption", "32__DropTable_ResourceConsumptionProcessedXELFiles", "33__DropTable_WhoIsActive_Staging",
-                "34__DropTable_WhoIsActive", "35__DropTable_PerformanceCounters", "36__DropTable_PurgeTable",
-                "37__DropTable_PerfmonFiles", "38__DropTable_InstanceDetails", "39__DropTable_InstanceHosts",
-                "40__DropTable_OsTaskList", "41__DropTable_BlitzWho", "42__DropTable_BlitzCache",
-                "43__DropTable_ConnectionHistory", "44__DropTable_BlitzFirst", "45__DropTable_BlitzFirstFileStats",
-                "46__DropTable_DiskSpace", "47__DropTable_BlitzFirstPerfmonStats", "48__DropTable_BlitzFirstWaitStats",
-                "49__DropTable_BlitzFirstWaitStatsCategories", "50__DropTable_WaitStats", "51__DropTable_BlitzIndex",
-                "52__DropTable_FileIOStats", "53__RemovePerfmonFilesFromDisk", "54__RemoveXEventFilesFromDisk",
-                "55__DropProxy", "56__DropCredential", "57__RemoveInstanceFromInventory")]
+                "28__DropView_vw_file_io_stats_deltas", "29__DropView_vw_resource_consumption", "30__DropXEvent_ResourceConsumption",
+                "31__DropLinkedServer", "32__DropLogin_Grafana", "33__DropTable_ResourceConsumption",
+                "34__DropTable_resource_consumption_queries", "35__DropTable_ResourceConsumptionProcessedXELFiles", "36__DropTable_WhoIsActive_Staging",
+                "37__DropTable_WhoIsActive", "38__DropTable_PerformanceCounters", "39__DropTable_PurgeTable",
+                "40__DropTable_PerfmonFiles", "41__DropTable_InstanceDetails", "42__DropTable_InstanceHosts",
+                "43__DropTable_OsTaskList", "44__DropTable_BlitzWho", "45__DropTable_BlitzCache",
+                "46__DropTable_ConnectionHistory", "47__DropTable_BlitzFirst", "48__DropTable_BlitzFirstFileStats",
+                "49__DropTable_DiskSpace", "50__DropTable_BlitzFirstPerfmonStats", "51__DropTable_BlitzFirstWaitStats",
+                "52__DropTable_BlitzFirstWaitStatsCategories", "53__DropTable_WaitStats", "54__DropTable_BlitzIndex",
+                "55__DropTable_FileIOStats", "56__RemovePerfmonFilesFromDisk", "57__RemoveXEventFilesFromDisk",
+                "58__DropProxy", "59__DropCredential", "60__RemoveInstanceFromInventory")]
     [String]$StopAtStep,
 
     [Parameter(Mandatory=$false)]
@@ -137,16 +140,17 @@ $AllSteps = @(  "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesse
                 "19__DropProc_UspPurgeTables", "20__DropProc_SpWhatIsRunning", "21__DropProc_UspActiveRequestsCount",
                 "22__DropProc_UspCollectFileIOStats", "23__DropProc_UspEnablePageCompression", "24__DropProc_UspWaitsPerCorePerMinute",
                 "25__DropView_VwPerformanceCounters", "26__DropView_VwOsTaskList", "27__DropView_VwWaitStatsDeltas",
-                "28__DropXEvent_ResourceConsumption", "29__DropLinkedServer", "30__DropLogin_Grafana",
-                "31__DropTable_ResourceConsumption", "32__DropTable_ResourceConsumptionProcessedXELFiles", "33__DropTable_WhoIsActive_Staging",
-                "34__DropTable_WhoIsActive", "35__DropTable_PerformanceCounters", "36__DropTable_PurgeTable",
-                "37__DropTable_PerfmonFiles", "38__DropTable_InstanceDetails", "39__DropTable_InstanceHosts",
-                "40__DropTable_OsTaskList", "41__DropTable_BlitzWho", "42__DropTable_BlitzCache",
-                "43__DropTable_ConnectionHistory", "44__DropTable_BlitzFirst", "45__DropTable_BlitzFirstFileStats",
-                "46__DropTable_DiskSpace", "47__DropTable_BlitzFirstPerfmonStats", "48__DropTable_BlitzFirstWaitStats",
-                "49__DropTable_BlitzFirstWaitStatsCategories", "50__DropTable_WaitStats", "51__DropTable_BlitzIndex",
-                "52__DropTable_FileIOStats", "53__RemovePerfmonFilesFromDisk", "54__RemoveXEventFilesFromDisk",
-                "55__DropProxy", "56__DropCredential", "57__RemoveInstanceFromInventory"
+                "28__DropView_vw_file_io_stats_deltas", "29__DropView_vw_resource_consumption", "30__DropXEvent_ResourceConsumption",
+                "31__DropLinkedServer", "32__DropLogin_Grafana", "33__DropTable_ResourceConsumption",
+                "34__DropTable_resource_consumption_queries", "35__DropTable_ResourceConsumptionProcessedXELFiles", "36__DropTable_WhoIsActive_Staging",
+                "37__DropTable_WhoIsActive", "38__DropTable_PerformanceCounters", "39__DropTable_PurgeTable",
+                "40__DropTable_PerfmonFiles", "41__DropTable_InstanceDetails", "42__DropTable_InstanceHosts",
+                "43__DropTable_OsTaskList", "44__DropTable_BlitzWho", "45__DropTable_BlitzCache",
+                "46__DropTable_ConnectionHistory", "47__DropTable_BlitzFirst", "48__DropTable_BlitzFirstFileStats",
+                "49__DropTable_DiskSpace", "50__DropTable_BlitzFirstPerfmonStats", "51__DropTable_BlitzFirstWaitStats",
+                "52__DropTable_BlitzFirstWaitStatsCategories", "53__DropTable_WaitStats", "54__DropTable_BlitzIndex",
+                "55__DropTable_FileIOStats", "56__RemovePerfmonFilesFromDisk", "57__RemoveXEventFilesFromDisk",
+                "58__DropProxy", "59__DropCredential", "60__RemoveInstanceFromInventory"
                 )
 
 # TSQL Jobs
@@ -161,7 +165,7 @@ $PowerShellJobSteps = @(
                 "12__RemoveJob_UpdateSqlServerVersions", "13__RemoveJob_CheckInstanceAvailability")
 
 # RDPSessionSteps
-$RDPSessionSteps = @("53__RemovePerfmonFilesFromDisk", "54__RemoveXEventFilesFromDisk")
+$RDPSessionSteps = @("56__RemovePerfmonFilesFromDisk", "57__RemoveXEventFilesFromDisk")
 
 
 # Add $PowerShellJobSteps to Skip Jobs
@@ -188,6 +192,12 @@ if($SkipRemoveTsqlJobs -and $SkipRemovePowerShellJobs) {
 
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
+$sqlmonitorVersion = '1.1.5'
+$releaseDiscussionURL = "https://ajaydwivedi.com/sqlmonitor/common-errors"
+<#
+    v1.1.5 - 2022-Nov-22
+        -> Remove [vw_file_io_stats_deltas], [vw_resource_consumption]
+#>
 
 if($SqlInstanceToBaseline -eq '.' -or $SqlInstanceToBaseline -eq 'localhost') {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "'localhost' or '.' are not validate SQLInstance names." | Write-Host -ForegroundColor Red
@@ -200,7 +210,11 @@ if([String]::IsNullOrEmpty($DbaDatabase)) {
 else {
     "`n`n`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline] with [$DbaDatabase] database." | Write-Host -ForegroundColor Yellow
 }
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "For help, kindly reach out to 'Ajay Dwivedi <ajay.dwivedi2007@gmail.com>'.`n" | Write-Host -ForegroundColor Yellow
+
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Removing SQLMonitor.." | Write-Host -ForegroundColor Yellow
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "For issues, kindly visit $releaseDiscussionURL" | Write-Host -ForegroundColor Yellow
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "For help, kindly reach out to 'Ajay Dwivedi <ajay.dwivedi2007@gmail.com>'`n" | Write-Host -ForegroundColor Yellow
+
 
 # Set windows credential if valid AD credential is provided as SqlCredential
 if( [String]::IsNullOrEmpty($WindowsCredential) -and (-not [String]::IsNullOrEmpty($SqlCredential)) -and $SqlCredential.UserName -like "*\*" ) {
@@ -1806,8 +1820,86 @@ else
 }
 
 
-# 28__DropXEvent_ResourceConsumption
-$stepName = '28__DropXEvent_ResourceConsumption'
+# 28__DropView_vw_file_io_stats_deltas
+$stepName = '28__DropView_vw_file_io_stats_deltas'
+if($stepName -in $Steps2Execute) {
+    $objName = 'vw_file_io_stats_deltas'
+    $objType = 'view'
+    $objTypeTitleCase = (Get-Culture).TextInfo.ToTitleCase("$objType")
+
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType '$objName'.."
+    }
+    else {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
+    }
+        
+    $sqlRemoveObject = @"
+if exists (select * from sys.objects where is_ms_shipped= 0 and name = N'$objName')
+begin
+	$(if($DryRun){'--'})DROP VIEW [dbo].[$objName]
+    select 1 as object_exists;
+end
+else
+    select 0 as object_exists;
+"@
+    $resultRemoveObject = @()
+    $resultRemoveObject += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlRemoveObject -SqlCredential $SqlCredential -EnableException
+    if($resultRemoveObject.Count -gt 0) 
+    {
+        $result = $resultRemoveObject | Select-Object -ExpandProperty object_exists;
+        if($result -eq 1) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objName' found and removed."
+        }
+        else {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objName' not found."
+        }
+    }
+}
+
+
+# 29__DropView_vw_resource_consumption
+$stepName = '29__DropView_vw_resource_consumption'
+if($stepName -in $Steps2Execute) {
+    $objName = 'vw_resource_consumption'
+    $objType = 'view'
+    $objTypeTitleCase = (Get-Culture).TextInfo.ToTitleCase("$objType")
+
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType '$objName'.."
+    }
+    else {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
+    }
+        
+    $sqlRemoveObject = @"
+if exists (select * from sys.objects where is_ms_shipped= 0 and name = N'$objName')
+begin
+	$(if($DryRun){'--'})DROP VIEW [dbo].[$objName]
+    select 1 as object_exists;
+end
+else
+    select 0 as object_exists;
+"@
+    $resultRemoveObject = @()
+    $resultRemoveObject += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlRemoveObject -SqlCredential $SqlCredential -EnableException
+    if($resultRemoveObject.Count -gt 0) 
+    {
+        $result = $resultRemoveObject | Select-Object -ExpandProperty object_exists;
+        if($result -eq 1) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objName' found and removed."
+        }
+        else {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objName' not found."
+        }
+    }
+}
+
+
+# 30__DropXEvent_ResourceConsumption
+$stepName = '30__DropXEvent_ResourceConsumption'
 if($stepName -in $Steps2Execute) {
     $objName = 'resource_consumption'
     $objType = 'xevent'
@@ -1862,8 +1954,8 @@ end
 }
 
 
-# 29__DropLinkedServer
-$stepName = '29__DropLinkedServer'
+# 31__DropLinkedServer
+$stepName = '31__DropLinkedServer'
 if($stepName -in $Steps2Execute) 
 {    
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
@@ -1951,8 +2043,8 @@ if($stepName -in $Steps2Execute)
 }
 
 
-# 30__DropLogin_Grafana
-$stepName = '30__DropLogin_Grafana'
+# 32__DropLogin_Grafana
+$stepName = '32__DropLogin_Grafana'
 if($stepName -in $Steps2Execute) {
     $objName = 'grafana'
     $objType = 'login'
@@ -1990,8 +2082,8 @@ else
 }
 
 
-# 31__DropTable_ResourceConsumption
-$stepName = '31__DropTable_ResourceConsumption'
+# 33__DropTable_ResourceConsumption
+$stepName = '33__DropTable_ResourceConsumption'
 if($stepName -in $Steps2Execute) {
     $objName = 'resource_consumption'
     $objType = 'table'
@@ -2029,8 +2121,47 @@ else
 }
 
 
-# 32__DropTable_ResourceConsumptionProcessedXELFiles
-$stepName = '32__DropTable_ResourceConsumptionProcessedXELFiles'
+# 34__DropTable_resource_consumption_queries
+$stepName = '34__DropTable_resource_consumption_queries'
+if($stepName -in $Steps2Execute) {
+    $objName = 'resource_consumption_queries'
+    $objType = 'table'
+    $objTypeTitleCase = (Get-Culture).TextInfo.ToTitleCase("$objType")
+
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    if($DryRun) {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType '$objName'.."
+    }
+    else {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
+    }
+        
+    $sqlRemoveObject = @"
+if exists (select * from sys.objects where is_ms_shipped= 0 and name = N'$objName')
+begin
+	$(if($DryRun){'--'})DROP TABLE [dbo].[$objName]
+    select 1 as object_exists;
+end
+else
+    select 0 as object_exists;
+"@
+    $resultRemoveObject = @()
+    $resultRemoveObject += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlRemoveObject -SqlCredential $SqlCredential -EnableException
+    if($resultRemoveObject.Count -gt 0) 
+    {
+        $result = $resultRemoveObject | Select-Object -ExpandProperty object_exists;
+        if($result -eq 1) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objName' found and removed."
+        }
+        else {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objName' not found."
+        }
+    }
+}
+
+
+# 35__DropTable_ResourceConsumptionProcessedXELFiles
+$stepName = '35__DropTable_ResourceConsumptionProcessedXELFiles'
 if($stepName -in $Steps2Execute) {
     $objName = 'resource_consumption_Processed_XEL_Files'
     $objType = 'table'
@@ -2068,8 +2199,8 @@ else
 }
 
 
-# 34__DropTable_WhoIsActive_Staging
-$stepName = '34__DropTable_WhoIsActive_Staging'
+# 37__DropTable_WhoIsActive_Staging
+$stepName = '37__DropTable_WhoIsActive_Staging'
 if($stepName -in $Steps2Execute) {
     $objName = 'WhoIsActive_Staging'
     $objType = 'table'
@@ -2107,8 +2238,8 @@ else
 }
 
 
-# 34__DropTable_WhoIsActive
-$stepName = '34__DropTable_WhoIsActive'
+# 37__DropTable_WhoIsActive
+$stepName = '37__DropTable_WhoIsActive'
 if($stepName -in $Steps2Execute) {
     $objName = 'WhoIsActive'
     $objType = 'table'
@@ -2146,8 +2277,8 @@ else
 }
 
 
-# 35__DropTable_PerformanceCounters
-$stepName = '35__DropTable_PerformanceCounters'
+# 38__DropTable_PerformanceCounters
+$stepName = '38__DropTable_PerformanceCounters'
 if($stepName -in $Steps2Execute) {
     $objName = 'performance_counters'
     $objType = 'table'
@@ -2185,8 +2316,8 @@ else
 }
 
 
-# 36__DropTable_PurgeTable
-$stepName = '36__DropTable_PurgeTable'
+# 39__DropTable_PurgeTable
+$stepName = '39__DropTable_PurgeTable'
 if($stepName -in $Steps2Execute) {
     $objName = 'purge_table'
     $objType = 'table'
@@ -2224,8 +2355,8 @@ else
 }
 
 
-# 37__DropTable_PerfmonFiles
-$stepName = '37__DropTable_PerfmonFiles'
+# 40__DropTable_PerfmonFiles
+$stepName = '40__DropTable_PerfmonFiles'
 if($stepName -in $Steps2Execute) {
     $objName = 'perfmon_files'
     $objType = 'table'
@@ -2263,8 +2394,8 @@ else
 }
 
 
-# 38__DropTable_InstanceDetails
-$stepName = '38__DropTable_InstanceDetails'
+# 41__DropTable_InstanceDetails
+$stepName = '41__DropTable_InstanceDetails'
 if($stepName -in $Steps2Execute) {
     $objName = 'instance_details'
     $objType = 'table'
@@ -2302,8 +2433,8 @@ else
 }
 
 
-# 39__DropTable_InstanceHosts
-$stepName = '39__DropTable_InstanceHosts'
+# 42__DropTable_InstanceHosts
+$stepName = '42__DropTable_InstanceHosts'
 if($stepName -in $Steps2Execute) {
     $objName = 'instance_hosts'
     $objType = 'table'
@@ -2341,8 +2472,8 @@ else
 }
 
 
-# 40__DropTable_OsTaskList
-$stepName = '40__DropTable_OsTaskList'
+# 43__DropTable_OsTaskList
+$stepName = '43__DropTable_OsTaskList'
 if($stepName -in $Steps2Execute) {
     $objName = 'os_task_list'
     $objType = 'table'
@@ -2380,8 +2511,8 @@ else
 }
 
 
-# 41__DropTable_BlitzWho
-$stepName = '41__DropTable_BlitzWho'
+# 44__DropTable_BlitzWho
+$stepName = '44__DropTable_BlitzWho'
 if($stepName -in $Steps2Execute) {
     $objName = 'BlitzWho'
     $objType = 'table'
@@ -2419,8 +2550,8 @@ else
 }
 
 
-# 42__DropTable_BlitzCache
-$stepName = '42__DropTable_BlitzCache'
+# 45__DropTable_BlitzCache
+$stepName = '45__DropTable_BlitzCache'
 if($stepName -in $Steps2Execute) {
     $objName = 'BlitzCache'
     $objType = 'table'
@@ -2458,8 +2589,8 @@ else
 }
 
 
-# 43__DropTable_ConnectionHistory
-$stepName = '43__DropTable_ConnectionHistory'
+# 46__DropTable_ConnectionHistory
+$stepName = '46__DropTable_ConnectionHistory'
 if($stepName -in $Steps2Execute) {
     $objName = 'connection_history'
     $objType = 'table'
@@ -2497,8 +2628,8 @@ else
 }
 
 
-# 44__DropTable_BlitzFirst
-$stepName = '44__DropTable_BlitzFirst'
+# 47__DropTable_BlitzFirst
+$stepName = '47__DropTable_BlitzFirst'
 if($stepName -in $Steps2Execute) {
     $objName = 'BlitzFirst'
     $objType = 'table'
@@ -2536,8 +2667,8 @@ else
 }
 
 
-# 45__DropTable_BlitzFirstFileStats
-$stepName = '45__DropTable_BlitzFirstFileStats'
+# 48__DropTable_BlitzFirstFileStats
+$stepName = '48__DropTable_BlitzFirstFileStats'
 if($stepName -in $Steps2Execute) {
     $objName = 'BlitzFirst_FileStats'
     $objType = 'table'
@@ -2575,8 +2706,8 @@ else
 }
 
 
-# 46__DropTable_DiskSpace
-$stepName = '46__DropTable_DiskSpace'
+# 49__DropTable_DiskSpace
+$stepName = '49__DropTable_DiskSpace'
 if($stepName -in $Steps2Execute) {
     $objName = 'disk_space'
     $objType = 'table'
@@ -2614,8 +2745,8 @@ else
 }
 
 
-# 47__DropTable_BlitzFirstPerfmonStats
-$stepName = '47__DropTable_BlitzFirstPerfmonStats'
+# 50__DropTable_BlitzFirstPerfmonStats
+$stepName = '50__DropTable_BlitzFirstPerfmonStats'
 if($stepName -in $Steps2Execute) {
     $objName = 'BlitzFirst_PerfmonStats'
     $objType = 'table'
@@ -2653,8 +2784,8 @@ else
 }
 
 
-# 48__DropTable_BlitzFirstWaitStats
-$stepName = '48__DropTable_BlitzFirstWaitStats'
+# 51__DropTable_BlitzFirstWaitStats
+$stepName = '51__DropTable_BlitzFirstWaitStats'
 if($stepName -in $Steps2Execute) {
     $objName = 'BlitzFirst_WaitStats'
     $objType = 'table'
@@ -2692,8 +2823,8 @@ else
 }
 
 
-# 49__DropTable_BlitzFirstWaitStatsCategories
-$stepName = '49__DropTable_BlitzFirstWaitStatsCategories'
+# 52__DropTable_BlitzFirstWaitStatsCategories
+$stepName = '52__DropTable_BlitzFirstWaitStatsCategories'
 if($stepName -in $Steps2Execute) {
     $objName = 'BlitzFirst_WaitStats_Categories'
     $objType = 'table'
@@ -2731,8 +2862,8 @@ else
 }
 
 
-# 50__DropTable_WaitStats
-$stepName = '50__DropTable_WaitStats'
+# 53__DropTable_WaitStats
+$stepName = '53__DropTable_WaitStats'
 if($stepName -in $Steps2Execute) {
     $objName = 'wait_stats'
     $objType = 'table'
@@ -2771,8 +2902,8 @@ else
 
 
 
-# 51__DropTable_BlitzIndex
-$stepName = '51__DropTable_BlitzIndex'
+# 54__DropTable_BlitzIndex
+$stepName = '54__DropTable_BlitzIndex'
 if($stepName -in $Steps2Execute) {
     $objName = 'BlitzIndex'
     $objType = 'table'
@@ -2810,8 +2941,8 @@ else
 }
 
 
-# 52__DropTable_FileIOStats
-$stepName = '52__DropTable_FileIOStats'
+# 55__DropTable_FileIOStats
+$stepName = '55__DropTable_FileIOStats'
 if($stepName -in $Steps2Execute) {
     $objName = 'file_io_stats'
     $objType = 'table'
@@ -2849,8 +2980,8 @@ else
 }
 
 
-# 53__RemovePerfmonFilesFromDisk
-$stepName = '53__RemovePerfmonFilesFromDisk'
+# 56__RemovePerfmonFilesFromDisk
+$stepName = '56__RemovePerfmonFilesFromDisk'
 if($stepName -in $Steps2Execute) 
 {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
@@ -2937,8 +3068,8 @@ if($stepName -in $Steps2Execute)
 
 
 
-# 54__RemoveXEventFilesFromDisk
-$stepName = '54__RemoveXEventFilesFromDisk'
+# 57__RemoveXEventFilesFromDisk
+$stepName = '57__RemoveXEventFilesFromDisk'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
 
@@ -3007,16 +3138,16 @@ if($stepName -in $Steps2Execute) {
 }
 
 
-# 55__DropProxy
-$stepName = '55__DropProxy'
+# 58__DropProxy
+$stepName = '58__DropProxy'
 
 
-# 56__DropCredential
-$stepName = '56__DropCredential'
+# 59__DropCredential
+$stepName = '59__DropCredential'
 
 
-# 57__RemoveInstanceFromInventory
-$stepName = '57__RemoveInstanceFromInventory'
+# 60__RemoveInstanceFromInventory
+$stepName = '60__RemoveInstanceFromInventory'
 if( ($stepName -in $Steps2Execute) -and ($SqlInstanceToBaseline -ne $InventoryServer) ) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
 
