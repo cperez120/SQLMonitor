@@ -4078,12 +4078,12 @@
       "type": "row"
     }
   ],
-  "refresh": "15m",
+  "refresh": false,
   "schemaVersion": 37,
   "style": "dark",
   "tags": [
     "mssql",
-    "sqlserver"
+    "sqlmonitor"
   ],
   "templating": {
     "list": [
@@ -4347,6 +4347,6 @@
   "timezone": "",
   "title": "t___Database File IO Stats",
   "uid": "database_file_io_stats",
-  "version": 85,
+  "version": 86,
   "weekStart": ""
 }

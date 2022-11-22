@@ -26,7 +26,6 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 16,
-  "iteration": 1668597961142,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -286,7 +285,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "9.0.2",
+      "pluginVersion": "9.2.5",
       "targets": [
         {
           "alias": "",
@@ -977,6 +976,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Total",
               "sortDesc": true
             },
@@ -1017,11 +1017,11 @@
     }
   ],
   "refresh": "5m",
-  "schemaVersion": 36,
+  "schemaVersion": 37,
   "style": "dark",
   "tags": [
     "mssql",
-    "sqlserver"
+    "sqlmonitor"
   ],
   "templating": {
     "list": [
@@ -1191,8 +1191,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1668597601356",
-          "value": "1668597601356"
+          "text": "1669104000305",
+          "value": "1669104000305"
         },
         "datasource": {
           "type": "mssql",
@@ -1239,8 +1239,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1668143138470",
-          "value": "1668143138470"
+          "text": "1668868469867",
+          "value": "1668868469867"
         },
         "datasource": {
           "type": "mssql",
@@ -1281,6 +1281,6 @@
   "timezone": "",
   "title": "Wait Stats",
   "uid": "wait_stats",
-  "version": 81,
+  "version": 82,
   "weekStart": ""
 }

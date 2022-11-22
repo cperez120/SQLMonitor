@@ -9,13 +9,13 @@
       "pluginName": "Microsoft SQL Server"
     }
   ],
-  "__elements": [],
+  "__elements": {},
   "__requires": [
     {
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "9.0.2"
+      "version": "9.2.5"
     },
     {
       "type": "datasource",
@@ -63,7 +63,6 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1668597961140,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -323,7 +322,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "9.0.2",
+      "pluginVersion": "9.2.5",
       "targets": [
         {
           "alias": "",
@@ -1014,6 +1013,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Total",
               "sortDesc": true
             },
@@ -1054,11 +1054,11 @@
     }
   ],
   "refresh": "5m",
-  "schemaVersion": 36,
+  "schemaVersion": 37,
   "style": "dark",
   "tags": [
     "mssql",
-    "sqlserver"
+    "sqlmonitor"
   ],
   "templating": {
     "list": [
@@ -1282,6 +1282,6 @@
   "timezone": "",
   "title": "Wait Stats",
   "uid": "wait_stats",
-  "version": 81,
+  "version": 82,
   "weekStart": ""
 }

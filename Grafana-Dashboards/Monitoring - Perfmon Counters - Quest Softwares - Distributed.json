@@ -23,13 +23,13 @@
       "description": ""
     }
   ],
-  "__elements": [],
+  "__elements": {},
   "__requires": [
     {
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "9.0.2"
+      "version": "9.2.5"
     },
     {
       "type": "datasource",
@@ -73,7 +73,6 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1668597861574,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -168,6 +167,7 @@
               ],
               "displayMode": "table",
               "placement": "bottom",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -259,8 +259,9 @@
           "options": {
             "legend": {
               "calcs": [],
-              "displayMode": "hidden",
-              "placement": "bottom"
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": false
             },
             "tooltip": {
               "mode": "multi",
@@ -377,8 +378,9 @@
           "options": {
             "legend": {
               "calcs": [],
-              "displayMode": "hidden",
-              "placement": "bottom"
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": false
             },
             "tooltip": {
               "mode": "multi",
@@ -474,6 +476,7 @@
               ],
               "displayMode": "table",
               "placement": "bottom",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -572,6 +575,7 @@
               ],
               "displayMode": "table",
               "placement": "bottom",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -695,7 +699,8 @@
                 "max"
               ],
               "displayMode": "table",
-              "placement": "bottom"
+              "placement": "bottom",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "multi",
@@ -791,7 +796,8 @@
                 "sum"
               ],
               "displayMode": "table",
-              "placement": "bottom"
+              "placement": "bottom",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "multi",
@@ -915,6 +921,7 @@
               ],
               "displayMode": "table",
               "placement": "bottom",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -1007,6 +1014,7 @@
               ],
               "displayMode": "table",
               "placement": "bottom",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -1131,6 +1139,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -1226,6 +1235,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -1321,6 +1331,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -1444,7 +1455,8 @@
                 "max"
               ],
               "displayMode": "table",
-              "placement": "right"
+              "placement": "right",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "multi",
@@ -1538,7 +1550,8 @@
                 "lastNotNull"
               ],
               "displayMode": "table",
-              "placement": "right"
+              "placement": "right",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "multi",
@@ -1633,6 +1646,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -1756,7 +1770,8 @@
                 "max"
               ],
               "displayMode": "table",
-              "placement": "bottom"
+              "placement": "bottom",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "multi",
@@ -1879,6 +1894,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Max",
               "sortDesc": true
             },
@@ -1982,6 +1998,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Last *",
               "sortDesc": true
             },
@@ -2113,6 +2130,7 @@
               ],
               "displayMode": "table",
               "placement": "bottom",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -2215,6 +2233,7 @@
               ],
               "displayMode": "table",
               "placement": "bottom",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -2313,6 +2332,7 @@
               ],
               "displayMode": "table",
               "placement": "bottom",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -2436,7 +2456,8 @@
                 "max"
               ],
               "displayMode": "table",
-              "placement": "bottom"
+              "placement": "bottom",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "multi",
@@ -2558,7 +2579,8 @@
                 "max"
               ],
               "displayMode": "table",
-              "placement": "bottom"
+              "placement": "bottom",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "multi",
@@ -2653,7 +2675,8 @@
                 "min"
               ],
               "displayMode": "table",
-              "placement": "bottom"
+              "placement": "bottom",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "multi",
@@ -2750,6 +2773,7 @@
               ],
               "displayMode": "table",
               "placement": "bottom",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -2874,6 +2898,7 @@
               ],
               "displayMode": "table",
               "placement": "bottom",
+              "showLegend": true,
               "sortBy": "Max",
               "sortDesc": true
             },
@@ -2971,6 +2996,7 @@
               ],
               "displayMode": "table",
               "placement": "bottom",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -3095,6 +3121,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -3190,7 +3217,8 @@
                 "max"
               ],
               "displayMode": "table",
-              "placement": "right"
+              "placement": "right",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "multi",
@@ -3285,7 +3313,8 @@
                 "max"
               ],
               "displayMode": "table",
-              "placement": "right"
+              "placement": "right",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "multi",
@@ -3381,6 +3410,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -3505,6 +3535,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -3601,6 +3632,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -3697,6 +3729,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -3793,6 +3826,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -3912,7 +3946,8 @@
             "legend": {
               "calcs": [],
               "displayMode": "list",
-              "placement": "bottom"
+              "placement": "bottom",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "multi",
@@ -4005,7 +4040,8 @@
                 "mean"
               ],
               "displayMode": "list",
-              "placement": "bottom"
+              "placement": "bottom",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "multi",
@@ -4093,8 +4129,9 @@
           "options": {
             "legend": {
               "calcs": [],
-              "displayMode": "hidden",
-              "placement": "bottom"
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": false
             },
             "tooltip": {
               "mode": "multi",
@@ -4182,8 +4219,9 @@
           "options": {
             "legend": {
               "calcs": [],
-              "displayMode": "hidden",
-              "placement": "bottom"
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": false
             },
             "tooltip": {
               "mode": "multi",
@@ -4310,6 +4348,7 @@
               ],
               "displayMode": "list",
               "placement": "bottom",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -4406,6 +4445,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -4530,6 +4570,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -4627,6 +4668,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -4724,6 +4766,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -4846,7 +4889,8 @@
                 "lastNotNull"
               ],
               "displayMode": "table",
-              "placement": "right"
+              "placement": "right",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "multi",
@@ -4937,7 +4981,8 @@
             "legend": {
               "calcs": [],
               "displayMode": "table",
-              "placement": "right"
+              "placement": "right",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "multi",
@@ -5060,7 +5105,8 @@
                 "mean"
               ],
               "displayMode": "table",
-              "placement": "bottom"
+              "placement": "bottom",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "multi",
@@ -5153,7 +5199,8 @@
                 "mean"
               ],
               "displayMode": "table",
-              "placement": "bottom"
+              "placement": "bottom",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "multi",
@@ -5275,6 +5322,7 @@
               ],
               "displayMode": "table",
               "placement": "right",
+              "showLegend": true,
               "sortBy": "Mean",
               "sortDesc": true
             },
@@ -5366,12 +5414,12 @@
     }
   ],
   "refresh": "5m",
-  "schemaVersion": 36,
+  "schemaVersion": 37,
   "style": "dark",
   "tags": [
-    "SqlServer",
-    "MSSQL",
-    "Performance-Counter"
+    "Performance-Counter",
+    "mssql",
+    "sqlmonitor"
   ],
   "templating": {
     "list": [
@@ -5756,6 +5804,6 @@
   "timezone": "",
   "title": "Monitoring - Perfmon Counters - Quest Softwares - Distributed",
   "uid": "distributed_perfmon",
-  "version": 71,
+  "version": 73,
   "weekStart": ""
 }

@@ -26,7 +26,6 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 17,
-  "iteration": 1665939263618,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -304,7 +303,7 @@
         },
         "showHeader": true
       },
-      "pluginVersion": "9.0.2",
+      "pluginVersion": "9.2.5",
       "targets": [
         {
           "alias": "",
@@ -860,7 +859,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "9.0.2",
+      "pluginVersion": "9.2.5",
       "targets": [
         {
           "alias": "",
@@ -929,11 +928,11 @@
     }
   ],
   "refresh": "1m",
-  "schemaVersion": 36,
+  "schemaVersion": 37,
   "style": "dark",
   "tags": [
     "mssql",
-    "sqlserver"
+    "sqlmonitor"
   ],
   "templating": {
     "list": [
@@ -1027,6 +1026,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - All Servers",
   "uid": "distributed_live_dashboard_all_servers",
-  "version": 122,
+  "version": 124,
   "weekStart": ""
 }

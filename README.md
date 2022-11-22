@@ -34,20 +34,20 @@ SQLMonitor is designed as opensource tool to replace expensive enterprise monito
 - Utilizing Grafana Unified Alerting gives flexibility to create meaningful alerts.
 
 ## Live Dashboard - Basic Metrics
-You can visit [http://ajaydwivedi.ddns.net:3000](http://ajaydwivedi.ddns.net:3000/d/Fg8Q_wSMz/monitoring-live?orgId=1&refresh=30s&from=now-30m&to=now) for live dashboard for basic real time monitoring.<br><br>
+You can visit [http://ajaydwivedi.ddns.net:3000](http://ajaydwivedi.ddns.net:3000/d/distributed_live_dashboard/monitoring-live-distributed?orgId=1&refresh=5s) for live dashboard for basic real time monitoring.<br><br>
 
 ![](https://github.com/imajaydwivedi/Images/blob/master/SQLMonitor/Live-Dashboards-All.gif) <br>
 
 
 ## Live Dashboard - Perfmon Counters - Quest Softwares
-Visit [http://ajaydwivedi.ddns.net:3000](http://ajaydwivedi.ddns.net:3000/) for live dashboard of all Perfmon counters suggested in [SQL Server Perfmon Counters of Interest - Quest Software](https://drive.google.com/file/d/1LB7Joo6055T1FfPcholXByazOX55e5b8/view?usp=sharing).<br><br>
+Visit [http://ajaydwivedi.ddns.net:3000](http://ajaydwivedi.ddns.net:3000/d/distributed_perfmon/monitoring-perfmon-counters-quest-softwares-distributed?orgId=1&refresh=5m) for live dashboard of all Perfmon counters suggested in [SQL Server Perfmon Counters of Interest - Quest Software](https://drive.google.com/file/d/1LB7Joo6055T1FfPcholXByazOX55e5b8/view?usp=sharing).<br><br>
 
 ![](https://github.com/imajaydwivedi/Images/blob/master/SQLMonitor/Quest-Dashboards-All.gif) <br>
 
 ### Portal Credentials
 Database/Grafana Portal | User Name | Password
 ------------ | --------- | ---------
-http://ajaydwivedi.ddns.net:3000/ | guest | ajaydwivedi-guest
+[http://ajaydwivedi.ddns.net:3000/](http://ajaydwivedi.ddns.net:3000/dashboards?tag=sqlmonitor) | guest | ajaydwivedi-guest
 Sql Instance -> ajaydwivedi.ddns.net:1433 | grafana | grafana
 
 ## How to Setup
@@ -55,7 +55,7 @@ SQLMonitor supports both Central & Distributed topology. In preferred distribute
 
 SQLMonitor utilizes PowerShell script to collect various metric from operating system including setting up Perfmon data collector, pushing the collected perfmon data to sql tables, collecting os processes running etc.
 
-For collecting metrics available from inside SQL Server, it used standard tsql procedures. 
+For collecting metrics available from inside SQL Server, it used standard tsql procedures.
 
 All the objects are created in [`DBA`] databases. Only few stored procedures that should have capability to be executed from context of any databases are created in [master] database.
 
@@ -79,6 +79,8 @@ Following are few of the SQLMonitor data collection jobs. Each of these jobs is 
 | (dba) Purge-Tables             | (dba) SQLMonitor | Every Day        | TSQL       | Tsql Jobs Server       |
 | (dba) Remove-XEventFiles       | (dba) SQLMonitor | Every 4 hours    | PowerShell | PowerShell Jobs Server |
 | (dba) Collect-DiskSpace        | (dba) SQLMonitor | Every 30 minutes | PowerShell | PowerShell Jobs Server |
+| (dba) Run-BlitzIndex           | (dba) SQLMonitor | Every Day        | TSQL       | Tsql Jobs Server       |
+| (dba) Collect-FileIOStats      | (dba) SQLMonitor | Every 10 minutes | TSQL       | Tsql Jobs Server       |
 
 ----
 `PowerShell Jobs Server` can be same SQL Instance that is being baselined, or some other server in same Cluster network, or some some other server in same network, or even Inventory Server.
@@ -91,7 +93,8 @@ Download SQLMonitor repository on your central server from where you deploy your
 If the local SQLMonitor repo folder already exists, simply pull the latest from master branch.
 
 ### Execute Wrapper Script
-Open script `D:\Ajay-Dwivedi\GitHub-Personal\SQLMonitor\SQLMonitor\Wrapper-InstallSQLMonitor.ps1`. Replace the appropriate values for parameters, and execute the script.
+Create a directory named Private inside SQLMonitor, and copy the scripts of SQLMonitor\Wrapper-Samples\ into SQLMonitor\Private\ folder.
+Open the script `D:\Ajay-Dwivedi\GitHub-Personal\SQLMonitor\Private\Wrapper-InstallSQLMonitor.ps1`. Replace the appropriate values for parameters, and execute the script.
 
 ```
 #$DomainCredential = Get-Credential -UserName 'Lab\SQLServices' -Message 'AD Account'
@@ -112,18 +115,7 @@ $params = @{
     DbaGroupMailId = 'some_dba_mail_id@gmail.com'
     #SqlCredential = $personal
     #WindowsCredential = $DomainCredential
-    <#
-    SkipSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
-                "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__OlaHallengrenSolutionObjects",
-                "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
-                "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateCredentialProxy",
-                "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData",
-                "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobPartitionsMaintenance",
-                "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
-                "22__CreateJobUpdateSqlServerVersions", "23__CreateJobCheckInstanceAvailability", "24__WhoIsActivePartition",
-                "25__GrafanaLogin", "26__LinkedServerOnInventory", "27__LinkedServerForDataDestinationInstance",
-                "28__AlterViewsForDataDestinationInstance")
-    #>
+    #SkipSteps = @("21__CreateJobRemoveXEventFiles")
     #StartAtStep = '1__sp_WhoIsActive'
     #StopAtStep = '28__AlterViewsForDataDestinationInstance'
     #DropCreatePowerShellJobs = $true
@@ -174,8 +166,9 @@ At next step, import all the dashboard `*.json` files on path `D:\Ajay-Dwivedi\G
 
 ## Remove SQLMonitor
 Similar to `Wrapper-InstallSQLMonitor`, we have `Wrapper-RemoveSQLMonitor` that can help us remove SQLMonitor for a particular baselined server.
+Ensure that all scripts from folder \SQLMonitor\Wrapper-Samples\ are copied into \SQLMonitor\Private\ folder.
 
-Open script `D:\Ajay-Dwivedi\GitHub-Personal\SQLMonitor\SQLMonitor\Wrapper-RemoveSQLMonitor.ps1`. Replace the appropriate values for parameters, and execute the script.
+Open script `D:\Ajay-Dwivedi\GitHub-Personal\SQLMonitor\Private\Wrapper-RemoveSQLMonitor.ps1`. Replace the appropriate values for parameters, and execute the script.
 
-	
+
 Thanks :smiley:. Subscribe for updates :thumbsup:
