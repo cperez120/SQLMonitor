@@ -5,7 +5,7 @@ Param (
     [String]$Action = "AddStep",
 
     [Parameter(Mandatory=$false)]
-    [String]$StepName = "34__DropTable_resource_consumption_queries",
+    [String]$StepName = "30__DropView_vw_disk_space",
     
     [Parameter(Mandatory=$false)]
     [String[]]$AllSteps = @( "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
@@ -17,17 +17,18 @@ Param (
                 "19__DropProc_UspPurgeTables", "20__DropProc_SpWhatIsRunning", "21__DropProc_UspActiveRequestsCount",
                 "22__DropProc_UspCollectFileIOStats", "23__DropProc_UspEnablePageCompression", "24__DropProc_UspWaitsPerCorePerMinute",
                 "25__DropView_VwPerformanceCounters", "26__DropView_VwOsTaskList", "27__DropView_VwWaitStatsDeltas",
-                "28__DropView_vw_file_io_stats_deltas", "29__DropView_vw_resource_consumption", "30__DropXEvent_ResourceConsumption",
-                "31__DropLinkedServer", "32__DropLogin_Grafana", "33__DropTable_ResourceConsumption",
-                "34__DropTable_resource_consumption_queries", "35__DropTable_ResourceConsumptionProcessedXELFiles", "36__DropTable_WhoIsActive_Staging",
-                "37__DropTable_WhoIsActive", "38__DropTable_PerformanceCounters", "39__DropTable_PurgeTable",
-                "40__DropTable_PerfmonFiles", "41__DropTable_InstanceDetails", "42__DropTable_InstanceHosts",
-                "43__DropTable_OsTaskList", "44__DropTable_BlitzWho", "45__DropTable_BlitzCache",
-                "46__DropTable_ConnectionHistory", "47__DropTable_BlitzFirst", "48__DropTable_BlitzFirstFileStats",
-                "49__DropTable_DiskSpace", "50__DropTable_BlitzFirstPerfmonStats", "51__DropTable_BlitzFirstWaitStats",
-                "52__DropTable_BlitzFirstWaitStatsCategories", "53__DropTable_WaitStats", "54__DropTable_BlitzIndex",
-                "55__DropTable_FileIOStats", "56__RemovePerfmonFilesFromDisk", "57__RemoveXEventFilesFromDisk",
-                "58__DropProxy", "59__DropCredential", "60__RemoveInstanceFromInventory"
+                "28__DropView_vw_file_io_stats_deltas", "29__DropView_vw_resource_consumption", "30__DropView_vw_disk_space",
+                "31__DropXEvent_ResourceConsumption", "32__DropLinkedServer", "33__DropLogin_Grafana",
+                "34__DropTable_ResourceConsumption", "35__DropTable_resource_consumption_queries", "36__DropTable_ResourceConsumptionProcessedXELFiles",
+                "37__DropTable_WhoIsActive_Staging", "38__DropTable_WhoIsActive", "39__DropTable_PerformanceCounters",
+                "40__DropTable_PurgeTable", "41__DropTable_PerfmonFiles", "42__DropTable_InstanceDetails",
+                "43__DropTable_InstanceHosts", "44__DropTable_OsTaskList", "45__DropTable_BlitzWho",
+                "46__DropTable_BlitzCache", "47__DropTable_ConnectionHistory", "48__DropTable_BlitzFirst",
+                "49__DropTable_BlitzFirstFileStats", "50__DropTable_DiskSpace", "51__DropTable_BlitzFirstPerfmonStats",
+                "52__DropTable_BlitzFirstWaitStats", "53__DropTable_BlitzFirstWaitStatsCategories", "54__DropTable_WaitStats",
+                "55__DropTable_BlitzIndex", "56__DropTable_FileIOStats", "57__RemovePerfmonFilesFromDisk",
+                "58__RemoveXEventFilesFromDisk", "59__DropProxy", "60__DropCredential",
+                "61__RemoveInstanceFromInventory"
                 ),
 
     [Parameter(Mandatory=$false)]
