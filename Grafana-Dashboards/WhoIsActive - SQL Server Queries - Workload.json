@@ -16,7 +16,7 @@
       "description": ""
     }
   ],
-  "__elements": [],
+  "__elements": {},
   "__requires": [
     {
       "type": "panel",
@@ -28,7 +28,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "9.0.2"
+      "version": "9.2.5"
     },
     {
       "type": "datasource",
@@ -70,7 +70,6 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1668598005857,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -883,11 +882,11 @@
     }
   ],
   "refresh": "2m",
-  "schemaVersion": 36,
+  "schemaVersion": 37,
   "style": "dark",
   "tags": [
     "mssql",
-    "sqlserver"
+    "sqlmonitor"
   ],
   "templating": {
     "list": [
@@ -1275,6 +1274,6 @@
   "timezone": "browser",
   "title": "WhoIsActive - SQL Server Queries - Workload",
   "uid": "WhoIsActive",
-  "version": 69,
+  "version": 70,
   "weekStart": ""
 }

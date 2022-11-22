@@ -26,7 +26,6 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 9,
-  "iteration": 1668598005859,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -839,11 +838,11 @@
     }
   ],
   "refresh": "2m",
-  "schemaVersion": 36,
+  "schemaVersion": 37,
   "style": "dark",
   "tags": [
     "mssql",
-    "sqlserver"
+    "sqlmonitor"
   ],
   "templating": {
     "list": [
@@ -1080,8 +1079,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1668597944294",
-          "value": "1668597944294"
+          "text": "1669104396664",
+          "value": "1669104396664"
         },
         "datasource": {
           "type": "mssql",
@@ -1112,8 +1111,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1668597962400",
-          "value": "1668597962400"
+          "text": "1669104361757",
+          "value": "1669104361757"
         },
         "datasource": {
           "type": "mssql",
@@ -1259,6 +1258,6 @@
   "timezone": "browser",
   "title": "WhoIsActive - SQL Server Queries - Workload",
   "uid": "WhoIsActive",
-  "version": 69,
+  "version": 70,
   "weekStart": ""
 }
