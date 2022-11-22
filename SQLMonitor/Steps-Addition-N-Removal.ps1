@@ -5,28 +5,38 @@ Param (
     [String]$Action = "AddStep",
 
     [Parameter(Mandatory=$false)]
-    [String]$StepName = "28__BlitzIndexPartition",
+    [String]$StepName = "30__DropView_vw_disk_space",
     
     [Parameter(Mandatory=$false)]
-    [String[]]$AllSteps = @( "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
-                "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__OlaHallengrenSolutionObjects",
-                "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
-                "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateCredentialProxy",
-                "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData",
-                "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobCollectFileIOStats",
-                "19__CreateJobPartitionsMaintenance", "20__CreateJobPurgeTables", "21__CreateJobRemoveXEventFiles",
-                "22__CreateJobRunWhoIsActive", "23__CreateJobRunBlitzIndex", "24__CreateJobUpdateSqlServerVersions",
-                "25__CreateJobCheckInstanceAvailability", "26__CreateJobGetAllServerInfo", "27__WhoIsActivePartition",
-                "28__EnablePageCompression", "29__GrafanaLogin", "30__LinkedServerOnInventory",
-                "31__LinkedServerForDataDestinationInstance", "32__AlterViewsForDataDestinationInstance"
+    [String[]]$AllSteps = @( "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
+                "4__RemoveJob_CollectWaitStats", "5__RemoveJob_CollectXEvents", "6__RemoveJob_PartitionsMaintenance",
+                "7__RemoveJob_PurgeTables", "8__RemoveJob_RemoveXEventFiles", "9__RemoveJob_RunWhoIsActive",
+                "10__RemoveJob_CollectFileIOStats", "11__RemoveJob_RunBlitzIndex", "12__RemoveJob_UpdateSqlServerVersions",
+                "13__RemoveJob_CheckInstanceAvailability", "14__DropProc_UspExtendedResults", "15__DropProc_UspCollectWaitStats",
+                "16__DropProc_UspRunWhoIsActive", "17__DropProc_UspCollectXEventsResourceConsumption", "18__DropProc_UspPartitionMaintenance",
+                "19__DropProc_UspPurgeTables", "20__DropProc_SpWhatIsRunning", "21__DropProc_UspActiveRequestsCount",
+                "22__DropProc_UspCollectFileIOStats", "23__DropProc_UspEnablePageCompression", "24__DropProc_UspWaitsPerCorePerMinute",
+                "25__DropView_VwPerformanceCounters", "26__DropView_VwOsTaskList", "27__DropView_VwWaitStatsDeltas",
+                "28__DropView_vw_file_io_stats_deltas", "29__DropView_vw_resource_consumption", "30__DropView_vw_disk_space",
+                "31__DropXEvent_ResourceConsumption", "32__DropLinkedServer", "33__DropLogin_Grafana",
+                "34__DropTable_ResourceConsumption", "35__DropTable_resource_consumption_queries", "36__DropTable_ResourceConsumptionProcessedXELFiles",
+                "37__DropTable_WhoIsActive_Staging", "38__DropTable_WhoIsActive", "39__DropTable_PerformanceCounters",
+                "40__DropTable_PurgeTable", "41__DropTable_PerfmonFiles", "42__DropTable_InstanceDetails",
+                "43__DropTable_InstanceHosts", "44__DropTable_OsTaskList", "45__DropTable_BlitzWho",
+                "46__DropTable_BlitzCache", "47__DropTable_ConnectionHistory", "48__DropTable_BlitzFirst",
+                "49__DropTable_BlitzFirstFileStats", "50__DropTable_DiskSpace", "51__DropTable_BlitzFirstPerfmonStats",
+                "52__DropTable_BlitzFirstWaitStats", "53__DropTable_BlitzFirstWaitStatsCategories", "54__DropTable_WaitStats",
+                "55__DropTable_BlitzIndex", "56__DropTable_FileIOStats", "57__RemovePerfmonFilesFromDisk",
+                "58__RemoveXEventFilesFromDisk", "59__DropProxy", "60__DropCredential",
+                "61__RemoveInstanceFromInventory"
                 ),
 
     [Parameter(Mandatory=$false)]
     [Bool]$PrintUserFriendlyFormat = $true,
 
     [Parameter(Mandatory=$false)]
-    [String]$ScriptFile = #'F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1'
-                          'F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1'
+    [String]$ScriptFile = 'F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1'
+                          #'F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1'
 )
 
 cls

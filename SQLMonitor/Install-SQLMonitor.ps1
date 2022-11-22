@@ -237,15 +237,11 @@ Param (
 
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
-$sqlmonitorVersion = '1.1.5'
+$sqlmonitorVersion = '1.1.6'
 $releaseDiscussionURL = "https://ajaydwivedi.com/sqlmonitor/common-errors"
 <#
-    v1.1.6 - 2022-Nov-17
-        -> Added columns [dba_group_mail_id],[sqlmonitor_script_path],[sqlmonitor_version] in dbo.instance_details
-        -> Added dbo.BlitzIndex table
-        -> Added dbo.file_io_stats
-        -> Updated dbo.WhoIsActice table design
-        -> Install-SQLMonitor.ps1 modified for smooth Upgrade of SQLMonitor
+    v1.1.6 - 2022-Nov-22
+        -> Fixed minor bug where Views were not getting altered for Fresh Install
 #>
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline]." | Write-Host -ForegroundColor Yellow
@@ -639,7 +635,7 @@ if ( $instanceDetails.Count -gt 0 )
 }
 
 # If fresh install, then set SkipMultiServerviewsUpgrade to False
-if($isUpgradeScenario = $false) {
+if(-not $isUpgradeScenario) {
     $SkipMultiServerviewsUpgrade = $false
 }
 
@@ -846,9 +842,11 @@ if([String]::IsNullOrEmpty($SqlInstanceForPowershellJobs)) {
 }
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$DbaDatabase = [$DbaDatabase]" | Write-Host -ForegroundColor Yellow
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$isUpgradeScenario = [$isUpgradeScenario]" | Write-Host -ForegroundColor Yellow
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceAsDataDestination = [$SqlInstanceAsDataDestination]"
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceForTsqlJobs = [$SqlInstanceForTsqlJobs]"
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$SqlInstanceForPowershellJobs = [$SqlInstanceForPowershellJobs]"
+
 
 # If Express edition, then ensure another server is mentioned for Creating jobs
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Checking if [$SqlInstanceToBaseline] is Express Edition.."
@@ -2242,10 +2240,12 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     Script file containing tsql that creates XEvent session [resource_consumption]. By default, the XEvent target files are placed in a new folder named [xevents] inside parent folder of [DbaDatabase] database files.
     .PARAMETER WhatIsRunningFileName
     Script file containing tsql that compiles [sp_WhatIsRunning] in [DbaDatabase].
-    .PARAMETER GetAllServerInfoFileName
+    .PARAMETER UspGetAllServerInfoFileName
     Script file containing tsql that compiles [usp_GetAllServerInfo] in [DbaDatabase] on [InventoryServer]. This stored procedure provides basic health metrics for all/specific servers.
     .PARAMETER UspCollectWaitStatsFileName
     Script file containing tsql that compiles [usp_collect_wait_stats] in [DbaDatabase] on [SqlInstanceToBaseline].
+    .PARAMETER UspCollectFileIOStatsFileName
+    Script file containing tsql that compiles [usp_collect_file_io_stats] in [DbaDatabase] on [SqlInstanceToBaseline].
     .PARAMETER UspCollectXeventsResourceConsumptionFileName
     Script file containing tsql that compiles [usp_collect_xevents_resource_consumption] in [DbaDatabase] on [SqlInstanceToBaseline].
     .PARAMETER UspPartitionMaintenanceFileName 
@@ -2254,8 +2254,16 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     Script file containing tsql that compiles [usp_purge_tables] in [DbaDatabase] on [SqlInstanceToBaseline].
     .PARAMETER UspRunWhoIsActiveFileName
     Script file containing tsql that compiles [usp_run_WhoIsActive] in [DbaDatabase] on [SqlInstanceToBaseline].
+    .PARAMETER UspActiveRequestsCountFileName
+    Script file containing tsql that compiles [usp_active_requests_count] in [DbaDatabase] on [SqlInstanceToBaseline].
+    .PARAMETER UspWaitsPerCorePerMinuteFileName
+    Script file containing tsql that compiles [usp_waits_per_core_per_minute] in [DbaDatabase] on [SqlInstanceToBaseline].
+    .PARAMETER UspEnablePageCompressionFileName
+    Script file containing tsql that compiles [usp_enable_page_compression] in [DbaDatabase] on [SqlInstanceToBaseline].
     .PARAMETER WhoIsActivePartitionFileName
     Script file containing tsql that convert dbo.WhoIsActive table into partitioned tables if supported.
+    .PARAMETER BlitzIndexPartitionFileName
+    Script file containing tsql that convert dbo.BlitzIndex table into partitioned tables if supported.
     .PARAMETER GrafanaLoginFileName
     Script file containing tsql that creates [grafana] login/user on [master] & [DbaDatabase] on [SqlInstanceToBaseline].
     .PARAMETER CheckInstanceAvailabilityFileName
@@ -2300,8 +2308,12 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     No of days as data retention threshold in tables  of SQLMonitor. Data older than this value would be purged daily once.
     .PARAMETER DropCreatePowerShellJobs
     When enabled, drops the existing SQL Agent jobs having CmdExec steps, and creates them from scratch. By default, Jobs running CmdExec step are not dropped if found existing.
+    .PARAMETER DropCreateWhoIsActiveTable
+    When enabled, drops the existing WhoIsActive table, and creates it from scratch. This might be required in case of change in sp_WhoIsActive features usage.
     .PARAMETER SkipPowerShellJobs
     When enabled, baselining steps involving create of SQL Agent jobs having CmdExec steps are skipped.
+    .PARAMETER SkipMultiServerviewsUpgrade
+    Default enabled. This skips alter of views like vw_performance_counters, vw_disk_space, vw_os_tasks_list etc which interact with multiple hosts in many cases.
     .PARAMETER SkipTsqlJobs
     When enabled, skips creation of all the SQL Agent jobs that execute tsql stored procedures.
     .PARAMETER SkipRDPSessionSteps
@@ -2318,6 +2330,10 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     If required for confirmation from end user in case multiple SQL Instances are found on same host. At max, perfmon data can be pushed to only one SQL Instance.
     .PARAMETER DryRun
     When enabled, only messages are printed, but actual changes are NOT made.
+    .PARAMETER PreQuery
+    TSQL String that should be executed before actual SQLMonitor scripts are run. This is useful when specific pre-changes are required for SQLMonitor. For example, drop/create few columns etc.
+    .PARAMETER PostQuery
+    TSQL String that should be executed after actual SQLMonitor scripts are run. This is useful when specific post-changes are required due to environment specific needs.
     .EXAMPLE
 $params = @{
     SqlInstanceToBaseline = 'Workstation'
