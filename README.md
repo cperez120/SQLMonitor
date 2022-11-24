@@ -1,5 +1,5 @@
 # SQLMonitor - Baseline SQL Server with PowerShell & Grafana
- 
+
 If you are a developer, or DBA who manages Microsoft SQL Servers, it becames important to understand current load vs usual load when SQL Server is slow. This repository contains scripts that will help you to setup baseline on individual SQL Server instances, and then visualize the collected data using Grafana through one Inventory server with Linked Server for individual SQL Server instances.
 
 Navigation
