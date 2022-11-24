@@ -1,55 +1,4 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_SQLMONITOR",
-      "label": "SqlMonitor",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "mssql",
-      "pluginName": "Microsoft SQL Server"
-    },
-    {
-      "name": "VAR_DISKSPACE_TABLE_NAME",
-      "type": "constant",
-      "label": "DiskSpace table name",
-      "value": "dbo.vw_disk_space",
-      "description": ""
-    },
-    {
-      "name": "VAR_FILEIOSTATS_TABLE_NAME",
-      "type": "constant",
-      "label": "File_io_stats Table Name",
-      "value": "dbo.file_io_stats",
-      "description": ""
-    }
-  ],
-  "__elements": {},
-  "__requires": [
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "9.2.5"
-    },
-    {
-      "type": "datasource",
-      "id": "mssql",
-      "name": "Microsoft SQL Server",
-      "version": "1.0.0"
-    },
-    {
-      "type": "panel",
-      "id": "table",
-      "name": "Table",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "timeseries",
-      "name": "Time series",
-      "version": ""
-    }
-  ],
   "annotations": {
     "list": [
       {
@@ -76,7 +25,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
+  "id": 22,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -97,7 +46,7 @@
         {
           "datasource": {
             "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
+            "uid": "${datasource}"
           },
           "description": "dbo.vw_diisk_space",
           "fieldConfig": {
@@ -417,7 +366,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "${DS_SQLMONITOR}"
+                "uid": "${datasource}"
               },
               "editorMode": "code",
               "format": "table",
@@ -474,7 +423,7 @@
         {
           "datasource": {
             "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
+            "uid": "${datasource}"
           },
           "description": "dbo.vw_diisk_space",
           "fieldConfig": {
@@ -557,7 +506,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "${DS_SQLMONITOR}"
+                "uid": "${datasource}"
               },
               "editorMode": "code",
               "format": "time_series",
@@ -605,7 +554,7 @@
         {
           "datasource": {
             "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
+            "uid": "${datasource}"
           },
           "description": "dbo.vw_diisk_space",
           "fieldConfig": {
@@ -687,7 +636,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "${DS_SQLMONITOR}"
+                "uid": "${datasource}"
               },
               "editorMode": "code",
               "format": "time_series",
@@ -735,7 +684,7 @@
         {
           "datasource": {
             "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
+            "uid": "${datasource}"
           },
           "description": "dbo.file_io_stats",
           "fieldConfig": {
@@ -1018,7 +967,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "${DS_SQLMONITOR}"
+                "uid": "${datasource}"
               },
               "editorMode": "code",
               "format": "table",
@@ -1066,7 +1015,7 @@
         {
           "datasource": {
             "type": "mssql",
-            "uid": "${DS_SQLMONITOR}"
+            "uid": "${datasource}"
           },
           "description": "dbo.file_io_stats",
           "fieldConfig": {
@@ -1147,7 +1096,7 @@
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "${DS_SQLMONITOR}"
+                "uid": "${datasource}"
               },
               "editorMode": "code",
               "format": "time_series",
@@ -1212,10 +1161,14 @@
         "type": "datasource"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "SqlPractice",
+          "value": "SqlPractice"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "declare @sql nvarchar(max);\n\nset quoted_identifier off;\nset @sql = \"select distinct srvname = sql_instance from dbo.instance_details with (nolock)\nwhere is_available = 1\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql;",
         "hide": 0,
@@ -1232,10 +1185,14 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "DBA",
+          "value": "DBA"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "SELECT DB_NAME()",
         "hide": 2,
@@ -1252,10 +1209,14 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "0",
+          "value": "0"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "declare @sql_instance varchar(255); \nset @sql_instance = '$server';\nselect is_local = case when ( (CONVERT(varchar,SERVERPROPERTY('MachineName')) = @sql_instance ) \n\t\t\tor (CONVERT(varchar,SERVERPROPERTY('ServerName')) = @sql_instance )\n\t\t\t)  then 1 else 0 end",
         "hide": 2,
@@ -1272,10 +1233,14 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "DBA",
+          "value": "DBA"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "declare @sql nvarchar(max);\ndeclare @sql_instance varchar(255);\nset @sql_instance = '$server';\n\nset quoted_identifier off;\nset @sql = \"select [database] from dbo.instance_details id\nwhere id.sql_instance = @sql_instance\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql, N'@sql_instance varchar(255)', @sql_instance;",
         "hide": 2,
@@ -1292,10 +1257,14 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "SQLPRACTICE",
+          "value": "SQLPRACTICE"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "declare @sql nvarchar(max);\ndeclare @sql_instance varchar(255);\nset @sql_instance = '$server';\n\nset quoted_identifier off;\nset @sql = \"select host_name from dbo.instance_details\nwhere sql_instance = @sql_instance order by created_date_utc\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql, N'@sql_instance varchar(255)', @sql_instance;",
         "hide": 0,
@@ -1312,10 +1281,14 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "SQLPRACTICE",
+          "value": "SQLPRACTICE"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\n\nset @sql_instance = '$server';\n\nset quoted_identifier off;\nset @sql = \"\nselect CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) as [host_name]\n\"\nset quoted_identifier on;\n\nif (@sql_instance = SERVERPROPERTY('SERVERNAME'))\n  exec dbo.sp_executesql @sql;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql;",
         "hide": 2,
@@ -1332,10 +1305,14 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "192.168.29.22",
+          "value": "192.168.29.22"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\n\nset @sql_instance = '$server';\nset @params = N'@sql_instance varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"select CONVERT(varchar,  CONNECTIONPROPERTY('local_net_address') ) as [ip];\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql --, @params, @sql_instance;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql --, @params, @sql_instance;",
         "hide": 2,
@@ -1352,10 +1329,14 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "SqlPractice.Lab.com",
+          "value": "SqlPractice.Lab.com"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\n\nset @sql_instance = '$server';\nset @params = N'@sql_instance varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"declare @fqdn nvarchar(100);\nexec usp_extended_results @fqdn = @fqdn output;\n\nselect case when default_domain() = 'WORKGROUP' then 'WORKGROUP' ELSE @fqdn END\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql --, @params, @sql_instance;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql --, @params, @sql_instance;",
         "hide": 2,
@@ -1375,27 +1356,19 @@
         "hide": 2,
         "label": "DiskSpace table name",
         "name": "diskspace_table_name",
-        "query": "${VAR_DISKSPACE_TABLE_NAME}",
+        "query": "dbo.vw_disk_space",
         "skipUrlSync": false,
-        "type": "constant",
-        "current": {
-          "value": "${VAR_DISKSPACE_TABLE_NAME}",
-          "text": "${VAR_DISKSPACE_TABLE_NAME}",
-          "selected": false
-        },
-        "options": [
-          {
-            "value": "${VAR_DISKSPACE_TABLE_NAME}",
-            "text": "${VAR_DISKSPACE_TABLE_NAME}",
-            "selected": false
-          }
-        ]
+        "type": "constant"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "1669280405757",
+          "value": "1669280405757"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @params = N'@perfmon_host_name varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"\nselect top 1 collection_time_utc\nfrom $diskspace_table_name with (nolock)\norder by collection_time_utc desc\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name;",
         "hide": 2,
@@ -1412,10 +1385,14 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "4",
+          "value": "4"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @params = N'@perfmon_host_name varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"select count(*) as counts from sys.dm_os_schedulers dos where status = 'VISIBLE ONLINE' and is_online = 1;\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name;",
         "hide": 2,
@@ -1432,10 +1409,14 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "1668868469867",
+          "value": "1668868469867"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @params = N'@perfmon_host_name varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"select DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), sqlserver_start_time) from sys.dm_os_sys_info as osi;\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name;",
         "hide": 2,
@@ -1452,10 +1433,14 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "__All__",
+          "value": "__All__"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @params = N'@perfmon_host_name varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"\n        select ds.disk_volume as disk_drive\n\tfrom $diskspace_table_name ds\n\twhere ds.host_name = @perfmon_host_name\n           and ds.collection_time_utc = (select max(i.collection_time_utc) from $diskspace_table_name as i\n                                                                   where i.host_name = @perfmon_host_name\n                                                                )\n\tunion all\n\tselect '__All__' as disk_drive\n\torder by disk_drive\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name;",
         "hide": 0,
@@ -1472,10 +1457,14 @@
         "type": "query"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "__All__",
+          "value": "__All__"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "5Qr_lHw7z"
         },
         "definition": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @params = N'@perfmon_host_name varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"select name from sys.databases d where d.state_desc = 'ONLINE' union all select '__All__' as name order by name;\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name;",
         "hide": 0,
@@ -1495,27 +1484,19 @@
         "hide": 2,
         "label": "File_io_stats Table Name",
         "name": "fileiostats_table_name",
-        "query": "${VAR_FILEIOSTATS_TABLE_NAME}",
+        "query": "dbo.file_io_stats",
         "skipUrlSync": false,
-        "type": "constant",
-        "current": {
-          "value": "${VAR_FILEIOSTATS_TABLE_NAME}",
-          "text": "${VAR_FILEIOSTATS_TABLE_NAME}",
-          "selected": false
-        },
-        "options": [
-          {
-            "value": "${VAR_FILEIOSTATS_TABLE_NAME}",
-            "text": "${VAR_FILEIOSTATS_TABLE_NAME}",
-            "selected": false
-          }
-        ]
+        "type": "constant"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "1669280401288",
+          "value": "1669280401288"
+        },
         "datasource": {
           "type": "mssql",
-          "uid": "${DS_SQLMONITOR}"
+          "uid": "${datasource}"
         },
         "definition": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @params = N'@perfmon_host_name varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"\nselect top 1 collection_time_utc\nfrom $fileiostats_table_name with (nolock)\norder by collection_time_utc desc\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name;",
         "hide": 2,
