@@ -199,8 +199,8 @@ $ErrorActionPreference = "Stop"
 $sqlmonitorVersion = '1.1.6'
 $releaseDiscussionURL = "https://ajaydwivedi.com/sqlmonitor/common-errors"
 <#
-    v1.1.6 - 2022-Nov-22
-        -> Remove [vw_file_io_stats_deltas], [vw_resource_consumption], [vw_disk_space], [resource_consumption_queries]
+    v1.2.0 - 2022-Nov-25
+        -> Fixed issue#11 - Missing CPU Metrics For Extra SQL Instances on Same Host
 #>
 
 if($SqlInstanceToBaseline -eq '.' -or $SqlInstanceToBaseline -eq 'localhost') {
