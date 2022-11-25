@@ -2463,7 +2463,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent"
+                    "color": "transparent",
+                    "value": null
                   }
                 ]
               },
@@ -2505,7 +2506,7 @@
               "editorMode": "code",
               "format": "time_series",
               "rawQuery": true,
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nselect pc.collection_time_utc as time, \n\t\tcase when (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total') then 'OS'\n\t\t\twhen (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance like 'sqlservr%') then 'Sql Server'\n\t\t\telse null\n\t\t\tend as metric,\n\t--object, counter as metric, instance\n\tcase when pc.object = 'processor' then pc.value else pc.value/$sql_schedulers end as value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand host_name = @perfmon_host_name\nand (   (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total')\n\t   or (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr$$instance_name')\n\t  )\nand pc.value > 0\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nselect pc.collection_time_utc as time, \n\t\tcase when (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total') then 'OS'\n\t\t\twhen (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance like 'sqlservr%') then 'Sql Server'\n\t\t\telse null\n\t\t\tend as metric,\n\t--object, counter as metric, instance\n\tcase when pc.object = 'processor' then pc.value else pc.value/$sql_schedulers end as value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand host_name = @perfmon_host_name\nand (   (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total')\n\t   or (pc.object = 'process' and pc.counter in ('% Processor Time') and (pc.instance = 'sqlservr' or pc.instance = 'sqlservr$$instance_name'))\n\t  )\nand pc.value > 0\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
               "refId": "A",
               "sql": {
                 "columns": [
@@ -5414,8 +5415,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1669378836490",
-          "value": "1669378836490"
+          "text": "1669391375411",
+          "value": "1669391375411"
         },
         "datasource": {
           "type": "mssql",
@@ -5446,8 +5447,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1669378924006",
-          "value": "1669378924006"
+          "text": "1669391403583",
+          "value": "1669391403583"
         },
         "datasource": {
           "type": "mssql",
@@ -5478,8 +5479,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1669378920830",
-          "value": "1669378920830"
+          "text": "1669391401230",
+          "value": "1669391401230"
         },
         "datasource": {
           "type": "mssql",
@@ -5573,8 +5574,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1669378899613",
-          "value": "1669378899613"
+          "text": "1669391407527",
+          "value": "1669391407527"
         },
         "datasource": {
           "type": "mssql",
@@ -5597,8 +5598,8 @@
       {
         "current": {
           "selected": false,
-          "text": "5",
-          "value": "5"
+          "text": "9",
+          "value": "9"
         },
         "datasource": {
           "type": "mssql",
@@ -5645,8 +5646,8 @@
       {
         "current": {
           "selected": false,
-          "text": "95",
-          "value": "95"
+          "text": "91",
+          "value": "91"
         },
         "datasource": {
           "type": "mssql",
@@ -5669,8 +5670,8 @@
       {
         "current": {
           "selected": false,
-          "text": "85",
-          "value": "85"
+          "text": "92",
+          "value": "92"
         },
         "datasource": {
           "type": "mssql",
@@ -5693,8 +5694,8 @@
       {
         "current": {
           "selected": false,
-          "text": "14",
-          "value": "14"
+          "text": "7",
+          "value": "7"
         },
         "datasource": {
           "type": "mssql",
@@ -5717,8 +5718,8 @@
       {
         "current": {
           "selected": false,
-          "text": "412248",
-          "value": "412248"
+          "text": "448520",
+          "value": "448520"
         },
         "datasource": {
           "type": "mssql",
@@ -5821,8 +5822,8 @@
       {
         "current": {
           "selected": false,
-          "text": "23915948",
-          "value": "23915948"
+          "text": "22945188",
+          "value": "22945188"
         },
         "datasource": {
           "type": "mssql",
@@ -5869,8 +5870,8 @@
       {
         "current": {
           "selected": false,
-          "text": "7446672",
-          "value": "7446672"
+          "text": "8623120",
+          "value": "8623120"
         },
         "datasource": {
           "type": "mssql",
@@ -5941,8 +5942,8 @@
       {
         "current": {
           "selected": false,
-          "text": "76928",
-          "value": "76928"
+          "text": "89457",
+          "value": "89457"
         },
         "datasource": {
           "type": "mssql",
@@ -6013,8 +6014,8 @@
       {
         "current": {
           "selected": false,
-          "text": "21",
-          "value": "21"
+          "text": "18",
+          "value": "18"
         },
         "datasource": {
           "type": "mssql",
@@ -6061,8 +6062,8 @@
       {
         "current": {
           "selected": false,
-          "text": "0.1",
-          "value": "0.1"
+          "text": "0.3",
+          "value": "0.3"
         },
         "datasource": {
           "type": "mssql",
@@ -6093,8 +6094,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1669377605443",
-          "value": "1669377605443"
+          "text": "1669390205662",
+          "value": "1669390205662"
         },
         "datasource": {
           "type": "mssql",
@@ -6156,6 +6157,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 275,
+  "version": 276,
   "weekStart": ""
 }

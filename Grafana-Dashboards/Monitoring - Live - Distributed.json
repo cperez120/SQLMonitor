@@ -2553,7 +2553,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent"
+                    "color": "transparent",
+                    "value": null
                   }
                 ]
               },
@@ -2595,7 +2596,7 @@
               "editorMode": "code",
               "format": "time_series",
               "rawQuery": true,
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nselect pc.collection_time_utc as time, \n\t\tcase when (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total') then 'OS'\n\t\t\twhen (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance like 'sqlservr%') then 'Sql Server'\n\t\t\telse null\n\t\t\tend as metric,\n\t--object, counter as metric, instance\n\tcase when pc.object = 'processor' then pc.value else pc.value/$sql_schedulers end as value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand host_name = @perfmon_host_name\nand (   (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total')\n\t   or (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance = 'sqlservr$$instance_name')\n\t  )\nand pc.value > 0\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nselect pc.collection_time_utc as time, \n\t\tcase when (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total') then 'OS'\n\t\t\twhen (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance like 'sqlservr%') then 'Sql Server'\n\t\t\telse null\n\t\t\tend as metric,\n\t--object, counter as metric, instance\n\tcase when pc.object = 'processor' then pc.value else pc.value/$sql_schedulers end as value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand host_name = @perfmon_host_name\nand (   (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total')\n\t   or (pc.object = 'process' and pc.counter in ('% Processor Time') and (pc.instance = 'sqlservr' or pc.instance = 'sqlservr$$instance_name'))\n\t  )\nand pc.value > 0\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
               "refId": "A",
               "sql": {
                 "columns": [
@@ -6138,6 +6139,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 275,
+  "version": 276,
   "weekStart": ""
 }
