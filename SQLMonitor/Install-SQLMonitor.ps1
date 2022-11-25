@@ -237,11 +237,11 @@ Param (
 
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
-$sqlmonitorVersion = '1.1.6'
+$sqlmonitorVersion = '1.2.0'
 $releaseDiscussionURL = "https://ajaydwivedi.com/sqlmonitor/common-errors"
 <#
-    v1.1.6 - 2022-Nov-22
-        -> Fixed minor bug where Views were not getting altered for Fresh Install
+    v1.2.0 - 2022-Nov-25
+        -> Fixed issue#11 - Missing CPU Metrics For Extra SQL Instances on Same Host
 #>
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline]." | Write-Host -ForegroundColor Yellow

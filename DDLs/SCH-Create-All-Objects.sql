@@ -1,5 +1,5 @@
 /*
-	Version -> v1.1.6
+	Version -> v1.2.0
 	-----------------
 
 	*** Self Pre Steps ***

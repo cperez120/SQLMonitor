@@ -40,46 +40,87 @@ if($ReSetupCollector) {
 # Get named instances installed on box
 "Finding sql instances on host.." | Write-Host -ForegroundColor Cyan
 $sqlInstances = @()
-$sqlInstances +=  (Get-Service *sql* | ? {$_.Name -ne 'MSSQLSERVER' -and $_.DisplayName -match '^SQL Server \(.+\)$'} | Select-Object -ExpandProperty Name)
+$dbaServices = @()
 
-# Add counters for named instances
-if($sqlInstances.Count -gt 0)
+$dbaServices += Get-DbaService -Type Engine
+$sqlInstances +=  ($dbaServices | ? {$_.InstanceName -ne 'MSSQLSERVER'} | Select-Object -ExpandProperty ServiceName)
+#$sqlInstances +=  (Get-Service *sql* | ? {$_.Name -ne 'MSSQLSERVER' -and $_.DisplayName -match '^SQL Server \(.+\)$'} | Select-Object -ExpandProperty Name)
+
+
+# read template data into xml object
+[xml]$xmlDoc = (Get-Content $TemplatePath)
+
+# Add counters for named instances, or Process counters in case of 1+ SQLInstances
+if( ($sqlInstances.Count -gt 0) -or ($dbaServices.Count -gt 1) )
 {
-    "Add counters for named instances ($($sqlInstances -join ',')).." | Write-Host -ForegroundColor Cyan
-    # https://stackoverflow.com/questions/16428559/powershell-script-to-update-xml-file-content
+    # segregate sql, process & os counters
+    $sqlInstanceCounters = @()
+    $processCounters = @()
+    $otherCounters = @()
 
-    # read template data into xml object
-    [xml]$xmlDoc = (Get-Content $TemplatePath)
-
-    # segregate sql & os counters
-    $sqlCounters = @()
-    $osCounters = @()
     foreach($cntr in $xmlDoc.DataCollectorSet.PerformanceCounterDataCollector.Counter) {
         if($cntr -match '^\\SQLServer:.*') {
-            $sqlCounters += $cntr
+            $sqlInstanceCounters += $cntr
+        }
+        elseif( ($cntr -match '^\\Process\(sqlservr\)\\.*') -or ($cntr -match '^\\Process\(sqlagent\)\\.*') ) {
+            $processCounters += $cntr
         }
         else {
-            $osCounters += $cntr
+            $otherCounters += $cntr
         }
     }
 
-    # Loop through each named instance
-    foreach($sqlInst in $sqlInstances) {
-        # Loop through each sql counter
-        foreach($cntr in $sqlCounters) {
-            $counterElement = $xmlDoc.CreateElement("Counter")
-            $counterElement.InnerText = $cntr.Replace('\SQLServer:',('\'+$sqlInst+':'))
-            $xmlDoc.DataCollectorSet.PerformanceCounterDataCollector.AppendChild($counterElement) | Out-Null
+    if ($sqlInstances.Count -gt 0)
+    {
+        "Add counters for named instances ($($sqlInstances -join ',')).." | Write-Host -ForegroundColor Cyan
+        # https://stackoverflow.com/questions/16428559/powershell-script-to-update-xml-file-content    
+        
+        # Loop through each named instance
+        foreach($sqlInst in $sqlInstances) {
+            # Loop through each sql counter
+            foreach($cntr in $sqlInstanceCounters) {
+                $counterElement = $xmlDoc.CreateElement("Counter")
+                $counterElement.InnerText = $cntr.Replace('\SQLServer:',('\'+$sqlInst+':'))
+                $xmlDoc.DataCollectorSet.PerformanceCounterDataCollector.AppendChild($counterElement) | Out-Null
+            }
         }
     }
 
-    #save the changes
-    $tempFile = $collector_root_directory+"\$(Get-Random).xml"
-    "Creating new temporary template file '$tempFile'.." | Write-Host -ForegroundColor Cyan
-    $xmlDoc.Save($tempFile)
+    if ($dbaServices.Count -gt 1)
+    {
+        $loopLimit = ($dbaServices.Count - 1)
 
-    $TemplatePath = $tempFile
+        "Add counters for SQL/Agent Process for '$loopLimit' more SQLInstances.." | Write-Host -ForegroundColor Cyan
+        # https://github.com/imajaydwivedi/SQLMonitor/issues/11
+        
+        #$processCounters = @()
+
+        # Loop through each named instance
+        foreach($index in $(1..$loopLimit)) 
+        {
+            # Loop through each process engine counter
+            foreach($cntr in $processCounters) 
+            {
+                $counterElement = $xmlDoc.CreateElement("Counter")
+                if ($cntr -match '^\\Process\(sqlservr\)\\.*') {
+                    $counterElement.InnerText = $cntr.Replace('(sqlservr)',('('+"sqlservr#$index"+')'))
+                }
+                else {
+                    $counterElement.InnerText = $cntr.Replace('(sqlagent)',('('+"sqlagent#$index"+')'))
+                }
+                $xmlDoc.DataCollectorSet.PerformanceCounterDataCollector.AppendChild($counterElement) | Out-Null
+            }
+        }
+    }
 }
+
+
+#save the changes made in template data into a temp file
+$tempFile = $collector_root_directory+"\$(Get-Random).xml"
+"Creating new temporary template file '$tempFile'.." | Write-Host -ForegroundColor Cyan
+$xmlDoc.Save($tempFile)
+
+$TemplatePath = $tempFile
 
 # Create data collector from template, update sample & rotation time, and start collector
 if(-not $WhatIf) {
@@ -102,3 +143,8 @@ logman delete -name “$CollectorSetName”
 Get-Counter -ListSet * | Select-Object -ExpandProperty Counter | ogv
 #>
 
+<#
+C:\SQLMonitor\perfmon-collector-logman.ps1 `
+    -TemplatePath 'C:\SQLMonitor\DBA_PerfMon_All_Counters_Template.xml' `
+    -ReSetupCollector $true
+#>

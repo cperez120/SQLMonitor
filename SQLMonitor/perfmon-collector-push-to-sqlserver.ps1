@@ -97,48 +97,92 @@ $pfCollectorFiles += $perfmonFilesFound | Where-Object {[String]::IsNullOrEmpty(
 #Start-DbaPfDataCollectorSet -ComputerName $computerName -CollectorSet $collectorSetName | Out-Null
 $dataCollectorSet.start($true)
 
+# Get DB Engine Services to extract ProcessId & InstanceName
+$dbaServices = @()
+$dbaServices += Get-DbaService -ComputerName $HostName -Type Engine | Select-Object InstanceName, ProcessId
+
+$SqlProcessesRaw = @()
+$SqlProcesses = @()
+$SqlProcessesRaw += (Get-counter -counter "\Process(sqlservr*)\ID Process").CounterSamples
+$SqlProcesses += $SqlProcessesRaw | Select-Object @{l='SqlProcessId';e={
+        $path=$_.Path; 
+        if($path -match '\\Process\((?<SqlProcessId>sqlservr#?\d{0,2})\)\\.*'){
+            $Matches.SqlProcessId
+        }else {
+            $path
+        }
+        }}, 
+        @{l='InstanceName'; e={
+            $processId = $_.CookedValue;
+            $instanceName = $dbaServices | Where-Object {$_.ProcessId -eq $processId} | Select-Object -ExpandProperty InstanceName -First 1;
+            $instanceName
+        }},
+        @{l='ProcessId';e={$_.CookedValue}}
+
+
 foreach($file in $pfCollectorFiles)
 {
     Write-Debug "Inside each file loop"
+
     #Import-Counter -Path "$pfCollectorFolder\21L-LTPABL-1187_DBA_20220325_134853_001.blg" -ListSet * | ogv
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Processing file '$file', and import data into [$SqlInstance].[$Database].$TablePerfmonCounters.."
     try
     {
         #Import-Counter -Path "$pfCollectorFolder\$file" -EA silentlycontinue | Select-Object -ExpandProperty CounterSamples | 
-        Import-Counter -Path "$("\\$computerName\"+$pfCollectorFolder.Replace(':','$'))\$file" -EA silentlycontinue | Select-Object -ExpandProperty CounterSamples | 
-                Select-Object @{l='collection_time_utc';e={($_.TimeStamp).ToUniversalTime()}}, @{l='host_name';e={$computerName}}, `
+        Import-Counter -Path "$("\\$computerName\"+$pfCollectorFolder.Replace(':','$'))\$file" -EA silentlycontinue | 
+            Select-Object -ExpandProperty CounterSamples | #Select-Object * -First 5 | 
+                Select-Object @{l='collection_time_utc';e={($_.TimeStamp).ToUniversalTime()}}, `
+                              @{l='host_name';e={$computerName}}, `
                               @{l='object';e={
                                     $path = $_.Path; 
-                                    $pathWithoutComputerName = ($path -replace "$computerName","").TrimStart('\\');
-                                    if( (-not [String]::IsNullOrEmpty($_.InstanceName)) -and $_.InstanceName.Contains('\') ) {
-                                        $splitPath = $pathWithoutComputerName.Replace($_.InstanceName,'').Split('()\') | Where-Object {-not [String]::IsNullOrEmpty($_)}
-                                    } else {
-                                        if([String]::IsNullOrEmpty($_.InstanceName)) {
-                                            $splitPath = $pathWithoutComputerName.Split('\') | Where-Object{-not [String]::IsNullOrEmpty($_)}
+                                    $pathWithoutComputerName = ($path -replace "\\\\$computerName", '');
+                                    if($pathWithoutComputerName -match '^\\(?<ObjectInstance>.+)\\(?<Counter>.+)') {
+                                        $objectInstance = $Matches.ObjectInstance
+                                        #$counter = $Matches.Counter
+                                        if($objectInstance -match '^(?<Object>.+)\((?<Instance>.+)\)') {
+                                            $object = $Matches.Object
+                                            #$instance = $Matches.Instance
                                         }
                                         else {
-                                            $splitPath = $pathWithoutComputerName.Replace($_.InstanceName,'').Split('()\') | Where-Object{-not [String]::IsNullOrEmpty($_)}
+                                            $object = $objectInstance
+                                            #$instance = $_.InstanceName
                                         }
-                                    };
-                                    $splitPath[0]
+                                    }
+                                    $object
                                }}, `
                               @{l='counter';e={
                                     $path = $_.Path; 
-                                    $pathWithoutComputerName = ($path -replace "$computerName","").TrimStart('\\');
-                                    if( (-not [String]::IsNullOrEmpty($_.InstanceName)) -and $_.InstanceName.Contains('\') ) {
-                                        $splitPath = $pathWithoutComputerName.Replace($_.InstanceName,'').Split('()\') | Where-Object {-not [String]::IsNullOrEmpty($_)}
-                                    } else {
-                                        if([String]::IsNullOrEmpty($_.InstanceName)) {
-                                            $splitPath = $pathWithoutComputerName.Split('\') | Where-Object{-not [String]::IsNullOrEmpty($_)}
+                                    $pathWithoutComputerName = ($path -replace "\\\\$computerName", '');
+                                    if($pathWithoutComputerName -match '^\\(?<ObjectInstance>.+)\\(?<Counter>.+)') {
+                                        $objectInstance = $Matches.ObjectInstance
+                                        $counter = $Matches.Counter
+                                    }
+                                    $counter
+                               }}, `
+                              @{l='value';e={$_.CookedValue}}, `
+                              @{l='instance';e={
+                                    $path = $_.Path; 
+                                    $pathWithoutComputerName = ($path -replace "\\\\$computerName", '');
+                                    if($pathWithoutComputerName -match '^\\(?<ObjectInstance>.+)\\(?<Counter>.+)') {
+                                        $objectInstance = $Matches.ObjectInstance
+                                        $counter = $Matches.Counter
+                                        if($objectInstance -match '^(?<Object>.+)\((?<Instance>.+)\)') {
+                                            $object = $Matches.Object
+                                            $instance = $Matches.Instance
                                         }
                                         else {
-                                            $pathWithoutInstance = $pathWithoutComputerName.Replace($_.InstanceName,'')
-                                            $splitPath = $($pathWithoutInstance -split '()\', 0, "simplematch") | Where-Object{-not [String]::IsNullOrEmpty($_)}
+                                            $object = $objectInstance
+                                            $instance = $_.InstanceName
                                         }
-                                    };
-                                    $splitPath[1]
-                               }}, `
-                              @{l='value';e={$_.CookedValue}}, @{l='instance';e={$_.InstanceName}} |
+                                    }
+
+                                    if($object -eq 'process' -and $instance -like 'sqlservr*') {
+                                        $instanceName = $SqlProcesses | Where-Object {$_.SqlProcessId -eq $instance} | Select-Object -ExpandProperty InstanceName -First 1;
+                                        $instance = "sqlservr`$$instanceName"
+                                    }
+
+                                    $instance
+                               }} | 
                 Write-DbaDbTableData -SqlInstance $SqlInstance -Database $Database -Table $TablePerfmonCounters -EnableException
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "File import complete.."
 
