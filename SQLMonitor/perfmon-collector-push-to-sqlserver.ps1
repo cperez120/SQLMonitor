@@ -103,7 +103,7 @@ $dbaServices += Get-DbaService -ComputerName $HostName -Type Engine | Select-Obj
 
 $SqlProcessesRaw = @()
 $SqlProcesses = @()
-$SqlProcessesRaw += (Get-counter -counter "\Process(sqlservr*)\ID Process").CounterSamples
+$SqlProcessesRaw += (Get-counter -ComputerName $HostName -counter "\Process(sqlservr*)\ID Process").CounterSamples
 $SqlProcesses += $SqlProcessesRaw | Select-Object @{l='SqlProcessId';e={
         $path=$_.Path; 
         if($path -match '\\Process\((?<SqlProcessId>sqlservr#?\d{0,2})\)\\.*'){
