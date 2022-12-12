@@ -31,8 +31,9 @@ AS
 BEGIN
 
 	/*
-		Version:		1.0.1
+		Version:		1.2.1
 		Update:			2022-10-12 - Removed Staging Table Logic. Also removed computed columns to avoid single threaded search.
+						2022-12-12 - Add @format_output = 0 to get numeric values instead of Human readable format
 
 		EXEC dbo.usp_run_WhoIsActive @recipients = 'some_dba_mail_id@gmail.com'
 		EXEC dbo.usp_run_WhoIsActive @recipients = 'some_dba_mail_id@gmail.com', @verbose = 2 ,@drop_recreate = 1
@@ -123,7 +124,7 @@ BEGIN
 			IF @verbose > 0
 				PRINT @_tab+'Inside Step 01: Create WhoIsActive table with @_output_column_list..';
 			EXEC dbo.sp_WhoIsActive @get_outer_command=1, @get_task_info=2, @find_block_leaders=1, @get_plans=1, @get_avg_time=1, 
-									@get_additional_info=1, @get_transaction_info=1, @get_memory_info = 1
+									@get_additional_info=1, @get_transaction_info=1, @get_memory_info = 1, @format_output = 0
 									,@output_column_list = @_output_column_list
 									,@return_schema = 1, @schema = @_sqlString OUTPUT; 
 			SET @_sqlString = REPLACE(@_sqlString, '<table_name>', @destination_table) 
@@ -191,7 +192,7 @@ BEGIN
 			PRINT 'Start Step 04: Populate WhoIsActive table..';
 		SET @_output += '<br>Execute Step 04: Populate WhoIsActive table..'+CHAR(10);
 		EXEC dbo.sp_WhoIsActive @get_outer_command=1, @get_task_info=2, @find_block_leaders=1, @get_plans=1, @get_avg_time=1, 
-								@get_additional_info=1, @get_transaction_info=1, @get_memory_info = 1
+								@get_additional_info=1, @get_transaction_info=1, @get_memory_info = 1, @format_output = 0
 								,@output_column_list = @_output_column_list
 								,@destination_table = @destination_table;
 		SET @_rows_affected = ISNULL(@@ROWCOUNT,0);

@@ -196,9 +196,11 @@ if($SkipRemoveTsqlJobs -and $SkipRemovePowerShellJobs) {
 
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
-$sqlmonitorVersion = '1.1.6'
+$sqlmonitorVersion = '1.2.1'
 $releaseDiscussionURL = "https://ajaydwivedi.com/sqlmonitor/common-errors"
 <#
+    v1.2.1 - 2022-Dec-12
+        -> Issue#211 - Capture Unformatted Output - sp_WhoIsActive with @format_output = 0
     v1.2.0 - 2022-Nov-25
         -> Fixed issue#11 - Missing CPU Metrics For Extra SQL Instances on Same Host
 #>
