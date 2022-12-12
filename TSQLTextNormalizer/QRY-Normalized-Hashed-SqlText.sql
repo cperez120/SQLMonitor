@@ -12,16 +12,28 @@ go
 */
 go
 
-select top 100 hs.sqlsig, counts = count(rc.session_id)over(partition by hs.sqlsig), *
+;with resource_consumption as (
+	select *, [sql_text_ripped] = case when ltrim(rc.sql_text) like 'exec sp_executesql%' 
+									then substring(ltrim(rtrim(rc.sql_text)),22,len(ltrim(rtrim(rc.sql_text)))-22)
+									else rc.sql_text
+									end
+	from dbo.vw_resource_consumption rc
+)
+select hs.sqlsig, 
+		hash_counts = count(rc.session_id)over(partition by hs.sqlsig), 
+		sql_handle_counts = count(rc.session_id)over(partition by rc.sql_text),
+		rc.sql_text, rc.sql_text_ripped,
+		rc.*
 --update rc set query_hash = hs.sqlsig
-from dbo.resource_consumption rc
+from resource_consumption rc
 outer apply (select sqlsig = hs.varbinary_value
-			from dbo.fn_get_hash_for_string(dbo.normalized_sql_text(rc.sql_text,150,0)) hs  
+			from dbo.fn_get_hash_for_string(dbo.normalized_sql_text(rc.[sql_text_ripped],130,0)) hs  
 			) hs
 where 1=1
-and rc.query_hash is null
-and rc.event_time >= dateadd(hour,-24,getdate())
-order by rc.start_time, rc.event_time
+and rc.start_time between '2022-12-08 07:00' and '2022-12-08 09:00'
+and rc.username = 'aws_infra'
+order by hash_counts desc, rc.sql_text, hs.sqlsig
+--order by rc.start_time, rc.event_time
 go
 
 -- dbo.fn_get_hash_for_string('EXEC dbo.usp_run_WhoIsActive @recipients = ''sqlagentservice@gmail.com'';')

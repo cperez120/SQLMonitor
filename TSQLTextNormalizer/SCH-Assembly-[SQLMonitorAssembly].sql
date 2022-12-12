@@ -24,7 +24,7 @@ GO
 --DROP LOGIN SQLMonitor_TSQLTextNormalizer_Key_Login
 CREATE LOGIN SQLMonitor_TSQLTextNormalizer_Key_Login FROM ASYMMETRIC KEY SQLMonitor_TSQLTextNormalizer_Key;
 --DROP LOGIN SQLMonitor_ScriptDom_Key_Login
-CREATE LOGIN SQLMonitor_ScriptDom_Key_Login FROM ASYMMETRIC KEY SQLMonitor_ScriptDom_Key;
+CREATE LOGIN SQLMonitor_ScriptDom_Key_Login FROM ASYMMETRIC KEY MS_SQLEnableSystemAssemblyLoadingKey;
 --CREATE LOGIN SQLMonitor_ScriptDom_Key_Login FROM ASYMMETRIC KEY MS_SQLEnableSystemAssemblyLoadingKey;
 GO
 
@@ -32,7 +32,7 @@ GRANT UNSAFE ASSEMBLY TO SQLMonitor_TSQLTextNormalizer_Key_Login;
 GRANT UNSAFE ASSEMBLY TO SQLMonitor_ScriptDom_Key_Login;
 GO
 
-USE DBA;
+USE DBA_Admin;
 GO
 --DROP USER SQLMonitor_TSQLTextNormalizer_Key_Login
 CREATE USER SQLMonitor_TSQLTextNormalizer_Key_Login FOR LOGIN SQLMonitor_TSQLTextNormalizer_Key_Login;
@@ -61,7 +61,7 @@ RECONFIGURE;
 select * from sys.configurations c
 where c.name like '%clr%'
 
--- select sqlsig = DBA.dbo.normalized_sql_text('exec sp_WhoIsActive 110',150,0)
+-- select sqlsig = DBA_Admin.dbo.normalized_sql_text('exec sp_WhoIsActive 110',150,0)
 
 declare @c_sql_text nvarchar(max);
 declare cur_rows cursor local fast_forward for
