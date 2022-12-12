@@ -65,8 +65,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   }
                 ]
               }
@@ -1363,8 +1362,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1669280405757",
-          "value": "1669280405757"
+          "text": "1670866205265",
+          "value": "1670866205265"
         },
         "datasource": {
           "type": "mssql",
@@ -1411,8 +1410,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1668868469867",
-          "value": "1668868469867"
+          "text": "1670736648650",
+          "value": "1670736648650"
         },
         "datasource": {
           "type": "mssql",
@@ -1491,8 +1490,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1669280401288",
-          "value": "1669280401288"
+          "text": "1670866800562",
+          "value": "1670866800562"
         },
         "datasource": {
           "type": "mssql",

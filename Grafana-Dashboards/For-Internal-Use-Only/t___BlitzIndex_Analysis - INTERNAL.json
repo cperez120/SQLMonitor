@@ -30,7 +30,7 @@
   "liveNow": false,
   "panels": [
     {
-      "collapsed": false,
+      "collapsed": true,
       "datasource": {
         "type": "mssql",
         "uid": "5Qr_lHw7z"
@@ -42,7 +42,121 @@
         "y": 0
       },
       "id": 12,
-      "panels": [],
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "5Qr_lHw7z"
+          },
+          "description": "exec sp_BlitzIndex @Mode = 2",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto",
+                "filterable": true,
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "collection_time"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 121
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "object_name"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 177
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 9
+          },
+          "id": 22,
+          "options": {
+            "footer": {
+              "enablePagination": true,
+              "fields": [
+                "sample_ms"
+              ],
+              "reducer": [
+                "first"
+              ],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": []
+          },
+          "pluginVersion": "9.2.5",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "5Qr_lHw7z"
+              },
+              "editorMode": "code",
+              "format": "table",
+              "hide": false,
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @delta_days_threshold int = ${delta_days_threshold};\ndeclare @top_x_filter int = ${top_x_filter};\ndeclare @database varchar(255) = '$database';\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@database varchar(255), @delta_days_threshold int, @top_x_filter int';\n\nset quoted_identifier off;\nset @sql = \"/* SQLMonitor - BlitzIndex Analysis - 0 Delta Rows */\nset nocount on;\n\nif object_id('tempdb..#delta_tables') is not null\n\tdrop table #delta_tables;\nselect top (@top_x_filter) --*\n\t\t[database_name], [schema_name], [table_name]\n\t\t--,total_rows_max = max(total_rows)\n\t\t--,total_rows_min = min(total_rows)\n\t\t--,total_rows_avg = avg(total_rows)\n\t\t--,days_count = datediff(day,min(run_datetime),max(run_datetime))\n\t\t,total_reserved_GB = max(convert(numeric(20,2),bi.total_reserved_MB/1024.0))\ninto #delta_tables\nfrom ${blitzindex_table_name} bi\nwhere bi.run_datetime >= dateadd(day,-90,getdate())\nand index_id <= 1\n\"+(case when @database is null then '-- ' else '' end)+\"and bi.database_name = @database\ngroup by [database_name], [schema_name], [table_name]\nhaving min(total_rows) = max(total_rows) and max(total_rows) = min(total_rows)\n\tand datediff(day,min(run_datetime),max(run_datetime)) > @delta_days_threshold\norder by total_reserved_GB desc;\n\nselect \t--collection_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), bi.run_datetime),\n\t\t\t\tbi.database_name, [object_name] = quotename(bi.schema_name)+'.'+quotename(bi.table_name), \n\t\t\t\t/* bi.index_name, bi.object_type, */ \n\t\t\t\tbi.index_size_summary, bi.index_definition,\n\t\t\t\tbi.index_usage_summary, bi.index_op_stats, --bi.total_rows, bi.total_reserved_MB, bi.total_reserved_LOB_MB,\n\t\t\t\tbi.data_compression_desc, bi.create_date, bi.more_info\nfrom ${blitzindex_table_name} bi\ninner join #delta_tables dt\n\ton bi.run_datetime = (select max(i.run_datetime) from ${blitzindex_table_name} i)\n\tand bi.database_name = dt.database_name and bi.schema_name = dt.schema_name and bi.table_name = dt.table_name\n\tand bi.index_id <= 1\norder by bi.total_reserved_MB desc, bi.total_rows desc\n\"\nset quoted_identifier on;\n\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql, @params, @database, @delta_days_threshold, @top_x_filter;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @database, @delta_days_threshold, @top_x_filter;",
+              "refId": "Query-Db-File-Stats-Since-Startup",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
+            }
+          ],
+          "title": "Tables with 0 Delta rows in Last __\"$delta_days_threshold\"__ Days ____@ ____${collection_time_utc:date:YYYY-MM-DD HH.mm}",
+          "transformations": [],
+          "type": "table"
+        }
+      ],
       "targets": [
         {
           "datasource": {
@@ -54,119 +168,6 @@
       ],
       "title": "Tables with 0 Delta rows in Last __\"$delta_days_threshold\"__ Days @ ____${collection_time_utc:date:YYYY-MM-DD HH.mm}_____ - [$fqdn] - [$ip]",
       "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "mssql",
-        "uid": "5Qr_lHw7z"
-      },
-      "description": "exec sp_BlitzIndex @Mode = 2",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "displayMode": "auto",
-            "filterable": true,
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "collection_time"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 121
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "object_name"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 177
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 12,
-        "w": 24,
-        "x": 0,
-        "y": 1
-      },
-      "id": 22,
-      "options": {
-        "footer": {
-          "enablePagination": true,
-          "fields": [
-            "sample_ms"
-          ],
-          "reducer": [
-            "first"
-          ],
-          "show": false
-        },
-        "showHeader": true,
-        "sortBy": []
-      },
-      "pluginVersion": "9.2.5",
-      "targets": [
-        {
-          "alias": "",
-          "datasource": {
-            "type": "mssql",
-            "uid": "5Qr_lHw7z"
-          },
-          "editorMode": "code",
-          "format": "table",
-          "hide": false,
-          "rawQuery": true,
-          "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @delta_days_threshold int = ${delta_days_threshold};\ndeclare @top_x_filter int = ${top_x_filter};\ndeclare @database varchar(255) = '$database';\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@database varchar(255), @delta_days_threshold int, @top_x_filter int';\n\nset quoted_identifier off;\nset @sql = \"/* SQLMonitor - BlitzIndex Analysis - 0 Delta Rows */\nset nocount on;\n\nif object_id('tempdb..#delta_tables') is not null\n\tdrop table #delta_tables;\nselect top (@top_x_filter) --*\n\t\t[database_name], [schema_name], [table_name]\n\t\t--,total_rows_max = max(total_rows)\n\t\t--,total_rows_min = min(total_rows)\n\t\t--,total_rows_avg = avg(total_rows)\n\t\t--,days_count = datediff(day,min(run_datetime),max(run_datetime))\n\t\t,total_reserved_GB = max(convert(numeric(20,2),bi.total_reserved_MB/1024.0))\ninto #delta_tables\nfrom ${blitzindex_table_name} bi\nwhere bi.run_datetime >= dateadd(day,-90,getdate())\nand index_id <= 1\n\"+(case when @database is null then '-- ' else '' end)+\"and bi.database_name = @database\ngroup by [database_name], [schema_name], [table_name]\nhaving min(total_rows) = max(total_rows) and max(total_rows) = min(total_rows)\n\tand datediff(day,min(run_datetime),max(run_datetime)) > @delta_days_threshold\norder by total_reserved_GB desc;\n\nselect \t--collection_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), bi.run_datetime),\n\t\t\t\tbi.database_name, [object_name] = quotename(bi.schema_name)+'.'+quotename(bi.table_name), \n\t\t\t\t/* bi.index_name, bi.object_type, */ \n\t\t\t\tbi.index_size_summary, bi.index_definition,\n\t\t\t\tbi.index_usage_summary, bi.index_op_stats, --bi.total_rows, bi.total_reserved_MB, bi.total_reserved_LOB_MB,\n\t\t\t\tbi.data_compression_desc, bi.create_date, bi.more_info\nfrom ${blitzindex_table_name} bi\ninner join #delta_tables dt\n\ton bi.run_datetime = (select max(i.run_datetime) from ${blitzindex_table_name} i)\n\tand bi.database_name = dt.database_name and bi.schema_name = dt.schema_name and bi.table_name = dt.table_name\n\tand bi.index_id <= 1\norder by bi.total_reserved_MB desc, bi.total_rows desc\n\"\nset quoted_identifier on;\n\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql, @params, @database, @delta_days_threshold, @top_x_filter;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @database, @delta_days_threshold, @top_x_filter;",
-          "refId": "Query-Db-File-Stats-Since-Startup",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
-        }
-      ],
-      "title": "Tables with 0 Delta rows in Last __\"$delta_days_threshold\"__ Days ____@ ____${collection_time_utc:date:YYYY-MM-DD HH.mm}",
-      "transformations": [],
-      "type": "table"
     }
   ],
   "refresh": "15m",
@@ -199,9 +200,9 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "SqlMonitor",
-          "value": "SqlMonitor"
+          "selected": true,
+          "text": "SqlPractice",
+          "value": "SqlPractice"
         },
         "datasource": {
           "type": "mssql",
@@ -248,8 +249,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1",
-          "value": "1"
+          "text": "0",
+          "value": "0"
         },
         "datasource": {
           "type": "mssql",
@@ -296,8 +297,8 @@
       {
         "current": {
           "selected": false,
-          "text": "192.168.56.16",
-          "value": "192.168.56.16"
+          "text": "192.168.29.22",
+          "value": "192.168.29.22"
         },
         "datasource": {
           "type": "mssql",
@@ -320,8 +321,8 @@
       {
         "current": {
           "selected": false,
-          "text": "SqlMonitor.Lab.com",
-          "value": "SqlMonitor.Lab.com"
+          "text": "SqlPractice.Lab.com",
+          "value": "SqlPractice.Lab.com"
         },
         "datasource": {
           "type": "mssql",
@@ -344,8 +345,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1669095540000",
-          "value": "1669095540000"
+          "text": "1670851800000",
+          "value": "1670851800000"
         },
         "datasource": {
           "type": "mssql",
@@ -368,8 +369,8 @@
       {
         "current": {
           "selected": false,
-          "text": "8",
-          "value": "8"
+          "text": "4",
+          "value": "4"
         },
         "datasource": {
           "type": "mssql",
@@ -392,8 +393,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1668868403850",
-          "value": "1668868403850"
+          "text": "1670736648650",
+          "value": "1670736648650"
         },
         "datasource": {
           "type": "mssql",

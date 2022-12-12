@@ -16,7 +16,21 @@ select	[SYSDATETIMEOFFSET] = SYSDATETIMEOFFSET(),
 		[datetime2-conversion-valid] = case when CONVERT(datetime2,SYSDATETIMEOFFSET()) = SYSDATETIME() then 'true' else 'false' end,
 		[datetimeoffset-conversion-valid] = case when TODATETIMEOFFSET(SYSDATETIME(),DATEPART(TZOFFSET, SYSDATETIMEOFFSET())) = SYSDATETIMEOFFSET() then 'true' else 'false' end,
 		[@start_time_utc-to-local] = DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @start_time_utc),
-		[@start_time-to-utc] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), @start_time)
+		[@start_time-to-utc] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), @start_time);
+go
+
+use DBA
+go
+
+;with t_Services as (
+	select *, datediff(MILLISECOND, last_startup_time, SYSDATETIME()) as uptime_ms
+	from sys.dm_server_services
+	where servicename like 'SQL Server (%'
+)
+select [ddd hh:mm:ss.mss] = right('0000'+convert(varchar, uptime_ms/86400000),3)+ ' '+convert(varchar,dateadd(MILLISECOND,uptime_ms,'1900-01-01 00:00:00'),114),
+		*
+from t_Services
+go
 
 /*
 Grafana Variables

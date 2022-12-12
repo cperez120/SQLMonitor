@@ -5,16 +5,16 @@
 cls
 Import-Module dbatools;
 $params = @{
-    SqlInstanceToBaseline = 'Workstation'
-    DbaDatabase = 'DBA'
+    SqlInstanceToBaseline = 'SQLPractice'
+    #DbaDatabase = 'DBA'
     #HostName = 'Workstation'
     #RetentionDays = 7
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
     #RemoteSQLMonitorPath = 'C:\SQLMonitor'
     InventoryServer = 'SQLMonitor'
     InventoryDatabase = 'DBA'
-    DbaGroupMailId = 'some_dba_mail_id@gmail.com'
-    #SqlCredential = $personal
+    DbaGroupMailId = 'sqlagentservice@gmail.com'
+    #SqlCredential = $saAdmin
     #WindowsCredential = $DomainCredential
     <#
     SkipSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
@@ -27,36 +27,49 @@ $params = @{
                 "22__CreateJobRunWhoIsActive", "23__CreateJobRunBlitzIndex", "24__CreateJobUpdateSqlServerVersions",
                 "25__CreateJobCheckInstanceAvailability", "26__CreateJobGetAllServerInfo", "27__WhoIsActivePartition",
                 "28__BlitzIndexPartition", "29__EnablePageCompression", "30__GrafanaLogin",
-                "31__LinkedServerOnInventory", "32__LinkedServerForDataDestinationInstance", "33__AlterViewsForDataDestinationInstance"
+                "31__LinkedServerOnInventory", "32__LinkedServerForDataDestinationInstance", "33__AlterViewsForDataDestinationInstance")
     #>
-    #SkipSteps = @("21__CreateJobRemoveXEventFiles","32__LinkedServerForDataDestinationInstance")
-    #StartAtStep = '1__sp_WhoIsActive'
-    #StopAtStep = '32__AlterViewsForDataDestinationInstance'
+    SkipSteps = @("3__XEventSession",
+                "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__OlaHallengrenSolutionObjects",
+                "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
+                "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateCredentialProxy",
+                "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData",
+                "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobCollectFileIOStats",
+                "19__CreateJobPartitionsMaintenance", "20__CreateJobPurgeTables", "21__CreateJobRemoveXEventFiles",
+                "22__CreateJobRunWhoIsActive", "23__CreateJobRunBlitzIndex", "24__CreateJobUpdateSqlServerVersions",
+                "25__CreateJobCheckInstanceAvailability", "26__CreateJobGetAllServerInfo")
+    StartAtStep = '2__AllDatabaseObjects'
+    StopAtStep = '27__WhoIsActivePartition'
     #DropCreatePowerShellJobs = $true
     #DryRun = $false
-    #SkipRDPSessionSteps = $true
-    #SkipPowerShellJobs = $true
-    #SkipTsqlJobs = $true
-    #SkipMailProfileCheck = $true
-    #skipCollationCheck = $true
-    #SkipWindowsAdminAccessTest = $true
-    #SqlInstanceAsDataDestination = 'Workstation'
+    SkipRDPSessionSteps = $true
+    SkipPowerShellJobs = $true
+    SkipTsqlJobs = $true
+    SkipMailProfileCheck = $true
+    skipCollationCheck = $true
+    SkipWindowsAdminAccessTest = $true
+    #SqlInstanceAsDataDestination = 'Demo\SQL2019'
     #SqlInstanceForPowershellJobs = 'Workstation'
     #SqlInstanceForTsqlJobs = 'Workstation'
     #ConfirmValidationOfMultiInstance = $true
 }
-F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params #-Debug
+#F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params #-Debug
+#F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params -SkipMultiServerviewsUpgrade $false #-Debug
 
-<#
 $dropWhoIsActive = @"
 if object_id('dbo.WhoIsActive_Staging') is not null
 	drop table dbo.WhoIsActive_Staging;
 
-if object_id('dbo.WhoIsActive') is not null
-	drop table dbo.WhoIsActive;
+if object_id('dbo.WhoIsActive_Old') is not null
+	drop table dbo.WhoIsActive_Old;
+
+EXEC sp_rename 'dbo.WhoIsActive', 'WhoIsActive_Old';
 "@;
-F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params -PreQuery $dropWhoIsActive
-#>
+$startJob = @"
+if exists (select * from msdb.dbo.sysjobs where name = '(dba) Run-WhoIsActive')
+	EXEC msdb.dbo.sp_start_job @job_name=N'(dba) Run-WhoIsActive'
+"@
+F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 @Params -PreQuery $dropWhoIsActive #-PostQuery $startJob
 
 # Get-Help F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1 -ShowWindow
 #Get-DbaDbMailProfile -SqlInstance '192.168.56.31' -SqlCredential $personalCredential

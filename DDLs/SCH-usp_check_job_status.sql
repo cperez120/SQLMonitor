@@ -10,33 +10,36 @@ SET NUMERIC_ROUNDABORT OFF;
 SET ARITHABORT ON;
 GO
 
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'usp_run_WhoIsActive')
-    EXEC ('CREATE PROC dbo.usp_run_WhoIsActive AS SELECT ''stub version, to be replaced''')
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'usp_check_job_status')
+    EXEC ('CREATE PROC dbo.usp_check_job_status AS SELECT ''stub version, to be replaced''')
 GO
 
-ALTER PROCEDURE dbo.usp_run_WhoIsActive
-(	@drop_recreate bit = 0, /* Drop and recreate table */
-	@destination_table VARCHAR(4000) = 'dbo.WhoIsActive', /* Destination table Name */
+ALTER PROCEDURE dbo.usp_check_job_status
+(	@job_category_to_include nvarchar(2000) = null, /* Include jobs of only these categories || Delimiter separated list */
+	@job_category_to_exclude nvarchar(2000) = null, /* Execute jobs of these categories || Delimiter separated list */
+	@jobs_to_include nvarchar(2000) = null, /* Include these jobs only */
+	@jobs_to_exclude nvarchar(2000) = null, /* Execute these jobs || Delimiter separated list */
+	@delimiter char(4) = ',', /* Delimiter to separate entities in above parameters */
 	@send_error_mail bit = 1, /* Send mail on failure */
-	@threshold_continous_failure tinyint = 3, /* Send mail only when failure is x times continously */
-	@notification_delay_minutes tinyint = 15, /* Send mail only after a gap of x minutes from last mail */ 
+	@default_threshold_continous_failure tinyint = 3, /* Send mail only when failure is x times continously */
+	@default_notification_delay_minutes tinyint = 15, /* Send mail only after a gap of x minutes from last mail */ 
+	@default_mail_recipient varchar(500) = 'some_dba_mail_id@gmail.com', /* Folks who receive the failure mail */
+	@alert_key varchar(100) = 'Check-JobStatus', /* Subject of Failure Mail */
+	@reset_stats bit = 0, /* truncate table dbo.sql_agent_job_stats */
 	@is_test_alert bit = 0, /* enable for alert testing */
-	@verbose tinyint = 0, /* 0 - no messages, 1 - debug messages, 2 = debug messages + table results */
-	@recipients varchar(500) = 'some_dba_mail_id@gmail.com', /* Folks who receive the failure mail */
-	@alert_key varchar(100) = 'Run-WhoIsActive', /* Subject of Failure Mail */
-	@retention_day int = 30, /* No of days for data retention */
-	@purge_flag bit = 1 /* When enabled, then based on @retention_day, old data would be purged */
+	@verbose tinyint = 0 /* 0 - no messages, 1 - debug messages, 2 = debug messages + table results */	
 )
 AS 
 BEGIN
 
 	/*
-		Version:		1.2.1
-		Update:			2022-10-12 - Removed Staging Table Logic. Also removed computed columns to avoid single threaded search.
-						2022-12-12 - Add @format_output = 0 to get numeric values instead of Human readable format
+		Version:		1.0.0
+		Purpose:		https://github.com/imajaydwivedi/SQLMonitor/issues/193
+						Monitor SQL Agent jobs, and send mail when thresholds are crossed
+		Updates:		2022-11-29	- Ajay=> Initial Draft
 
-		EXEC dbo.usp_run_WhoIsActive @recipients = 'some_dba_mail_id@gmail.com'
-		EXEC dbo.usp_run_WhoIsActive @recipients = 'some_dba_mail_id@gmail.com', @verbose = 2 ,@drop_recreate = 1
+		EXEC dbo.usp_check_job_status @default_mail_recipient = 'some_dba_mail_id@gmail.com'
+		EXEC dbo.usp_check_job_status @default_mail_recipient = 'some_dba_mail_id@gmail.com', @verbose = 2 ,@drop_recreate = 1
 	
 		Additional Requirements
 		1) Default Global Mail Profile
@@ -47,11 +50,8 @@ BEGIN
 	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 	SET LOCK_TIMEOUT 60000; -- 60 seconds
 
-	/* Derived Parameters */
-	--DECLARE @staging_table VARCHAR(4000) = @destination_table+'_Staging';
-
-	IF (@recipients IS NULL OR @recipients = 'some_dba_mail_id@gmail.com') AND @verbose = 0
-		raiserror ('@recipients is mandatory parameter', 20, -1) with log;
+	IF (@default_mail_recipient IS NULL OR @default_mail_recipient = 'some_dba_mail_id@gmail.com') AND @verbose = 0
+		raiserror ('@default_mail_recipient is mandatory parameter', 20, -1) with log;
 
 	DECLARE @_output VARCHAR(8000);
 	SET @_output = 'Declare local variables'+CHAR(10);
@@ -76,19 +76,14 @@ BEGIN
 	SET @_crlf = NCHAR(13)+NCHAR(10);
 	SET @_tab = NCHAR(9);
 
+	
 	SET @_output_column_list = '[collection_time][dd hh:mm:ss.mss][session_id][program_name][login_name][database_name]
-							[CPU][used_memory][open_tran_count][status][wait_info][sql_command]
+							[cpu][used_memory][open_tran_count][status][wait_info][sql_command]
 							[blocked_session_count][blocking_session_id][sql_text][%]';
 
 	IF @verbose > 0
 		PRINT 'Dynamically fetch @_job_name ..'
 	SET @_job_name = '(dba) '+@alert_key;
-
-	IF @verbose > 0
-	BEGIN
-		PRINT '@destination_table => '+@destination_table;
-		--PRINT '@staging_table => '+@staging_table;
-	END
 
 	-- Variables for Try/Catch Block
 	DECLARE @_profile_name varchar(200);
@@ -99,112 +94,106 @@ BEGIN
 			@_errorMessage nvarchar(4000);
 
 	BEGIN TRY
-		SET @_output += '<br>Start Try Block..'+CHAR(10);
+		SET @_output += '<br>Start Try Block..'+@_crlf;
 		IF @verbose > 0
 			PRINT 'Start Try Block..';
 
-		-- Step 01: Create WhoIsActive table if not exists
+		-- Create Threshold table if not exists
 		IF @verbose > 0
-			PRINT 'Start Step 01: Create WhoIsActive table if not exists..';
-		IF ( (OBJECT_ID(@destination_table) IS NULL) OR (@drop_recreate = 1))
+			PRINT 'Create dbo.sql_agent_job_thresholds table if not exists..';
+
+		IF OBJECT_ID('dbo.sql_agent_job_thresholds') IS NULL
 		BEGIN
-			SET @_output += '<br>Inside Step 01: Create WhoIsActive table if not exists..'+CHAR(10);
-		
-			IF (@drop_recreate = 1)
-			BEGIN
-				IF @verbose > 0
-					PRINT @_tab+'Inside Step 01: Drop WhoIsActive table if exists..';
-				SET @_sqlString = 'if object_id('''+@destination_table+''') is not null drop table '+@destination_table;
-				IF @verbose > 1
-					PRINT @_tab+@_sqlString;
-				EXEC(@_sqlString)
-			END
+      SET @_output += '<br>Creating table dbo.sql_agent_job_thresholds..'+@_crlf;
 
-			IF @verbose > 0
-				PRINT @_tab+'Inside Step 01: Create WhoIsActive table with @_output_column_list..';
-			EXEC dbo.sp_WhoIsActive @get_outer_command=1, @get_task_info=2, @find_block_leaders=1, @get_plans=1, @get_avg_time=1, 
-									@get_additional_info=1, @get_transaction_info=1, @get_memory_info = 1, @format_output = 0
-									,@output_column_list = @_output_column_list
-									,@return_schema = 1, @schema = @_sqlString OUTPUT; 
-			SET @_sqlString = REPLACE(@_sqlString, '<table_name>', @destination_table) 
-			IF @verbose > 1
-				PRINT @_tab+@_sqlString;
-			EXEC(@_sqlString)
-		END
-		ELSE
-		BEGIN
-			IF @verbose > 1
-				PRINT @_tab+'Table '+@destination_table+' already exists.';
-		END
-		IF @verbose > 0
-			PRINT 'End Step 01: Create WhoIsActive table if not exists..'+char(10);
+			-- DROP TABLE dbo.sql_agent_job_thresholds
+			CREATE TABLE dbo.sql_agent_job_thresholds
+			(	JobName varchar(255) NOT NULL,
+				JobCategory varchar(255) NOT NULL,
+				[Expected-Max-Duration(Min)] BIGINT,
+				[Continous_Failure_Threshold] int default 2,
+				[Successfull_Execution_ClockTime_Threshold_Minutes] bigint null, /* Job should execute successfully at least within this time */
+				[StopJob_If_LongRunning] bit default 0,
+				[StopJob_If_NotSuccessful_In_ThresholdTime] bit default 0,
+				[RestartJob_If_NotSuccessful_In_ThresholdTime] bit default 0,
+				[RestartJob_If_Failed] bit default 0,
+				[EnableJob_If_Found_Disabled] bit NOT NULL default 0,
+				[IgnoreJob] bit not null default 0,
+        [IsDisabled] bit default 0 not null,
+        [IsNotFound] bit default 0 not null,
+				[Include_In_MailNotification] bit default 0,
+				[Mail_Recepients] varchar(2000) default null,
+				CollectionTime datetime2 default sysdatetime(),
+				UpdatedDate datetime2 not null default sysdatetime(),
+				UpdatedBy varchar(125) not null default suser_name(),
+				Remarks varchar(2000) null,
 
-		--	Step 02: Add Indexes& computed Columns
-		IF @verbose > 0
-			PRINT 'Start Step 02: Add Indexes & computed Columns..';
-		IF NOT EXISTS (select * from sys.indexes i where i.type_desc = 'CLUSTERED' and i.object_id = OBJECT_ID(@destination_table))
-		BEGIN
-			SET @_output += '<br>Inside Step 02: Add Indexes & computed Columns..'+CHAR(10);
-
-			IF @verbose > 0
-				PRINT @_tab+'Inside Step 02: Add clustered index..';
-			SET @_sqlString = 'CREATE CLUSTERED INDEX ci_'+SUBSTRING(@destination_table,CHARINDEX('.',@destination_table)+1,LEN(@destination_table))+' ON '+@destination_table+' ( [collection_time] ASC )';
-			IF @verbose > 1
-				PRINT @_tab+@_sqlString;
-			EXEC (@_sqlString);
-
-			/* -- Remove these computed columns as they cause Query to go Single Threaded
-			IF @verbose > 0
-				PRINT @_tab+'Inside Step 02: Add duration_minutes column..';
-			SET @_sqlString = 'ALTER TABLE '+@destination_table+' ADD duration_minutes AS DATEDIFF_BIG(MILLISECOND,start_time,collection_time)/1000/60';
-			IF @verbose > 1
-				PRINT @_tab+@_sqlString;
-			EXEC (@_sqlString);
-
-			IF @verbose > 0
-				PRINT @_tab+'Inside Step 02: Add used_memory_mb column..';
-			SET @_sqlString = 'ALTER TABLE '+@destination_table+' ADD used_memory_mb AS convert(numeric(20,2),convert(bigint,replace(used_memory,'','',''''))*8.0/1024)';
-			IF @verbose > 1
-				PRINT @_tab+@_sqlString;
-			EXEC (@_sqlString);
-			*/
-		END
-		IF @verbose > 0
-			PRINT 'End Step 02: Add Indexes & computed Columns..'+char(10);
-
-		-- Step 03: Purge Old data
-		IF @purge_flag = 1
-		BEGIN
-			IF @verbose > 0
-				PRINT 'Start Step 03: Purge Old data..';
-			SET @_output += '<br>Execute Step 03: Purge Old data..'+CHAR(10);
-			SET @_sqlString = 'DELETE FROM '+@destination_table+' where collection_time < DATEADD(day,-'+cast(@retention_day as varchar)+',getdate());'
-			IF @verbose > 1
-				PRINT @_tab+@_sqlString;
-			EXEC(@_sqlString);
-			IF @verbose > 0
-				PRINT 'End Step 03: Purge Old data..'+char(10);
+				constraint pk_sql_agent_job_thresholds primary key clustered (JobName)
+			);
 		END
 
-		-- Step 04: Populate WhoIsActive table
-		IF @verbose > 0
-			PRINT 'Start Step 04: Populate WhoIsActive table..';
-		SET @_output += '<br>Execute Step 04: Populate WhoIsActive table..'+CHAR(10);
-		EXEC dbo.sp_WhoIsActive @get_outer_command=1, @get_task_info=2, @find_block_leaders=1, @get_plans=1, @get_avg_time=1, 
-								@get_additional_info=1, @get_transaction_info=1, @get_memory_info = 1, @format_output = 0
-								,@output_column_list = @_output_column_list
-								,@destination_table = @destination_table;
-		SET @_rows_affected = ISNULL(@@ROWCOUNT,0);
-		SET @_output += '<br>@_rows_affected is set from @@ROWCOUNT.'+CHAR(10);
-		IF @verbose > 0
-			PRINT 'End Step 04: Populate WhoIsActive table..'+char(10);
-	
-		-- Step 05: Return rows affected
-		SET @_output += '<br>Execute Step 05: Return rows affected..'+CHAR(10);
-		PRINT '[rows_affected] = '+CONVERT(varchar,ISNULL(@_rows_affected,0));
+    -- Create Stats table if not exists
+    IF @verbose > 0
+			PRINT 'Create dbo.sql_agent_job_stats table if not exists..';
+
+		IF OBJECT_ID('dbo.sql_agent_job_stats') IS NULL
+		BEGIN
+      SET @_output += '<br>Creating table dbo.sql_agent_job_stats..'+@_crlf;
+
+			-- DROP TABLE dbo.sql_agent_job_stats
+			CREATE TABLE dbo.sql_agent_job_stats
+			(	JobName varchar(255) NOT NULL,
+				Instance_Id bigint,
+				[Total_Executions] bigint default 0,
+				[Total_Success_Count] bigint default 0,
+				[Total_Stopped_Count] bigint default 0,
+				[Total_Failed_Count] bigint default 0,
+				[Continous_Failures] int default 0,
+				[Last_Successful_ExecutionTime] datetime2 null,
+				[Last_Executed_By] varchar(255) null,
+				[Running_Since] datetime2,
+				[Running_Since_Hrs] int, --as CAST(datediff(MINUTE,[Running Since],getdate())/60 AS numeric(20,1)),
+				[<3-Hrs] bigint not null default 0,
+				[3-Hrs] bigint not null default 0,
+				[6-Hrs] bigint not null default 0,
+				[9-Hrs] bigint not null default 0,
+				[12-Hrs] bigint not null default 0,
+				[18-Hrs] bigint not null default 0,
+				[24-Hrs] bigint not null default 0,
+				[36-Hrs] bigint not null default 0,
+				[48-Hrs] bigint not null default 0,
+				CollectionTime datetime2 default sysdatetime(),
+				UpdatedDate datetime2 not null default sysdatetime()
+
+				constraint pk_sql_agent_job_stats primary key clustered (JobName)
+			);
+		END
+
+    IF ( @reset_stats = 1 )
+    BEGIN
+      IF @verbose > 0
+        PRINT 'Reset table dbo.sql_agent_job_stats..';
+
+      IF @is_test_alert = 0
+      BEGIN
+        SET @_output += '<br>Reset table dbo.sql_agent_job_stats..'+@_crlf;
+        TRUNCATE TABLE dbo.sql_agent_job_stats;
+      END
+    END
+
+		-- Populate table dbo.sql_agent_job_thresholds
+    
+    -- Update table dbo.sql_agent_job_thresholds
+    -- Populate table dbo.sql_agent_job_stats
+    -- Take Action 01
+    -- Take Action 02
+    -- Take Action 03
+
+
 		SET @_output += '<br>FINISH. Script executed without error.'+CHAR(10);
 		IF @verbose > 0
-			PRINT 'End Step 05: Return rows affected. Script completed without error'
+			PRINT 'FINISH. Script executed without error.'
+
 	END TRY  -- Perform main logic inside Try/Catch
 	BEGIN CATCH
 		IF @verbose > 0
@@ -348,7 +337,7 @@ BEGIN
 		JOIN msdb.dbo.sysmail_server s ON a.account_id = s.account_id;
 
 		EXEC msdb.dbo.sp_send_dbmail
-				@recipients = @recipients,
+				@default_mail_recipient = @default_mail_recipient,
 				@profile_name = @_profile_name,
 				@subject = @_subject,
 				@body = @_mail_body_html,
