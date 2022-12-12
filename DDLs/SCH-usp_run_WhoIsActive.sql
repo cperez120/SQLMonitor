@@ -76,9 +76,8 @@ BEGIN
 	SET @_crlf = NCHAR(13)+NCHAR(10);
 	SET @_tab = NCHAR(9);
 
-	
 	SET @_output_column_list = '[collection_time][dd hh:mm:ss.mss][session_id][program_name][login_name][database_name]
-							[cpu][used_memory][open_tran_count][status][wait_info][sql_command]
+							[CPU][used_memory][open_tran_count][status][wait_info][sql_command]
 							[blocked_session_count][blocking_session_id][sql_text][%]';
 
 	IF @verbose > 0

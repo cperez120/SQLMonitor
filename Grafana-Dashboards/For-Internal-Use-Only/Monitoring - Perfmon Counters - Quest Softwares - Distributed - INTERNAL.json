@@ -93,8 +93,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent",
-                    "value": null
+                    "color": "transparent"
                   },
                   {
                     "color": "orange",
@@ -216,8 +215,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -5663,8 +5661,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1669391316740",
-          "value": "1669391316740"
+          "text": "1670866958640",
+          "value": "1670866958640"
         },
         "datasource": {
           "type": "mssql",

@@ -582,15 +582,96 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "NodeName"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Node"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "status"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Status"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "current_role"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Role"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ag_name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "AG Name"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "replica_server_name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Replica"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sync_health"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "State"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Result"
+            },
+            "properties": [
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 5,
@@ -617,12 +698,31 @@
             "type": "mssql",
             "uid": "${DS_SQLMONITOR}"
           },
+          "editorMode": "code",
           "format": "table",
-          "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @params = N'@perfmon_host_name varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"\nselect NodeName, status_description as status, is_current_owner \nfrom sys.dm_os_cluster_nodes\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name;",
-          "refId": "A"
+          "rawQuery": true,
+          "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @params = N'@perfmon_host_name varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"\nif exists (select 1 from sys.dm_os_cluster_nodes) \nbegin\n\tselect NodeName, status_description as status, [current_role] = case when is_current_owner = 1 then 'Active' else 'Passive' end\n\tfrom sys.dm_os_cluster_nodes\nend\nelse if exists (select 1 from sys.availability_groups)\nbegin\n\tselect ar.replica_server_name, [current_role] = ars.role_desc, [sync_health] = ars.synchronization_health_desc, [ag_name] = ag.name\n\tfrom sys.availability_groups AS ag \n\tJOIN sys.availability_replicas AS ar \n\t\tON ag.group_id = ar.group_id\n\tJOIN sys.dm_hadr_availability_replica_states AS ars\n\t\tON ar.replica_id = ars.replica_id\nend\nelse \n\tselect [Result] = 'HADR Not Configured'\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name;",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
         }
       ],
-      "title": "Cluster Nodes",
+      "title": "$hadr_string Details",
       "type": "table"
     },
     {
@@ -2107,8 +2207,16 @@
                 "value": null
               },
               {
+                "color": "yellow",
+                "value": 120
+              },
+              {
+                "color": "orange",
+                "value": 180
+              },
+              {
                 "color": "red",
-                "value": 60
+                "value": 300
               }
             ]
           },
@@ -2146,9 +2254,28 @@
             "type": "mssql",
             "uid": "${DS_SQLMONITOR}"
           },
+          "editorMode": "code",
           "format": "table",
+          "rawQuery": true,
           "rawSql": "select $waits_per_core_per_minute as [waits_per_core_per_minute];",
-          "refId": "A"
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
         }
       ],
       "title": "Waits Per Core Per Minute",
@@ -2553,8 +2680,7 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "transparent",
-                    "value": null
+                    "color": "transparent"
                   }
                 ]
               },
@@ -2572,7 +2698,8 @@
           "options": {
             "legend": {
               "calcs": [
-                "mean"
+                "mean",
+                "lastNotNull"
               ],
               "displayMode": "table",
               "placement": "right",
@@ -2687,6 +2814,110 @@
                     "value": 308
                   }
                 ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "CPU"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "ms"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "writes"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "used_memory_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "used_memory"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "reads_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "reads"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tempdb_allocations_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "tempdb_allocations"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tempdb_current_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "tempdb_current"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "granted_memory_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "granted_memory"
+                  }
+                ]
               }
             ]
           },
@@ -2724,7 +2955,7 @@
               "editorMode": "code",
               "format": "table",
               "rawQuery": true,
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\n-- Get Blocking Tree\nif exists (select * from $whoisactive_table_name where (collection_time between DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @start_time_utc) and DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @end_time_utc)) and (blocking_session_id is not null or replace(blocked_session_count,',','') > 0) )\nbegin\n\n\t;WITH T_BLOCKERS AS\n\t(\n\t\t-- Find block Leaders\n\t\tSELECT\t[dd hh:mm:ss.mss], [collection_time], [session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE([sql_command],[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), [login_name], wait_info, [blocking_session_id], [blocked_session_count] = replace(blocked_session_count,',',''),\n\t\t\t\t[status], open_tran_count, [host_name], [database_name], [program_name], tasks,\n\t\t\t\tr.cpu, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\t[LEVEL] = CAST (REPLICATE ('0', 4-LEN (CAST (r.session_id AS VARCHAR))) + CAST (r.session_id AS VARCHAR) AS VARCHAR (1000))\n\t\t\t\t,[head_blocker] = session_id\n\t\tFROM\t$whoisactive_table_name AS r with (nolock)\n\t\tWHERE\t (collection_time between DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @start_time_utc) and DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @end_time_utc))\n\t\tand (r.blocking_session_id IS NULL AND replace(blocked_session_count,',','') > 0)\n\t\t--\t\n\t\tUNION ALL\n\t\t--\n\t\tSELECT\tr.[dd hh:mm:ss.mss], r.[collection_time], r.[session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE(r.[sql_command],r.[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = r.additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), r.[login_name], r.wait_info, r.[blocking_session_id], [blocked_session_count] = replace(r.blocked_session_count,',',''),\n\t\t\t\tr.[status], r.open_tran_count, r.[host_name], r.[database_name], r.[program_name], r.tasks,\n\t\t\t\tr.cpu, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\tCAST (B.LEVEL + RIGHT (CAST ((1000 + r.session_id) AS VARCHAR (100)), 4) AS VARCHAR (1000)) AS LEVEL\n\t\t\t\t,[head_blocker] = case when B.[head_blocker] is null then B.session_id else B.[head_blocker] end\n\t\tFROM\t$whoisactive_table_name AS r with (nolock)\n\t\tINNER JOIN \n\t\t\t\tT_BLOCKERS AS B\n\t\t\tON\tr.collection_time = B.collection_time\n\t\t\tAND\tr.blocking_session_id = B.session_id\n\t\tWHERE\t r.blocking_session_id <> r.session_id\n\t)\n\tSELECT\t[collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), [dd hh:mm:ss.mss], [session_id], \n\t\t\t[BLOCKING_TREE] = N'    ' + REPLICATE (N'|         ', LEN (LEVEL)/4 - 1) \n\t\t\t\t\t\t\t+\tCASE\tWHEN (LEN(LEVEL)/4 - 1) = 0\n\t\t\t\t\t\t\t\t\t\tTHEN 'HEAD -  '\n\t\t\t\t\t\t\t\t\t\tELSE '|------  ' \n\t\t\t\t\t\t\t\tEND\n\t\t\t\t\t\t\t+\tCAST (r.session_id AS NVARCHAR (10)) + N' ' + ISNULL((CASE WHEN LEFT(ISNULL(r.[sql_text],''),1) = '(' THEN SUBSTRING(ISNULL(r.[sql_text],''),CHARINDEX('exec',ISNULL(r.[sql_text],'')),LEN(ISNULL(r.[sql_text],'')))  ELSE ISNULL(r.[sql_text],'') END),''),\n\t\t\t[blocking_session_id], [blocked_session_count] = case when [blocked_session_count] = 0 then null else [blocked_session_count] end, [login_name], [program_name], [host_name],\n\t\t\ttasks,\n\t\t\t--[sql_commad] = CONVERT(XML, '<?query -- '+char(13)\n\t\t\t--\t\t\t\t+ (CASE WHEN LEFT([sql_text],1) = '(' THEN SUBSTRING([sql_text],CHARINDEX('exec',[sql_text]),LEN([sql_text]))  ELSE [sql_text] END)\n\t\t\t--\t\t\t\t+ char(13)+'--?>')\n\t\t\tcommand, [database_name], wait_info, status, \n\t\t\tr.open_tran_count, r.cpu, r.[reads], r.[writes], r.[physical_io]\n\tFROM\tT_BLOCKERS AS r\n\tORDER BY collection_time, LEVEL;\nend\nelse\n  select 'No Blocking Found for Time Window' as [No Result]\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\n-- Get Blocking Tree\nif exists (select * from dbo.WhoIsActive where (collection_time between DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @start_time_utc) and DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @end_time_utc)) and (blocking_session_id is not null or replace(blocked_session_count,',','') > 0) )\nbegin\n\t;WITH T_BLOCKERS AS\n\t(\n\t\t-- Find block Leaders\n\t\tSELECT\tdatediff(MILLISECOND, start_time, getdate()) as duration_ms,\n\t\t\t\t[collection_time], [session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE([sql_command],[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), [login_name], wait_info, [blocking_session_id], [blocked_session_count] = replace(blocked_session_count,',',''),\n\t\t\t\t[status], open_tran_count, [host_name], [database_name], [program_name], tasks, granted_memory,\n\t\t\t\tr.CPU, r.used_memory, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\t[LEVEL] = CAST (REPLICATE ('0', 4-LEN (CAST (r.session_id AS VARCHAR))) + CAST (r.session_id AS VARCHAR) AS VARCHAR (1000))\n\t\t\t\t,[head_blocker] = session_id\n\t\tFROM\tdbo.WhoIsActive AS r with (nolock)\n\t\tWHERE\t (collection_time between DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @start_time_utc) and DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @end_time_utc))\n\t\tand (r.blocking_session_id IS NULL AND replace(blocked_session_count,',','') > 0)\n\t\t--\t\n\t\tUNION ALL\n\t\t--\n\t\tSELECT\tdatediff(MILLISECOND, r.start_time, getdate()) as duration_ms,\n\t\t\t\tr.[collection_time], r.[session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE(r.[sql_command],r.[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = r.additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), r.[login_name], r.wait_info, r.[blocking_session_id], [blocked_session_count] = replace(r.blocked_session_count,',',''),\n\t\t\t\tr.[status], r.open_tran_count, r.[host_name], r.[database_name], r.[program_name], r.tasks, r.granted_memory,\n\t\t\t\tr.CPU, r.used_memory, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\tCAST (B.LEVEL + RIGHT (CAST ((1000 + r.session_id) AS VARCHAR (100)), 4) AS VARCHAR (1000)) AS LEVEL\n\t\t\t\t,[head_blocker] = case when B.[head_blocker] is null then B.session_id else B.[head_blocker] end\n\t\tFROM\tdbo.WhoIsActive AS r with (nolock)\n\t\tINNER JOIN \n\t\t\t\tT_BLOCKERS AS B\n\t\t\tON\tr.collection_time = B.collection_time\n\t\t\tAND\tr.blocking_session_id = B.session_id\n\t\tWHERE\t r.blocking_session_id <> r.session_id\n\t)\n\tSELECT\t[collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), \n\t\t\t[dd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),2)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114),\n\t\t\t[session_id], \n\t\t\t[BLOCKING_TREE] = N'    ' + REPLICATE (N'|         ', LEN (LEVEL)/4 - 1) \n\t\t\t\t\t\t\t+\tCASE\tWHEN (LEN(LEVEL)/4 - 1) = 0\n\t\t\t\t\t\t\t\t\t\tTHEN 'HEAD -  '\n\t\t\t\t\t\t\t\t\t\tELSE '|------  ' \n\t\t\t\t\t\t\t\tEND\n\t\t\t\t\t\t\t+\tCAST (r.session_id AS NVARCHAR (10)) + N' ' + ISNULL((CASE WHEN LEFT(ISNULL(r.[sql_text],''),1) = '(' THEN SUBSTRING(ISNULL(r.[sql_text],''),CHARINDEX('exec',ISNULL(r.[sql_text],'')),LEN(ISNULL(r.[sql_text],'')))  ELSE ISNULL(r.[sql_text],'') END),''),\n\t\t\t[blocking_session_id], [blocked_session_count] = case when [blocked_session_count] = 0 then null else [blocked_session_count] end, [login_name], [program_name], [host_name],\n\t\t\ttasks,\n\t\t\t--[sql_commad] = CONVERT(XML, '<?query -- '+char(13)\n\t\t\t--\t\t\t\t+ (CASE WHEN LEFT([sql_text],1) = '(' THEN SUBSTRING([sql_text],CHARINDEX('exec',[sql_text]),LEN([sql_text]))  ELSE [sql_text] END)\n\t\t\t--\t\t\t\t+ char(13)+'--?>')\n\t\t\tcommand, [database_name], wait_info, status, \n\t\t\tr.open_tran_count, r.CPU, [used_memory_kb] = (r.used_memory*8.0), [reads_kb] = (r.[reads]*8.0), r.[writes] --, r.[physical_io]\n\t\t\t,[tempdb_allocations_kb] = tempdb_allocations*8.0, tempdb_current_kb = tempdb_current*8.0, granted_memory_kb = granted_memory * 8.0\n\tFROM\tT_BLOCKERS AS r\n\tORDER BY collection_time, LEVEL;\nend\nelse\n  select 'No Blocking Found for Time Window' as [No Result]\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
               "refId": "A",
               "sql": {
                 "columns": [
@@ -3348,6 +3579,122 @@
                     "value": 169
                   }
                 ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "session_id"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 108
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "CPU"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "ms"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "granted_memory_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "granted_memory"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "reads_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "reads"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "writes"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tempdb_allocations_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "tempdb_allocations"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tempdb_current_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "tempdb_current"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "used_memory_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "used_memory"
+                  }
+                ]
               }
             ]
           },
@@ -3377,9 +3724,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "table",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @duration int;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @duration = case when ltrim(rtrim('$duration')) <> '' then $duration else 0 end; \nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @duration int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nif exists ( select * from $whoisactive_table_name w with (nolock)\n            where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i) \n            and datediff(minute,start_time,collection_time) >= @duration )\nbegin\n  select [collection_time] = convert(varchar,w.collection_time,120), w.session_id, \n  \t\tw.[dd hh:mm:ss.mss], w.program_name, w.login_name, w.database_name, w.host_name,\n  \t\tw.status, w.CPU, w.used_memory, w.open_tran_count, \n  \t\tw.wait_info, \n  \t\tsql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n  \t\t\t\t\t\t\telse left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n  \t\tw.blocked_session_count, \n  \t\tw.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, \n  \t\tw.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n  from $whoisactive_table_name w with (nolock)\n  where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i)\n  and datediff(minute,start_time,collection_time) >= @duration\n  order by w.collection_time DESC, w.start_time ASC\nend\nELSE\n  select 'No long running query found for time window' as [No Result]\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @duration;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @duration;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @duration int;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @duration = case when ltrim(rtrim('$duration')) <> '' then $duration else 0 end; \nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @duration int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nif exists ( select * from dbo.WhoIsActive w with (nolock)\n            where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i) \n            and datediff(minute,start_time,collection_time) >= @duration )\nbegin\n  ;with t_WhoIsActive as (\n    select [collection_time], w.session_id, /* = convert(varchar,w.collection_time,120) */\n        w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, w.granted_memory, w.used_memory, w.open_tran_count, w.wait_info,\n        sql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n                  else left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end,\n        w.blocked_session_count, [duration_ms] = datediff(MILLISECOND, start_time, getdate()),\n        w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, w.tempdb_current, w.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n    from dbo.WhoIsActive w with (nolock)\n    where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i)\n    and datediff(minute,start_time,collection_time) >= @duration\n  )\n  select  [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), w.session_id,\n          [ddd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),3)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114), \n          w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, \n          granted_memory_kb = (w.granted_memory * 8.0), w.open_tran_count, w.wait_info, w.sql_command, w.blocked_session_count, \n          w.blocking_session_id, [reads_kb] = (w.[reads]*8.0), w.writes, [tempdb_allocations_kb] = (w.tempdb_allocations*8.0), \n          tempdb_current_kb = (tempdb_current*8.0), w.tasks, w.percent_complete, [used_memory_kb] = (w.used_memory*8.0),\n          start_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [start_time])\n\t\t\t    \n  from t_WhoIsActive w\n  order by w.collection_time DESC, w.start_time ASC\nend\nELSE\n  select 'No long running query found for time window' as [No Result]\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @duration;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @duration;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "WhoIsActive Data",
@@ -4646,6 +5012,122 @@
                     "value": 169
                   }
                 ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "session_id"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 103
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "CPU"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "ms"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "granted_memory_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "granted_memory"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "reads_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "reads"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "writes"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tempdb_allocations_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "tempdb_allocations"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tempdb_current_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "tempdb_current"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "used_memory_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "used_memory"
+                  }
+                ]
               }
             ]
           },
@@ -4667,7 +5149,7 @@
             "showHeader": true,
             "sortBy": []
           },
-          "pluginVersion": "9.0.2",
+          "pluginVersion": "9.2.5",
           "targets": [
             {
               "alias": "",
@@ -4675,9 +5157,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "table",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @delta_minutes int;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @delta_minutes int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\n\n;with t_sessions as (\n\tselect command = additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), *\n\tfrom $whoisactive_table_name w\n\twhere w.collection_time = (select top 1 collection_time from $whoisactive_table_name order by collection_time desc)\n)\nselect  [start_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), w.start_time),w.[dd hh:mm:ss.mss],  \n        w.command, w.percent_complete, w.session_id, w.login_name,\n\t\t    sql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n\t\t\t\t\t\t\telse left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n\t\t\t\tw.database_name, w.program_name, w.host_name, w.status, w.CPU, w.used_memory, w.open_tran_count, w.wait_info, \n\t\t    w.blocked_session_count, w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, w.tasks\nfrom t_sessions w\nwhere (\tw.command in ('DBCC', 'RESTORE HEADERONLY','BACKUP LOG','BACKUP DATABASE','RESTORE DATABASE','UPDATE STATISTICS') )\nor    ( w.program_name like 'SQL Job%' or w.program_name like 'SQLAgent%' )\norder by w.collection_time DESC, w.start_time ASC\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @delta_minutes;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @delta_minutes;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @delta_minutes int;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @delta_minutes int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\n/*\nif exists ( select * from dbo.WhoIsActive w with (nolock)\n            where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i) \n\t\t\t\t\t\tand w.program_name like 'SQL Job%'\n          )\n*/\nbegin\n  ;with t_WhoIsActive as (\n    select [collection_time], w.session_id, /* = convert(varchar,w.collection_time,120) */\n        w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, w.granted_memory, w.used_memory, w.open_tran_count, w.wait_info,\n        sql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n                  else left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end,\n        w.blocked_session_count, [duration_ms] = datediff(MILLISECOND, start_time, getdate()), \n        w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, w.tempdb_current, w.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n        ,command = additional_info.value('(/additional_info/command_type)[1]','varchar(125)')\n    from dbo.WhoIsActive w with (nolock)\n    where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i)\n    --and datediff(minute,start_time,collection_time) >= @duration\n  )\n  select  [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), w.session_id,\n          [ddd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),3)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114), \n          w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, \n          granted_memory_kb = (w.granted_memory * 8.0), w.open_tran_count, w.wait_info, w.sql_command, w.blocked_session_count, \n          w.blocking_session_id, [reads_kb] = (w.[reads]*8.0), w.writes, [tempdb_allocations_kb] = (w.tempdb_allocations*8.0), \n          tempdb_current_kb = (tempdb_current*8.0), w.tasks, w.percent_complete, [used_memory_kb] = (w.used_memory*8.0),\n          start_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [start_time])\t\t\t    \n  from t_WhoIsActive w\n  where (\tw.command in ('DBCC', 'RESTORE HEADERONLY','BACKUP LOG','BACKUP DATABASE','RESTORE DATABASE','UPDATE STATISTICS') )\n  or    ( w.program_name like 'SQL Job%' or w.program_name like 'SQLAgent%' )\n  order by w.collection_time DESC, w.start_time ASC\nend\n--ELSE\n  --select 'No running job session found.' as [No Result]\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @delta_minutes;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @delta_minutes;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "WhoIsActive Latest Captured Data @ ${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}",
@@ -5109,7 +5610,7 @@
       "type": "row"
     }
   ],
-  "refresh": "5s",
+  "refresh": "1m",
   "schemaVersion": 37,
   "style": "dark",
   "tags": [
@@ -6120,6 +6621,66 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @params = N'@perfmon_host_name varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"select CONVERT(tinyint,SERVERPROPERTY('IsClustered')) as IsClustered;\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Is Cluster Instance",
+        "multi": false,
+        "name": "is_clustered",
+        "options": [],
+        "query": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @params = N'@perfmon_host_name varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"select CONVERT(tinyint,SERVERPROPERTY('IsClustered')) as IsClustered;\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @params = N'@perfmon_host_name varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"select CONVERT(tinyint,SERVERPROPERTY('IsHadrEnabled')) as IsHadrEnabled;\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name;",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Is AG Replica",
+        "multi": false,
+        "name": "is_hadr_enabled",
+        "options": [],
+        "query": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @params = N'@perfmon_host_name varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"select CONVERT(tinyint,SERVERPROPERTY('IsHadrEnabled')) as IsHadrEnabled;\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "${DS_SQLMONITOR}"
+        },
+        "definition": "select case when $is_hadr_enabled = 1 then 'AG' else 'Cluster' end",
+        "hide": 2,
+        "includeAll": false,
+        "label": "HADR Description",
+        "multi": false,
+        "name": "hadr_string",
+        "options": [],
+        "query": "select case when $is_hadr_enabled = 1 then 'AG' else 'Cluster' end",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
       }
     ]
   },
@@ -6139,6 +6700,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 276,
+  "version": 290,
   "weekStart": ""
 }

@@ -338,8 +338,8 @@
           <FullPath>_Other-Scripts-Links.sql</FullPath>
         </FileNode>
         <FileNode Name="Blocking-Test.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:WORKSTATION:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>WORKSTATION</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>Blocking-Test.sql</FullPath>
         </FileNode>
@@ -360,6 +360,12 @@
           <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>POC-[resource_consumption]-Partitioning.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-Blocking-Tree-WhoIsActive-LIVE-Distributed.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>QRY-Blocking-Tree-WhoIsActive-LIVE-Distributed.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-Estimate-Page-Compression.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
@@ -486,6 +492,12 @@
           <AssociatedConnSrvName>196.1.115.196</AssociatedConnSrvName>
           <AssociatedConnUserName>E84947</AssociatedConnUserName>
           <FullPath>QRY-Wait-Stats-Since-Startup.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-WhoIsActive-Grafana-WhatWasRunning.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>QRY-WhoIsActive-Grafana-WhatWasRunning.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-WhoIsActive-Infra.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.196:False:E84947</AssociatedConnectionMoniker>

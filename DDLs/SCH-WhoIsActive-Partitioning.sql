@@ -20,5 +20,5 @@ GO
 USE [DBA];
 IF OBJECT_ID('dbo.WhoIsActive') IS NOT NULL AND NOT EXISTS (select * from sys.indexes where [object_id] = OBJECT_ID('dbo.WhoIsActive') and type_desc = 'CLUSTERED')
 	CREATE CLUSTERED INDEX ci_WhoIsActive ON dbo.WhoIsActive ( [collection_time] ASC )
-		ON [ps_dba_datetime_hourly] (collection_time);
+		ON [ps_dba_datetime_daily] (collection_time);
 GO
