@@ -163,12 +163,12 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 9
+            "y": 1
           },
           "id": 132,
           "options": {
             "footer": {
-              "enablePagination": false,
+              "enablePagination": true,
               "fields": "",
               "reducer": [
                 "sum"
@@ -397,9 +397,10 @@
             "x": 0,
             "y": 2
           },
-          "id": 115,
+          "id": 140,
           "options": {
             "footer": {
+              "enablePagination": true,
               "fields": "",
               "reducer": [
                 "sum"
@@ -441,11 +442,11 @@
               }
             }
           ],
-          "title": "Memory Consumers - WhoIsActive Data   @ ${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}",
+          "title": "Memory Consumers Over __ $memory_grant_threshold_mb MB__ \"- WhoIsActive Data   @ ${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}",
           "type": "table"
         }
       ],
-      "title": "Memory Consuming Queries - [sp_WhoIsActive] @ ${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}",
+      "title": "M/r Consumers - ACTIVE - [sp_WhoIsActive] @ ${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}",
       "type": "row"
     },
     {
@@ -651,11 +652,12 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 10
+            "y": 3
           },
           "id": 86,
           "options": {
             "footer": {
+              "enablePagination": true,
               "fields": "",
               "reducer": [
                 "sum"
@@ -893,11 +895,12 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 11
+            "y": 4
           },
           "id": 125,
           "options": {
             "footer": {
+              "enablePagination": true,
               "fields": "",
               "reducer": [
                 "sum"
@@ -1147,11 +1150,12 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 12
+            "y": 5
           },
           "id": 128,
           "options": {
             "footer": {
+              "enablePagination": true,
               "fields": "",
               "reducer": [
                 "sum"
@@ -1406,6 +1410,7 @@
           "id": 137,
           "options": {
             "footer": {
+              "enablePagination": true,
               "fields": "",
               "reducer": [
                 "sum"
@@ -1447,7 +1452,7 @@
               }
             }
           ],
-          "title": "Long Running Queries - WhoIsActive Data   @ ${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}",
+          "title": "Long Running Queries - WhoIsActive Data - FILTERED @ ${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}",
           "type": "table"
         }
       ],
@@ -1668,11 +1673,12 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 14
+            "y": 7
           },
           "id": 122,
           "options": {
             "footer": {
+              "enablePagination": true,
               "fields": "",
               "reducer": [
                 "sum"
@@ -1693,7 +1699,7 @@
               "editorMode": "code",
               "format": "table",
               "rawQuery": true,
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\n--declare @delta_minutes int;\ndeclare @program_name nvarchar(500);\ndeclare @login_name nvarchar(255);\ndeclare @database nvarchar(500) = '$database';\ndeclare @session_id int;\ndeclare @session_host_name nvarchar(125);\ndeclare @query_pattern nvarchar(500);\ndeclare @duration int;\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @duration = case when ltrim(rtrim('$duration')) <> '' then $duration else 0 end;\nif len(ltrim(rtrim('$program_name'))) > 0\n  set @program_name = '$program_name'\nif len(ltrim(rtrim('$login_name'))) > 0\n  set @login_name = '$login_name'\nif len(ltrim(rtrim('$session_host_name'))) > 0\n  set @session_host_name = '$session_host_name'\nif len(ltrim(rtrim('$query_pattern'))) > 0\n  set @query_pattern = '$query_pattern'\nif len(ltrim(rtrim('$session_id'))) > 0 and (case when '$session_id' like '%[^0-9.]%' then 'invalid' when '$session_id' like '%.%.%' then 'invalid' else 'valid' end) = 'valid'\n  set @session_id = convert(int,'$session_id');\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2,\n\t\t\t\t@program_name nvarchar(500), @login_name nvarchar(255), @database nvarchar(500),\n\t\t\t\t@session_id int, @session_host_name nvarchar(125), @query_pattern nvarchar(500),\n\t\t\t\t@duration int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\n\n;with cte_sessions as (\n  select [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), w.collection_time), w.session_id, \n  \t\tw.program_name, w.login_name, w.database_name, w.host_name, w.granted_memory, w.tempdb_current,\n  \t\tw.status, w.CPU, w.used_memory, w.open_tran_count, [duration_ms] = datediff(MILLISECOND, start_time, getdate()),\n  \t\tsql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n  \t\t\t\t\t\t\telse left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n  \t\tw.blocked_session_count, w.wait_info, w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations,\n  \t\tw.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n  from $whoisactive_table_name w with (nolock)\n  where w.collection_time between DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @start_time_utc) and DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @end_time_utc)\n  and datediff(minute,start_time,collection_time) >= @duration\n)\nselect [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), w.session_id,\n          [ddd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),3)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114), \n          w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, \n          granted_memory_kb = (w.granted_memory * 8.0), w.open_tran_count, w.wait_info, w.sql_command, w.blocked_session_count, \n          w.blocking_session_id, [reads_kb] = (w.[reads]*8.0), w.writes, [tempdb_allocations_kb] = (w.tempdb_allocations*8.0), \n          tempdb_current_kb = (tempdb_current*8.0), w.tasks, w.percent_complete, [used_memory_kb] = (w.used_memory*8.0),\n          start_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [start_time])\nfrom cte_sessions w\nwhere 1 = 1\n\"\n\nif @program_name is not null\n\tset @sql = @sql + @crlf + \"and w.program_name like ('%'+@program_name+'%')\"\nif @database is not null\n\tset @sql = @sql + @crlf + \"and w.database_name like ('%'+@database+'%')\"\nif @login_name is not null\n\tset @sql = @sql + @crlf + \"and w.login_name like ('%'+@login_name+'%')\"\nif @session_host_name is not null\n\tset @sql = @sql + @crlf + \"and w.host_name like ('%'+@session_host_name+'%')\"\nif @query_pattern is not null\n\tset @sql = @sql + @crlf + \"and w.sql_command like ('%'+@query_pattern+'%')\"\nif @session_id is not null\n\tset @sql = @sql + @crlf + \"and w.session_id = @session_id\"\nset @sql = @sql + @crlf + \"order by w.collection_time DESC, w.start_time ASC\";\n\nset quoted_identifier on;\n--print @sql\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, \n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, \n\t\t\t\t\t@query_pattern, @duration;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc,\n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, \n\t\t\t\t\t@query_pattern, @duration;",
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\n--declare @delta_minutes int;\ndeclare @program_name nvarchar(500);\ndeclare @login_name nvarchar(255);\ndeclare @database nvarchar(500) = '$database';\ndeclare @session_id int;\ndeclare @session_host_name nvarchar(125);\ndeclare @query_pattern nvarchar(500);\ndeclare @duration int;\ndeclare @memory_grant_threshold_mb int = $memory_grant_threshold_mb;\ndeclare @page_no int;\ndeclare @page_size int;\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @duration = case when ltrim(rtrim('$duration')) <> '' then $duration else 0 end;\nif len(ltrim(rtrim('$program_name'))) > 0\n  set @program_name = '$program_name'\nif len(ltrim(rtrim('$login_name'))) > 0\n  set @login_name = '$login_name'\nif len(ltrim(rtrim('$session_host_name'))) > 0\n  set @session_host_name = '$session_host_name'\nif len(ltrim(rtrim('$query_pattern'))) > 0\n  set @query_pattern = '$query_pattern'\nif len(ltrim(rtrim('$session_id'))) > 0 and (case when '$session_id' like '%[^0-9.]%' then 'invalid' when '$session_id' like '%.%.%' then 'invalid' else 'valid' end) = 'valid'\n  set @session_id = convert(int,ltrim(rtrim('$session_id')));\nif len(ltrim(rtrim('$page_no'))) > 0 and (case when '$page_no' like '%[^0-9.]%' then 'invalid' when '$page_no' like '%.%.%' then 'invalid' else 'valid' end) = 'valid'\n  set @page_no = convert(int,ltrim(rtrim('$page_no')));\nif len(ltrim(rtrim('$page_size'))) > 0 and (case when '$page_size' like '%[^0-9.]%' then 'invalid' when '$page_size' like '%.%.%' then 'invalid' else 'valid' end) = 'valid'\n  set @page_size = convert(int,ltrim(rtrim('$page_size')));\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2,\n\t\t\t\t@program_name nvarchar(500), @login_name nvarchar(255), @database nvarchar(500),\n\t\t\t\t@session_id int, @session_host_name nvarchar(125), @query_pattern nvarchar(500),\n\t\t\t\t@duration int, @memory_grant_threshold_mb int, @page_no int, @page_size int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\n\n;with cte_sessions as (\n  select [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), w.collection_time), w.session_id, \n  \t\tw.program_name, w.login_name, w.database_name, w.host_name, w.granted_memory, w.tempdb_current,\n  \t\tw.status, w.CPU, w.used_memory, w.open_tran_count, [duration_ms] = datediff(MILLISECOND, start_time, getdate()),\n  \t\tsql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n  \t\t\t\t\t\t\telse left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n  \t\tw.blocked_session_count, w.wait_info, w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations,\n  \t\tw.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n  from $whoisactive_table_name w with (nolock)\n  where w.collection_time between DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @start_time_utc) and DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @end_time_utc)\n  --and datediff(minute,start_time,collection_time) >= @duration\n\tand granted_memory >= (@memory_grant_threshold_mb*1024/8)\n\torder by w.collection_time\n\toffset ((@page_no-1)*@page_size) rows fetch next @page_size rows only\n)\nselect [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), w.session_id,\n          [ddd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),3)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114), \n          w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, \n          granted_memory_kb = (w.granted_memory * 8.0), w.open_tran_count, w.wait_info, w.sql_command, w.blocked_session_count, \n          w.blocking_session_id, [reads_kb] = (w.[reads]*8.0), w.writes, [tempdb_allocations_kb] = (w.tempdb_allocations*8.0), \n          tempdb_current_kb = (tempdb_current*8.0), w.tasks, w.percent_complete, [used_memory_kb] = (w.used_memory*8.0),\n          start_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [start_time])\nfrom cte_sessions w\nwhere 1 = 1\n\"\n\nif @program_name is not null\n\tset @sql = @sql + @crlf + \"and w.program_name like ('%'+@program_name+'%')\"\nif @database is not null\n\tset @sql = @sql + @crlf + \"and w.database_name like ('%'+@database+'%')\"\nif @login_name is not null\n\tset @sql = @sql + @crlf + \"and w.login_name like ('%'+@login_name+'%')\"\nif @session_host_name is not null\n\tset @sql = @sql + @crlf + \"and w.host_name like ('%'+@session_host_name+'%')\"\nif @query_pattern is not null\n\tset @sql = @sql + @crlf + \"and w.sql_command like ('%'+@query_pattern+'%')\"\nif @session_id is not null\n\tset @sql = @sql + @crlf + \"and w.session_id = @session_id\"\nset @sql = @sql + @crlf + \"order by w.collection_time DESC, w.start_time ASC\";\n\nset quoted_identifier on;\n--print @sql\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, \n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, \n\t\t\t\t\t@query_pattern, @duration, @memory_grant_threshold_mb, @page_no, @page_size;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc,\n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, \n\t\t\t\t\t@query_pattern, @duration, @memory_grant_threshold_mb, @page_no, @page_size;",
               "refId": "A",
               "sql": {
                 "columns": [
@@ -1714,11 +1720,12 @@
               }
             }
           ],
-          "title": "WhoIsActive Data - Captured - Between - ___${__from:date:YYYY-MM-DD HH.mm}___&___${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}___",
+          "title": "Memory Consumers Over __ $memory_grant_threshold_mb MB__ \"- WhoIsActive Data - Between ___${__from:date:YYYY-MM-DD HH.mm}___&___${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}___",
           "type": "table"
         }
       ],
       "repeat": "datasource",
+      "repeatDirection": "h",
       "targets": [
         {
           "datasource": {
@@ -1728,7 +1735,261 @@
           "refId": "A"
         }
       ],
-      "title": "What was Running - sp_WhoIsActive - All Sessions - For Duration",
+      "title": "M/r Consumers - [sp_WhoIsActive] - For Duration - Paginated - Page No {$page_no} - Page Size {$page_size}",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "id": 139,
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto",
+                "filterable": true,
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "sql_command"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 352
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "program_name"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 169
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "collection_time"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 166
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "session_id"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 109
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "CPU"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "ms"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "granted_memory_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "granted_memory"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "reads_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "reads"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "writes"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tempdb_allocations_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "tempdb_allocations"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tempdb_current_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "tempdb_current"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "used_memory_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "used_memory"
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 8
+          },
+          "id": 141,
+          "options": {
+            "footer": {
+              "enablePagination": true,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": []
+          },
+          "pluginVersion": "9.2.5",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLMONITOR}"
+              },
+              "editorMode": "code",
+              "format": "table",
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\n--declare @delta_minutes int;\ndeclare @program_name nvarchar(500);\ndeclare @login_name nvarchar(255);\ndeclare @database nvarchar(500) = '$database';\ndeclare @session_id int;\ndeclare @session_host_name nvarchar(125);\ndeclare @query_pattern nvarchar(500);\ndeclare @duration int;\ndeclare @page_no int;\ndeclare @page_size int;\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @duration = case when ltrim(rtrim('$duration')) <> '' then $duration else 0 end;\nif len(ltrim(rtrim('$program_name'))) > 0\n  set @program_name = '$program_name'\nif len(ltrim(rtrim('$login_name'))) > 0\n  set @login_name = '$login_name'\nif len(ltrim(rtrim('$session_host_name'))) > 0\n  set @session_host_name = '$session_host_name'\nif len(ltrim(rtrim('$query_pattern'))) > 0\n  set @query_pattern = '$query_pattern'\nif len(ltrim(rtrim('$session_id'))) > 0 and (case when '$session_id' like '%[^0-9.]%' then 'invalid' when '$session_id' like '%.%.%' then 'invalid' else 'valid' end) = 'valid'\n  set @session_id = convert(int,ltrim(rtrim('$session_id')));\nif len(ltrim(rtrim('$page_no'))) > 0 and (case when '$page_no' like '%[^0-9.]%' then 'invalid' when '$page_no' like '%.%.%' then 'invalid' else 'valid' end) = 'valid'\n  set @page_no = convert(int,ltrim(rtrim('$page_no')));\nif len(ltrim(rtrim('$page_size'))) > 0 and (case when '$page_size' like '%[^0-9.]%' then 'invalid' when '$page_size' like '%.%.%' then 'invalid' else 'valid' end) = 'valid'\n  set @page_size = convert(int,ltrim(rtrim('$page_size')));\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2,\n\t\t\t\t@program_name nvarchar(500), @login_name nvarchar(255), @database nvarchar(500),\n\t\t\t\t@session_id int, @session_host_name nvarchar(125), @query_pattern nvarchar(500),\n\t\t\t\t@duration int, @page_no int, @page_size int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\n\n;with cte_sessions as (\n  select [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), w.collection_time), w.session_id, \n  \t\tw.program_name, w.login_name, w.database_name, w.host_name, w.granted_memory, w.tempdb_current,\n  \t\tw.status, w.CPU, w.used_memory, w.open_tran_count, [duration_ms] = datediff(MILLISECOND, start_time, getdate()),\n  \t\tsql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n  \t\t\t\t\t\t\telse left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n  \t\tw.blocked_session_count, w.wait_info, w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations,\n  \t\tw.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n  from $whoisactive_table_name w with (nolock)\n  where w.collection_time between DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @start_time_utc) and DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @end_time_utc)\n  and datediff(minute,start_time,collection_time) >= @duration\n\torder by w.collection_time\n\toffset ((@page_no-1)*@page_size) rows fetch next @page_size rows only\n)\nselect [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), w.session_id,\n          [ddd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),3)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114), \n          w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, \n          granted_memory_kb = (w.granted_memory * 8.0), w.open_tran_count, w.wait_info, w.sql_command, w.blocked_session_count, \n          w.blocking_session_id, [reads_kb] = (w.[reads]*8.0), w.writes, [tempdb_allocations_kb] = (w.tempdb_allocations*8.0), \n          tempdb_current_kb = (tempdb_current*8.0), w.tasks, w.percent_complete, [used_memory_kb] = (w.used_memory*8.0),\n          start_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [start_time])\nfrom cte_sessions w\nwhere 1 = 1\n\"\n\nif @program_name is not null\n\tset @sql = @sql + @crlf + \"and w.program_name like ('%'+@program_name+'%')\"\nif @database is not null\n\tset @sql = @sql + @crlf + \"and w.database_name like ('%'+@database+'%')\"\nif @login_name is not null\n\tset @sql = @sql + @crlf + \"and w.login_name like ('%'+@login_name+'%')\"\nif @session_host_name is not null\n\tset @sql = @sql + @crlf + \"and w.host_name like ('%'+@session_host_name+'%')\"\nif @query_pattern is not null\n\tset @sql = @sql + @crlf + \"and w.sql_command like ('%'+@query_pattern+'%')\"\nif @session_id is not null\n\tset @sql = @sql + @crlf + \"and w.session_id = @session_id\"\nset @sql = @sql + @crlf + \"order by w.collection_time DESC, w.start_time ASC\";\n\nset quoted_identifier on;\n--print @sql\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, \n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, \n\t\t\t\t\t@query_pattern, @duration, @page_no, @page_size;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc,\n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, \n\t\t\t\t\t@query_pattern, @duration, @page_no, @page_size;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
+            }
+          ],
+          "title": "WhoIsActive Data - Captured - Paginated - Page No {$page_no} - Page Size {$page_size} - Between - ___${__from:date:YYYY-MM-DD HH.mm}___&___${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}___",
+          "type": "table"
+        }
+      ],
+      "title": "What was Running - [sp_WhoIsActive] - For Duration - Paginated - Page No {$page_no} - Page Size {$page_size}",
       "type": "row"
     },
     {
@@ -1741,7 +2002,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 8
       },
       "id": 121,
       "panels": [
@@ -1751,7 +2012,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 14
+            "y": 22
           },
           "id": 119,
           "links": [],
@@ -1915,24 +2176,97 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "2",
-          "value": "2"
+          "selected": true,
+          "text": "1",
+          "value": "1"
         },
         "description": "Threshold duration in minutes for Long Running Queries",
         "hide": 0,
+        "includeAll": false,
         "label": "Duration (Min)",
+        "multi": false,
         "name": "duration",
         "options": [
           {
             "selected": true,
+            "text": "1",
+            "value": "1"
+          },
+          {
+            "selected": false,
+            "text": "2",
+            "value": "2"
+          },
+          {
+            "selected": false,
             "text": "5",
             "value": "5"
+          },
+          {
+            "selected": false,
+            "text": "10",
+            "value": "10"
+          },
+          {
+            "selected": false,
+            "text": "15",
+            "value": "15"
+          },
+          {
+            "selected": false,
+            "text": "20",
+            "value": "20"
+          },
+          {
+            "selected": false,
+            "text": "30",
+            "value": "30"
+          },
+          {
+            "selected": false,
+            "text": "45",
+            "value": "45"
+          },
+          {
+            "selected": false,
+            "text": "60",
+            "value": "60"
+          },
+          {
+            "selected": false,
+            "text": "90",
+            "value": "90"
+          },
+          {
+            "selected": false,
+            "text": "120",
+            "value": "120"
+          },
+          {
+            "selected": false,
+            "text": "180",
+            "value": "180"
+          },
+          {
+            "selected": false,
+            "text": "260",
+            "value": "260"
+          },
+          {
+            "selected": false,
+            "text": "300",
+            "value": "300"
+          },
+          {
+            "selected": false,
+            "text": "480",
+            "value": "480"
           }
         ],
-        "query": "5",
+        "query": "1,2,5,10,15,20,30,45,60,90,120,180,260,300,480",
+        "queryValue": "",
         "skipUrlSync": false,
-        "type": "textbox"
+        "type": "custom"
       },
       {
         "current": {},
@@ -2158,13 +2492,13 @@
       },
       {
         "current": {
-          "selected": true,
+          "selected": false,
           "text": "500",
           "value": "500"
         },
         "hide": 0,
         "includeAll": false,
-        "label": "Memory Threshold (MB)",
+        "label": "M/r Grant (MB)",
         "multi": false,
         "name": "memory_grant_threshold_mb",
         "options": [
@@ -2198,6 +2532,48 @@
         "queryValue": "",
         "skipUrlSync": false,
         "type": "custom"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "1",
+          "value": "1"
+        },
+        "description": "Page No Used for Paginated Result",
+        "hide": 0,
+        "label": "Page No",
+        "name": "page_no",
+        "options": [
+          {
+            "selected": true,
+            "text": "1",
+            "value": "1"
+          }
+        ],
+        "query": "1",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "20",
+          "value": "20"
+        },
+        "description": "Page Size for Paginated Result",
+        "hide": 0,
+        "label": "Page Size",
+        "name": "page_size",
+        "options": [
+          {
+            "selected": true,
+            "text": "20",
+            "value": "20"
+          }
+        ],
+        "query": "20",
+        "skipUrlSync": false,
+        "type": "textbox"
       }
     ]
   },
@@ -2220,6 +2596,6 @@
   "timezone": "browser",
   "title": "WhoIsActive - SQL Server Queries - Workload",
   "uid": "WhoIsActive",
-  "version": 78,
+  "version": 89,
   "weekStart": ""
 }

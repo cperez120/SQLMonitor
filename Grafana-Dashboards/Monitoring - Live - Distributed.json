@@ -1848,6 +1848,13 @@
       },
       "fieldConfig": {
         "defaults": {
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "Memory Consumers",
+              "url": "d/distributed_live_dashboard/monitoring-live-distributed?var-server=${server}&var-memory_grant_threshold_mb=5120&viewPanel=177"
+            }
+          ],
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -2925,7 +2932,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 18
+            "y": 34
           },
           "id": 111,
           "options": {
@@ -3070,7 +3077,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 19
+            "y": 35
           },
           "id": 149,
           "options": {
@@ -3168,7 +3175,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 30
+            "y": 46
           },
           "id": 152,
           "options": {
@@ -3296,7 +3303,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 20
+            "y": 36
           },
           "id": 57,
           "options": {
@@ -3349,6 +3356,246 @@
     },
     {
       "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "id": 179,
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto",
+                "filterable": true,
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "sql_command"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 352
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "program_name"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 169
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "session_id"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 105
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "CPU"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "ms"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "granted_memory_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "granted_memory"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "reads_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "reads"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "writes"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tempdb_allocations_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "tempdb_allocations"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tempdb_current_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "tempdb_current"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "used_memory_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "used_memory"
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 11,
+            "w": 24,
+            "x": 0,
+            "y": 21
+          },
+          "id": 177,
+          "options": {
+            "footer": {
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": []
+          },
+          "pluginVersion": "9.2.5",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLMONITOR}"
+              },
+              "editorMode": "code",
+              "format": "table",
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\n--declare @delta_minutes int;\ndeclare @program_name nvarchar(500);\ndeclare @login_name nvarchar(255);\ndeclare @database nvarchar(500) = '$database';\ndeclare @session_id int;\ndeclare @session_host_name nvarchar(125);\ndeclare @query_pattern nvarchar(500);\ndeclare @duration int;\ndeclare @memory_grant_threshold_mb int = $memory_grant_threshold_mb;\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @duration = case when ltrim(rtrim('$duration')) <> '' then $duration else 0 end;\nif len(ltrim(rtrim('$program_name'))) > 0\n  set @program_name = '$program_name'\nif len(ltrim(rtrim('$login_name'))) > 0\n  set @login_name = '$login_name'\nif len(ltrim(rtrim('$session_host_name'))) > 0\n  set @session_host_name = '$session_host_name'\nif len(ltrim(rtrim('$query_pattern'))) > 0\n  set @query_pattern = '$query_pattern'\nif len(ltrim(rtrim('$session_id'))) > 0 and (case when '$session_id' like '%[^0-9.]%' then 'invalid' when '$session_id' like '%.%.%' then 'invalid' else 'valid' end) = 'valid'\n  set @session_id = convert(int,'$session_id');\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2,\n\t\t\t\t@program_name nvarchar(500), @login_name nvarchar(255), @database nvarchar(500),\n\t\t\t\t@session_id int, @session_host_name nvarchar(125), @query_pattern nvarchar(500),\n\t\t\t\t@duration int, @memory_grant_threshold_mb int';\n\nset quoted_identifier off;\nset @sql = \"/* SQLMonitor Dashboard $__dashboard: LongRunningQueries  */\nset nocount on;\t\t\t\nif exists ( select * from $whoisactive_table_name w with (nolock)\n            where w.collection_time = (select max(i.collection_time) from $whoisactive_table_name i with (nolock)) \n            and granted_memory >= (@memory_grant_threshold_mb*1024/8) )\nbegin\n  ;with t_WhoIsActive as (\n    select [collection_time] = convert(varchar,w.collection_time,120), w.session_id, \n        w.program_name, w.login_name, w.database_name, w.host_name,\n        w.status, w.CPU, w.used_memory, w.open_tran_count, [duration_ms] = datediff(MILLISECOND, start_time, getdate()),\n        w.wait_info, granted_memory, tempdb_current,\n        sql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n                  else left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n        w.blocked_session_count, w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, \n        w.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n    from $whoisactive_table_name w with (nolock)\n    where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i with (nolock))\n    and granted_memory >= (@memory_grant_threshold_mb*1024/8)\n  )\n  select [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), w.session_id,\n          [ddd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),3)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114), \n          w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, \n          granted_memory_kb = (w.granted_memory * 8.0), w.open_tran_count, w.wait_info, w.sql_command, w.blocked_session_count, \n          w.blocking_session_id, [reads_kb] = (w.[reads]*8.0), w.writes, [tempdb_allocations_kb] = (w.tempdb_allocations*8.0), \n          tempdb_current_kb = (tempdb_current*8.0), w.tasks, w.percent_complete, [used_memory_kb] = (w.used_memory*8.0),\n          start_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [start_time])\n  from t_WhoIsActive w\n  order by granted_memory desc, used_memory desc, collection_time\nend\nELSE\n  select 'No long running query found for time window' as [No Result]\n\"\nset quoted_identifier on;\n--print @sql\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, \n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, \n\t\t\t\t\t@query_pattern, @duration, @memory_grant_threshold_mb;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc,\n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, \n\t\t\t\t\t@query_pattern, @duration, @memory_grant_threshold_mb;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
+            }
+          ],
+          "title": "Memory Consumers Over __ $memory_grant_threshold_mb MB__ \"- WhoIsActive Data   @ ${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}",
+          "type": "table"
+        }
+      ],
+      "title": "M/r Consumers - ACTIVE - [sp_WhoIsActive] @ ${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
       "datasource": {
         "type": "mssql",
         "uid": "5Qr_lHw7z"
@@ -3357,7 +3604,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 21
       },
       "id": 140,
       "panels": [
@@ -3461,7 +3708,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 21
+            "y": 37
           },
           "id": 138,
           "options": {
@@ -3521,7 +3768,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 22
       },
       "id": 117,
       "panels": [
@@ -3702,7 +3949,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 22
+            "y": 38
           },
           "id": 115,
           "options": {
@@ -3775,7 +4022,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 23
       },
       "id": 29,
       "panels": [
@@ -3839,7 +4086,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 23
+            "y": 39
           },
           "id": 8,
           "options": {
@@ -3898,7 +4145,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 24
       },
       "id": 27,
       "panels": [
@@ -3964,7 +4211,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 24
+            "y": 40
           },
           "id": 18,
           "options": {
@@ -4023,7 +4270,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 25
       },
       "id": 126,
       "panels": [
@@ -4070,7 +4317,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 25
+            "y": 41
           },
           "id": 124,
           "options": {
@@ -4158,7 +4405,7 @@
             "h": 6,
             "w": 8,
             "x": 0,
-            "y": 32
+            "y": 48
           },
           "id": 131,
           "options": {
@@ -4247,7 +4494,7 @@
             "h": 12,
             "w": 8,
             "x": 8,
-            "y": 32
+            "y": 48
           },
           "id": 128,
           "options": {
@@ -4336,7 +4583,7 @@
             "h": 12,
             "w": 8,
             "x": 16,
-            "y": 32
+            "y": 48
           },
           "id": 129,
           "options": {
@@ -4414,7 +4661,7 @@
             "h": 6,
             "w": 8,
             "x": 0,
-            "y": 38
+            "y": 54
           },
           "id": 130,
           "options": {
@@ -4468,7 +4715,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 26
       },
       "id": 79,
       "panels": [
@@ -4543,7 +4790,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 26
+            "y": 27
           },
           "id": 144,
           "options": {
@@ -4571,9 +4818,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @delta_minutes int;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @delta_minutes int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\ndeclare @TopRowFilter tinyint = 10;\n\nif object_id('tempdb..#dates') is not null\n\tdrop table #dates;\ncreate table #dates (collection_time_utc datetime2 not null primary key);\ndeclare @_collection_time_utc datetime2;\ndeclare @_collection_time_utc_prev datetime2;\n\ndeclare cur_dates cursor local fast_forward for\n\tselect collection_time_utc\n\tfrom $os_task_list_table_name\n\twhere host_name = @perfmon_host_name\n\tand collection_time_utc between @start_time_utc and @end_time_utc\n\tgroup by collection_time_utc\n\torder by collection_time_utc\n\toption(recompile);\n\nopen cur_dates;\nfetch next from cur_dates into @_collection_time_utc;\n\nwhile @@fetch_status = 0\nbegin\n\t-- Set start timestamp\n\tif(@_collection_time_utc_prev is null)\n\tbegin\n\t\tinsert #dates values (@_collection_time_utc);\n\t\tset @_collection_time_utc_prev = @_collection_time_utc;\n\tend\n\t\n\t-- Choose next timestamp based on @delta_minutes\n\tif (@_collection_time_utc_prev is not null)\n\t\tand (@_collection_time_utc >= dateadd(minute,@delta_minutes,@_collection_time_utc_prev))\n\tbegin\n\t\tinsert #dates values (@_collection_time_utc);\n\t\tset @_collection_time_utc_prev = @_collection_time_utc;\n\tend\n\t\n\tfetch next from cur_dates into @_collection_time_utc;\nend\n\nclose cur_dates;\ndeallocate cur_dates;\n\n--select *\n--from #dates;\n\nif object_id('tempdb..#os_task_list') is not null\n\tdrop table #os_task_list;\nwith cte_tasks as (\n\tselect tl.collection_time_utc, tl.task_name, [cpu_s] = sum(cpu_time_seconds), [counts] = count(*)\n\tfrom $os_task_list_table_name tl join #dates d on d.collection_time_utc = tl.collection_time_utc\n\twhere (tl.collection_time_utc between @start_time_utc and @end_time_utc)\n\tand tl.host_name = @perfmon_host_name\n\tand task_name not in ('System Idle Process','') -- add other harmless processes here\n\tgroup by tl.collection_time_utc, tl.task_name\n)\nselect\tcollection_time_utc, task_name, cpu_s, counts\n\t\t,[cpu_s__delta] = isnull(cpu_s - (lag(cpu_s) over (partition by task_name order by collection_time_utc)),0)\n\t\t,[CpuRank] = ROW_NUMBER() OVER(PARTITION BY [collection_time_utc] ORDER BY cpu_s DESC)\ninto #os_task_list\nfrom cte_tasks;\n\n\nselect collection_time_utc as time, task_name as metric, [cpu_s__delta] as value\nfrom #os_task_list\nwhere CpuRank <= @TopRowFilter\nand collection_time_utc > (select min(m.collection_time_utc) from #os_task_list m)\norder by collection_time_utc, CpuRank, cpu_s desc;\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @delta_minutes;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @delta_minutes;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @delta_minutes int;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @delta_minutes int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\ndeclare @TopRowFilter tinyint = 100;\n\nif object_id('tempdb..#dates') is not null\n\tdrop table #dates;\ncreate table #dates (collection_time_utc datetime2 not null primary key);\ndeclare @_collection_time_utc datetime2;\ndeclare @_collection_time_utc_prev datetime2;\n\ndeclare cur_dates cursor local fast_forward for\n\tselect collection_time_utc\n\tfrom $os_task_list_table_name\n\twhere host_name = @perfmon_host_name\n\tand collection_time_utc between @start_time_utc and @end_time_utc\n\tgroup by collection_time_utc\n\torder by collection_time_utc\n\toption(recompile);\n\nopen cur_dates;\nfetch next from cur_dates into @_collection_time_utc;\n\nwhile @@fetch_status = 0\nbegin\n\t-- Set start timestamp\n\tif(@_collection_time_utc_prev is null)\n\tbegin\n\t\tinsert #dates values (@_collection_time_utc);\n\t\tset @_collection_time_utc_prev = @_collection_time_utc;\n\tend\n\t\n\t-- Choose next timestamp based on @delta_minutes\n\tif (@_collection_time_utc_prev is not null)\n\t\tand (@_collection_time_utc >= dateadd(minute,@delta_minutes,@_collection_time_utc_prev))\n\tbegin\n\t\tinsert #dates values (@_collection_time_utc);\n\t\tset @_collection_time_utc_prev = @_collection_time_utc;\n\tend\n\t\n\tfetch next from cur_dates into @_collection_time_utc;\nend\n\nclose cur_dates;\ndeallocate cur_dates;\n\n--select *\n--from #dates;\n\nif object_id('tempdb..#os_task_list') is not null\n\tdrop table #os_task_list;\nwith cte_tasks as (\n\tselect tl.collection_time_utc, tl.task_name, [cpu_s] = sum(cpu_time_seconds), [counts] = count(*)\n\tfrom $os_task_list_table_name tl join #dates d on d.collection_time_utc = tl.collection_time_utc\n\twhere (tl.collection_time_utc between @start_time_utc and @end_time_utc)\n\tand tl.host_name = @perfmon_host_name\n\tand task_name not in ('System Idle Process','') -- add other harmless processes here\n\tgroup by tl.collection_time_utc, tl.task_name\n)\nselect\tcollection_time_utc, task_name, cpu_s, counts\n\t\t,[cpu_s__delta] = isnull(cpu_s - (lag(cpu_s) over (partition by task_name order by collection_time_utc)),0)\n\t\t,[CpuRank] = ROW_NUMBER() OVER(PARTITION BY [collection_time_utc] ORDER BY cpu_s DESC)\ninto #os_task_list\nfrom cte_tasks;\n\n\nselect collection_time_utc as time, task_name as metric, (case when [cpu_s__delta] < 0 then 0 else [cpu_s__delta] end) as value\nfrom #os_task_list\nwhere CpuRank <= @TopRowFilter\nand collection_time_utc > (select min(m.collection_time_utc) from #os_task_list m)\norder by collection_time_utc, CpuRank, cpu_s desc;\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @delta_minutes;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @delta_minutes;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "[${server}] - OS Process - CPU Time - Histrogram - $cpu_delta_minutes Minute Interval",
@@ -4653,7 +4919,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 37
+            "y": 38
           },
           "id": 145,
           "options": {
@@ -4681,9 +4947,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @delta_minutes int;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @delta_minutes int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\ndeclare @TopRowFilter tinyint = 10;\n\nif object_id('tempdb..#dates') is not null\n\tdrop table #dates;\ncreate table #dates (collection_time_utc datetime2 not null primary key);\ndeclare @_collection_time_utc datetime2;\ndeclare @_collection_time_utc_prev datetime2;\n\ndeclare cur_dates cursor local fast_forward for\n\tselect collection_time_utc\n\tfrom $os_task_list_table_name\n\twhere host_name = @perfmon_host_name\n\tand collection_time_utc between @start_time_utc and @end_time_utc\n\tgroup by collection_time_utc\n\torder by collection_time_utc;\n\nopen cur_dates;\nfetch next from cur_dates into @_collection_time_utc;\n\nwhile @@fetch_status = 0\nbegin\n\t-- Set start timestamp\n\tif(@_collection_time_utc_prev is null)\n\tbegin\n\t\tinsert #dates values (@_collection_time_utc);\n\t\tset @_collection_time_utc_prev = @_collection_time_utc;\n\tend\n\t\n\t-- Choose next timestamp based on @delta_minutes\n\tif (@_collection_time_utc_prev is not null)\n\t\tand (@_collection_time_utc >= dateadd(minute,@delta_minutes,@_collection_time_utc_prev))\n\tbegin\n\t\tinsert #dates values (@_collection_time_utc);\n\t\tset @_collection_time_utc_prev = @_collection_time_utc;\n\tend\n\t\n\tfetch next from cur_dates into @_collection_time_utc;\nend\n\nclose cur_dates;\ndeallocate cur_dates;\n\n--select *\n--from #dates;\n\nif object_id('tempdb..#os_task_list') is not null\n\tdrop table #os_task_list;\nwith cte_tasks as (\n\tselect tl.collection_time_utc, tl.task_name, [cpu_s] = sum(cpu_time_seconds), [counts] = count(*)\n\tfrom $os_task_list_table_name tl join #dates d on d.collection_time_utc = tl.collection_time_utc\n\twhere (tl.collection_time_utc between @start_time_utc and @end_time_utc)\n\tand tl.host_name = @perfmon_host_name\n\tand task_name not in ('System Idle Process','') -- add other harmless processes here\n\tgroup by tl.collection_time_utc, tl.task_name\n)\nselect\tcollection_time_utc, task_name, cpu_s, counts\n\t\t,[cpu_s__delta] = isnull(cpu_s - (lag(cpu_s) over (partition by task_name order by collection_time_utc)),0)\n\t\t,[CpuRank] = ROW_NUMBER() OVER(PARTITION BY [collection_time_utc] ORDER BY cpu_s DESC)\ninto #os_task_list\nfrom cte_tasks;\n\n\nselect collection_time_utc as time, task_name as metric, [cpu_s__delta] as value\nfrom #os_task_list\nwhere CpuRank <= @TopRowFilter\nand collection_time_utc > (select min(m.collection_time_utc) from #os_task_list m)\norder by collection_time_utc, CpuRank, cpu_s desc;\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @delta_minutes;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @delta_minutes;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @delta_minutes int;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @delta_minutes int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\ndeclare @TopRowFilter tinyint = 100;\n\nif object_id('tempdb..#dates') is not null\n\tdrop table #dates;\ncreate table #dates (collection_time_utc datetime2 not null primary key);\ndeclare @_collection_time_utc datetime2;\ndeclare @_collection_time_utc_prev datetime2;\n\ndeclare cur_dates cursor local fast_forward for\n\tselect collection_time_utc\n\tfrom $os_task_list_table_name\n\twhere host_name = @perfmon_host_name\n\tand collection_time_utc between @start_time_utc and @end_time_utc\n\tgroup by collection_time_utc\n\torder by collection_time_utc;\n\nopen cur_dates;\nfetch next from cur_dates into @_collection_time_utc;\n\nwhile @@fetch_status = 0\nbegin\n\t-- Set start timestamp\n\tif(@_collection_time_utc_prev is null)\n\tbegin\n\t\tinsert #dates values (@_collection_time_utc);\n\t\tset @_collection_time_utc_prev = @_collection_time_utc;\n\tend\n\t\n\t-- Choose next timestamp based on @delta_minutes\n\tif (@_collection_time_utc_prev is not null)\n\t\tand (@_collection_time_utc >= dateadd(minute,@delta_minutes,@_collection_time_utc_prev))\n\tbegin\n\t\tinsert #dates values (@_collection_time_utc);\n\t\tset @_collection_time_utc_prev = @_collection_time_utc;\n\tend\n\t\n\tfetch next from cur_dates into @_collection_time_utc;\nend\n\nclose cur_dates;\ndeallocate cur_dates;\n\n--select *\n--from #dates;\n\nif object_id('tempdb..#os_task_list') is not null\n\tdrop table #os_task_list;\nwith cte_tasks as (\n\tselect tl.collection_time_utc, tl.task_name, [cpu_s] = sum(cpu_time_seconds), [counts] = count(*)\n\tfrom $os_task_list_table_name tl join #dates d on d.collection_time_utc = tl.collection_time_utc\n\twhere (tl.collection_time_utc between @start_time_utc and @end_time_utc)\n\tand tl.host_name = @perfmon_host_name\n\tand task_name not in ('System Idle Process','') -- add other harmless processes here\n\tgroup by tl.collection_time_utc, tl.task_name\n)\nselect\tcollection_time_utc, task_name, cpu_s, counts\n\t\t,[cpu_s__delta] = isnull(cpu_s - (lag(cpu_s) over (partition by task_name order by collection_time_utc)),0)\n\t\t,[CpuRank] = ROW_NUMBER() OVER(PARTITION BY [collection_time_utc] ORDER BY cpu_s DESC)\ninto #os_task_list\nfrom cte_tasks;\n\n\nselect collection_time_utc as time, task_name as metric, (case when [cpu_s__delta] < 0 then 0 else [cpu_s__delta] end) as value\nfrom #os_task_list\nwhere CpuRank <= @TopRowFilter\nand collection_time_utc > (select min(m.collection_time_utc) from #os_task_list m)\norder by collection_time_utc, CpuRank, cpu_s desc;\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @delta_minutes;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @delta_minutes;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "[${server}] - OS Process - CPU Time - Utilization - $cpu_delta_minutes Minute Interval",
@@ -4713,7 +4998,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 27
       },
       "id": 82,
       "panels": [
@@ -4786,7 +5071,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 27
+            "y": 43
           },
           "id": 146,
           "options": {
@@ -4894,7 +5179,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 37
+            "y": 53
           },
           "id": 147,
           "options": {
@@ -4954,7 +5239,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 28
       },
       "id": 88,
       "panels": [
@@ -5135,7 +5420,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 28
+            "y": 44
           },
           "id": 86,
           "options": {
@@ -5208,7 +5493,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 29
       },
       "id": 175,
       "panels": [
@@ -5375,7 +5660,7 @@
             "h": 16,
             "w": 24,
             "x": 0,
-            "y": 29
+            "y": 45
           },
           "id": 173,
           "options": {
@@ -5427,7 +5712,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 30
       },
       "id": 103,
       "panels": [
@@ -5489,7 +5774,7 @@
             "h": 15,
             "w": 24,
             "x": 0,
-            "y": 30
+            "y": 46
           },
           "id": 133,
           "options": {
@@ -5567,7 +5852,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 31
       },
       "id": 121,
       "panels": [
@@ -5577,7 +5862,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 30
+            "y": 46
           },
           "id": 119,
           "links": [],
@@ -6681,6 +6966,48 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "500",
+          "value": "500"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "M/r Grant (MB)",
+        "multi": false,
+        "name": "memory_grant_threshold_mb",
+        "options": [
+          {
+            "selected": true,
+            "text": "500",
+            "value": "500"
+          },
+          {
+            "selected": false,
+            "text": "2048",
+            "value": "2048"
+          },
+          {
+            "selected": false,
+            "text": "5120",
+            "value": "5120"
+          },
+          {
+            "selected": false,
+            "text": "10240",
+            "value": "10240"
+          },
+          {
+            "selected": false,
+            "text": "20480",
+            "value": "20480"
+          }
+        ],
+        "query": "500, 2048, 5120, 10240, 20480",
+        "skipUrlSync": false,
+        "type": "custom"
       }
     ]
   },
@@ -6700,6 +7027,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 290,
+  "version": 293,
   "weekStart": ""
 }
