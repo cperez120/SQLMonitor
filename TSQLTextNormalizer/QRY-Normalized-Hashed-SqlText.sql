@@ -13,13 +13,17 @@ go
 go
 
 ;with resource_consumption as (
-	select *, [sql_text_ripped] = case when ltrim(rc.sql_text) like 'exec sp_executesql%' 
+	select *,[sql_text_ripped] = case when ltrim(rc.sql_text) like 'exec sp_executesql @statement=N%' 
+									then substring(ltrim(rtrim(rc.sql_text)),33,len(ltrim(rtrim(rc.sql_text)))-33)
+									when ltrim(rc.sql_text) like 'exec sp_executesql%' 
 									then substring(ltrim(rtrim(rc.sql_text)),22,len(ltrim(rtrim(rc.sql_text)))-22)
 									else rc.sql_text
 									end
 	from dbo.vw_resource_consumption rc
+	where rc.sql_text like '%tbl_UserMasterInfo%'
+	and rc.event_time >= dateadd(day,-7,getdate())
 )
-select hs.sqlsig, 
+select top 1000 hs.sqlsig, 
 		hash_counts = count(rc.session_id)over(partition by hs.sqlsig), 
 		sql_handle_counts = count(rc.session_id)over(partition by rc.sql_text),
 		rc.sql_text, rc.sql_text_ripped,
@@ -30,8 +34,8 @@ outer apply (select sqlsig = hs.varbinary_value
 			from dbo.fn_get_hash_for_string(dbo.normalized_sql_text(rc.[sql_text_ripped],130,0)) hs  
 			) hs
 where 1=1
-and rc.start_time between '2022-12-08 07:00' and '2022-12-08 09:00'
-and rc.username = 'aws_infra'
+--and rc.start_time between '2022-12-06 00:00' and '2022-12-16 16:00'
+--and rc.username = 'aws_infra'
 order by hash_counts desc, rc.sql_text, hs.sqlsig
 --order by rc.start_time, rc.event_time
 go

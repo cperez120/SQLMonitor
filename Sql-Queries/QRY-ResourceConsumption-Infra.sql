@@ -1,9 +1,9 @@
 use DBA_Admin
 go
-declare @start_time datetime = dateadd(day,-15,getdate());
+declare @start_time datetime = dateadd(day,-10,getdate());
 declare @database_name nvarchar(255) --= 'ACCOUNT';
-declare @table_name nvarchar(500) = 'V2_Uploaded_Files';
-declare @str_length smallint = 50;
+declare @table_name nvarchar(500) = 'tbl_UserMasterInfo';
+declare @str_length smallint = 100;
 declare @end_time datetime = getdate();
 declare @sql_string nvarchar(max);
 declare @my_login varchar(255) = suser_name();
@@ -30,7 +30,14 @@ CREATE TABLE #queries
 set quoted_identifier off;
 set @sql_string = "
 ;with cte_group as (
-	select	[grouping-key] = (case when client_app_name like 'SQL Job = %' then client_app_name else left(DBA_Admin.dbo.normalized_sql_text(sql_text,150,0),@str_length) end), 
+	select	[grouping-key] = (case when client_app_name like 'SQL Job = %' then client_app_name else left(DBA_Admin.dbo.normalized_sql_text((case when ltrim(rc.sql_text) like 'exec sp_executesql @statement=N%' 
+									then substring(ltrim(rtrim(rc.sql_text)),33,len(ltrim(rtrim(rc.sql_text)))-33)
+									when ltrim(rc.sql_text) like 'exec sp_executesql%' 
+									then substring(ltrim(rtrim(rc.sql_text)),22,len(ltrim(rtrim(rc.sql_text)))-22)
+									when rc.sql_text like'%sp_prepexec%'
+									then replace(rc.sql_text,'sp_prepexec','')
+									else rc.sql_text
+									end),150,0),@str_length) end), 
 			[cpu_time_minutes] = sum(cpu_time/1000000)/60,
 			[cpu_time_seconds_avg] = sum(cpu_time/1000000)/count(*),
 			[logical_reads_gb] = convert(numeric(20,2),sum(logical_reads)*8.0/1024/1024), 
@@ -44,13 +51,30 @@ set @sql_string = "
 			[duration_minutes_avg] = sum(rc.duration_seconds)/60/count(*),
 			[duration_seconds_avg] = sum(rc.duration_seconds)/count(*),
 			[counts] = count(*)
-	from DBA_Admin.dbo.resource_consumption rc
+			/*
+			,[sql_text_ripped] = (case when ltrim(rc.sql_text) like 'exec sp_executesql @statement=N%' 
+									then substring(ltrim(rtrim(rc.sql_text)),33,len(ltrim(rtrim(rc.sql_text)))-33)
+									when ltrim(rc.sql_text) like 'exec sp_executesql%' 
+									then substring(ltrim(rtrim(rc.sql_text)),22,len(ltrim(rtrim(rc.sql_text)))-22)
+									when rc.sql_text like'%sp_prepexec%'
+									then replace(rc.sql_text,'sp_prepexec','')
+									else rc.sql_text
+									end)
+			*/
+	from DBA_Admin.dbo.vw_resource_consumption rc
 	where rc.event_time between @start_time and @end_time
 	"+(CASE WHEN @database_name IS NULL THEN "--" ELSE "" END)+"and rc.database_name = @database_name
 	and rc.sql_text like ('%'+@table_name+'%')
 	and result = 'OK'
 	and rc.username <> @my_login
-	group by (case when client_app_name like 'SQL Job = %' then client_app_name else left(DBA_Admin.dbo.normalized_sql_text(sql_text,150,0),@str_length) end)
+	group by (case when client_app_name like 'SQL Job = %' then client_app_name else left(DBA_Admin.dbo.normalized_sql_text((case when ltrim(rc.sql_text) like 'exec sp_executesql @statement=N%' 
+									then substring(ltrim(rtrim(rc.sql_text)),33,len(ltrim(rtrim(rc.sql_text)))-33)
+									when ltrim(rc.sql_text) like 'exec sp_executesql%' 
+									then substring(ltrim(rtrim(rc.sql_text)),22,len(ltrim(rtrim(rc.sql_text)))-22)
+									when rc.sql_text like'%sp_prepexec%'
+									then replace(rc.sql_text,'sp_prepexec','')
+									else rc.sql_text
+									end),150,0),@str_length) end)
 )
 select *
 from cte_group ct
@@ -69,17 +93,32 @@ exec sp_ExecuteSql @sql_string, N'@database_name nvarchar(255), @start_time date
 
 set quoted_identifier off;
 set @sql_string = "
-select top 200 rc.sql_text, q.counts, q.cpu_time_seconds_avg, q.logical_reads_gb_avg, duration_seconds_avg, 
+select top 200 [sql_text_ripped] = (case when ltrim(rc.sql_text) like 'exec sp_executesql @statement=N%' 
+									then substring(ltrim(rtrim(rc.sql_text)),33,len(ltrim(rtrim(rc.sql_text)))-33)
+									when ltrim(rc.sql_text) like 'exec sp_executesql%' 
+									then substring(ltrim(rtrim(rc.sql_text)),22,len(ltrim(rtrim(rc.sql_text)))-22)
+									when rc.sql_text like'%sp_prepexec%'
+									then replace(rc.sql_text,'sp_prepexec','')
+									else rc.sql_text
+									end),
+		q.[grouping-key],
+		rc.sql_text, q.counts, q.cpu_time_seconds_avg, q.logical_reads_gb_avg, duration_seconds_avg, 
 		q.cpu_time_minutes, q.logical_reads_gb, q.duration_minutes, rc.event_name,
 		rc.database_name, rc.client_app_name, rc.username, rc.client_hostname, rc.row_count
-		/* ,q.* ,rc.* */
 from #queries q
-cross apply (select top 1 * from dbo.resource_consumption rc 
+cross apply (select top 1 * from dbo.vw_resource_consumption rc 
 			where rc.event_time between @start_time and @end_time
 			"+(CASE WHEN @database_name IS NULL THEN "--" ELSE "" END)+"and rc.database_name = @database_name
 			and rc.sql_text like ('%'+@table_name+'%')
 			and result = 'OK'
-			and q.[grouping-key] = (case when rc.client_app_name like 'SQL Job = %' then rc.client_app_name else left(DBA_Admin.dbo.normalized_sql_text(rc.sql_text,150,0),@str_length) end)
+			and q.[grouping-key] = (case when rc.client_app_name like 'SQL Job = %' then rc.client_app_name else left(DBA_Admin.dbo.normalized_sql_text((case when ltrim(rc.sql_text) like 'exec sp_executesql @statement=N%' 
+									then substring(ltrim(rtrim(rc.sql_text)),33,len(ltrim(rtrim(rc.sql_text)))-33)
+									when ltrim(rc.sql_text) like 'exec sp_executesql%' 
+									then substring(ltrim(rtrim(rc.sql_text)),22,len(ltrim(rtrim(rc.sql_text)))-22)
+									when rc.sql_text like'%sp_prepexec%'
+									then replace(rc.sql_text,'sp_prepexec','')
+									else rc.sql_text
+									end),150,0),@str_length) end)
 			--order by rc.logical_reads desc
 			) rc
 --where q.[grouping-key] like 'SELECT%'
