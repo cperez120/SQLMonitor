@@ -4,3 +4,7 @@
 /Work/*
 /Volatile/*
 /Private/*
+/Private/Private.ssmssqlproj
+/Sensitive/Sensitive.ssmssqlproj
+/Volatile/Volatile.ssmssqlproj
+/Work/Work.ssmssqlproj
