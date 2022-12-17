@@ -39,6 +39,8 @@ Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Sensitive", "Sensitive\Sens
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Volatile", "Volatile\Volatile.ssmssqlproj", "{A5CA2483-C5C4-4404-AE79-626B5BC78969}"
 EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Work", "Work\Work.ssmssqlproj", "{82F87BA1-D91C-49CD-82F3-853F5B5F96F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Default|Default = Default|Default
@@ -62,6 +64,7 @@ Global
 		{BCE7CD5E-F898-4BE4-98B3-4607D4183B44}.Default|Default.ActiveCfg = Default
 		{8A2FF3CF-CDB2-4948-8482-914924E50584}.Default|Default.ActiveCfg = Default
 		{A5CA2483-C5C4-4404-AE79-626B5BC78969}.Default|Default.ActiveCfg = Default
+		{82F87BA1-D91C-49CD-82F3-853F5B5F96F4}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
