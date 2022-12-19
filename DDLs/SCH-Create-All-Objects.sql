@@ -626,7 +626,7 @@ BEGIN
 		[database_name] [varchar](255) NULL,
 		[client_app_name] [varchar](255) NULL,
 		[username] [varchar](255) NULL,
-		[cpu_time] [bigint] NULL,
+		[cpu_time_ms] [bigint] NULL,
 		[duration_seconds] [bigint] NULL,
 		[logical_reads] [bigint] NULL,
 		[physical_reads] [bigint] NULL,
@@ -700,7 +700,7 @@ go
 ALTER VIEW [dbo].[vw_resource_consumption]
 WITH SCHEMABINDING 
 AS
-SELECT rc.[row_id], rc.[start_time], rc.[event_time], rc.[event_name], rc.[session_id], rc.[request_id], rc.[result], rc.[database_name], rc.[client_app_name], rc.[username], rc.[cpu_time], rc.[duration_seconds], rc.[logical_reads], rc.[physical_reads], rc.[row_count], rc.[writes], rc.[spills], txt.[sql_text], /* rc.[query_hash], rc.[query_plan_hash], */ rc.[client_hostname], rc.[session_resource_pool_id], rc.[session_resource_group_id], rc.[scheduler_id]
+SELECT rc.[row_id], rc.[start_time], rc.[event_time], rc.[event_name], rc.[session_id], rc.[request_id], rc.[result], rc.[database_name], rc.[client_app_name], rc.[username], rc.[cpu_time_ms], rc.[duration_seconds], rc.[logical_reads], rc.[physical_reads], rc.[row_count], rc.[writes], rc.[spills], txt.[sql_text], /* rc.[query_hash], rc.[query_plan_hash], */ rc.[client_hostname], rc.[session_resource_pool_id], rc.[session_resource_group_id], rc.[scheduler_id]
 FROM [dbo].[resource_consumption] rc
 LEFT JOIN [dbo].[resource_consumption_queries] txt
 	ON rc.event_time = txt.event_time
@@ -720,10 +720,10 @@ begin
 
 	insert dbo.resource_consumption
 	(	[row_id], [start_time], [event_time], [event_name], [session_id], [request_id], [result], [database_name], 
-		[client_app_name], [username], [cpu_time], [duration_seconds], [logical_reads], [physical_reads], [row_count], 
+		[client_app_name], [username], [cpu_time_ms], [duration_seconds], [logical_reads], [physical_reads], [row_count], 
 		[writes], [spills], [client_hostname], [session_resource_pool_id], [session_resource_group_id], [scheduler_id] )
 	select [row_id], [start_time], [event_time], [event_name], [session_id], [request_id], [result], [database_name], 
-		[client_app_name], [username], [cpu_time], [duration_seconds], [logical_reads], [physical_reads], [row_count], 
+		[client_app_name], [username], [cpu_time_ms], [duration_seconds], [logical_reads], [physical_reads], [row_count], 
 		[writes], [spills], [client_hostname], [session_resource_pool_id], [session_resource_group_id], [scheduler_id]
 	from inserted;
 

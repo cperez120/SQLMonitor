@@ -137,7 +137,7 @@ BEGIN
 				from t_event_data ed
 			)
 			insert [dbo].[vw_resource_consumption]
-			(	row_id, start_time, event_time, event_name, session_id, request_id, result, database_name, client_app_name, username, cpu_time, duration_seconds, 
+			(	row_id, start_time, event_time, event_name, session_id, request_id, result, database_name, client_app_name, username, cpu_time_ms, duration_seconds, 
 				logical_reads, physical_reads, row_count, writes, spills, sql_text, /* query_hash, query_plan_hash, */
 				client_hostname, session_resource_pool_id, session_resource_group_id, scheduler_id --, context_info
 			)
@@ -152,7 +152,14 @@ BEGIN
 								) + ' ( '+SUBSTRING(LTRIM(RTRIM([client_app_name])), CHARINDEX(': Step ',LTRIM(RTRIM([client_app_name])))+2,LEN(LTRIM(RTRIM([client_app_name])))-CHARINDEX(': Step ',LTRIM(RTRIM([client_app_name])))-2)+' )'
 						ELSE	[client_app_name]
 						END,
-					username, cpu_time, duration_seconds, logical_reads, physical_reads, row_count, 
+					username, 
+					cpu_time_ms = case	when event_name = 'rpc_completed' and convert(int,SERVERPROPERTY('ProductMajorVersion')) >= 11 
+										then cpu_time/1000
+										when event_name = 'sql_batch_completed' and convert(int,SERVERPROPERTY('ProductMajorVersion')) >= 15
+										then cpu_time/1000
+										else cpu_time
+										end, 
+					duration_seconds, logical_reads, physical_reads, row_count, 
 					writes, spills, sql_text, /* query_hash, query_plan_hash, */
 					client_hostname, session_resource_pool_id, session_resource_group_id, scheduler_id--, context_info
 			from t_data_extracted de
