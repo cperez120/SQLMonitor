@@ -241,13 +241,13 @@ $sqlmonitorVersion = '1.3.0'
 $releaseDiscussionURL = "https://ajaydwivedi.com/sqlmonitor/common-errors"
 <#
     v1.3.0 - 2022-Dec-19
-        -> Issue#8 - Dashboard for Database Space Utilization
+        -> Issue#8 - Dashboard for Database Space Utilization (wip)
         -> Issue#62 - Dashboard exposing Resource Consumption (wip)
         -> Issue#156 - Panel for Sessions with High Memory Grants (done)
         -> Issue#189 - Monitoring - Live - Distributed Dashboard - Display Cluster Nodes/Replicas (done)
+        -> Issue#210 - Capture Memory Consumption by Memory Clerks sys.dm_os_memory_clerks (wip)
         -> Issue#214 - Store cpu_time in cpu_time_ms in milliseconds (wip)
         -> Issue#215 - sp_BlitzIndex - Capture in Mode 0,1,2,4 (wip)
-        -> Issue#210 - Capture Memory Consumption by Memory Clerks sys.dm_os_memory_clerks (wip)
     v1.2.1 - 2022-Dec-12
         -> Issue#211 - Capture Unformatted Output - sp_WhoIsActive with @format_output = 0
     v1.2.0 - 2022-Nov-25
