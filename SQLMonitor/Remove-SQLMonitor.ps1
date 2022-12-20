@@ -2951,36 +2951,59 @@ else
 $stepName = '55__DropTable_BlitzIndex'
 if($stepName -in $Steps2Execute) {
     $objName = 'BlitzIndex'
-    $objType = 'table'
+    $objType = 'tables'
     $objTypeTitleCase = (Get-Culture).TextInfo.ToTitleCase("$objType")
 
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     if($DryRun) {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType '$objName'.."
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'DRY RUN:', "Find & remove $objType like '$objName%'.."
     }
     else {
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType '$objName'.."
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO', "Find & remove $objType like '$objName%'.."
     }
-        
+
     $sqlRemoveObject = @"
-if exists (select * from sys.objects where is_ms_shipped= 0 and name = N'$objName')
+if exists (select * from sys.objects where is_ms_shipped = 0 and name like 'BlitzIndex%')
 begin
-	$(if($DryRun){'--'})DROP TABLE [dbo].[$objName]
-    select 1 as object_exists;
+    select 1 as object_exists, [name] as table_name
+    into #BlitzIndex
+    from sys.objects where is_ms_shipped = 0 and name like 'BlitzIndex%';
+
+	  if ($(if($DryRun){'0'}else{'1'}) = 1)
+    begin
+      DROP TABLE [dbo].[BlitzIndex];
+      DROP TABLE [dbo].[BlitzIndex_Mode0];
+      DROP TABLE [dbo].[BlitzIndex_Mode1];
+      DROP TABLE [dbo].[BlitzIndex_Mode4];
+    end
+
+    select [object_exists] = case when o.name is not null then 1 else 0 end,
+        bi.table_name
+    from #BlitzIndex bi left join sys.objects o on bi.table_name = o.name;
 end
 else
-    select 0 as object_exists;
+    select 0 as object_exists, convert(varchar,null) as table_name;
 "@
     $resultRemoveObject = @()
     $resultRemoveObject += Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -Query $sqlRemoveObject -SqlCredential $SqlCredential -EnableException
-    if($resultRemoveObject.Count -gt 0) 
+    if($resultRemoveObject.Count -gt 0)
     {
-        $result = $resultRemoveObject | Select-Object -ExpandProperty object_exists;
-        if($result -eq 1) {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$objTypeTitleCase '$objName' found and removed."
+        $notExistingObjects = @()
+        $stillExistingObjects = @()
+        $foundAndRemovedObjects = @()
+
+        $foundAndRemovedObjects += $resultRemoveObject | Where-Object { ([String]::IsNullOrEmpty($_.table_name) -eq $false) -and ($_.object_exists -eq 0)}
+        $stillExistingObjects += $resultRemoveObject | Where-Object { ([String]::IsNullOrEmpty($_.table_name) -eq $false) -and ($_.object_exists -eq 1)}
+        #$notExistingObjects += $resultRemoveObject | Where-Object { ([String]::IsNullOrEmpty($_.table_name) -eq $false) -and ($_.object_exists -eq 0)}
+
+        if($foundAndRemovedObjects.Count -gt 0) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$($foundAndRemovedObjects.Count) $objTypeTitleCase like '$objName%' found and removed."
         }
-        else {
-            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase '$objName' not found."
+        if($stillExistingObjects.Count -gt 0) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "$($stillExistingObjects.Count) $objTypeTitleCase like '$objName%' found, but could not be removed."
+        }
+        if( ($foundAndRemovedObjects.Count + $stillExistingObjects.Count) -gt 0 ) {
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "$objTypeTitleCase like '$objName%' not found."
         }
     }
 }
