@@ -15,6 +15,18 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
+        <ConnectionNode Name="172.31.15.250:E84947">
+          <Created>2022-12-16T13:46:49.6928176+05:30</Created>
+          <Type>SQL</Type>
+          <Server>172.31.15.250</Server>
+          <UserName>E84947</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="196.1.115.182:E84947">
           <Created>2022-12-08T09:37:38.2059971+05:30</Created>
           <Type>SQL</Type>
@@ -80,14 +92,14 @@
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
         <FileNode Name="QRY-Normalized-Hashed-SqlText.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.182:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>196.1.115.182</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:172.31.15.250:False:E84947</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>172.31.15.250</AssociatedConnSrvName>
           <AssociatedConnUserName>E84947</AssociatedConnUserName>
           <FullPath>QRY-Normalized-Hashed-SqlText.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Assembly-[SQLMonitorAssembly].sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.182:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>196.1.115.182</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:172.31.15.250:False:E84947</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>172.31.15.250</AssociatedConnSrvName>
           <AssociatedConnUserName>E84947</AssociatedConnUserName>
           <FullPath>SCH-Assembly-[SQLMonitorAssembly].sql</FullPath>
         </FileNode>

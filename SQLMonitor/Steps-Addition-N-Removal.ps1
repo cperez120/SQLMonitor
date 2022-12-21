@@ -5,7 +5,7 @@ Param (
     [String]$Action = "AddStep",
 
     [Parameter(Mandatory=$false)]
-    [String]$StepName = "30__DropView_vw_disk_space",
+    [String]$StepName = "56__DropTable_BlitzIndex",
     
     [Parameter(Mandatory=$false)]
     [String[]]$AllSteps = @( "1__RemoveJob_CollectDiskSpace", "2__RemoveJob_CollectOSProcesses", "3__RemoveJob_CollectPerfmonData",
@@ -35,8 +35,8 @@ Param (
     [Bool]$PrintUserFriendlyFormat = $true,
 
     [Parameter(Mandatory=$false)]
-    [String]$ScriptFile = 'F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1'
-                          #'F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1'
+    [String]$ScriptFile = #'F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1'
+                          'F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1'
 )
 
 cls

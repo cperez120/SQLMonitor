@@ -1,11 +1,11 @@
 USE [DBA_Admin]
 -- Find long running statements
-declare @table_name nvarchar(225) = 'V2_Uploaded_Files';
-declare @no_of_days tinyint = 7;
+declare @table_name nvarchar(225) = 'tbl_UserMasterInfo';
+declare @no_of_days tinyint = 20;
 declare @database_name nvarchar(255);
 declare @index_name nvarchar(255);
-declare @duration_threshold_minutes smallint = 5;
-declare @memory_threshold_mb smallint = 500;
+declare @duration_threshold_minutes smallint = 2;
+declare @memory_threshold_mb smallint = 1;
 declare @sql nvarchar(max);
 
 declare @crlf nvarchar(10) = char(13)+char(10);
@@ -23,15 +23,19 @@ t_queries as (
 			--,[optimization_level] = query_plan.value('(/*:ShowPlanXML/*:BatchSequence/*:Batch/*:Statements/*:StmtSimple)[1]/@StatementOptmLevel', 'sysname')
 			--,[early_abart_reason] = query_plan.value('(/*:ShowPlanXML/*:BatchSequence/*:Batch/*:Statements/*:StmtSimple)[1]/@StatementOptmEarlyAbortReason', 'sysname')
 			--,[CardinalityEstimationModelVersion] = query_plan.value('(/*:ShowPlanXML/*:BatchSequence/*:Batch/*:Statements/*:StmtSimple)[1]/@CardinalityEstimationModelVersion','int')
-			,[used_memory_mb] = convert(numeric(20,2),convert(bigint,replace(used_memory,',',''))*8.0/1024)
+			,[used_memory_mb] = used_memory*8.0/1024
+			,[granted_memory_mb] = granted_memory*8.0/1024
+			,[duration_minutes] = DATEDIFF_BIG(MILLISECOND,start_time,collection_time)/1000/60
+			,[duration_ms] = DATEDIFF_BIG(MILLISECOND,start_time,collection_time)
 	from dbo.WhoIsActive w	
 	where w.collection_time >= dateadd(day,-@no_of_days,getdate()) and w.collection_time <= getdate()
 	and additional_info.value('(/additional_info/command_type)[1]','varchar(50)') not in ('ALTER INDEX','UPDATE STATISTICS','DBCC','BACKUP LOG','BACKUP DATABASE')
 	"+(case when @database_name is null then "--" else '' end)+"and w.database_name = @database_name
 	and (	convert(nvarchar(max),w.sql_text) like ('%[[. ]'+@table_name+'[!] ]%') escape '!'
+			or convert(nvarchar(max),w.sql_command) like ('%[[. ]'+@table_name+'[!] ]%') escape '!'
 			or convert(nvarchar(max),w.query_plan) like ('%Table=""!['+@table_name+'!]""%') escape '!'
 		)
-	--and duration_minutes >= @duration_threshold_minutes
+	and w.start_time <= dateadd(minute,-@duration_threshold_minutes,w.collection_time)
 	--and convert(varchar(max),w.query_plan) like ('%Database=""!['+@database_name+'!]"" Schema=""![dbo!]"" Table=""!['+@table_name+'!]"" Index=""!['+@index_name+'!]""%""') escape '!'
 )
 ,t_capture_interval as (
@@ -57,7 +61,9 @@ t_queries as (
 	from t_queries w
 	--where [used_memory_mb] > @memory_threshold_mb
 )
-select top 1000 [collection_time], [dd hh:mm:ss.mss], [query_identifier],[capture_interval_sec],
+select top 1000 [collection_time], --[dd hh:mm:ss.mss], 
+		[dd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),3)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114),
+		[query_identifier],[capture_interval_sec],
 		--[qry_time_min(~)] = ceiling([query_hash_count]*[capture_interval_sec]/60), 
 		[query_hash_count],
 		[session_id], [blocking_session_id], [command_type], [sql_text], [query_hash], 
@@ -72,13 +78,15 @@ option (recompile);
 "
 set quoted_identifier on;
 
+print @sql
+
 exec sp_ExecuteSql @sql, N'@table_name nvarchar(225),
-						@no_of_days tinyint = 7,
-						@database_name nvarchar(255) = NULL, 
-						@index_name nvarchar(255) = NULL, 
-						@duration_threshold_minutes smallint = 5,
-						@memory_threshold_mb smallint = 500', 
-						@table_name, @no_of_days /*, @database_name, @index_name, @duration_threshold_minutes, @memory_threshold_mb */
+						@no_of_days tinyint,
+						@database_name nvarchar(255), 
+						@index_name nvarchar(255), 
+						@duration_threshold_minutes smallint,
+						@memory_threshold_mb smallint', 
+						@table_name, @no_of_days , @database_name, @index_name, @duration_threshold_minutes, @memory_threshold_mb
 /*
 select top 10000 sql_text2 = convert(xml,(select sql_text for xml path(''))),*
 from dbo.resource_consumption rc

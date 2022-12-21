@@ -31,9 +31,15 @@ Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "SQLMonitor", "SQLMonitor\SQ
 EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "TSQLTextNormalizer", "TSQLTextNormalizer\TSQLTextNormalizer.ssmssqlproj", "{8361BF0D-D5D7-41F5-A572-E81A55DED3E0}"
 EndProject
-Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Org-Project-196", "Org-Project-196\Org-Project-196.ssmssqlproj", "{2274180E-7145-420B-AC10-7F94780C22D0}"
-EndProject
 Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "z__POC__z", "z__POC__z\z__POC__z.ssmssqlproj", "{0C31F870-692A-460E-9B58-84F20276D137}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Private", "Private\Private.ssmssqlproj", "{BCE7CD5E-F898-4BE4-98B3-4607D4183B44}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Sensitive", "Sensitive\Sensitive.ssmssqlproj", "{8A2FF3CF-CDB2-4948-8482-914924E50584}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Volatile", "Volatile\Volatile.ssmssqlproj", "{A5CA2483-C5C4-4404-AE79-626B5BC78969}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "Work", "Work\Work.ssmssqlproj", "{82F87BA1-D91C-49CD-82F3-853F5B5F96F4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -54,9 +60,11 @@ Global
 		{D2134DE5-7115-43EF-828C-15557CAEF230}.Default|Default.ActiveCfg = Default
 		{A2809BF5-2DC1-4625-8138-85BD21CCC063}.Default|Default.ActiveCfg = Default
 		{8361BF0D-D5D7-41F5-A572-E81A55DED3E0}.Default|Default.ActiveCfg = Default
-		{2274180E-7145-420B-AC10-7F94780C22D0}.Default|Default.ActiveCfg = Default
-		{B501736F-5222-4D60-9E93-E48AE71BB826}.Default|Default.ActiveCfg = Default
 		{0C31F870-692A-460E-9B58-84F20276D137}.Default|Default.ActiveCfg = Default
+		{BCE7CD5E-F898-4BE4-98B3-4607D4183B44}.Default|Default.ActiveCfg = Default
+		{8A2FF3CF-CDB2-4948-8482-914924E50584}.Default|Default.ActiveCfg = Default
+		{A5CA2483-C5C4-4404-AE79-626B5BC78969}.Default|Default.ActiveCfg = Default
+		{82F87BA1-D91C-49CD-82F3-853F5B5F96F4}.Default|Default.ActiveCfg = Default
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

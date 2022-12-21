@@ -10,6 +10,7 @@ $params = @{
     #HostName = 'Workstation'
     #RetentionDays = 7
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
+    #FirstResponderKitZipFile = 'F:\GitHub\SQL-Server-First-Responder-Kit-20221213main.zip'
     #RemoteSQLMonitorPath = 'C:\SQLMonitor'
     InventoryServer = 'SQLMonitor'
     InventoryDatabase = 'DBA'
@@ -24,10 +25,11 @@ $params = @{
                 "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData",
                 "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobCollectFileIOStats",
                 "19__CreateJobPartitionsMaintenance", "20__CreateJobPurgeTables", "21__CreateJobRemoveXEventFiles",
-                "22__CreateJobRunWhoIsActive", "23__CreateJobRunBlitzIndex", "24__CreateJobUpdateSqlServerVersions",
-                "25__CreateJobCheckInstanceAvailability", "26__CreateJobGetAllServerInfo", "27__WhoIsActivePartition",
-                "28__BlitzIndexPartition", "29__EnablePageCompression", "30__GrafanaLogin",
-                "31__LinkedServerOnInventory", "32__LinkedServerForDataDestinationInstance", "33__AlterViewsForDataDestinationInstance"
+                "22__CreateJobRunWhoIsActive", "23__CreateJobRunBlitzIndex", "24__CreateJobRunBlitzIndexWeekly",
+                "25__CreateJobUpdateSqlServerVersions", "26__CreateJobCheckInstanceAvailability", "27__CreateJobGetAllServerInfo",
+                "28__WhoIsActivePartition", "29__BlitzIndexPartition", "30__EnablePageCompression",
+                "31__GrafanaLogin", "32__LinkedServerOnInventory", "33__LinkedServerForDataDestinationInstance",
+                "34__AlterViewsForDataDestinationInstance")
     #>
     #SkipSteps = @("21__CreateJobRemoveXEventFiles","32__LinkedServerForDataDestinationInstance")
     #StartAtStep = '1__sp_WhoIsActive'
