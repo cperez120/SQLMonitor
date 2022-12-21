@@ -116,7 +116,7 @@
             ]
           },
           "gridPos": {
-            "h": 9,
+            "h": 11,
             "w": 24,
             "x": 0,
             "y": 1
@@ -605,7 +605,7 @@
             ]
           },
           "gridPos": {
-            "h": 10,
+            "h": 11,
             "w": 24,
             "x": 0,
             "y": 3
@@ -848,7 +848,7 @@
             ]
           },
           "gridPos": {
-            "h": 10,
+            "h": 11,
             "w": 24,
             "x": 0,
             "y": 4
@@ -1103,7 +1103,7 @@
             ]
           },
           "gridPos": {
-            "h": 10,
+            "h": 11,
             "w": 24,
             "x": 0,
             "y": 5
@@ -1626,7 +1626,7 @@
             ]
           },
           "gridPos": {
-            "h": 8,
+            "h": 12,
             "w": 24,
             "x": 0,
             "y": 7
@@ -1676,7 +1676,7 @@
               }
             }
           ],
-          "title": "Memory Consumers Over __ $memory_grant_threshold_mb MB__ \"- WhoIsActive Data - Between ___${__from:date:YYYY-MM-DD HH.mm}___&___${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}___",
+          "title": "WhoIsactive - FILTERED - [Memory Consumers] - Over __ $memory_grant_threshold_mb MB__ -  PAGINATED - Between ___${__from:date:YYYY-MM-DD HH.mm}___&___${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}___",
           "type": "table"
         }
       ],
@@ -1891,7 +1891,7 @@
             ]
           },
           "gridPos": {
-            "h": 8,
+            "h": 12,
             "w": 24,
             "x": 0,
             "y": 8
@@ -2160,6 +2160,11 @@
         "name": "duration",
         "options": [
           {
+            "selected": false,
+            "text": "0",
+            "value": "0"
+          },
+          {
             "selected": true,
             "text": "1",
             "value": "1"
@@ -2235,7 +2240,7 @@
             "value": "480"
           }
         ],
-        "query": "1,2,5,10,15,20,30,45,60,90,120,180,260,300,480",
+        "query": "0,1,2,5,10,15,20,30,45,60,90,120,180,260,300,480",
         "queryValue": "",
         "skipUrlSync": false,
         "type": "custom"
@@ -2316,8 +2321,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1671076183437",
-          "value": "1671076183437"
+          "text": "1671627523218",
+          "value": "1671627523218"
         },
         "datasource": {
           "type": "mssql",
@@ -2348,8 +2353,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1671076206557",
-          "value": "1671076206557"
+          "text": "1671627518323",
+          "value": "1671627518323"
         },
         "datasource": {
           "type": "mssql",
@@ -2580,6 +2585,6 @@
   "timezone": "browser",
   "title": "WhoIsActive - SQL Server Queries - Workload",
   "uid": "WhoIsActive",
-  "version": 89,
+  "version": 92,
   "weekStart": ""
 }

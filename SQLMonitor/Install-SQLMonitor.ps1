@@ -31,6 +31,12 @@ Param (
     [String]$DbaToolsFolderPath,
 
     [Parameter(Mandatory=$false)]
+    [String]$FirstResponderKitZipFile,
+
+    [Parameter(Mandatory=$false)]
+    [String]$DarlingDataZipFile,
+
+    [Parameter(Mandatory=$false)]
     [String]$RemoteSQLMonitorPath = 'C:\SQLMonitor',
 
     [Parameter(Mandatory=$false)]
@@ -1367,7 +1373,12 @@ $stepName = '4__FirstResponderKitObjects'
 if($stepName -in $Steps2Execute) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating FirstResponderKit Objects in [master] database.."
-    Install-DbaFirstResponderKit -SqlInstance $SqlInstanceToBaseline -Database master -EnableException -SqlCredential $SqlCredential -Verbose:$false -Debug:$false | Format-Table -AutoSize
+    if([String]::IsNullOrEmpty($FirstResponderKitZipFile)) {
+        Install-DbaFirstResponderKit -SqlInstance $SqlInstanceToBaseline -Database master -EnableException -SqlCredential $SqlCredential -Verbose:$false -Debug:$false | Format-Table -AutoSize
+    }
+    else {
+        Install-DbaFirstResponderKit -SqlInstance $SqlInstanceToBaseline -Database master -LocalFile $FirstResponderKitZipFile -EnableException -SqlCredential $SqlCredential -Verbose:$false -Debug:$false | Format-Table -AutoSize
+    }
 }
 
 
@@ -1376,7 +1387,12 @@ $stepName = '5__DarlingDataObjects'
 if($stepName -in $Steps2Execute) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating DarlingData Objects in [master] database.."
-    Install-DbaDarlingData -SqlInstance $SqlInstanceToBaseline -Database master -SqlCredential $SqlCredential -EnableException | Format-Table -AutoSize
+    if([String]::IsNullOrEmpty($DarlingDataZipFile)) {
+        Install-DbaDarlingData -SqlInstance $SqlInstanceToBaseline -Database master -SqlCredential $SqlCredential -EnableException | Format-Table -AutoSize
+    }
+    else {
+        Install-DbaDarlingData -SqlInstance $SqlInstanceToBaseline -Database master -LocalFile $DarlingDataZipFile -SqlCredential $SqlCredential -EnableException | Format-Table -AutoSize
+    }
 }
 
 

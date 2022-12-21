@@ -2188,6 +2188,11 @@
         "name": "duration",
         "options": [
           {
+            "selected": false,
+            "text": "0",
+            "value": "0"
+          },
+          {
             "selected": true,
             "text": "1",
             "value": "1"
@@ -2263,7 +2268,7 @@
             "value": "480"
           }
         ],
-        "query": "1,2,5,10,15,20,30,45,60,90,120,180,260,300,480",
+        "query": "0,1,2,5,10,15,20,30,45,60,90,120,180,260,300,480",
         "queryValue": "",
         "skipUrlSync": false,
         "type": "custom"
@@ -2596,6 +2601,6 @@
   "timezone": "browser",
   "title": "WhoIsActive - SQL Server Queries - Workload",
   "uid": "WhoIsActive",
-  "version": 90,
+  "version": 92,
   "weekStart": ""
 }

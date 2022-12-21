@@ -10,6 +10,7 @@ $params = @{
     #HostName = 'Workstation'
     #RetentionDays = 7
     DbaToolsFolderPath = 'F:\GitHub\dbatools'
+    #FirstResponderKitZipFile = 'F:\GitHub\SQL-Server-First-Responder-Kit-20221213main.zip'
     #RemoteSQLMonitorPath = 'C:\SQLMonitor'
     InventoryServer = 'SQLMonitor'
     InventoryDatabase = 'DBA'
