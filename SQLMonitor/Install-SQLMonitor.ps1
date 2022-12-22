@@ -319,6 +319,12 @@ if($OnlySteps.Count -gt 0 -and $SkipSteps.Count -gt 0) {
     Write-Error "Stop here. Fix above issue."
 }
 
+# Print warning if OnlySteps are provided
+if($OnlySteps.Count -gt 0) {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Parameter {OnlySteps} has been provided.`n`tThis parameter is mutually exclusive with other parameters.`n`tSo overrides all other parameters." | Write-Host -ForegroundColor Yellow
+    Write-Warning "ATTENTION Required on above message."
+}
+
 
 # Add $PowerShellJobSteps to Skip Jobs
 if($SkipPowerShellJobs) {
@@ -471,6 +477,12 @@ $Steps2Execute += $Steps2ExecuteRaw | ForEach-Object {
                             }
                             if($passThrough) {$_}
                         }
+
+if($OnlySteps.Count -gt 0) {
+    # Override Steps to Execute by OnlySteps parameter value
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Override `$Steps2Execute with value from `$OnlySteps.."
+    $Steps2Execute = $OnlySteps
+}
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$StartAtStep -> $StartAtStep.."
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$StopAtStep -> $StopAtStep.."
