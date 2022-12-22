@@ -1165,12 +1165,14 @@ if($stepName -in $Steps2Execute) {
     if($SqlInstanceToBaseline -ne $SqlInstanceForTsqlJobs) {
         $objNameNew = "$objName - $SqlInstanceToBaseline"
     }
-        
+
     $sqlRemoveObject = @"
-if exists (select * from msdb.dbo.sysjobs_view where name = N'$objNameNew')
+if exists (select * from msdb.dbo.sysjobs_view where name like '$objNameNew%')
 begin
 	$(if($DryRun){'--'})EXEC msdb.dbo.sp_delete_job @job_name=N'$objNameNew', @delete_unused_schedule=1;
+  $(if($DryRun){'--'})EXEC msdb.dbo.sp_delete_job @job_name=N'$objNameNew - Weekly', @delete_unused_schedule=1;
     select 1 as object_exists;
+
 end
 else
     select 0 as object_exists;
