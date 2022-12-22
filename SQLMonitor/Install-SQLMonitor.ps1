@@ -1242,7 +1242,9 @@ if($stepName -in $Steps2Execute)
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Update objects on Inventory Server.."
         $InventorySpecificObjectsFileText = [System.IO.File]::ReadAllText($InventorySpecificObjectsFilePath)
         $dbaDatabaseParentPath = Split-Path $dbaDatabasePath -Parent
-        $InventorySpecificObjectsFileText = $InventorySpecificObjectsFileText.Replace('E:\Data\MemoryOptimized.ndf', "$(Join-Path $dbaDatabaseParentPath 'MemoryOptimized.ndf')")
+        $memoryOptimizedFilePath = if($dbaDatabaseParentPath -notmatch '\\$') { "$dbaDatabaseParentPath\MemoryOptimized.ndf" } else { "$($dabaDatabaseParentPath)MemoryOptimized.ndf" }
+        #$InventorySpecificObjectsFileText = $InventorySpecificObjectsFileText.Replace('E:\Data\MemoryOptimized.ndf', "$(Join-Path $dbaDatabaseParentPath 'MemoryOptimized.ndf')")
+        $InventorySpecificObjectsFileText = $InventorySpecificObjectsFileText.Replace('E:\Data\MemoryOptimized.ndf', $memoryOptimizedFilePath)
         Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $InventorySpecificObjectsFileText -SqlCredential $SqlCredential -EnableException
     }
 
@@ -1466,10 +1468,12 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$GetAllServerInfoFilePath = '$GetAllServerInfoFilePath'"
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating usp_GetAllServerInfo procedure in [$DbaDatabase] database.."
     if([String]::IsNullOrEmpty($SqlCredential)) {
-        Invoke-Sqlcmd -ServerInstance $InventoryServer -Database $InventoryDatabase -InputFile $GetAllServerInfoFilePath
+        #Invoke-Sqlcmd -ServerInstance $InventoryServer -Database $InventoryDatabase -InputFile $GetAllServerInfoFilePath
+        Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -File $GetAllServerInfoFilePath
     }
     else {
-        Invoke-Sqlcmd -ServerInstance $InventoryServer -Database $InventoryDatabase -InputFile $GetAllServerInfoFilePath -Credential $SqlCredential
+        #Invoke-Sqlcmd -ServerInstance $InventoryServer -Database $InventoryDatabase -InputFile $GetAllServerInfoFilePath -Credential $SqlCredential
+        Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -File $GetAllServerInfoFilePath -SqlCredential $SqlCredential
     }
     #Invoke-DbaQuery -SqlInstance $InventoryServer -Database $DbaDatabase -File $GetAllServerInfoFilePath -EnableException
 }
