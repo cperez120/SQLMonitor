@@ -2971,10 +2971,14 @@ begin
 
 	  if ($(if($DryRun){'0'}else{'1'}) = 1)
     begin
-      DROP TABLE [dbo].[BlitzIndex];
-      DROP TABLE [dbo].[BlitzIndex_Mode0];
-      DROP TABLE [dbo].[BlitzIndex_Mode1];
-      DROP TABLE [dbo].[BlitzIndex_Mode4];
+      IF OBJECT_ID('[dbo].[BlitzIndex]') IS NOT NULL
+          EXEC ('DROP TABLE [dbo].[BlitzIndex]');
+      IF OBJECT_ID('[dbo].[BlitzIndex_Mode0]') IS NOT NULL
+          EXEC ('DROP TABLE [dbo].[BlitzIndex_Mode0]');
+      IF OBJECT_ID('[dbo].[BlitzIndex_Mode1]') IS NOT NULL
+          EXEC ('DROP TABLE [dbo].[BlitzIndex_Mode1]');
+      IF OBJECT_ID('[dbo].[BlitzIndex_Mode4]') IS NOT NULL
+          EXEC ('DROP TABLE [dbo].[BlitzIndex_Mode4]');
     end
 
     select [object_exists] = case when o.name is not null then 1 else 0 end,
