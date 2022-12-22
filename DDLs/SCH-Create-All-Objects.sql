@@ -175,6 +175,42 @@ begin
 end
 go
 
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.BlitzIndex_Mode0')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.BlitzIndex_Mode0', 
+			date_key = 'run_datetime', 
+			retention_days = 90, 
+			purge_row_size = 100000,
+			reference = 'SQLMonitor Data Collection'
+end
+go
+
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.BlitzIndex_Mode1')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.BlitzIndex_Mode1', 
+			date_key = 'run_datetime', 
+			retention_days = 365, 
+			purge_row_size = 100000,
+			reference = 'SQLMonitor Data Collection'
+end
+go
+
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.BlitzIndex_Mode4')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.BlitzIndex_Mode4', 
+			date_key = 'run_datetime', 
+			retention_days = 90, 
+			purge_row_size = 100000,
+			reference = 'SQLMonitor Data Collection'
+end
+go
+
 
 
 /* ***** 4) Create table dbo.instance_hosts ***************************** */
