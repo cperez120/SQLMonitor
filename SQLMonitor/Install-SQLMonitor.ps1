@@ -196,6 +196,21 @@ Param (
     [String]$StopAtStep,
 
     [Parameter(Mandatory=$false)]
+    [ValidateSet("1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
+                "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__OlaHallengrenSolutionObjects",
+                "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
+                "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateCredentialProxy",
+                "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData",
+                "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobCollectFileIOStats",
+                "19__CreateJobPartitionsMaintenance", "20__CreateJobPurgeTables", "21__CreateJobRemoveXEventFiles",
+                "22__CreateJobRunWhoIsActive", "23__CreateJobRunBlitzIndex", "24__CreateJobRunBlitzIndexWeekly",
+                "25__CreateJobUpdateSqlServerVersions", "26__CreateJobCheckInstanceAvailability", "27__CreateJobGetAllServerInfo",
+                "28__WhoIsActivePartition", "29__BlitzIndexPartition", "30__EnablePageCompression",
+                "31__GrafanaLogin", "32__LinkedServerOnInventory", "33__LinkedServerForDataDestinationInstance",
+                "34__AlterViewsForDataDestinationInstance")]
+    [String]$OnlySteps,
+
+    [Parameter(Mandatory=$false)]
     [PSCredential]$SqlCredential,
 
     [Parameter(Mandatory=$false)]
@@ -297,6 +312,18 @@ $PowerShellJobSteps = @(
 
 # RDPSessionSteps
 $RDPSessionSteps = @("9__CopyDbaToolsModule2Host", "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector")
+
+# Validate to ensure either of Skip Or Only Steps are provided
+if($OnlySteps.Count -gt 0 -and $SkipSteps.Count -gt 0) {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'ERROR:', "Parameters {OnlySteps} & {SkipSteps} are mutually exclusive.`n`tOnly one of these should be provided." | Write-Host -ForegroundColor Red
+    Write-Error "Stop here. Fix above issue."
+}
+
+# Print warning if OnlySteps are provided
+if($OnlySteps.Count -gt 0) {
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Parameter {OnlySteps} has been provided.`n`tThis parameter is mutually exclusive with other parameters.`n`tSo overrides all other parameters." | Write-Host -ForegroundColor Yellow
+    Write-Warning "ATTENTION Required on above message."
+}
 
 
 # Add $PowerShellJobSteps to Skip Jobs
@@ -450,6 +477,12 @@ $Steps2Execute += $Steps2ExecuteRaw | ForEach-Object {
                             }
                             if($passThrough) {$_}
                         }
+
+if($OnlySteps.Count -gt 0) {
+    # Override Steps to Execute by OnlySteps parameter value
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Override `$Steps2Execute with value from `$OnlySteps.."
+    $Steps2Execute = $OnlySteps
+}
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$StartAtStep -> $StartAtStep.."
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$StopAtStep -> $StopAtStep.."
