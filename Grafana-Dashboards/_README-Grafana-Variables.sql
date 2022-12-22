@@ -9,6 +9,12 @@ https://grafana.com/docs/grafana/v9.0/variables/syntax/
 
 d/distributed_live_dashboard?var-server=${__data.fields.srv_name}
 d/wait_stats?var-server=${server}
+
+Data Links - WaitType
+https://www.sqlskills.com/help/waits/${__value.raw}
+
+Data Links - Absolute URL
+${__data.fields.url}
 */
 
 Grafana Variables
