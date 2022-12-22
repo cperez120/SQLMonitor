@@ -208,7 +208,7 @@ Param (
                 "28__WhoIsActivePartition", "29__BlitzIndexPartition", "30__EnablePageCompression",
                 "31__GrafanaLogin", "32__LinkedServerOnInventory", "33__LinkedServerForDataDestinationInstance",
                 "34__AlterViewsForDataDestinationInstance")]
-    [String]$OnlySteps,
+    [String[]]$OnlySteps,
 
     [Parameter(Mandatory=$false)]
     [PSCredential]$SqlCredential,
@@ -312,6 +312,8 @@ $PowerShellJobSteps = @(
 
 # RDPSessionSteps
 $RDPSessionSteps = @("9__CopyDbaToolsModule2Host", "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector")
+
+Write-Debug "Before `$OnlySteps Validation"
 
 # Validate to ensure either of Skip Or Only Steps are provided
 if($OnlySteps.Count -gt 0 -and $SkipSteps.Count -gt 0) {
@@ -2325,6 +2327,10 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     Path of SQLMonitor tool parent folder. This is the folder that contains other folders/files like Alerting, Credential-Manager, DDLs, SQLMonitor, Inventory etc.
     .PARAMETER DbaToolsFolderPath
     Local directory path of dbatools powershell module that was downloaded locally from github https://github.com/dataplat/dbatools.
+    .PARAMETER FirstResponderKitZipFile
+    Specifies the path to a local file to install FRK from. This should be the zip file as distributed by the maintainers. If this parameter is not specified, the latest version will be downloaded and installed from https://github.com/BrentOzarULTD/SQL-Server-First-Responder-Kit
+    .PARAMETER DarlingDataZipFile
+    Specifies the path to a local file to install from. This should be the zip file as distributed by the maintainers. If this parameter is not specified, the latest version will be downloaded and installed from https://github.com/erikdarlingdata/DarlingData
     .PARAMETER RemoteSQLMonitorPath
     Desired SQLMonitor folder location on [SqlInstanceToBaseline] or [SqlInstanceForDataCollectionJobs]. At this path, folder SQLMonitor\SQLMonitor would be copied. On target instance, all the SQL Agent jobs would call the scripts from this folder.
     .PARAMETER MailProfileFileName
@@ -2395,6 +2401,8 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     Starts the baselining automation on this step. If no value provided, then baselining starts with 1st step.
     .PARAMETER SkipSteps
     List of steps that should be skipped in the baselining automation.
+    .PARAMETER OnlySteps
+    List of steps that should be the only steps to be executed. This parameter has highest precedence and overrides other settings.
     .PARAMETER StopAtStep
     End the baselining automation on this step. If no value provided, then baselining finishes with last step.
     .PARAMETER SqlCredential
