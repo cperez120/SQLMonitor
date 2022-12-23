@@ -313,7 +313,6 @@ $PowerShellJobSteps = @(
 # RDPSessionSteps
 $RDPSessionSteps = @("9__CopyDbaToolsModule2Host", "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector")
 
-Write-Debug "Before `$OnlySteps Validation"
 
 # Validate to ensure either of Skip Or Only Steps are provided
 if($OnlySteps.Count -gt 0 -and $SkipSteps.Count -gt 0) {
@@ -576,7 +575,12 @@ if($dbServiceInfo.ProductVersion -match "(?'MajorVersion'\d+)\.\d+\.(?'MinorVers
 [bool]$isClustered = $dbServiceInfo.is_clustered
 [string]$domain = $dbServiceInfo.domain_reg
 if([String]::IsNullOrEmpty($domain)) {
-    $domain = $dbServiceInfo.domain+'.com'
+    if($dbServiceInfo.domain -ne 'WORKGROUP') {
+        $domain = $dbServiceInfo.domain+'.com'
+    }
+    else {
+        $domain = $dbServiceInfo.domain
+    }
 }
 
 # Get dbo.instance_details info
@@ -720,7 +724,6 @@ else {
     }
 }
 
-
 # Setup PSSession on HostName to setup Perfmon Data Collector. $ssn4PerfmonSetup
 if( (-not $SkipRDPSessionSteps) ) #-and ($HostName -ne $env:COMPUTERNAME)
 {
@@ -729,14 +732,16 @@ if( (-not $SkipRDPSessionSteps) ) #-and ($HostName -ne $env:COMPUTERNAME)
 
     # Try reaching server using HostName provided/detected, if fails, then use FQDN
     if (-not (Test-Connection -ComputerName $ssnHostName -Quiet -Count 1)) {
-        $ssnHostName = "$HostName.$domain"
-        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Host [$HostName] not pingable. So trying FQDN form [$ssnHostName].."
+        if($domain -ne 'WORKGROUP.com' -and $domain -ne 'WORKGROUP') {
+            $ssnHostName = "$HostName.$domain"
+            "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Host [$HostName] not pingable. So trying FQDN form [$ssnHostName].."
+        }
     }
 
     # Try reaching using FQDN, if fails & not a clustered instance, then use SqlInstanceToBaseline itself
     if ( (-not (Test-Connection -ComputerName $ssnHostName -Quiet -Count 1)) -and (-not $isClustered) ) {
-        $ssnHostName = $SqlInstanceToBaseline
         "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Host [$ssnHostName] not pingable. Since its not clustered instance, So trying `$SqlInstanceToBaseline parameter value itself.."
+        $ssnHostName = $SqlInstanceToBaseline
     }
 
     # If not reachable after all attempts, raise error
@@ -770,14 +775,14 @@ if( (-not $SkipRDPSessionSteps) ) #-and ($HostName -ne $env:COMPUTERNAME)
     }
 
     # 3rd Attempt with Credentials
-    if( [String]::IsNullOrEmpty($ssn) -and (-not [String]::IsNullOrEmpty($WindowsCredential)) ) {
+    if( [String]::IsNullOrEmpty($ssn4PerfmonSetup) -and (-not [String]::IsNullOrEmpty($WindowsCredential)) ) {
         try {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Attemping PSSession for [$ssnHostName] using provided WindowsCredentials.."
             $ssn4PerfmonSetup = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential    
         }
         catch { $errVariables += $_ }
 
-        if( [String]::IsNullOrEmpty($ssn) ) {
+        if( [String]::IsNullOrEmpty($ssn4PerfmonSetup) ) {
             "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Attemping PSSession for [$ssnHostName] using provided WindowsCredentials with Negotiate attribute.."
             $ssn4PerfmonSetup = New-PSSession -ComputerName $ssnHostName -Credential $WindowsCredential -Authentication Negotiate
         }
@@ -1622,9 +1627,11 @@ if($stepName -in $Steps2Execute)
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectDiskSpaceJobFilePath = '$CollectDiskSpaceJobFilePath'"
     
+    Write-Debug "Debug $stepName"
+
     # Append HostName if Job Server is different    
     $jobNameNew = $jobName
-    if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -and ($HostName -ne $jobServerDbServiceInfo.host_name) ) {
+    if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -or ($HostName -ne $jobServerDbServiceInfo.host_name) ) {
         $jobNameNew = "$jobName - $HostName"
     }    
 
@@ -1665,7 +1672,7 @@ if($stepName -in $Steps2Execute)
 
     # Append HostName if Job Server is different    
     $jobNameNew = $jobName
-    if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -and ($HostName -ne $jobServerDbServiceInfo.host_name) ) {
+    if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -or ($HostName -ne $jobServerDbServiceInfo.host_name) ) {
         $jobNameNew = "$jobName - $HostName"
     }   
 
@@ -1706,7 +1713,7 @@ if($stepName -in $Steps2Execute)
 
     # Append HostName if Job Server is different    
     $jobNameNew = $jobName
-    if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -and ($HostName -ne $jobServerDbServiceInfo.host_name) ) {
+    if( ($SqlInstanceToBaseline -ne $SqlInstanceForPowershellJobs) -or ($HostName -ne $jobServerDbServiceInfo.host_name) ) {
         $jobNameNew = "$jobName - $HostName"
     }
 
