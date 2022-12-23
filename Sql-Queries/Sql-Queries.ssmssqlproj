@@ -530,9 +530,9 @@
           <FullPath>SCH-Change-Table-Partition-Scheme.sql</FullPath>
         </FileNode>
         <FileNode Name="SQLMonitor-Upgrade.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
-          <AssociatedConnUserName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:172.31.25.106:False:E84947</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>172.31.25.106</AssociatedConnSrvName>
+          <AssociatedConnUserName>E84947</AssociatedConnUserName>
           <FullPath>SQLMonitor-Upgrade.sql</FullPath>
         </FileNode>
         <FileNode Name="what-is-running-whoisactive.sql">
