@@ -163,7 +163,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 1
+            "y": 17
           },
           "id": 132,
           "options": {
@@ -215,6 +215,224 @@
         "w": 24,
         "x": 0,
         "y": 1
+      },
+      "id": 145,
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "description": "Blocking Details____In Selected Time Duration____Since____${__from:date:YYYY-MM-DD HH.mm}___till___${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}____",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto",
+                "filterable": true,
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "BLOCKING_TREE"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 308
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "CPU"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "ms"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "writes"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "used_memory_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "used_memory"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "reads_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "reads"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tempdb_allocations_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "tempdb_allocations"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "tempdb_current_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "tempdb_current"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "granted_memory_kb"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "granted_memory"
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 1
+          },
+          "id": 143,
+          "options": {
+            "footer": {
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": [
+              {
+                "desc": false,
+                "displayName": "collection_time"
+              }
+            ]
+          },
+          "pluginVersion": "9.2.5",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLMONITOR}"
+              },
+              "editorMode": "code",
+              "format": "table",
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\n-- Get Blocking Tree\nif exists (select * from dbo.WhoIsActive where (collection_time between DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @start_time_utc) and DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @end_time_utc)) and (blocking_session_id is not null or replace(blocked_session_count,',','') > 0) )\nbegin\n\t;WITH T_BLOCKERS AS\n\t(\n\t\t-- Find block Leaders\n\t\tSELECT\tdatediff(MILLISECOND, start_time, getdate()) as duration_ms,\n\t\t\t\t[collection_time], [session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE([sql_command],[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), [login_name], wait_info, [blocking_session_id], [blocked_session_count] = replace(blocked_session_count,',',''),\n\t\t\t\t[status], open_tran_count, [host_name], [database_name], [program_name], tasks, granted_memory,\n\t\t\t\tr.CPU, r.used_memory, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\t[LEVEL] = CAST (REPLICATE ('0', 4-LEN (CAST (r.session_id AS VARCHAR))) + CAST (r.session_id AS VARCHAR) AS VARCHAR (1000))\n\t\t\t\t,[head_blocker] = session_id\n\t\tFROM\tdbo.WhoIsActive AS r with (nolock)\n\t\tWHERE\t (collection_time between DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @start_time_utc) and DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @end_time_utc))\n\t\tand (r.blocking_session_id IS NULL AND replace(blocked_session_count,',','') > 0)\n\t\t--\t\n\t\tUNION ALL\n\t\t--\n\t\tSELECT\tdatediff(MILLISECOND, r.start_time, getdate()) as duration_ms,\n\t\t\t\tr.[collection_time], r.[session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE(r.[sql_command],r.[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = r.additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), r.[login_name], r.wait_info, r.[blocking_session_id], [blocked_session_count] = replace(r.blocked_session_count,',',''),\n\t\t\t\tr.[status], r.open_tran_count, r.[host_name], r.[database_name], r.[program_name], r.tasks, r.granted_memory,\n\t\t\t\tr.CPU, r.used_memory, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\tCAST (B.LEVEL + RIGHT (CAST ((1000 + r.session_id) AS VARCHAR (100)), 4) AS VARCHAR (1000)) AS LEVEL\n\t\t\t\t,[head_blocker] = case when B.[head_blocker] is null then B.session_id else B.[head_blocker] end\n\t\tFROM\tdbo.WhoIsActive AS r with (nolock)\n\t\tINNER JOIN \n\t\t\t\tT_BLOCKERS AS B\n\t\t\tON\tr.collection_time = B.collection_time\n\t\t\tAND\tr.blocking_session_id = B.session_id\n\t\tWHERE\t r.blocking_session_id <> r.session_id\n\t)\n\tSELECT\t[collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), \n\t\t\t[dd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),2)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114),\n\t\t\t[session_id], \n\t\t\t[BLOCKING_TREE] = N'    ' + REPLICATE (N'|         ', LEN (LEVEL)/4 - 1) \n\t\t\t\t\t\t\t+\tCASE\tWHEN (LEN(LEVEL)/4 - 1) = 0\n\t\t\t\t\t\t\t\t\t\tTHEN 'HEAD -  '\n\t\t\t\t\t\t\t\t\t\tELSE '|------  ' \n\t\t\t\t\t\t\t\tEND\n\t\t\t\t\t\t\t+\tCAST (r.session_id AS NVARCHAR (10)) + N' ' + ISNULL((CASE WHEN LEFT(ISNULL(r.[sql_text],''),1) = '(' THEN SUBSTRING(ISNULL(r.[sql_text],''),CHARINDEX('exec',ISNULL(r.[sql_text],'')),LEN(ISNULL(r.[sql_text],'')))  ELSE ISNULL(r.[sql_text],'') END),''),\n\t\t\t[blocking_session_id], [blocked_session_count] = case when [blocked_session_count] = 0 then null else [blocked_session_count] end, [login_name], [program_name], [host_name],\n\t\t\ttasks,\n\t\t\t--[sql_commad] = CONVERT(XML, '<?query -- '+char(13)\n\t\t\t--\t\t\t\t+ (CASE WHEN LEFT([sql_text],1) = '(' THEN SUBSTRING([sql_text],CHARINDEX('exec',[sql_text]),LEN([sql_text]))  ELSE [sql_text] END)\n\t\t\t--\t\t\t\t+ char(13)+'--?>')\n\t\t\tcommand, [database_name], wait_info, status, \n\t\t\tr.open_tran_count, r.CPU, [used_memory_kb] = (r.used_memory*8.0), [reads_kb] = (r.[reads]*8.0), r.[writes] --, r.[physical_io]\n\t\t\t,[tempdb_allocations_kb] = tempdb_allocations*8.0, tempdb_current_kb = tempdb_current*8.0, granted_memory_kb = granted_memory * 8.0\n\tFROM\tT_BLOCKERS AS r\n\tORDER BY collection_time, LEVEL;\nend\nelse\n  select 'No Blocking Found for Time Window' as [No Result]\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
+            }
+          ],
+          "title": "Blocking Details________From____${__from:date:YYYY-MM-DD HH.mm}___to___${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}____",
+          "type": "table"
+        }
+      ],
+      "title": "Blocking Tree (Queries)________From____${__from:date:YYYY-MM-DD HH.mm}___to___${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}____",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 2
       },
       "id": 136,
       "panels": [
@@ -395,7 +613,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 2
+            "y": 18
           },
           "id": 140,
           "options": {
@@ -459,7 +677,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 2
+        "y": 3
       },
       "id": 88,
       "panels": [
@@ -652,7 +870,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 3
+            "y": 19
           },
           "id": 86,
           "options": {
@@ -726,7 +944,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 3
+        "y": 4
       },
       "id": 127,
       "panels": [
@@ -895,7 +1113,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 4
+            "y": 20
           },
           "id": 125,
           "options": {
@@ -969,7 +1187,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 4
+        "y": 5
       },
       "id": 130,
       "panels": [
@@ -1150,7 +1368,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 5
+            "y": 21
           },
           "id": 128,
           "options": {
@@ -1224,7 +1442,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 6
       },
       "id": 117,
       "panels": [
@@ -1405,7 +1623,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 6
+            "y": 22
           },
           "id": 137,
           "options": {
@@ -1479,7 +1697,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 7
       },
       "id": 124,
       "panels": [
@@ -1673,7 +1891,7 @@
             "h": 12,
             "w": 24,
             "x": 0,
-            "y": 7
+            "y": 23
           },
           "id": 122,
           "options": {
@@ -1744,7 +1962,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 8
       },
       "id": 139,
       "panels": [
@@ -1938,7 +2156,7 @@
             "h": 12,
             "w": 24,
             "x": 0,
-            "y": 8
+            "y": 24
           },
           "id": 141,
           "options": {
@@ -2002,7 +2220,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 8
+        "y": 9
       },
       "id": 121,
       "panels": [
@@ -2012,7 +2230,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 22
+            "y": 38
           },
           "id": 119,
           "links": [],
@@ -2601,6 +2819,6 @@
   "timezone": "browser",
   "title": "WhoIsActive - SQL Server Queries - Workload",
   "uid": "WhoIsActive",
-  "version": 92,
+  "version": 93,
   "weekStart": ""
 }

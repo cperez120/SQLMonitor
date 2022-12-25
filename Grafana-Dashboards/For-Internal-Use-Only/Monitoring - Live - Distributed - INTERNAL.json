@@ -2842,7 +2842,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 34
+            "y": 18
           },
           "id": 111,
           "options": {
@@ -2872,7 +2872,7 @@
               "editorMode": "code",
               "format": "table",
               "rawQuery": true,
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\n-- Get Blocking Tree\nif exists (select * from dbo.WhoIsActive where (collection_time between DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @start_time_utc) and DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @end_time_utc)) and (blocking_session_id is not null or replace(blocked_session_count,',','') > 0) )\nbegin\n\t;WITH T_BLOCKERS AS\n\t(\n\t\t-- Find block Leaders\n\t\tSELECT\tdatediff(MILLISECOND, start_time, getdate()) as duration_ms,\n\t\t\t\t[collection_time], [session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE([sql_command],[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), [login_name], wait_info, [blocking_session_id], [blocked_session_count] = replace(blocked_session_count,',',''),\n\t\t\t\t[status], open_tran_count, [host_name], [database_name], [program_name], tasks, granted_memory,\n\t\t\t\tr.CPU, r.used_memory, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\t[LEVEL] = CAST (REPLICATE ('0', 4-LEN (CAST (r.session_id AS VARCHAR))) + CAST (r.session_id AS VARCHAR) AS VARCHAR (1000))\n\t\t\t\t,[head_blocker] = session_id\n\t\tFROM\tdbo.WhoIsActive AS r with (nolock)\n\t\tWHERE\t (collection_time between DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @start_time_utc) and DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), @end_time_utc))\n\t\tand (r.blocking_session_id IS NULL AND replace(blocked_session_count,',','') > 0)\n\t\t--\t\n\t\tUNION ALL\n\t\t--\n\t\tSELECT\tdatediff(MILLISECOND, r.start_time, getdate()) as duration_ms,\n\t\t\t\tr.[collection_time], r.[session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE(r.[sql_command],r.[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = r.additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), r.[login_name], r.wait_info, r.[blocking_session_id], [blocked_session_count] = replace(r.blocked_session_count,',',''),\n\t\t\t\tr.[status], r.open_tran_count, r.[host_name], r.[database_name], r.[program_name], r.tasks, r.granted_memory,\n\t\t\t\tr.CPU, r.used_memory, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\tCAST (B.LEVEL + RIGHT (CAST ((1000 + r.session_id) AS VARCHAR (100)), 4) AS VARCHAR (1000)) AS LEVEL\n\t\t\t\t,[head_blocker] = case when B.[head_blocker] is null then B.session_id else B.[head_blocker] end\n\t\tFROM\tdbo.WhoIsActive AS r with (nolock)\n\t\tINNER JOIN \n\t\t\t\tT_BLOCKERS AS B\n\t\t\tON\tr.collection_time = B.collection_time\n\t\t\tAND\tr.blocking_session_id = B.session_id\n\t\tWHERE\t r.blocking_session_id <> r.session_id\n\t)\n\tSELECT\t[collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), \n\t\t\t[dd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),2)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114),\n\t\t\t[session_id], \n\t\t\t[BLOCKING_TREE] = N'    ' + REPLICATE (N'|         ', LEN (LEVEL)/4 - 1) \n\t\t\t\t\t\t\t+\tCASE\tWHEN (LEN(LEVEL)/4 - 1) = 0\n\t\t\t\t\t\t\t\t\t\tTHEN 'HEAD -  '\n\t\t\t\t\t\t\t\t\t\tELSE '|------  ' \n\t\t\t\t\t\t\t\tEND\n\t\t\t\t\t\t\t+\tCAST (r.session_id AS NVARCHAR (10)) + N' ' + ISNULL((CASE WHEN LEFT(ISNULL(r.[sql_text],''),1) = '(' THEN SUBSTRING(ISNULL(r.[sql_text],''),CHARINDEX('exec',ISNULL(r.[sql_text],'')),LEN(ISNULL(r.[sql_text],'')))  ELSE ISNULL(r.[sql_text],'') END),''),\n\t\t\t[blocking_session_id], [blocked_session_count] = case when [blocked_session_count] = 0 then null else [blocked_session_count] end, [login_name], [program_name], [host_name],\n\t\t\ttasks,\n\t\t\t--[sql_commad] = CONVERT(XML, '<?query -- '+char(13)\n\t\t\t--\t\t\t\t+ (CASE WHEN LEFT([sql_text],1) = '(' THEN SUBSTRING([sql_text],CHARINDEX('exec',[sql_text]),LEN([sql_text]))  ELSE [sql_text] END)\n\t\t\t--\t\t\t\t+ char(13)+'--?>')\n\t\t\tcommand, [database_name], wait_info, status, \n\t\t\tr.open_tran_count, r.CPU, [used_memory_kb] = (r.used_memory*8.0), [reads_kb] = (r.[reads]*8.0), r.[writes] --, r.[physical_io]\n\t\t\t,[tempdb_allocations_kb] = tempdb_allocations*8.0, tempdb_current_kb = tempdb_current*8.0, granted_memory_kb = granted_memory * 8.0\n\tFROM\tT_BLOCKERS AS r\n\tORDER BY collection_time, LEVEL;\nend\nelse\n  select 'No Blocking Found for Time Window' as [No Result]\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\n\ndeclare @collection_time datetime;\nselect @collection_time = max(l.collection_time) from dbo.WhoIsActive l;\n\n-- Get Blocking Tree\nif exists (select 1/0 from dbo.WhoIsActive w with (nolock) where w.collection_time = @collection_time and (blocking_session_id is not null or blocked_session_count > 0))\nbegin\n\t;WITH T_BLOCKERS AS (\n\t\t-- Find block Leaders\n\t\tSELECT\tdatediff(MILLISECOND, start_time, getdate()) as duration_ms, [collection_time], [session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE([sql_command],[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), [login_name], wait_info, [blocking_session_id], [blocked_session_count] = replace(blocked_session_count,',',''),\n\t\t\t\t[status], open_tran_count, [host_name], [database_name], [program_name], tasks, granted_memory, r.CPU, r.used_memory, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\t[LEVEL] = CAST (REPLICATE ('0', 4-LEN (CAST (r.session_id AS VARCHAR))) + CAST (r.session_id AS VARCHAR) AS VARCHAR (1000))\n\t\t\t\t,[head_blocker] = session_id\n\t\tFROM\tdbo.WhoIsActive AS r with (nolock) WHERE r.collection_time = @collection_time and (r.blocking_session_id IS NULL AND blocked_session_count > 0)\n\t\t--\t\n\t\tUNION ALL\n\t\t--\n\t\tSELECT\tdatediff(MILLISECOND, r.start_time, getdate()) as duration_ms, r.[collection_time], r.[session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE(r.[sql_command],r.[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = r.additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), r.[login_name], r.wait_info, r.[blocking_session_id], [blocked_session_count] = replace(r.blocked_session_count,',',''),\n\t\t\t\tr.[status], r.open_tran_count, r.[host_name], r.[database_name], r.[program_name], r.tasks, r.granted_memory, r.CPU, r.used_memory, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\tCAST (B.LEVEL + RIGHT (CAST ((1000 + r.session_id) AS VARCHAR (100)), 4) AS VARCHAR (1000)) AS LEVEL\n\t\t\t\t,[head_blocker] = case when B.[head_blocker] is null then B.session_id else B.[head_blocker] end\n\t\tFROM\tdbo.WhoIsActive AS r with (nolock)\n\t\tINNER JOIN  T_BLOCKERS AS B ON\tr.collection_time = B.collection_time AND r.blocking_session_id = B.session_id\n\t\tWHERE\t r.blocking_session_id <> r.session_id\n\t)\n\tSELECT\t[collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), \n\t\t\t[dd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),2)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114),\n\t\t\t[session_id], \n\t\t\t[BLOCKING_TREE] = N'    ' + REPLICATE (N'|         ', LEN (LEVEL)/4 - 1) \n\t\t\t\t\t\t\t+\tCASE\tWHEN (LEN(LEVEL)/4 - 1) = 0\n\t\t\t\t\t\t\t\t\t\tTHEN 'HEAD -  '\n\t\t\t\t\t\t\t\t\t\tELSE '|------  ' \n\t\t\t\t\t\t\t\tEND\n\t\t\t\t\t\t\t+\tCAST (r.session_id AS NVARCHAR (10)) + N' ' + ISNULL((CASE WHEN LEFT(ISNULL(r.[sql_text],''),1) = '(' THEN SUBSTRING(ISNULL(r.[sql_text],''),CHARINDEX('exec',ISNULL(r.[sql_text],'')),LEN(ISNULL(r.[sql_text],'')))  ELSE ISNULL(r.[sql_text],'') END),''),\n\t\t\t[blocking_session_id], [blocked_session_count] = case when [blocked_session_count] = 0 then null else [blocked_session_count] end, [login_name], [program_name], [host_name], tasks, command, [database_name], wait_info, status, r.open_tran_count, r.CPU, [used_memory_kb] = (r.used_memory*8.0), [reads_kb] = (r.[reads]*8.0), r.[writes], [tempdb_allocations_kb] = tempdb_allocations*8.0, tempdb_current_kb = tempdb_current*8.0, granted_memory_kb = granted_memory * 8.0\n\tFROM\tT_BLOCKERS AS r ORDER BY collection_time, LEVEL;\nend\nelse\n  select 'No Blocking Found for Time Window' as [No Result]\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
               "refId": "A",
               "sql": {
                 "columns": [
@@ -2893,7 +2893,7 @@
               }
             }
           ],
-          "title": "Blocking Details________From____${__from:date:YYYY-MM-DD HH.mm}___to___${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}____",
+          "title": "Blocking Details - ACTIVE - [sp_WhoIsActive] @ ${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}",
           "type": "table"
         }
       ],
@@ -2908,7 +2908,7 @@
           "refId": "A"
         }
       ],
-      "title": "Blocking Tree (Queries)________From____${__from:date:YYYY-MM-DD HH.mm}___to___${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}____",
+      "title": "Blocking Tree (Queries) - ACTIVE - [sp_WhoIsActive] @ ${whoisactive_collection_time_utc:date:YYYY-MM-DD HH.mm}",
       "type": "row"
     },
     {
@@ -3451,7 +3451,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 21
+            "y": 29
           },
           "id": 177,
           "options": {
@@ -6201,8 +6201,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1671627368625",
-          "value": "1671627368625"
+          "text": "1671967302113",
+          "value": "1671967302113"
         },
         "datasource": {
           "type": "mssql",
@@ -6233,8 +6233,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1671627365298",
-          "value": "1671627365298"
+          "text": "1671967326534",
+          "value": "1671967326534"
         },
         "datasource": {
           "type": "mssql",
@@ -6265,8 +6265,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1671627417160",
-          "value": "1671627417160"
+          "text": "1671967340003",
+          "value": "1671967340003"
         },
         "datasource": {
           "type": "mssql",
@@ -6336,8 +6336,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1671261667787",
-          "value": "1671261667787"
+          "text": "1671789166670",
+          "value": "1671789166670"
         },
         "datasource": {
           "type": "mssql",
@@ -6360,8 +6360,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1671627436657",
-          "value": "1671627436657"
+          "text": "1671967324883",
+          "value": "1671967324883"
         },
         "datasource": {
           "type": "mssql",
@@ -6384,8 +6384,8 @@
       {
         "current": {
           "selected": false,
-          "text": "64",
-          "value": "64"
+          "text": "66",
+          "value": "66"
         },
         "datasource": {
           "type": "mssql",
@@ -6432,8 +6432,8 @@
       {
         "current": {
           "selected": false,
-          "text": "36",
-          "value": "36"
+          "text": "34",
+          "value": "34"
         },
         "datasource": {
           "type": "mssql",
@@ -6456,8 +6456,8 @@
       {
         "current": {
           "selected": false,
-          "text": "87",
-          "value": "87"
+          "text": "88",
+          "value": "88"
         },
         "datasource": {
           "type": "mssql",
@@ -6480,8 +6480,8 @@
       {
         "current": {
           "selected": false,
-          "text": "12",
-          "value": "12"
+          "text": "11",
+          "value": "11"
         },
         "datasource": {
           "type": "mssql",
@@ -6504,8 +6504,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1660488",
-          "value": "1660488"
+          "text": "72024",
+          "value": "72024"
         },
         "datasource": {
           "type": "mssql",
@@ -6536,8 +6536,8 @@
       {
         "current": {
           "selected": false,
-          "text": "0",
-          "value": "0"
+          "text": "1",
+          "value": "1"
         },
         "datasource": {
           "type": "mssql",
@@ -6560,8 +6560,8 @@
       {
         "current": {
           "selected": false,
-          "text": "",
-          "value": ""
+          "text": "2051",
+          "value": "2051"
         },
         "datasource": {
           "type": "mssql",
@@ -6608,8 +6608,8 @@
       {
         "current": {
           "selected": false,
-          "text": "2599712",
-          "value": "2599712"
+          "text": "2993608",
+          "value": "2993608"
         },
         "datasource": {
           "type": "mssql",
@@ -6656,8 +6656,8 @@
       {
         "current": {
           "selected": false,
-          "text": "28336120",
-          "value": "28336120"
+          "text": "28392984",
+          "value": "28392984"
         },
         "datasource": {
           "type": "mssql",
@@ -6704,8 +6704,8 @@
       {
         "current": {
           "selected": false,
-          "text": "4",
-          "value": "4"
+          "text": "3",
+          "value": "3"
         },
         "datasource": {
           "type": "mssql",
@@ -6728,8 +6728,8 @@
       {
         "current": {
           "selected": false,
-          "text": "7",
-          "value": "7"
+          "text": "6",
+          "value": "6"
         },
         "datasource": {
           "type": "mssql",
@@ -6800,8 +6800,8 @@
       {
         "current": {
           "selected": false,
-          "text": "45",
-          "value": "45"
+          "text": "31",
+          "value": "31"
         },
         "datasource": {
           "type": "mssql",
@@ -6824,8 +6824,8 @@
       {
         "current": {
           "selected": false,
-          "text": "10",
-          "value": "10"
+          "text": "8",
+          "value": "8"
         },
         "datasource": {
           "type": "mssql",
@@ -6848,8 +6848,8 @@
       {
         "current": {
           "selected": false,
-          "text": "273.33",
-          "value": "273.33"
+          "text": "281.63",
+          "value": "281.63"
         },
         "datasource": {
           "type": "mssql",
@@ -6880,8 +6880,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1671625808406",
-          "value": "1671625808406"
+          "text": "1671966008660",
+          "value": "1671966008660"
         },
         "datasource": {
           "type": "mssql",
@@ -7057,6 +7057,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 293,
+  "version": 297,
   "weekStart": ""
 }
