@@ -7,6 +7,7 @@ https://grafana.com/docs/grafana/v9.0/variables/variable-types/global-variables/
 https://grafana.com/docs/grafana/v9.0/variables/advanced-variable-format-options/
 https://grafana.com/docs/grafana/v9.0/variables/syntax/
 
+https://grafana.com/docs/grafana/latest/panels-visualizations/configure-data-links/
 d/distributed_live_dashboard?var-server=${__data.fields.srv_name}
 d/wait_stats?var-server=${server}
 
