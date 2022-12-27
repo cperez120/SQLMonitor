@@ -2872,7 +2872,7 @@
               "editorMode": "code",
               "format": "table",
               "rawQuery": true,
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\n\ndeclare @collection_time datetime;\nselect @collection_time = max(l.collection_time) from dbo.WhoIsActive l;\n\n-- Get Blocking Tree\nif exists (select 1/0 from dbo.WhoIsActive w with (nolock) where w.collection_time = @collection_time and (blocking_session_id is not null or blocked_session_count > 0))\nbegin\n\t;WITH T_BLOCKERS AS (\n\t\t-- Find block Leaders\n\t\tSELECT\tdatediff(MILLISECOND, start_time, getdate()) as duration_ms, [collection_time], [session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE([sql_command],[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), [login_name], wait_info, [blocking_session_id], [blocked_session_count] = replace(blocked_session_count,',',''),\n\t\t\t\t[status], open_tran_count, [host_name], [database_name], [program_name], tasks, granted_memory, r.CPU, r.used_memory, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\t[LEVEL] = CAST (REPLICATE ('0', 4-LEN (CAST (r.session_id AS VARCHAR))) + CAST (r.session_id AS VARCHAR) AS VARCHAR (1000))\n\t\t\t\t,[head_blocker] = session_id\n\t\tFROM\tdbo.WhoIsActive AS r with (nolock) WHERE r.collection_time = @collection_time and (r.blocking_session_id IS NULL AND blocked_session_count > 0)\n\t\t--\t\n\t\tUNION ALL\n\t\t--\n\t\tSELECT\tdatediff(MILLISECOND, r.start_time, getdate()) as duration_ms, r.[collection_time], r.[session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE(r.[sql_command],r.[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = r.additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), r.[login_name], r.wait_info, r.[blocking_session_id], [blocked_session_count] = replace(r.blocked_session_count,',',''),\n\t\t\t\tr.[status], r.open_tran_count, r.[host_name], r.[database_name], r.[program_name], r.tasks, r.granted_memory, r.CPU, r.used_memory, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io],\n\t\t\t\tCAST (B.LEVEL + RIGHT (CAST ((1000 + r.session_id) AS VARCHAR (100)), 4) AS VARCHAR (1000)) AS LEVEL\n\t\t\t\t,[head_blocker] = case when B.[head_blocker] is null then B.session_id else B.[head_blocker] end\n\t\tFROM\tdbo.WhoIsActive AS r with (nolock)\n\t\tINNER JOIN  T_BLOCKERS AS B ON\tr.collection_time = B.collection_time AND r.blocking_session_id = B.session_id\n\t\tWHERE\t r.blocking_session_id <> r.session_id\n\t)\n\tSELECT\t[collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), \n\t\t\t[dd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),2)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114),\n\t\t\t[session_id], \n\t\t\t[BLOCKING_TREE] = N'    ' + REPLICATE (N'|         ', LEN (LEVEL)/4 - 1) \n\t\t\t\t\t\t\t+\tCASE\tWHEN (LEN(LEVEL)/4 - 1) = 0\n\t\t\t\t\t\t\t\t\t\tTHEN 'HEAD -  '\n\t\t\t\t\t\t\t\t\t\tELSE '|------  ' \n\t\t\t\t\t\t\t\tEND\n\t\t\t\t\t\t\t+\tCAST (r.session_id AS NVARCHAR (10)) + N' ' + ISNULL((CASE WHEN LEFT(ISNULL(r.[sql_text],''),1) = '(' THEN SUBSTRING(ISNULL(r.[sql_text],''),CHARINDEX('exec',ISNULL(r.[sql_text],'')),LEN(ISNULL(r.[sql_text],'')))  ELSE ISNULL(r.[sql_text],'') END),''),\n\t\t\t[blocking_session_id], [blocked_session_count] = case when [blocked_session_count] = 0 then null else [blocked_session_count] end, [login_name], [program_name], [host_name], tasks, command, [database_name], wait_info, status, r.open_tran_count, r.CPU, [used_memory_kb] = (r.used_memory*8.0), [reads_kb] = (r.[reads]*8.0), r.[writes], [tempdb_allocations_kb] = tempdb_allocations*8.0, tempdb_current_kb = tempdb_current*8.0, granted_memory_kb = granted_memory * 8.0\n\tFROM\tT_BLOCKERS AS r ORDER BY collection_time, LEVEL;\nend\nelse\n  select 'No Blocking Found for Time Window' as [No Result]\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\n\ndeclare @collection_time datetime;\nselect @collection_time = max(l.collection_time) from dbo.WhoIsActive l;\n\n-- Get Blocking Tree\nif exists (select 1/0 from dbo.WhoIsActive w with (nolock) where w.collection_time = @collection_time and (blocking_session_id is not null or blocked_session_count > 0))\nbegin\n\t;WITH T_BLOCKERS AS (\n\t\t-- Find block Leaders\n\t\tSELECT\tdatediff(MILLISECOND, start_time, r.collection_time) as duration_ms, [collection_time], [session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE([sql_command],[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), [login_name], wait_info, [blocking_session_id], [blocked_session_count] = replace(blocked_session_count,',',''),\n\t\t\t\t[status], open_tran_count, [host_name], [database_name], [program_name], tasks, granted_memory, r.CPU, r.used_memory, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io], additional_info,\n\t\t\t\t[LEVEL] = CAST (REPLICATE ('0', 4-LEN (CAST (r.session_id AS VARCHAR))) + CAST (r.session_id AS VARCHAR) AS VARCHAR (1000))\n\t\t\t\t,[head_blocker] = session_id ,query_plan\n\t\tFROM\tdbo.WhoIsActive AS r with (nolock) WHERE r.collection_time = @collection_time and (r.blocking_session_id IS NULL AND blocked_session_count > 0)\n\t\t--\t\n\t\tUNION ALL\n\t\t--\n\t\tSELECT\tdatediff(MILLISECOND, r.start_time, r.collection_time) as duration_ms, r.[collection_time], r.[session_id], \n\t\t\t\t[sql_text] = REPLACE(REPLACE(REPLACE(REPLACE(CAST(COALESCE(r.[sql_command],r.[sql_text]) AS VARCHAR(MAX)),char(13),''),CHAR(10),''),'<?query --',''),'--?>',''), \n\t\t\t\tcommand = r.additional_info.value('(/additional_info/command_type)[1]','varchar(125)'), r.[login_name], r.wait_info, r.[blocking_session_id], [blocked_session_count] = replace(r.blocked_session_count,',',''),\n\t\t\t\tr.[status], r.open_tran_count, r.[host_name], r.[database_name], r.[program_name], r.tasks, r.granted_memory, r.CPU, r.used_memory, r.[tempdb_allocations], r.[tempdb_current], r.[reads], r.[writes], r.[physical_io], r.additional_info,\n\t\t\t\tCAST (B.LEVEL + RIGHT (CAST ((1000 + r.session_id) AS VARCHAR (100)), 4) AS VARCHAR (1000)) AS LEVEL\n\t\t\t\t,[head_blocker] = case when B.[head_blocker] is null then B.session_id else B.[head_blocker] end ,r.query_plan\n\t\tFROM\tdbo.WhoIsActive AS r with (nolock)\n\t\tINNER JOIN  T_BLOCKERS AS B ON\tr.collection_time = B.collection_time AND r.blocking_session_id = B.session_id\n\t\tWHERE\t r.blocking_session_id <> r.session_id\n\t)\n\tSELECT\t[collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), \n\t\t\t[dd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),2)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114),\n\t\t\t[session_id], \n\t\t\t[BLOCKING_TREE] = N'    ' + REPLICATE (N'|         ', LEN (LEVEL)/4 - 1) \n\t\t\t\t\t\t\t+\tCASE\tWHEN (LEN(LEVEL)/4 - 1) = 0\n\t\t\t\t\t\t\t\t\t\tTHEN 'HEAD -  '\n\t\t\t\t\t\t\t\t\t\tELSE '|------  ' \n\t\t\t\t\t\t\t\tEND\n\t\t\t\t\t\t\t+\tCAST (r.session_id AS NVARCHAR (10)) + N' ' + ISNULL((CASE WHEN LEFT(ISNULL(r.[sql_text],''),1) = '(' THEN SUBSTRING(ISNULL(r.[sql_text],''),CHARINDEX('exec',ISNULL(r.[sql_text],'')),LEN(ISNULL(r.[sql_text],'')))  ELSE ISNULL(r.[sql_text],'') END),''),\n\t\t\t[blocking_session_id], [blocked_session_count] = case when [blocked_session_count] = 0 then null else [blocked_session_count] end, r.wait_info, [login_name], [program_name], [host_name], tasks, command, [database_name], status, r.open_tran_count, r.CPU, [used_memory_kb] = (r.used_memory*8.0), [reads_kb] = (r.[reads]*8.0), r.[writes], [tempdb_allocations_kb] = tempdb_allocations*8.0, tempdb_current_kb = tempdb_current*8.0, granted_memory_kb = granted_memory * 8.0\n\t\t\t--,r.query_plan ,r.additional_info\n\tFROM\tT_BLOCKERS AS r ORDER BY collection_time, LEVEL;\nend\nelse\n  select 'No Blocking Found for Time Window' as [No Result]\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
               "refId": "A",
               "sql": {
                 "columns": [
@@ -2987,7 +2987,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 35
+            "y": 19
           },
           "id": 149,
           "options": {
@@ -3085,7 +3085,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 46
+            "y": 30
           },
           "id": 152,
           "options": {
@@ -3160,6 +3160,8 @@
                 "mode": "palette-classic"
               },
               "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
                 "axisLabel": "",
                 "axisPlacement": "auto",
                 "barAlignment": 0,
@@ -3213,7 +3215,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 36
+            "y": 20
           },
           "id": 57,
           "options": {
@@ -3451,7 +3453,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 29
+            "y": 21
           },
           "id": 177,
           "options": {
@@ -3476,7 +3478,7 @@
               "editorMode": "code",
               "format": "table",
               "rawQuery": true,
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\n--declare @delta_minutes int;\ndeclare @program_name nvarchar(500);\ndeclare @login_name nvarchar(255);\ndeclare @database nvarchar(500) = '$database';\ndeclare @session_id int;\ndeclare @session_host_name nvarchar(125);\ndeclare @query_pattern nvarchar(500);\ndeclare @duration int;\ndeclare @memory_grant_threshold_mb int = $memory_grant_threshold_mb;\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @duration = case when ltrim(rtrim('$duration')) <> '' then $duration else 0 end;\nif len(ltrim(rtrim('$program_name'))) > 0\n  set @program_name = '$program_name'\nif len(ltrim(rtrim('$login_name'))) > 0\n  set @login_name = '$login_name'\nif len(ltrim(rtrim('$session_host_name'))) > 0\n  set @session_host_name = '$session_host_name'\nif len(ltrim(rtrim('$query_pattern'))) > 0\n  set @query_pattern = '$query_pattern'\nif len(ltrim(rtrim('$session_id'))) > 0 and (case when '$session_id' like '%[^0-9.]%' then 'invalid' when '$session_id' like '%.%.%' then 'invalid' else 'valid' end) = 'valid'\n  set @session_id = convert(int,'$session_id');\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2,\n\t\t\t\t@program_name nvarchar(500), @login_name nvarchar(255), @database nvarchar(500),\n\t\t\t\t@session_id int, @session_host_name nvarchar(125), @query_pattern nvarchar(500),\n\t\t\t\t@duration int, @memory_grant_threshold_mb int';\n\nset quoted_identifier off;\nset @sql = \"/* SQLMonitor Dashboard $__dashboard: LongRunningQueries  */\nset nocount on;\t\t\t\nif exists ( select * from $whoisactive_table_name w with (nolock)\n            where w.collection_time = (select max(i.collection_time) from $whoisactive_table_name i with (nolock)) \n            and granted_memory >= (@memory_grant_threshold_mb*1024/8) )\nbegin\n  ;with t_WhoIsActive as (\n    select [collection_time] = convert(varchar,w.collection_time,120), w.session_id, \n        w.program_name, w.login_name, w.database_name, w.host_name,\n        w.status, w.CPU, w.used_memory, w.open_tran_count, [duration_ms] = datediff(MILLISECOND, start_time, getdate()),\n        w.wait_info, granted_memory, tempdb_current,\n        sql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n                  else left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n        w.blocked_session_count, w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, \n        w.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n    from $whoisactive_table_name w with (nolock)\n    where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i with (nolock))\n    and granted_memory >= (@memory_grant_threshold_mb*1024/8)\n  )\n  select [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), w.session_id,\n          [ddd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),3)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114), \n          w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, \n          granted_memory_kb = (w.granted_memory * 8.0), w.open_tran_count, w.wait_info, w.sql_command, w.blocked_session_count, \n          w.blocking_session_id, [reads_kb] = (w.[reads]*8.0), w.writes, [tempdb_allocations_kb] = (w.tempdb_allocations*8.0), \n          tempdb_current_kb = (tempdb_current*8.0), w.tasks, w.percent_complete, [used_memory_kb] = (w.used_memory*8.0),\n          start_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [start_time])\n  from t_WhoIsActive w\n  order by granted_memory desc, used_memory desc, collection_time\nend\nELSE\n  select 'No long running query found for time window' as [No Result]\n\"\nset quoted_identifier on;\n--print @sql\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, \n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, \n\t\t\t\t\t@query_pattern, @duration, @memory_grant_threshold_mb;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc,\n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, \n\t\t\t\t\t@query_pattern, @duration, @memory_grant_threshold_mb;",
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\n--declare @delta_minutes int;\ndeclare @program_name nvarchar(500);\ndeclare @login_name nvarchar(255);\ndeclare @database nvarchar(500) = '$database';\ndeclare @session_id int;\ndeclare @session_host_name nvarchar(125);\ndeclare @query_pattern nvarchar(500);\ndeclare @duration int;\ndeclare @memory_grant_threshold_mb int = $memory_grant_threshold_mb;\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @duration = case when ltrim(rtrim('$duration')) <> '' then $duration else 0 end;\nif len(ltrim(rtrim('$program_name'))) > 0\n  set @program_name = '$program_name'\nif len(ltrim(rtrim('$login_name'))) > 0\n  set @login_name = '$login_name'\nif len(ltrim(rtrim('$session_host_name'))) > 0\n  set @session_host_name = '$session_host_name'\nif len(ltrim(rtrim('$query_pattern'))) > 0\n  set @query_pattern = '$query_pattern'\nif len(ltrim(rtrim('$session_id'))) > 0 and (case when '$session_id' like '%[^0-9.]%' then 'invalid' when '$session_id' like '%.%.%' then 'invalid' else 'valid' end) = 'valid'\n  set @session_id = convert(int,'$session_id');\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\n--set @start_time_utc = dateadd(second,$sqlserver_start_time_utc/1000,'1970-01-01 00:00:00');\nset @end_time_utc = $__timeTo();\n--set @end_time_utc = $__timeFrom();\n--set @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2,\n\t\t\t\t@program_name nvarchar(500), @login_name nvarchar(255), @database nvarchar(500),\n\t\t\t\t@session_id int, @session_host_name nvarchar(125), @query_pattern nvarchar(500),\n\t\t\t\t@duration int, @memory_grant_threshold_mb int';\n\nset quoted_identifier off;\nset @sql = \"/* SQLMonitor Dashboard $__dashboard: LongRunningQueries  */\nset nocount on;\t\t\t\nif exists ( select * from $whoisactive_table_name w with (nolock)\n            where w.collection_time = (select max(i.collection_time) from $whoisactive_table_name i with (nolock)) \n            and granted_memory >= (@memory_grant_threshold_mb*1024/8) )\nbegin\n  ;with t_WhoIsActive as (\n    select [collection_time] = convert(varchar,w.collection_time,120), w.session_id, \n        w.program_name, w.login_name, w.database_name, w.host_name,\n        w.status, w.CPU, w.used_memory, w.open_tran_count, [duration_ms] = datediff(MILLISECOND, start_time, w.collection_time),\n        w.wait_info, granted_memory, tempdb_current,\n        sql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n                  else left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end, \n        w.blocked_session_count, w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, \n        w.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n    from $whoisactive_table_name w with (nolock)\n    where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i with (nolock))\n    and granted_memory >= (@memory_grant_threshold_mb*1024/8)\n  )\n  select [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), w.session_id,\n          [ddd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),3)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114), \n          w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, \n          granted_memory_kb = (w.granted_memory * 8.0), w.open_tran_count, w.wait_info, w.sql_command, w.blocked_session_count, \n          w.blocking_session_id, [reads_kb] = (w.[reads]*8.0), w.writes, [tempdb_allocations_kb] = (w.tempdb_allocations*8.0), \n          tempdb_current_kb = (tempdb_current*8.0), w.tasks, w.percent_complete, [used_memory_kb] = (w.used_memory*8.0),\n          start_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [start_time])\n  from t_WhoIsActive w\n  order by granted_memory desc, used_memory desc, collection_time\nend\nELSE\n  select 'No long running query found for time window' as [No Result]\n\"\nset quoted_identifier on;\n--print @sql\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc, \n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, \n\t\t\t\t\t@query_pattern, @duration, @memory_grant_threshold_mb;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql, @params, @perfmon_host_name, @start_time_utc, @end_time_utc,\n\t\t\t\t\t@program_name, @login_name, @database, @session_id, @session_host_name, \n\t\t\t\t\t@query_pattern, @duration, @memory_grant_threshold_mb;",
               "refId": "A",
               "sql": {
                 "columns": [
@@ -3859,7 +3861,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 38
+            "y": 23
           },
           "id": 115,
           "options": {
@@ -3884,7 +3886,7 @@
               "editorMode": "code",
               "format": "table",
               "rawQuery": true,
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @duration int;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @duration = case when ltrim(rtrim('$duration')) <> '' then $duration else 0 end; \nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @duration int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nif exists ( select * from dbo.WhoIsActive w with (nolock)\n            where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i) \n            and datediff(minute,start_time,collection_time) >= @duration )\nbegin\n  ;with t_WhoIsActive as (\n    select [collection_time], w.session_id, /* = convert(varchar,w.collection_time,120) */\n        w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, w.granted_memory, w.used_memory, w.open_tran_count, w.wait_info,\n        sql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n                  else left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end,\n        w.blocked_session_count, [duration_ms] = datediff(MILLISECOND, start_time, getdate()),\n        w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, w.tempdb_current, w.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n    from dbo.WhoIsActive w with (nolock)\n    where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i)\n    and datediff(minute,start_time,collection_time) >= @duration\n  )\n  select  [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), w.session_id,\n          [ddd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),3)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114), \n          w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, \n          granted_memory_kb = (w.granted_memory * 8.0), w.open_tran_count, w.wait_info, w.sql_command, w.blocked_session_count, \n          w.blocking_session_id, [reads_kb] = (w.[reads]*8.0), w.writes, [tempdb_allocations_kb] = (w.tempdb_allocations*8.0), \n          tempdb_current_kb = (tempdb_current*8.0), w.tasks, w.percent_complete, [used_memory_kb] = (w.used_memory*8.0),\n          start_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [start_time])\n\t\t\t    \n  from t_WhoIsActive w\n  order by w.collection_time DESC, w.start_time ASC\nend\nELSE\n  select 'No long running query found for time window' as [No Result]\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @duration;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @duration;",
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @duration int;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @duration = case when ltrim(rtrim('$duration')) <> '' then $duration else 0 end; \nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @duration int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nif exists ( select * from dbo.WhoIsActive w with (nolock)\n            where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i) \n            and datediff(minute,start_time,collection_time) >= @duration )\nbegin\n  ;with t_WhoIsActive as (\n    select [collection_time], w.session_id, /* = convert(varchar,w.collection_time,120) */\n        w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, w.granted_memory, w.used_memory, w.open_tran_count, w.wait_info,\n        sql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n                  else left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end,\n        w.blocked_session_count, [duration_ms] = datediff(MILLISECOND, start_time, w.collection_time),\n        w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, w.tempdb_current, w.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n    from dbo.WhoIsActive w with (nolock)\n    where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i)\n    and datediff(minute,start_time,collection_time) >= @duration\n  )\n  select  [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), w.session_id,\n          [ddd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),3)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114), \n          w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, \n          granted_memory_kb = (w.granted_memory * 8.0), w.open_tran_count, w.wait_info, w.sql_command, w.blocked_session_count, \n          w.blocking_session_id, [reads_kb] = (w.[reads]*8.0), w.writes, [tempdb_allocations_kb] = (w.tempdb_allocations*8.0), \n          tempdb_current_kb = (tempdb_current*8.0), w.tasks, w.percent_complete, [used_memory_kb] = (w.used_memory*8.0),\n          start_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [start_time])\n\t\t\t    \n  from t_WhoIsActive w\n  order by w.collection_time DESC, w.start_time ASC\nend\nELSE\n  select 'No long running query found for time window' as [No Result]\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @duration;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @duration;",
               "refId": "A",
               "sql": {
                 "columns": [
@@ -5330,7 +5332,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 44
+            "y": 29
           },
           "id": 86,
           "options": {
@@ -5355,7 +5357,7 @@
               "editorMode": "code",
               "format": "table",
               "rawQuery": true,
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @delta_minutes int;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @delta_minutes int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\n/*\nif exists ( select * from dbo.WhoIsActive w with (nolock)\n            where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i) \n\t\t\t\t\t\tand w.program_name like 'SQL Job%'\n          )\n*/\nbegin\n  ;with t_WhoIsActive as (\n    select [collection_time], w.session_id, /* = convert(varchar,w.collection_time,120) */\n        w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, w.granted_memory, w.used_memory, w.open_tran_count, w.wait_info,\n        sql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n                  else left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end,\n        w.blocked_session_count, [duration_ms] = datediff(MILLISECOND, start_time, getdate()), \n        w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, w.tempdb_current, w.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n        ,command = additional_info.value('(/additional_info/command_type)[1]','varchar(125)')\n    from dbo.WhoIsActive w with (nolock)\n    where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i)\n    --and datediff(minute,start_time,collection_time) >= @duration\n  )\n  select  [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), w.session_id,\n          [ddd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),3)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114), \n          w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, \n          granted_memory_kb = (w.granted_memory * 8.0), w.open_tran_count, w.wait_info, w.sql_command, w.blocked_session_count, \n          w.blocking_session_id, [reads_kb] = (w.[reads]*8.0), w.writes, [tempdb_allocations_kb] = (w.tempdb_allocations*8.0), \n          tempdb_current_kb = (tempdb_current*8.0), w.tasks, w.percent_complete, [used_memory_kb] = (w.used_memory*8.0),\n          start_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [start_time])\t\t\t    \n  from t_WhoIsActive w\n  where (\tw.command in ('DBCC', 'RESTORE HEADERONLY','BACKUP LOG','BACKUP DATABASE','RESTORE DATABASE','UPDATE STATISTICS') )\n  or    ( w.program_name like 'SQL Job%' or w.program_name like 'SQLAgent%' )\n  order by w.collection_time DESC, w.start_time ASC\nend\n--ELSE\n  --select 'No running job session found.' as [No Result]\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @delta_minutes;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @delta_minutes;",
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @delta_minutes int;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @delta_minutes = $cpu_delta_minutes;\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @delta_minutes int';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\n/*\nif exists ( select * from dbo.WhoIsActive w with (nolock)\n            where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i) \n\t\t\t\t\t\tand w.program_name like 'SQL Job%'\n          )\n*/\nbegin\n  ;with t_WhoIsActive as (\n    select [collection_time], w.session_id, /* = convert(varchar,w.collection_time,120) */\n        w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, w.granted_memory, w.used_memory, w.open_tran_count, w.wait_info,\n        sql_command = case when w.sql_command is not null then left(replace(replace(convert(nvarchar(max),w.sql_command),char(13)+char(10),''),'<?query --',''),150)\n                  else left(replace(replace(convert(nvarchar(max),w.sql_text),char(13)+char(10),''),'<?query --',''),150) end,\n        w.blocked_session_count, [duration_ms] = datediff(MILLISECOND, start_time, w.collection_time), \n        w.blocking_session_id, w.reads, w.writes, w.tempdb_allocations, w.tempdb_current, w.tasks, w.percent_complete, start_time = convert(varchar,w.start_time,120)\n        ,command = additional_info.value('(/additional_info/command_type)[1]','varchar(125)')\n    from dbo.WhoIsActive w with (nolock)\n    where w.collection_time = (select max(i.collection_time) from dbo.WhoIsActive i)\n    --and datediff(minute,start_time,collection_time) >= @duration\n  )\n  select  [collection_time] = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [collection_time]), w.session_id,\n          [ddd hh:mm:ss.mss] = right('0000'+convert(varchar, duration_ms/86400000),3)+ ' '+convert(varchar,dateadd(MILLISECOND,duration_ms,'1900-01-01 00:00:00'),114), \n          w.program_name, w.login_name, w.database_name, w.host_name, w.status, w.CPU, \n          granted_memory_kb = (w.granted_memory * 8.0), w.open_tran_count, w.wait_info, w.sql_command, w.blocked_session_count, \n          w.blocking_session_id, [reads_kb] = (w.[reads]*8.0), w.writes, [tempdb_allocations_kb] = (w.tempdb_allocations*8.0), \n          tempdb_current_kb = (tempdb_current*8.0), w.tasks, w.percent_complete, [used_memory_kb] = (w.used_memory*8.0),\n          start_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), [start_time])\t\t\t    \n  from t_WhoIsActive w\n  where (\tw.command in ('DBCC', 'RESTORE HEADERONLY','BACKUP LOG','BACKUP DATABASE','RESTORE DATABASE','UPDATE STATISTICS') )\n  or    ( w.program_name like 'SQL Job%' or w.program_name like 'SQLAgent%' )\n  order by w.collection_time DESC, w.start_time ASC\nend\n--ELSE\n  --select 'No running job session found.' as [No Result]\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @delta_minutes;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @delta_minutes;",
               "refId": "A",
               "sql": {
                 "columns": [
@@ -5570,7 +5572,7 @@
             "h": 16,
             "w": 24,
             "x": 0,
-            "y": 45
+            "y": 30
           },
           "id": 173,
           "options": {
@@ -5583,7 +5585,7 @@
             },
             "showHeader": true
           },
-          "pluginVersion": "9.0.2",
+          "pluginVersion": "9.2.5",
           "targets": [
             {
               "alias": "",
@@ -5684,7 +5686,7 @@
             "h": 15,
             "w": 24,
             "x": 0,
-            "y": 46
+            "y": 31
           },
           "id": 133,
           "options": {
@@ -6201,8 +6203,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1671967302113",
-          "value": "1671967302113"
+          "text": "1672111414925",
+          "value": "1672111414925"
         },
         "datasource": {
           "type": "mssql",
@@ -6233,8 +6235,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1671967326534",
-          "value": "1671967326534"
+          "text": "1672111443285",
+          "value": "1672111443285"
         },
         "datasource": {
           "type": "mssql",
@@ -6265,8 +6267,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1671967340003",
-          "value": "1671967340003"
+          "text": "1672111441007",
+          "value": "1672111441007"
         },
         "datasource": {
           "type": "mssql",
@@ -6336,8 +6338,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1671789166670",
-          "value": "1671789166670"
+          "text": "1671987281017",
+          "value": "1671987281017"
         },
         "datasource": {
           "type": "mssql",
@@ -6360,8 +6362,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1671967324883",
-          "value": "1671967324883"
+          "text": "1672111480067",
+          "value": "1672111480067"
         },
         "datasource": {
           "type": "mssql",
@@ -6384,8 +6386,8 @@
       {
         "current": {
           "selected": false,
-          "text": "66",
-          "value": "66"
+          "text": "34",
+          "value": "34"
         },
         "datasource": {
           "type": "mssql",
@@ -6408,8 +6410,8 @@
       {
         "current": {
           "selected": false,
-          "text": "54",
-          "value": "54"
+          "text": "25",
+          "value": "25"
         },
         "datasource": {
           "type": "mssql",
@@ -6432,8 +6434,8 @@
       {
         "current": {
           "selected": false,
-          "text": "34",
-          "value": "34"
+          "text": "66",
+          "value": "66"
         },
         "datasource": {
           "type": "mssql",
@@ -6456,8 +6458,8 @@
       {
         "current": {
           "selected": false,
-          "text": "88",
-          "value": "88"
+          "text": "99",
+          "value": "99"
         },
         "datasource": {
           "type": "mssql",
@@ -6480,8 +6482,8 @@
       {
         "current": {
           "selected": false,
-          "text": "11",
-          "value": "11"
+          "text": "0",
+          "value": "0"
         },
         "datasource": {
           "type": "mssql",
@@ -6504,8 +6506,8 @@
       {
         "current": {
           "selected": false,
-          "text": "72024",
-          "value": "72024"
+          "text": "465992",
+          "value": "465992"
         },
         "datasource": {
           "type": "mssql",
@@ -6536,8 +6538,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1",
-          "value": "1"
+          "text": "0",
+          "value": "0"
         },
         "datasource": {
           "type": "mssql",
@@ -6560,8 +6562,8 @@
       {
         "current": {
           "selected": false,
-          "text": "2051",
-          "value": "2051"
+          "text": "",
+          "value": ""
         },
         "datasource": {
           "type": "mssql",
@@ -6608,8 +6610,8 @@
       {
         "current": {
           "selected": false,
-          "text": "2993608",
-          "value": "2993608"
+          "text": "3339164",
+          "value": "3339164"
         },
         "datasource": {
           "type": "mssql",
@@ -6656,8 +6658,8 @@
       {
         "current": {
           "selected": false,
-          "text": "28392984",
-          "value": "28392984"
+          "text": "28426944",
+          "value": "28426944"
         },
         "datasource": {
           "type": "mssql",
@@ -6704,8 +6706,8 @@
       {
         "current": {
           "selected": false,
-          "text": "3",
-          "value": "3"
+          "text": "0",
+          "value": "0"
         },
         "datasource": {
           "type": "mssql",
@@ -6728,8 +6730,8 @@
       {
         "current": {
           "selected": false,
-          "text": "6",
-          "value": "6"
+          "text": "277",
+          "value": "277"
         },
         "datasource": {
           "type": "mssql",
@@ -6800,8 +6802,8 @@
       {
         "current": {
           "selected": false,
-          "text": "31",
-          "value": "31"
+          "text": "21",
+          "value": "21"
         },
         "datasource": {
           "type": "mssql",
@@ -6824,8 +6826,8 @@
       {
         "current": {
           "selected": false,
-          "text": "8",
-          "value": "8"
+          "text": "1",
+          "value": "1"
         },
         "datasource": {
           "type": "mssql",
@@ -6848,8 +6850,8 @@
       {
         "current": {
           "selected": false,
-          "text": "281.63",
-          "value": "281.63"
+          "text": "260.03",
+          "value": "260.03"
         },
         "datasource": {
           "type": "mssql",
@@ -6880,8 +6882,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1671966008660",
-          "value": "1671966008660"
+          "text": "1672110006956",
+          "value": "1672110006956"
         },
         "datasource": {
           "type": "mssql",
@@ -7057,6 +7059,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 297,
+  "version": 300,
   "weekStart": ""
 }
