@@ -1,7 +1,7 @@
 USE [DBA_Admin]
 -- Find long running statements
-declare @table_name nvarchar(225) = 'tbl_UserMasterInfo';
-declare @no_of_days tinyint = 20;
+declare @table_name nvarchar(225) = 'AGG_BO_BankReceipt';
+declare @no_of_days tinyint = 7;
 declare @database_name nvarchar(255);
 declare @index_name nvarchar(255);
 declare @duration_threshold_minutes smallint = 2;
