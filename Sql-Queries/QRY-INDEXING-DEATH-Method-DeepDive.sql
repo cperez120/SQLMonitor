@@ -11,7 +11,7 @@ declare @run_datetime_mode2 datetime = '2022-12-31 19:11:00.000';
 set @params = '@more_info_filter varchar(2000), @run_datetime_mode0 datetime, @run_datetime_mode2 datetime, @table_name varchar(2000) output';
 
 set quoted_identifier off;
-set @more_info_filter = "EXEC dbo.sp_BlitzIndex @DatabaseName='BSEDB_AB', @SchemaName='dbo', @TableName='ebrok_log_status';";
+set @more_info_filter = "EXEC dbo.sp_BlitzIndex @DatabaseName='CMS', @SchemaName='dbo', @TableName='MTF_AutoRelease_AllData';";
 set @sql = "
 select [result] = 'Priority', finding, details, index_usage_summary, index_size_summary, more_info, create_tsql, sample_query_plan, total_forwarded_fetch_count, url
 from dbo.BlitzIndex_Mode0 bi
