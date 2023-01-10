@@ -103,6 +103,18 @@ CREATE TABLE [dbo].[all_server_volatile_info_history]
 )
 GO
 
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.all_server_volatile_info_history')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.all_server_volatile_info_history', 
+			date_key = 'collection_time', 
+			retention_days = 1, 
+			purge_row_size = 1000,
+			reference = 'SQLMonitor Data Collection'
+end
+go
+
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'usp_populate__all_server_volatile_info_history')
     EXEC ('CREATE PROC dbo.usp_populate__all_server_volatile_info_history AS SELECT ''stub version, to be replaced''')
 GO
