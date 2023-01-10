@@ -470,15 +470,15 @@
           <FullPath>QRY-Grafana-FileIOStats.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-INDEXING-DEATH-Method-DeepDive.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.132:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>196.1.115.132</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>QRY-INDEXING-DEATH-Method-DeepDive.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-INDEXING-DEATH-Method-Extract-HighPriority.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.132:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>196.1.115.132</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>QRY-INDEXING-DEATH-Method-Extract-HighPriority.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-RC-Workload-Delta-By-CPU.sql">
@@ -542,9 +542,9 @@
           <FullPath>QRY-WhoIsActive-Grafana-WhatWasRunning.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-WhoIsActive-Infra.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.132:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>196.1.115.132</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>QRY-WhoIsActive-Infra.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Alter-vw_performance_counters.sql">

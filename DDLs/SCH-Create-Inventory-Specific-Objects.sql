@@ -24,6 +24,10 @@ if not exists (select * from sys.database_files where name = 'MemoryOptimized')
 	ALTER DATABASE CURRENT ADD FILE (name='MemoryOptimized', filename='E:\Data\MemoryOptimized.ndf') TO FILEGROUP MemoryOptimized
 go
 
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[all_server_volatile_info_history]') AND type in (N'U'))
+	DROP TABLE [dbo].[all_server_volatile_info_history]
+GO
+
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[all_server_stable_info]') AND type in (N'U'))
 	DROP TABLE [dbo].[all_server_stable_info]
 GO
@@ -77,6 +81,48 @@ CREATE TABLE [dbo].[all_server_volatile_info]
 )
 WITH (MEMORY_OPTIMIZED = ON, DURABILITY = SCHEMA_AND_DATA);
 GO
+
+CREATE TABLE [dbo].[all_server_volatile_info_history]
+(
+	[collection_time] [datetime2] NULL default sysdatetime(),
+	[srv_name] [varchar](125) NOT NULL,
+	[os_cpu] [decimal](20, 2) NULL,
+	[sql_cpu] [decimal](20, 2) NULL,
+	[pcnt_kernel_mode] [decimal](20, 2) NULL,
+	[page_faults_kb] [decimal](20, 2) NULL,
+	[blocked_counts] [int] NULL DEFAULT 0,
+	[blocked_duration_max_seconds] [bigint] NULL DEFAULT 0,
+	[available_physical_memory_kb] [bigint] NULL,
+	[system_high_memory_signal_state] [varchar](20) NULL,
+	[physical_memory_in_use_kb] [decimal](20, 2) NULL,
+	[memory_grants_pending] [int] NULL,
+	[connection_count] [int] NULL DEFAULT 0,
+	[active_requests_count] [int] NULL DEFAULT 0,
+	[waits_per_core_per_minute] [decimal](20, 2) NULL DEFAULT 0,	
+	INDEX ci_all_server_volatile_info_history clustered ([collection_time],[srv_name])
+)
+GO
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'usp_populate__all_server_volatile_info_history')
+    EXEC ('CREATE PROC dbo.usp_populate__all_server_volatile_info_history AS SELECT ''stub version, to be replaced''')
+GO
+
+ALTER PROCEDURE dbo.usp_populate__all_server_volatile_info_history
+AS
+BEGIN
+	SET NOCOUNT ON;
+	INSERT dbo.all_server_volatile_info_history
+	(	[collection_time], [srv_name], [os_cpu], [sql_cpu], [pcnt_kernel_mode], [page_faults_kb], [blocked_counts], 
+		[blocked_duration_max_seconds], [available_physical_memory_kb], [system_high_memory_signal_state], 
+		[physical_memory_in_use_kb], [memory_grants_pending], [connection_count], [active_requests_count], 
+		[waits_per_core_per_minute] )
+	select [collection_time], [srv_name], [os_cpu], [sql_cpu], [pcnt_kernel_mode], [page_faults_kb], [blocked_counts], 
+		[blocked_duration_max_seconds], [available_physical_memory_kb], [system_high_memory_signal_state], 
+		[physical_memory_in_use_kb], [memory_grants_pending], [connection_count], [active_requests_count], 
+		[waits_per_core_per_minute]
+	from dbo.all_server_volatile_info vi
+END
+go
 
 if OBJECT_ID('dbo.vw_all_server_info') is null
 	exec ('create view dbo.vw_all_server_info as select 1 as dummy;');

@@ -1,6 +1,6 @@
 USE [DBA_Admin]
 -- Find long running statements
-declare @table_name nvarchar(225) = 'Cusa_Po_ForChecking';
+declare @table_name nvarchar(225) = 'NCMS_EntityDataView_combine';
 declare @no_of_days tinyint = 7;
 declare @database_name nvarchar(255);
 declare @index_name nvarchar(255);
