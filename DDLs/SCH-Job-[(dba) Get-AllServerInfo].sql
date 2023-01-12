@@ -87,7 +87,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.all_
 if not exists (select 1/0 from dbo.all_server_collection_latency_info where collection_time >= dateadd(minute,-15,getdate()))
 begin
 	exec dbo.usp_GetAllServerInfo @result_to_table = ''dbo.all_server_collection_latency_info'',
-				@output = ''srv_name, host_name, performance_counters__collection_time_utc, resource_consumption__event_time, WhoIsActive__collection_time, os_task_list__collection_time_utc, disk_space__collection_time_utc, file_io_stats__collection_time_utc, wait_stats__collection_time_utc, BlitzIndex__run_datetime, BlitzIndex_Mode0__run_datetime, BlitzIndex_Mode1__run_datetime, BlitzIndex_Mode4__run_datetime'';
+				@output = ''srv_name, host_name, performance_counters__latency_minutes, resource_consumption__latency_minutes, WhoIsActive__latency_minutes, os_task_list__latency_minutes, disk_space__latency_minutes, file_io_stats__latency_minutes, wait_stats__latency_minutes, BlitzIndex__latency_days, BlitzIndex_Mode0__latency_days, BlitzIndex_Mode1__latency_days, BlitzIndex_Mode4__latency_days'';
 end', 
 		@database_name=N'DBA', 
 		@flags=12

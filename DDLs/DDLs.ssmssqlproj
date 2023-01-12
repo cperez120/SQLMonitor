@@ -218,9 +218,9 @@
           <FullPath>SCH-Create-All-Objects.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Create-Inventory-Specific-Objects.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
-          <AssociatedConnUserName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:172.31.25.106:False:E84947</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>172.31.25.106</AssociatedConnSrvName>
+          <AssociatedConnUserName>E84947</AssociatedConnUserName>
           <FullPath>SCH-Create-Inventory-Specific-Objects.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Create-XEvents.sql">
@@ -392,9 +392,9 @@
           <FullPath>SCH-usp_enable_page_compression.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-usp_GetAllServerInfo.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:172.31.25.106:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>172.31.25.106</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>SCH-usp_GetAllServerInfo.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-usp_partition_maintenance.sql">

@@ -65,10 +65,10 @@ BEGIN
 			memory_grants_pending int, connection_count int, active_requests_count int, waits_per_core_per_minute decimal(20,2),
 			os_start_time_utc datetime2, cpu_count smallint, scheduler_count smallint, major_version_number smallint, minor_version_number smallint,
 
-			performance_counters__collection_time_utc datetime2, resource_consumption__event_time datetime2, WhoIsActive__collection_time datetime,
-			os_task_list__collection_time_utc datetime2, disk_space__collection_time_utc datetime2, file_io_stats__collection_time_utc datetime2, 
-			wait_stats__collection_time_utc datetime2, BlitzIndex__run_datetime datetime, BlitzIndex_Mode0__run_datetime datetime, 
-			BlitzIndex_Mode1__run_datetime datetime, BlitzIndex_Mode4__run_datetime datetime
+			performance_counters__latency_minutes int, resource_consumption__latency_minutes int, WhoIsActive__latency_minutes int,
+			os_task_list__latency_minutes int, disk_space__latency_minutes int, file_io_stats__latency_minutes int, 
+			wait_stats__latency_minutes int, BlitzIndex__latency_days int, BlitzIndex_Mode0__latency_days int, 
+			BlitzIndex_Mode1__latency_days int, BlitzIndex_Mode4__latency_days int
 		);
 
 	declare @_srv_name	nvarchar (125);
@@ -100,18 +100,19 @@ BEGIN
 	declare @_scheduler_count int;
 	declare @_major_version_number smallint;
 	declare @_minor_version_number smallint;
-	declare @_BlitzIndex__run_datetime datetime;
-	declare @_BlitzIndex_Mode0__run_datetime datetime;
-	declare @_BlitzIndex_Mode1__run_datetime datetime;
-	declare @_BlitzIndex_Mode4__run_datetime datetime;
-	declare @_disk_space__collection_time_utc datetime;
-	declare @_file_io_stats__collection_time_utc datetime2;
-	declare @_os_task_list__collection_time_utc datetime2;
-	declare @_performance_counters__collection_time_utc datetime2;
-	declare @_resource_consumption__event_time datetime2;
-	declare @_resource_consumption_queries__event_time datetime2;
-	declare @_wait_stats__collection_time_utc datetime2;
-	declare @_WhoIsActive__collection_time datetime;
+
+	declare @_BlitzIndex__latency_days int;
+	declare @_BlitzIndex_Mode0__latency_days int;
+	declare @_BlitzIndex_Mode1__latency_days int;
+	declare @_BlitzIndex_Mode4__latency_days int;
+	declare @_disk_space__latency_minutes int;
+	declare @_file_io_stats__latency_minutes int;
+	declare @_os_task_list__latency_minutes int;
+	declare @_performance_counters__latency_minutes int;
+	declare @_resource_consumption__latency_minutes int;
+	declare @_resource_consumption_queries__latency_minutes int;
+	declare @_wait_stats__latency_minutes int;
+	declare @_WhoIsActive__latency_minutes int;
 
 	declare @_int_variable int;
 	declare @_smallint_variable smallint;
@@ -220,18 +221,18 @@ BEGIN
 		set @_scheduler_count = NULL;
 		set @_major_version_number = NULL;
 		set @_minor_version_number = NULL;
-		set @_BlitzIndex__run_datetime = NULL;
-		set @_BlitzIndex_Mode0__run_datetime = NULL;
-		set @_BlitzIndex_Mode1__run_datetime = NULL;
-		set @_BlitzIndex_Mode4__run_datetime = NULL;
-		set @_disk_space__collection_time_utc = NULL;
-		set @_file_io_stats__collection_time_utc = NULL;
-		set @_os_task_list__collection_time_utc = NULL;
-		set @_performance_counters__collection_time_utc = NULL;
-		set @_resource_consumption__event_time = NULL;
-		set @_resource_consumption_queries__event_time = NULL;
-		set @_wait_stats__collection_time_utc = NULL;
-		set @_WhoIsActive__collection_time = NULL;
+		set @_BlitzIndex__latency_days = NULL;
+		set @_BlitzIndex_Mode0__latency_days = NULL;
+		set @_BlitzIndex_Mode1__latency_days = NULL;
+		set @_BlitzIndex_Mode4__latency_days = NULL;
+		set @_disk_space__latency_minutes = NULL;
+		set @_file_io_stats__latency_minutes = NULL;
+		set @_os_task_list__latency_minutes = NULL;
+		set @_performance_counters__latency_minutes = NULL;
+		set @_resource_consumption__latency_minutes = NULL;
+		set @_resource_consumption_queries__latency_minutes = NULL;
+		set @_wait_stats__latency_minutes = NULL;
+		set @_WhoIsActive__latency_minutes = NULL;
 
 		-- If not local server
 		if ( (CONVERT(varchar,SERVERPROPERTY('MachineName')) = @_srv_name) 
@@ -1275,31 +1276,29 @@ SELECT	[@server_minor_version_number] = @server_minor_version_number
 		end
 
 
-		-- [performance_counters__collection_time_utc] => Create SQL Statement to Execute
-		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'performance_counters__collection_time_utc') )
+		-- [performance_counters__latency_minutes] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'performance_counters__latency_minutes') )
 		begin
 			delete from @_result;
-			set @_sql = "select collection_time_utc = coalesce(pc.collection_time_utc,dmy.dummy_date)
+			set @_sql = "select [latency_minutes] = coalesce(latency_minutes,dummy_latency_minutes)
 from 
-(	select top 1 pc.collection_time_utc from dbo.performance_counters pc
+(	select top 1 [latency_minutes] = datediff(minute,collection_time_utc,getutcdate()) from dbo.performance_counters
 	where 1=1
-	and pc.collection_time_utc >= dateadd(minute,-120,getutcdate())
-	--and pc.collection_time_utc < dateadd(day,-60,getutcdate())
+	and collection_time_utc >= dateadd(minute,-120,getutcdate())
 	and [host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) 
 	order by collection_time_utc desc
-) pc
-full outer join (select [dummy_date] = convert(datetime2,'1900-01-01')) dmy 
+) od
+full outer join (select [dummy_latency_minutes] = 10080) dmy -- 7 days
 on 1=1";
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
 				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 
 			begin try
-				insert @_result (col_datetime2)
+				insert @_result (col_int)
 				exec (@_sql);
 
-				-- set @_ip
-				select @_performance_counters__collection_time_utc = col_datetime2 from @_result;
+				select @_performance_counters__latency_minutes = col_int from @_result;
 			end try
 			begin catch
 				-- print @_sql;
@@ -1314,30 +1313,29 @@ on 1=1";
 		end
 
 
-		-- [resource_consumption__event_time] => Create SQL Statement to Execute
-		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'resource_consumption__event_time') )
+		-- [resource_consumption__latency_minutes] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'resource_consumption__latency_minutes') )
 		begin
 			delete from @_result;
-			set @_sql = "select collection_time = coalesce(xe.event_time,dmy.dummy_date)
+			set @_sql = "select [latency_minutes] = coalesce(xe.latency_minutes,dmy.dummy_latency_minutes)
 from 
-(	select top 1 xe.event_time from dbo.resource_consumption xe
+(	select top 1 latency_minutes = datediff(minute,xe.event_time,getdate()) from dbo.resource_consumption xe
 	where 1=1
 	and xe.event_time >= dateadd(minute,-120,getdate())
-	--and xe.event_time < dateadd(day,-60,getdate())
 	order by xe.event_time desc
 ) xe
-full outer join (select [dummy_date] = convert(datetime2,'1900-01-01')) dmy 
+full outer join (select [dummy_latency_minutes] = 10080) dmy 
 on 1=1";
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
 				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 
 			begin try
-				insert @_result (col_datetime2)
+				insert @_result (col_int)
 				exec (@_sql);
 
 				-- set @_ip
-				select @_resource_consumption__event_time = col_datetime2 from @_result;
+				select @_resource_consumption__latency_minutes = col_int from @_result;
 			end try
 			begin catch
 				-- print @_sql;
@@ -1352,30 +1350,66 @@ on 1=1";
 		end
 
 
-		-- [WhoIsActive__collection_time] => Create SQL Statement to Execute
-		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'WhoIsActive__collection_time') )
+		-- [WhoIsActive__latency_minutes] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'WhoIsActive__latency_minutes') )
 		begin
 			delete from @_result;
-			set @_sql = "select collection_time = coalesce(w.collection_time,dmy.dummy_date)
+			set @_sql = "select [latency_minutes] = coalesce(w.latency_minutes,dmy.dummy_latency_minutes)
 from 
-(	select top 1 w.collection_time from dbo.WhoIsActive w
+(	select top 1 [latency_minutes] = datediff(minute,w.collection_time,getdate()) from dbo.WhoIsActive w
 	where 1=1
 	and w.collection_time >= dateadd(minute,-60,getdate())
-	--and w.collection_time < dateadd(day,-60,getutcdate())
 	order by collection_time desc
 ) w
-full outer join (select [dummy_date] = convert(datetime,'1900-01-01')) dmy 
+full outer join (select [dummy_latency_minutes] = 10080) dmy -- 7 days
 on 1=1";
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
 				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 
 			begin try
-				insert @_result (col_datetime)
+				insert @_result (col_int)
+				exec (@_sql);
+
+				select @_WhoIsActive__latency_minutes = col_int from @_result;
+			end try
+			begin catch
+				-- print @_sql;
+				print char(10)+char(13)+'Error occurred while executing below query on '+quotename(@_srv_name)+char(10)+'     '+@_sql;
+				print  '	ErrorNumber => '+convert(varchar,ERROR_NUMBER());
+				print  '	ErrorSeverity => '+convert(varchar,ERROR_SEVERITY());
+				print  '	ErrorState => '+convert(varchar,ERROR_STATE());
+				--print  '	ErrorProcedure => '+ERROR_PROCEDURE();
+				print  '	ErrorLine => '+convert(varchar,ERROR_LINE());
+				print  '	ErrorMessage => '+ERROR_MESSAGE();
+			end catch
+		end
+
+
+		-- [os_task_list__latency_minutes] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'os_task_list__latency_minutes') )
+		begin
+			delete from @_result;
+			set @_sql = "select [latency_minutes] = coalesce(latency_minutes,dummy_latency_minutes)
+from 
+(	select top 1 [latency_minutes] = datediff(minute,collection_time_utc,getutcdate()) from dbo.os_task_list
+	where 1=1
+	and collection_time_utc >= dateadd(minute,-120,getutcdate())
+	and [host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) 
+	order by collection_time_utc desc
+) od
+full outer join (select [dummy_latency_minutes] = 10080) dmy -- 7 days
+on 1=1";
+			-- Decorate for remote query if LinkedServer
+			if @_isLocalHost = 0
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
+
+			begin try
+				insert @_result (col_int)
 				exec (@_sql);
 
 				-- set @_ip
-				select @_WhoIsActive__collection_time = col_datetime from @_result;
+				select @_os_task_list__latency_minutes = col_int from @_result;
 			end try
 			begin catch
 				-- print @_sql;
@@ -1390,31 +1424,29 @@ on 1=1";
 		end
 
 
-		-- [os_task_list__collection_time_utc] => Create SQL Statement to Execute
-		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'os_task_list__collection_time_utc') )
+		-- [disk_space__latency_minutes] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'disk_space__latency_minutes') )
 		begin
 			delete from @_result;
-			set @_sql = "select collection_time_utc = coalesce(otl.collection_time_utc,dmy.dummy_date)
+			set @_sql = "select [latency_minutes] = coalesce(latency_minutes,dummy_latency_minutes)
 from 
-(	select top 1 otl.collection_time_utc from dbo.os_task_list otl
+(	select top 1 [latency_minutes] = datediff(minute,collection_time_utc,getutcdate()) from dbo.disk_space
 	where 1=1
-	and otl.collection_time_utc >= dateadd(minute,-120,getutcdate())
-	--and otl.collection_time_utc < dateadd(day,-60,getutcdate())
-	and otl.[host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) 
+	and collection_time_utc >= dateadd(minute,-120,getutcdate())
+	and [host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) 
 	order by collection_time_utc desc
-) otl
-full outer join (select [dummy_date] = convert(datetime2,'1900-01-01')) dmy 
+) od
+full outer join (select [dummy_latency_minutes] = 10080) dmy -- 7 days
 on 1=1";
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
 				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 
 			begin try
-				insert @_result (col_datetime2)
+				insert @_result (col_int)
 				exec (@_sql);
 
-				-- set @_ip
-				select @_os_task_list__collection_time_utc = col_datetime2 from @_result;
+				select @_disk_space__latency_minutes = col_int from @_result;
 			end try
 			begin catch
 				-- print @_sql;
@@ -1428,32 +1460,28 @@ on 1=1";
 			end catch
 		end
 
-
-		-- [disk_space__collection_time_utc] => Create SQL Statement to Execute
-		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'disk_space__collection_time_utc') )
+		-- [file_io_stats__latency_minutes] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'file_io_stats__latency_minutes') )
 		begin
 			delete from @_result;
-			set @_sql = "select collection_time_utc = coalesce(ds.collection_time_utc,dmy.dummy_date)
+			set @_sql = "select [latency_minutes] = coalesce(latency_minutes,dummy_latency_minutes)
 from 
-(	select top 1 ds.collection_time_utc from dbo.disk_space ds
+(	select top 1 [latency_minutes] = datediff(minute,collection_time_utc,getutcdate()) from dbo.file_io_stats
 	where 1=1
-	and ds.collection_time_utc >= dateadd(minute,-120,getutcdate())
-	--and ds.collection_time_utc < dateadd(day,-60,getutcdate())
-	and ds.[host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) 
+	and collection_time_utc >= dateadd(minute,-120,getutcdate())
 	order by collection_time_utc desc
-) ds
-full outer join (select [dummy_date] = convert(datetime2,'1900-01-01')) dmy 
+) od
+full outer join (select [dummy_latency_minutes] = 10080) dmy -- 7 days
 on 1=1";
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
 				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 
 			begin try
-				insert @_result (col_datetime2)
+				insert @_result (col_int)
 				exec (@_sql);
 
-				-- set @_ip
-				select @_disk_space__collection_time_utc = col_datetime2 from @_result;
+				select @_file_io_stats__latency_minutes = col_int from @_result;
 			end try
 			begin catch
 				-- print @_sql;
@@ -1467,66 +1495,28 @@ on 1=1";
 			end catch
 		end
 
-		-- [file_io_stats__collection_time_utc] => Create SQL Statement to Execute
-		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'file_io_stats__collection_time_utc') )
+		-- [wait_stats__latency_minutes] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'wait_stats__latency_minutes') )
 		begin
 			delete from @_result;
-			set @_sql = "select collection_time_utc = coalesce(fis.collection_time_utc,dmy.dummy_date)
+			set @_sql = "select [latency_minutes] = coalesce(latency_minutes,dummy_latency_minutes)
 from 
-(	select top 1 fis.collection_time_utc from dbo.file_io_stats fis
+(	select top 1 [latency_minutes] = datediff(minute,collection_time_utc,getutcdate()) from dbo.wait_stats
 	where 1=1
-	and fis.collection_time_utc >= dateadd(minute,-120,getutcdate())
-	--and fis.collection_time_utc < dateadd(day,-60,getutcdate())
+	and collection_time_utc >= dateadd(minute,-120,getutcdate())
 	order by collection_time_utc desc
-) fis
-full outer join (select [dummy_date] = convert(datetime2,'1900-01-01')) dmy 
+) od
+full outer join (select [dummy_latency_minutes] = 10080) dmy -- 7 days
 on 1=1";
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
 				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 
 			begin try
-				insert @_result (col_datetime2)
+				insert @_result (col_int)
 				exec (@_sql);
 
-				select @_file_io_stats__collection_time_utc = col_datetime2 from @_result;
-			end try
-			begin catch
-				-- print @_sql;
-				print char(10)+char(13)+'Error occurred while executing below query on '+quotename(@_srv_name)+char(10)+'     '+@_sql;
-				print  '	ErrorNumber => '+convert(varchar,ERROR_NUMBER());
-				print  '	ErrorSeverity => '+convert(varchar,ERROR_SEVERITY());
-				print  '	ErrorState => '+convert(varchar,ERROR_STATE());
-				--print  '	ErrorProcedure => '+ERROR_PROCEDURE();
-				print  '	ErrorLine => '+convert(varchar,ERROR_LINE());
-				print  '	ErrorMessage => '+ERROR_MESSAGE();
-			end catch
-		end
-
-		-- [wait_stats__collection_time_utc] => Create SQL Statement to Execute
-		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'wait_stats__collection_time_utc') )
-		begin
-			delete from @_result;
-			set @_sql = "select collection_time_utc = coalesce(ws.collection_time_utc,dmy.dummy_date)
-from 
-(	select top 1 ws.collection_time_utc from dbo.wait_stats ws
-	where 1=1
-	and ws.collection_time_utc >= dateadd(minute,-120,getutcdate())
-	--and ws.collection_time_utc < dateadd(day,-60,getutcdate())
-	order by collection_time_utc desc
-) ws
-full outer join (select [dummy_date] = convert(datetime2,'1900-01-01')) dmy 
-on 1=1";
-			-- Decorate for remote query if LinkedServer
-			if @_isLocalHost = 0
-				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
-
-			begin try
-				insert @_result (col_datetime2)
-				exec (@_sql);
-
-				-- set @_ip
-				select @_wait_stats__collection_time_utc = col_datetime2 from @_result;
+				select @_wait_stats__latency_minutes = col_int from @_result;
 			end try
 			begin catch
 				-- print @_sql;
@@ -1541,28 +1531,28 @@ on 1=1";
 		end
 
 
-		-- [BlitzIndex__run_datetime] => Create SQL Statement to Execute
-		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'BlitzIndex__run_datetime') )
+		-- [BlitzIndex__latency_days] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'BlitzIndex__latency_days') )
 		begin
 			delete from @_result;
-			set @_sql = "select run_datetime = coalesce(bi.run_datetime,dmy.dummy_date)
+			set @_sql = "select [latency_days] = coalesce(latency_days,dummy_latency_days)
 from 
-(	select top 1 bi.run_datetime from dbo.BlitzIndex bi
+(	select top 1 [latency_days] = datediff(day,run_datetime,getdate()) from dbo.BlitzIndex
 	where 1=1
-	and bi.run_datetime >= dateadd(day,-3,getdate())
+	and run_datetime >= dateadd(day,-3,getdate())
 	order by run_datetime desc
-) bi
-full outer join (select [dummy_date] = convert(datetime,'1900-01-01')) dmy 
+) od
+full outer join (select [dummy_latency_days] = 365) dmy 
 on 1=1";
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
 				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 
 			begin try
-				insert @_result (col_datetime)
+				insert @_result (col_int)
 				exec (@_sql);
 
-				select @_BlitzIndex__run_datetime = col_datetime from @_result;
+				select @_BlitzIndex__latency_days = col_int from @_result;
 			end try
 			begin catch
 				-- print @_sql;
@@ -1577,28 +1567,28 @@ on 1=1";
 		end
 
 
-		-- [BlitzIndex_Mode0__run_datetime] => Create SQL Statement to Execute
-		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'BlitzIndex_Mode0__run_datetime') )
+		-- [BlitzIndex_Mode0__latency_days] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'BlitzIndex_Mode0__latency_days') )
 		begin
 			delete from @_result;
-			set @_sql = "select run_datetime = coalesce(bi.run_datetime,dmy.dummy_date)
+			set @_sql = "select [latency_days] = coalesce(latency_days,dummy_latency_days)
 from 
-(	select top 1 bi.run_datetime from dbo.BlitzIndex_Mode0 bi
+(	select top 1 [latency_days] = datediff(day,run_datetime,getdate()) from dbo.BlitzIndex_Mode0
 	where 1=1
-	and bi.run_datetime >= dateadd(day,-15,getdate())
+	and run_datetime >= dateadd(day,-15,getdate())
 	order by run_datetime desc
-) bi
-full outer join (select [dummy_date] = convert(datetime,'1900-01-01')) dmy 
+) od
+full outer join (select [dummy_latency_days] = 365) dmy 
 on 1=1";
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
 				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 
 			begin try
-				insert @_result (col_datetime)
+				insert @_result (col_int)
 				exec (@_sql);
 
-				select @_BlitzIndex_Mode0__run_datetime = col_datetime from @_result;
+				select @_BlitzIndex_Mode0__latency_days = col_int from @_result;
 			end try
 			begin catch
 				-- print @_sql;
@@ -1613,28 +1603,28 @@ on 1=1";
 		end
 
 
-		-- [BlitzIndex_Mode1__run_datetime] => Create SQL Statement to Execute
-		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'BlitzIndex_Mode1__run_datetime') )
+		-- [BlitzIndex_Mode1__latency_days] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'BlitzIndex_Mode1__latency_days') )
 		begin
 			delete from @_result;
-			set @_sql = "select run_datetime = coalesce(bi.run_datetime,dmy.dummy_date)
+			set @_sql = "select [latency_days] = coalesce(latency_days,dummy_latency_days)
 from 
-(	select top 1 bi.run_datetime from dbo.BlitzIndex_Mode1 bi
+(	select top 1 [latency_days] = datediff(day,run_datetime,getdate()) from dbo.BlitzIndex_Mode1
 	where 1=1
-	and bi.run_datetime >= dateadd(day,-15,getdate())
+	and run_datetime >= dateadd(day,-15,getdate())
 	order by run_datetime desc
-) bi
-full outer join (select [dummy_date] = convert(datetime,'1900-01-01')) dmy 
+) od
+full outer join (select [dummy_latency_days] = 365) dmy 
 on 1=1";
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
 				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 
 			begin try
-				insert @_result (col_datetime)
+				insert @_result (col_int)
 				exec (@_sql);
 
-				select @_BlitzIndex_Mode1__run_datetime = col_datetime from @_result;
+				select @_BlitzIndex_Mode1__latency_days = col_int from @_result;
 			end try
 			begin catch
 				-- print @_sql;
@@ -1649,28 +1639,28 @@ on 1=1";
 		end
 
 
-		-- [BlitzIndex_Mode4__run_datetime] => Create SQL Statement to Execute
-		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'BlitzIndex_Mode4__run_datetime') )
+		-- [BlitzIndex_Mode4__latency_days] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'BlitzIndex_Mode4__latency_days') )
 		begin
 			delete from @_result;
-			set @_sql = "select run_datetime = coalesce(bi.run_datetime,dmy.dummy_date)
+			set @_sql = "select [latency_days] = coalesce(latency_days,dummy_latency_days)
 from 
-(	select top 1 bi.run_datetime from dbo.BlitzIndex_Mode4 bi
+(	select top 1 [latency_days] = datediff(day,run_datetime,getdate()) from dbo.BlitzIndex_Mode4
 	where 1=1
-	and bi.run_datetime >= dateadd(day,-15,getdate())
+	and run_datetime >= dateadd(day,-15,getdate())
 	order by run_datetime desc
-) bi
-full outer join (select [dummy_date] = convert(datetime,'1900-01-01')) dmy 
+) od
+full outer join (select [dummy_latency_days] = 365) dmy 
 on 1=1";
 			-- Decorate for remote query if LinkedServer
 			if @_isLocalHost = 0
 				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
 
 			begin try
-				insert @_result (col_datetime)
+				insert @_result (col_int)
 				exec (@_sql);
 
-				select @_BlitzIndex_Mode4__run_datetime = col_datetime from @_result;
+				select @_BlitzIndex_Mode4__latency_days = col_int from @_result;
 			end try
 			begin catch
 				-- print @_sql;
@@ -1693,10 +1683,10 @@ on 1=1";
 				[pcnt_kernel_mode], [page_faults_kb], [blocked_counts], [blocked_duration_max_seconds], [total_physical_memory_kb], 
 				[available_physical_memory_kb], [system_high_memory_signal_state], [physical_memory_in_use_kb], [memory_grants_pending], 
 				[connection_count], [active_requests_count], [waits_per_core_per_minute], [os_start_time_utc], [cpu_count], 
-				[scheduler_count], [major_version_number], [minor_version_number], [performance_counters__collection_time_utc],
-				[resource_consumption__event_time], [WhoIsActive__collection_time], [os_task_list__collection_time_utc], 
-				[disk_space__collection_time_utc], [file_io_stats__collection_time_utc], [wait_stats__collection_time_utc], [BlitzIndex__run_datetime],
-				[BlitzIndex_Mode0__run_datetime], [BlitzIndex_Mode1__run_datetime], [BlitzIndex_Mode4__run_datetime]
+				[scheduler_count], [major_version_number], [minor_version_number], [performance_counters__latency_minutes],
+				[resource_consumption__latency_minutes], [WhoIsActive__latency_minutes], [os_task_list__latency_minutes], 
+				[disk_space__latency_minutes], [file_io_stats__latency_minutes], [wait_stats__latency_minutes], [BlitzIndex__latency_days],
+				[BlitzIndex_Mode0__latency_days], [BlitzIndex_Mode1__latency_days], [BlitzIndex_Mode4__latency_days]
 			)
 			select	[srv_name] = @_srv_name
 					,[@@servername] = @_at_server_name
@@ -1727,17 +1717,17 @@ on 1=1";
 					,[scheduler_count] = @_scheduler_count
 					,[major_version_number] = @_major_version_number
 					,[minor_version_number] = @_minor_version_number
-					,[performance_counters__collection_time_utc] = @_performance_counters__collection_time_utc
-					,[resource_consumption__event_time] = @_resource_consumption__event_time
-					,[WhoIsActive__collection_time] = @_WhoIsActive__collection_time
-					,[os_task_list__collection_time_utc] = @_os_task_list__collection_time_utc
-					,[disk_space__collection_time_utc] = @_disk_space__collection_time_utc
-					,[file_io_stats__collection_time_utc] = @_file_io_stats__collection_time_utc
-					,[wait_stats__collection_time_utc] = @_wait_stats__collection_time_utc
-					,[BlitzIndex__run_datetime] = @_BlitzIndex__run_datetime
-					,[BlitzIndex_Mode0__run_datetime] = @_BlitzIndex_Mode0__run_datetime
-					,[BlitzIndex_Mode1__run_datetime] = @_BlitzIndex_Mode1__run_datetime
-					,[BlitzIndex_Mode4__run_datetime] = @_BlitzIndex_Mode4__run_datetime
+					,[performance_counters__latency_minutes] = @_performance_counters__latency_minutes
+					,[resource_consumption__latency_minutes] = @_resource_consumption__latency_minutes
+					,[WhoIsActive__latency_minutes] = @_WhoIsActive__latency_minutes
+					,[os_task_list__latency_minutes] = @_os_task_list__latency_minutes
+					,[disk_space__latency_minutes] = @_disk_space__latency_minutes
+					,[file_io_stats__latency_minutes] = @_file_io_stats__latency_minutes
+					,[wait_stats__latency_minutes] = @_wait_stats__latency_minutes
+					,[BlitzIndex__latency_days] = @_BlitzIndex__latency_days
+					,[BlitzIndex_Mode0__latency_days] = @_BlitzIndex_Mode0__latency_days
+					,[BlitzIndex_Mode1__latency_days] = @_BlitzIndex_Mode1__latency_days
+					,[BlitzIndex_Mode4__latency_days] = @_BlitzIndex_Mode4__latency_days
 		end
 
 		FETCH NEXT FROM cur_servers INTO @_srv_name;
