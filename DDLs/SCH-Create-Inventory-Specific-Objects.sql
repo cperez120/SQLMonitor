@@ -1,3 +1,10 @@
+/*
+	Version -> v1.3.1
+	-----------------
+
+	2022-03-31 - Enhancement#227 - Add CollectionTime of Each Table Data
+*/
+
 IF APP_NAME() = 'Microsoft SQL Server Management Studio - Query'
 BEGIN
 	SET QUOTED_IDENTIFIER OFF;
@@ -34,6 +41,10 @@ GO
 
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[all_server_volatile_info]') AND type in (N'U'))
 	DROP TABLE [dbo].[all_server_volatile_info]
+GO
+
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[all_server_collection_latency_info]') AND type in (N'U'))
+	DROP TABLE [dbo].[all_server_collection_latency_info]
 GO
 
 CREATE TABLE [dbo].[all_server_stable_info]
@@ -80,6 +91,26 @@ CREATE TABLE [dbo].[all_server_volatile_info]
 	CONSTRAINT pk_all_server_volatile_info primary key nonclustered ([srv_name])
 )
 WITH (MEMORY_OPTIMIZED = ON, DURABILITY = SCHEMA_AND_DATA);
+GO
+
+CREATE TABLE [dbo].[all_server_collection_latency_info]
+(
+	[srv_name] [varchar](125) NOT NULL,
+	[host_name] [varchar](125) NULL,
+	[performance_counters__collection_time_utc] datetime2 null,
+	[resource_consumption__event_time] datetime2 null,
+	[WhoIsActive__collection_time] datetime null,
+	[os_task_list__collection_time_utc] datetime2 null,
+	[disk_space__collection_time_utc] datetime2 null,
+	[file_io_stats__collection_time_utc] datetime2 null,
+	[wait_stats__collection_time_utc] datetime2 null,
+	[BlitzIndex__run_datetime] datetime null,
+	[BlitzIndex_Mode0__run_datetime] datetime null,
+	[BlitzIndex_Mode1__run_datetime] datetime null,
+	[BlitzIndex_Mode4__run_datetime] datetime null,
+	[collection_time] [datetime2] NULL default sysdatetime(),
+	INDEX ci_all_server_collection_latency_info unique nonclustered ([srv_name],[host_name])
+)
 GO
 
 CREATE TABLE [dbo].[all_server_volatile_info_history]

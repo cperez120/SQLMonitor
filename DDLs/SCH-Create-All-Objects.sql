@@ -1,5 +1,5 @@
 /*
-	Version -> v1.2.1
+	Version -> v1.3.1
 	-----------------
 
 	*** Self Pre Steps ***
@@ -300,7 +300,7 @@ go
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[performance_counters]') and name = 'ci_performance_counters')
 begin
 	create clustered index ci_performance_counters on [dbo].[performance_counters] 
-	([collection_time_utc], [host_name], object, counter, [instance], [value]) on ps_dba_datetime2_hourly ([collection_time_utc])
+	([collection_time_utc], [host_name]) on ps_dba_datetime2_hourly ([collection_time_utc])
 end
 go
 if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[performance_counters]') and name = 'nci_counter_collection_time_utc')

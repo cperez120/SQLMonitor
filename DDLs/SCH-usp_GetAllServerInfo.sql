@@ -32,8 +32,9 @@ AS
 BEGIN
 
 	/*
-		Version:		1.0.3
-		Date:			2022-10-16 - Bug/Fix - Inventory server not appearing when Named Instance
+		Version:		1.3.1
+		Date:			2022-03-31 - Enhancement#227 - Add CollectionTime of Each Table Data
+						2022-10-16 - Bug/Fix - Inventory server not appearing when Named Instance
 
 		declare @srv_name varchar(125) = convert(varchar,serverproperty('MachineName'));
 		exec dbo.usp_GetAllServerInfo @servers = @srv_name
@@ -62,7 +63,12 @@ BEGIN
 			page_faults_kb decimal(20,2), blocked_counts int, blocked_duration_max_seconds bigint, total_physical_memory_kb bigint,
 			available_physical_memory_kb bigint, system_high_memory_signal_state varchar(20), physical_memory_in_use_kb decimal(20,2),
 			memory_grants_pending int, connection_count int, active_requests_count int, waits_per_core_per_minute decimal(20,2),
-			os_start_time_utc datetime2, cpu_count smallint, scheduler_count smallint, major_version_number smallint, minor_version_number smallint
+			os_start_time_utc datetime2, cpu_count smallint, scheduler_count smallint, major_version_number smallint, minor_version_number smallint,
+
+			performance_counters__collection_time_utc datetime2, resource_consumption__event_time datetime2, WhoIsActive__collection_time datetime,
+			os_task_list__collection_time_utc datetime2, disk_space__collection_time_utc datetime2, file_io_stats__collection_time_utc datetime2, 
+			wait_stats__collection_time_utc datetime2, BlitzIndex__run_datetime datetime, BlitzIndex_Mode0__run_datetime datetime, 
+			BlitzIndex_Mode1__run_datetime datetime, BlitzIndex_Mode4__run_datetime datetime
 		);
 
 	declare @_srv_name	nvarchar (125);
@@ -94,11 +100,29 @@ BEGIN
 	declare @_scheduler_count int;
 	declare @_major_version_number smallint;
 	declare @_minor_version_number smallint;
+	declare @_BlitzIndex__run_datetime datetime;
+	declare @_BlitzIndex_Mode0__run_datetime datetime;
+	declare @_BlitzIndex_Mode1__run_datetime datetime;
+	declare @_BlitzIndex_Mode4__run_datetime datetime;
+	declare @_disk_space__collection_time_utc datetime;
+	declare @_file_io_stats__collection_time_utc datetime2;
+	declare @_os_task_list__collection_time_utc datetime2;
+	declare @_performance_counters__collection_time_utc datetime2;
+	declare @_resource_consumption__event_time datetime2;
+	declare @_resource_consumption_queries__event_time datetime2;
+	declare @_wait_stats__collection_time_utc datetime2;
+	declare @_WhoIsActive__collection_time datetime;
+
 	declare @_int_variable int;
 	declare @_smallint_variable smallint;
 	declare @_tinyint_variable tinyint;
 	declare @_bigint_variable bigint;
-	declare @_result table (col_bigint bigint null, col_int int null, col_varchar varchar(125) null, col_decimal decimal(20,2) null, col_datetime datetime2 null);
+	declare @_datetime_variable datetime;
+	declare @_datetime2_variable datetime2;
+	declare @_date_variable date;
+
+	declare @_result table (col_bigint bigint null, col_int int null, col_varchar varchar(125) null, 
+							col_decimal decimal(20,2) null, col_datetime datetime2 null, col_datetime2 datetime2 null);
 
 	IF @verbose >= 1
 		PRINT 'Extracting server names from @servers ('+@servers+') parameter value..';
@@ -196,6 +220,18 @@ BEGIN
 		set @_scheduler_count = NULL;
 		set @_major_version_number = NULL;
 		set @_minor_version_number = NULL;
+		set @_BlitzIndex__run_datetime = NULL;
+		set @_BlitzIndex_Mode0__run_datetime = NULL;
+		set @_BlitzIndex_Mode1__run_datetime = NULL;
+		set @_BlitzIndex_Mode4__run_datetime = NULL;
+		set @_disk_space__collection_time_utc = NULL;
+		set @_file_io_stats__collection_time_utc = NULL;
+		set @_os_task_list__collection_time_utc = NULL;
+		set @_performance_counters__collection_time_utc = NULL;
+		set @_resource_consumption__event_time = NULL;
+		set @_resource_consumption_queries__event_time = NULL;
+		set @_wait_stats__collection_time_utc = NULL;
+		set @_WhoIsActive__collection_time = NULL;
 
 		-- If not local server
 		if ( (CONVERT(varchar,SERVERPROPERTY('MachineName')) = @_srv_name) 
@@ -1239,6 +1275,416 @@ SELECT	[@server_minor_version_number] = @server_minor_version_number
 		end
 
 
+		-- [performance_counters__collection_time_utc] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'performance_counters__collection_time_utc') )
+		begin
+			delete from @_result;
+			set @_sql = "select collection_time_utc = coalesce(pc.collection_time_utc,dmy.dummy_date)
+from 
+(	select top 1 pc.collection_time_utc from dbo.performance_counters pc
+	where 1=1
+	and pc.collection_time_utc >= dateadd(minute,-120,getutcdate())
+	--and pc.collection_time_utc < dateadd(day,-60,getutcdate())
+	and [host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) 
+	order by collection_time_utc desc
+) pc
+full outer join (select [dummy_date] = convert(datetime2,'1900-01-01')) dmy 
+on 1=1";
+			-- Decorate for remote query if LinkedServer
+			if @_isLocalHost = 0
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
+
+			begin try
+				insert @_result (col_datetime2)
+				exec (@_sql);
+
+				-- set @_ip
+				select @_performance_counters__collection_time_utc = col_datetime2 from @_result;
+			end try
+			begin catch
+				-- print @_sql;
+				print char(10)+char(13)+'Error occurred while executing below query on '+quotename(@_srv_name)+char(10)+'     '+@_sql;
+				print  '	ErrorNumber => '+convert(varchar,ERROR_NUMBER());
+				print  '	ErrorSeverity => '+convert(varchar,ERROR_SEVERITY());
+				print  '	ErrorState => '+convert(varchar,ERROR_STATE());
+				--print  '	ErrorProcedure => '+ERROR_PROCEDURE();
+				print  '	ErrorLine => '+convert(varchar,ERROR_LINE());
+				print  '	ErrorMessage => '+ERROR_MESSAGE();
+			end catch
+		end
+
+
+		-- [resource_consumption__event_time] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'resource_consumption__event_time') )
+		begin
+			delete from @_result;
+			set @_sql = "select collection_time = coalesce(xe.event_time,dmy.dummy_date)
+from 
+(	select top 1 xe.event_time from dbo.resource_consumption xe
+	where 1=1
+	and xe.event_time >= dateadd(minute,-120,getdate())
+	--and xe.event_time < dateadd(day,-60,getdate())
+	order by xe.event_time desc
+) xe
+full outer join (select [dummy_date] = convert(datetime2,'1900-01-01')) dmy 
+on 1=1";
+			-- Decorate for remote query if LinkedServer
+			if @_isLocalHost = 0
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
+
+			begin try
+				insert @_result (col_datetime2)
+				exec (@_sql);
+
+				-- set @_ip
+				select @_resource_consumption__event_time = col_datetime2 from @_result;
+			end try
+			begin catch
+				-- print @_sql;
+				print char(10)+char(13)+'Error occurred while executing below query on '+quotename(@_srv_name)+char(10)+'     '+@_sql;
+				print  '	ErrorNumber => '+convert(varchar,ERROR_NUMBER());
+				print  '	ErrorSeverity => '+convert(varchar,ERROR_SEVERITY());
+				print  '	ErrorState => '+convert(varchar,ERROR_STATE());
+				--print  '	ErrorProcedure => '+ERROR_PROCEDURE();
+				print  '	ErrorLine => '+convert(varchar,ERROR_LINE());
+				print  '	ErrorMessage => '+ERROR_MESSAGE();
+			end catch
+		end
+
+
+		-- [WhoIsActive__collection_time] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'WhoIsActive__collection_time') )
+		begin
+			delete from @_result;
+			set @_sql = "select collection_time = coalesce(w.collection_time,dmy.dummy_date)
+from 
+(	select top 1 w.collection_time from dbo.WhoIsActive w
+	where 1=1
+	and w.collection_time >= dateadd(minute,-60,getdate())
+	--and w.collection_time < dateadd(day,-60,getutcdate())
+	order by collection_time desc
+) w
+full outer join (select [dummy_date] = convert(datetime,'1900-01-01')) dmy 
+on 1=1";
+			-- Decorate for remote query if LinkedServer
+			if @_isLocalHost = 0
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
+
+			begin try
+				insert @_result (col_datetime)
+				exec (@_sql);
+
+				-- set @_ip
+				select @_WhoIsActive__collection_time = col_datetime from @_result;
+			end try
+			begin catch
+				-- print @_sql;
+				print char(10)+char(13)+'Error occurred while executing below query on '+quotename(@_srv_name)+char(10)+'     '+@_sql;
+				print  '	ErrorNumber => '+convert(varchar,ERROR_NUMBER());
+				print  '	ErrorSeverity => '+convert(varchar,ERROR_SEVERITY());
+				print  '	ErrorState => '+convert(varchar,ERROR_STATE());
+				--print  '	ErrorProcedure => '+ERROR_PROCEDURE();
+				print  '	ErrorLine => '+convert(varchar,ERROR_LINE());
+				print  '	ErrorMessage => '+ERROR_MESSAGE();
+			end catch
+		end
+
+
+		-- [os_task_list__collection_time_utc] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'os_task_list__collection_time_utc') )
+		begin
+			delete from @_result;
+			set @_sql = "select collection_time_utc = coalesce(otl.collection_time_utc,dmy.dummy_date)
+from 
+(	select top 1 otl.collection_time_utc from dbo.os_task_list otl
+	where 1=1
+	and otl.collection_time_utc >= dateadd(minute,-120,getutcdate())
+	--and otl.collection_time_utc < dateadd(day,-60,getutcdate())
+	and otl.[host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) 
+	order by collection_time_utc desc
+) otl
+full outer join (select [dummy_date] = convert(datetime2,'1900-01-01')) dmy 
+on 1=1";
+			-- Decorate for remote query if LinkedServer
+			if @_isLocalHost = 0
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
+
+			begin try
+				insert @_result (col_datetime2)
+				exec (@_sql);
+
+				-- set @_ip
+				select @_os_task_list__collection_time_utc = col_datetime2 from @_result;
+			end try
+			begin catch
+				-- print @_sql;
+				print char(10)+char(13)+'Error occurred while executing below query on '+quotename(@_srv_name)+char(10)+'     '+@_sql;
+				print  '	ErrorNumber => '+convert(varchar,ERROR_NUMBER());
+				print  '	ErrorSeverity => '+convert(varchar,ERROR_SEVERITY());
+				print  '	ErrorState => '+convert(varchar,ERROR_STATE());
+				--print  '	ErrorProcedure => '+ERROR_PROCEDURE();
+				print  '	ErrorLine => '+convert(varchar,ERROR_LINE());
+				print  '	ErrorMessage => '+ERROR_MESSAGE();
+			end catch
+		end
+
+
+		-- [disk_space__collection_time_utc] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'disk_space__collection_time_utc') )
+		begin
+			delete from @_result;
+			set @_sql = "select collection_time_utc = coalesce(ds.collection_time_utc,dmy.dummy_date)
+from 
+(	select top 1 ds.collection_time_utc from dbo.disk_space ds
+	where 1=1
+	and ds.collection_time_utc >= dateadd(minute,-120,getutcdate())
+	--and ds.collection_time_utc < dateadd(day,-60,getutcdate())
+	and ds.[host_name] = CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) 
+	order by collection_time_utc desc
+) ds
+full outer join (select [dummy_date] = convert(datetime2,'1900-01-01')) dmy 
+on 1=1";
+			-- Decorate for remote query if LinkedServer
+			if @_isLocalHost = 0
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
+
+			begin try
+				insert @_result (col_datetime2)
+				exec (@_sql);
+
+				-- set @_ip
+				select @_disk_space__collection_time_utc = col_datetime2 from @_result;
+			end try
+			begin catch
+				-- print @_sql;
+				print char(10)+char(13)+'Error occurred while executing below query on '+quotename(@_srv_name)+char(10)+'     '+@_sql;
+				print  '	ErrorNumber => '+convert(varchar,ERROR_NUMBER());
+				print  '	ErrorSeverity => '+convert(varchar,ERROR_SEVERITY());
+				print  '	ErrorState => '+convert(varchar,ERROR_STATE());
+				--print  '	ErrorProcedure => '+ERROR_PROCEDURE();
+				print  '	ErrorLine => '+convert(varchar,ERROR_LINE());
+				print  '	ErrorMessage => '+ERROR_MESSAGE();
+			end catch
+		end
+
+		-- [file_io_stats__collection_time_utc] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'file_io_stats__collection_time_utc') )
+		begin
+			delete from @_result;
+			set @_sql = "select collection_time_utc = coalesce(fis.collection_time_utc,dmy.dummy_date)
+from 
+(	select top 1 fis.collection_time_utc from dbo.file_io_stats fis
+	where 1=1
+	and fis.collection_time_utc >= dateadd(minute,-120,getutcdate())
+	--and fis.collection_time_utc < dateadd(day,-60,getutcdate())
+	order by collection_time_utc desc
+) fis
+full outer join (select [dummy_date] = convert(datetime2,'1900-01-01')) dmy 
+on 1=1";
+			-- Decorate for remote query if LinkedServer
+			if @_isLocalHost = 0
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
+
+			begin try
+				insert @_result (col_datetime2)
+				exec (@_sql);
+
+				select @_file_io_stats__collection_time_utc = col_datetime2 from @_result;
+			end try
+			begin catch
+				-- print @_sql;
+				print char(10)+char(13)+'Error occurred while executing below query on '+quotename(@_srv_name)+char(10)+'     '+@_sql;
+				print  '	ErrorNumber => '+convert(varchar,ERROR_NUMBER());
+				print  '	ErrorSeverity => '+convert(varchar,ERROR_SEVERITY());
+				print  '	ErrorState => '+convert(varchar,ERROR_STATE());
+				--print  '	ErrorProcedure => '+ERROR_PROCEDURE();
+				print  '	ErrorLine => '+convert(varchar,ERROR_LINE());
+				print  '	ErrorMessage => '+ERROR_MESSAGE();
+			end catch
+		end
+
+		-- [wait_stats__collection_time_utc] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'wait_stats__collection_time_utc') )
+		begin
+			delete from @_result;
+			set @_sql = "select collection_time_utc = coalesce(ws.collection_time_utc,dmy.dummy_date)
+from 
+(	select top 1 ws.collection_time_utc from dbo.wait_stats ws
+	where 1=1
+	and ws.collection_time_utc >= dateadd(minute,-120,getutcdate())
+	--and ws.collection_time_utc < dateadd(day,-60,getutcdate())
+	order by collection_time_utc desc
+) ws
+full outer join (select [dummy_date] = convert(datetime2,'1900-01-01')) dmy 
+on 1=1";
+			-- Decorate for remote query if LinkedServer
+			if @_isLocalHost = 0
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
+
+			begin try
+				insert @_result (col_datetime2)
+				exec (@_sql);
+
+				-- set @_ip
+				select @_wait_stats__collection_time_utc = col_datetime2 from @_result;
+			end try
+			begin catch
+				-- print @_sql;
+				print char(10)+char(13)+'Error occurred while executing below query on '+quotename(@_srv_name)+char(10)+'     '+@_sql;
+				print  '	ErrorNumber => '+convert(varchar,ERROR_NUMBER());
+				print  '	ErrorSeverity => '+convert(varchar,ERROR_SEVERITY());
+				print  '	ErrorState => '+convert(varchar,ERROR_STATE());
+				--print  '	ErrorProcedure => '+ERROR_PROCEDURE();
+				print  '	ErrorLine => '+convert(varchar,ERROR_LINE());
+				print  '	ErrorMessage => '+ERROR_MESSAGE();
+			end catch
+		end
+
+
+		-- [BlitzIndex__run_datetime] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'BlitzIndex__run_datetime') )
+		begin
+			delete from @_result;
+			set @_sql = "select run_datetime = coalesce(bi.run_datetime,dmy.dummy_date)
+from 
+(	select top 1 bi.run_datetime from dbo.BlitzIndex bi
+	where 1=1
+	and bi.run_datetime >= dateadd(day,-3,getdate())
+	order by run_datetime desc
+) bi
+full outer join (select [dummy_date] = convert(datetime,'1900-01-01')) dmy 
+on 1=1";
+			-- Decorate for remote query if LinkedServer
+			if @_isLocalHost = 0
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
+
+			begin try
+				insert @_result (col_datetime)
+				exec (@_sql);
+
+				select @_BlitzIndex__run_datetime = col_datetime from @_result;
+			end try
+			begin catch
+				-- print @_sql;
+				print char(10)+char(13)+'Error occurred while executing below query on '+quotename(@_srv_name)+char(10)+'     '+@_sql;
+				print  '	ErrorNumber => '+convert(varchar,ERROR_NUMBER());
+				print  '	ErrorSeverity => '+convert(varchar,ERROR_SEVERITY());
+				print  '	ErrorState => '+convert(varchar,ERROR_STATE());
+				--print  '	ErrorProcedure => '+ERROR_PROCEDURE();
+				print  '	ErrorLine => '+convert(varchar,ERROR_LINE());
+				print  '	ErrorMessage => '+ERROR_MESSAGE();
+			end catch
+		end
+
+
+		-- [BlitzIndex_Mode0__run_datetime] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'BlitzIndex_Mode0__run_datetime') )
+		begin
+			delete from @_result;
+			set @_sql = "select run_datetime = coalesce(bi.run_datetime,dmy.dummy_date)
+from 
+(	select top 1 bi.run_datetime from dbo.BlitzIndex_Mode0 bi
+	where 1=1
+	and bi.run_datetime >= dateadd(day,-15,getdate())
+	order by run_datetime desc
+) bi
+full outer join (select [dummy_date] = convert(datetime,'1900-01-01')) dmy 
+on 1=1";
+			-- Decorate for remote query if LinkedServer
+			if @_isLocalHost = 0
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
+
+			begin try
+				insert @_result (col_datetime)
+				exec (@_sql);
+
+				select @_BlitzIndex_Mode0__run_datetime = col_datetime from @_result;
+			end try
+			begin catch
+				-- print @_sql;
+				print char(10)+char(13)+'Error occurred while executing below query on '+quotename(@_srv_name)+char(10)+'     '+@_sql;
+				print  '	ErrorNumber => '+convert(varchar,ERROR_NUMBER());
+				print  '	ErrorSeverity => '+convert(varchar,ERROR_SEVERITY());
+				print  '	ErrorState => '+convert(varchar,ERROR_STATE());
+				--print  '	ErrorProcedure => '+ERROR_PROCEDURE();
+				print  '	ErrorLine => '+convert(varchar,ERROR_LINE());
+				print  '	ErrorMessage => '+ERROR_MESSAGE();
+			end catch
+		end
+
+
+		-- [BlitzIndex_Mode1__run_datetime] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'BlitzIndex_Mode1__run_datetime') )
+		begin
+			delete from @_result;
+			set @_sql = "select run_datetime = coalesce(bi.run_datetime,dmy.dummy_date)
+from 
+(	select top 1 bi.run_datetime from dbo.BlitzIndex_Mode1 bi
+	where 1=1
+	and bi.run_datetime >= dateadd(day,-15,getdate())
+	order by run_datetime desc
+) bi
+full outer join (select [dummy_date] = convert(datetime,'1900-01-01')) dmy 
+on 1=1";
+			-- Decorate for remote query if LinkedServer
+			if @_isLocalHost = 0
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
+
+			begin try
+				insert @_result (col_datetime)
+				exec (@_sql);
+
+				select @_BlitzIndex_Mode1__run_datetime = col_datetime from @_result;
+			end try
+			begin catch
+				-- print @_sql;
+				print char(10)+char(13)+'Error occurred while executing below query on '+quotename(@_srv_name)+char(10)+'     '+@_sql;
+				print  '	ErrorNumber => '+convert(varchar,ERROR_NUMBER());
+				print  '	ErrorSeverity => '+convert(varchar,ERROR_SEVERITY());
+				print  '	ErrorState => '+convert(varchar,ERROR_STATE());
+				--print  '	ErrorProcedure => '+ERROR_PROCEDURE();
+				print  '	ErrorLine => '+convert(varchar,ERROR_LINE());
+				print  '	ErrorMessage => '+ERROR_MESSAGE();
+			end catch
+		end
+
+
+		-- [BlitzIndex_Mode4__run_datetime] => Create SQL Statement to Execute
+		if @_linked_server_failed = 0 and ( @output is null or exists (select * from @_tbl_output_columns where column_name = 'BlitzIndex_Mode4__run_datetime') )
+		begin
+			delete from @_result;
+			set @_sql = "select run_datetime = coalesce(bi.run_datetime,dmy.dummy_date)
+from 
+(	select top 1 bi.run_datetime from dbo.BlitzIndex_Mode4 bi
+	where 1=1
+	and bi.run_datetime >= dateadd(day,-15,getdate())
+	order by run_datetime desc
+) bi
+full outer join (select [dummy_date] = convert(datetime,'1900-01-01')) dmy 
+on 1=1";
+			-- Decorate for remote query if LinkedServer
+			if @_isLocalHost = 0
+				set @_sql = 'select * from openquery(' + QUOTENAME(@_srv_name) + ', "'+ @_sql + '")';
+
+			begin try
+				insert @_result (col_datetime)
+				exec (@_sql);
+
+				select @_BlitzIndex_Mode4__run_datetime = col_datetime from @_result;
+			end try
+			begin catch
+				-- print @_sql;
+				print char(10)+char(13)+'Error occurred while executing below query on '+quotename(@_srv_name)+char(10)+'     '+@_sql;
+				print  '	ErrorNumber => '+convert(varchar,ERROR_NUMBER());
+				print  '	ErrorSeverity => '+convert(varchar,ERROR_SEVERITY());
+				print  '	ErrorState => '+convert(varchar,ERROR_STATE());
+				--print  '	ErrorProcedure => '+ERROR_PROCEDURE();
+				print  '	ErrorLine => '+convert(varchar,ERROR_LINE());
+				print  '	ErrorMessage => '+ERROR_MESSAGE();
+			end catch
+		end
+
+
 		-- Populate all details for single server inside loop
 		if @_linked_server_failed = 0
 		begin
@@ -1247,7 +1693,10 @@ SELECT	[@server_minor_version_number] = @server_minor_version_number
 				[pcnt_kernel_mode], [page_faults_kb], [blocked_counts], [blocked_duration_max_seconds], [total_physical_memory_kb], 
 				[available_physical_memory_kb], [system_high_memory_signal_state], [physical_memory_in_use_kb], [memory_grants_pending], 
 				[connection_count], [active_requests_count], [waits_per_core_per_minute], [os_start_time_utc], [cpu_count], 
-				[scheduler_count], [major_version_number], [minor_version_number]
+				[scheduler_count], [major_version_number], [minor_version_number], [performance_counters__collection_time_utc],
+				[resource_consumption__event_time], [WhoIsActive__collection_time], [os_task_list__collection_time_utc], 
+				[disk_space__collection_time_utc], [file_io_stats__collection_time_utc], [wait_stats__collection_time_utc], [BlitzIndex__run_datetime],
+				[BlitzIndex_Mode0__run_datetime], [BlitzIndex_Mode1__run_datetime], [BlitzIndex_Mode4__run_datetime]
 			)
 			select	[srv_name] = @_srv_name
 					,[@@servername] = @_at_server_name
@@ -1278,6 +1727,17 @@ SELECT	[@server_minor_version_number] = @server_minor_version_number
 					,[scheduler_count] = @_scheduler_count
 					,[major_version_number] = @_major_version_number
 					,[minor_version_number] = @_minor_version_number
+					,[performance_counters__collection_time_utc] = @_performance_counters__collection_time_utc
+					,[resource_consumption__event_time] = @_resource_consumption__event_time
+					,[WhoIsActive__collection_time] = @_WhoIsActive__collection_time
+					,[os_task_list__collection_time_utc] = @_os_task_list__collection_time_utc
+					,[disk_space__collection_time_utc] = @_disk_space__collection_time_utc
+					,[file_io_stats__collection_time_utc] = @_file_io_stats__collection_time_utc
+					,[wait_stats__collection_time_utc] = @_wait_stats__collection_time_utc
+					,[BlitzIndex__run_datetime] = @_BlitzIndex__run_datetime
+					,[BlitzIndex_Mode0__run_datetime] = @_BlitzIndex_Mode0__run_datetime
+					,[BlitzIndex_Mode1__run_datetime] = @_BlitzIndex_Mode1__run_datetime
+					,[BlitzIndex_Mode4__run_datetime] = @_BlitzIndex_Mode4__run_datetime
 		end
 
 		FETCH NEXT FROM cur_servers INTO @_srv_name;
