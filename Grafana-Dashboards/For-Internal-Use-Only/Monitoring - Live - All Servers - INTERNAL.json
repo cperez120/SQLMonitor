@@ -25,7 +25,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 17,
+  "id": 21,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -196,7 +196,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 1
+            "y": 12
           },
           "id": 219,
           "options": {
@@ -209,7 +209,7 @@
             },
             "showHeader": true
           },
-          "pluginVersion": "9.2.5",
+          "pluginVersion": "9.1.4",
           "targets": [
             {
               "alias": "",
@@ -239,12 +239,392 @@
       "type": "row"
     },
     {
-      "collapsed": false,
+      "collapsed": true,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 1
+      },
+      "id": 848,
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto",
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              },
+              "unit": "string"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byType",
+                  "options": "time"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "dateTimeAsIso"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byRegexp",
+                  "options": ".*__latency_minutes"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "m"
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green"
+                        },
+                        {
+                          "color": "#EAB839",
+                          "value": 20
+                        },
+                        {
+                          "color": "red",
+                          "value": 40
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "custom.displayMode",
+                    "value": "color-text"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byRegexp",
+                  "options": ".*__latency_days"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "d"
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green"
+                        },
+                        {
+                          "color": "#EAB839",
+                          "value": 8
+                        },
+                        {
+                          "color": "red",
+                          "value": 15
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "custom.displayMode",
+                    "value": "color-text"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "srv_name"
+                },
+                "properties": [
+                  {
+                    "id": "custom.displayMode",
+                    "value": "color-background"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Server"
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "blue"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "links",
+                    "value": [
+                      {
+                        "targetBlank": true,
+                        "title": "Live Server Details",
+                        "url": "d/distributed_live_dashboard?var-server=${__data.fields.srv_name}"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "performance_counters__latency_minutes"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "performance_counters"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "resource_consumption__latency_minutes"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "resource_consumption"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "WhoIsActive__latency_minutes"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "WhoIsActive"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "os_task_list__latency_minutes"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "os_task_list_latency"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "disk_space__latency_minutes"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "disk_space"
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green"
+                        },
+                        {
+                          "color": "#EAB839",
+                          "value": 60
+                        },
+                        {
+                          "color": "red",
+                          "value": 90
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "file_io_stats__latency_minutes"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "file_io_stats"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "wait_stats__latency_minutes"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "wait_stats"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "BlitzIndex__latency_days"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "BlitzIndex"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "BlitzIndex_Mode0__latency_days"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "BlitzIndex_Mode0"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "BlitzIndex_Mode1__latency_days"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "BlitzIndex_Mode1"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "BlitzIndex_Mode4__latency_days"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "BlitzIndex_Mode4"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Issues"
+                },
+                "properties": [
+                  {
+                    "id": "custom.hidden",
+                    "value": true
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 19,
+            "w": 24,
+            "x": 0,
+            "y": 2
+          },
+          "id": 850,
+          "options": {
+            "footer": {
+              "enablePagination": true,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": []
+          },
+          "pluginVersion": "9.1.4",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "format": "table",
+              "hide": false,
+              "rawQuery": true,
+              "rawSql": "declare @_latency_minutes_threshold int = 20;\r\ndeclare @_latency_days_threshold int = 3;\r\ndeclare @t_servers_exception table (srv_name varchar(125));\r\n\r\ninsert @t_servers_exception -- list of servers that have permanent issues\r\nvalues ('MyNotExistingServerHavingIssue01'),('MyNotExistingServerHavingIssue02');\r\n\r\nselect\tcli.srv_name, \r\n\t\tcli.performance_counters__latency_minutes,\r\n\t\tresource_consumption__latency_minutes = case when (cli.resource_consumption__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20 and si.major_version_number >= 11) then cli.resource_consumption__latency_minutes \r\n\t\t\t\t\t\t\t\t\t\t\t\t\twhen cli.resource_consumption__latency_minutes > @_latency_minutes_threshold then @_latency_minutes_threshold-1\r\n\t\t\t\t\t\t\t\t\t\t\t\t\telse cli.resource_consumption__latency_minutes end,\r\n\t\tWhoIsActive__latency_minutes = case when cli.WhoIsActive__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20 then cli.WhoIsActive__latency_minutes \r\n\t\t\t\t\t\t\t\t\t\t\t\t\twhen cli.WhoIsActive__latency_minutes > @_latency_minutes_threshold then @_latency_minutes_threshold-1\r\n\t\t\t\t\t\t\t\t\t\t\t\t\telse cli.WhoIsActive__latency_minutes end,\r\n\t\tcli.os_task_list__latency_minutes,\r\n\t\tcli.disk_space__latency_minutes, \r\n\t\tcli.file_io_stats__latency_minutes,\r\n\t\tcli.wait_stats__latency_minutes,\r\n\t\tcli.BlitzIndex__latency_days,\r\n\t\tcli.BlitzIndex_Mode0__latency_days,\r\n\t\t--cli.BlitzIndex_Mode1__latency_days,\r\n\t\t--cli.BlitzIndex_Mode4__latency_days,\r\n\t\t--collection_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), cli.collection_time)\r\n\t\t[Issues] = (case when cli.performance_counters__latency_minutes > @_latency_minutes_threshold then 'performance_counters,' else '' end)+\r\n\t\t\t\t\t(case when cli.resource_consumption__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20 and si.major_version_number >= 11 then 'resource_consumption' else '' end)+\r\n\t\t\t\t\t(case when cli.WhoIsActive__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20 then 'WhoIsActive,' else '' end)+\r\n\t\t\t\t\t(case when cli.os_task_list__latency_minutes > @_latency_minutes_threshold then 'os_task_list,' else '' end)+\r\n\t\t\t\t\t(case when cli.disk_space__latency_minutes > @_latency_minutes_threshold*3 then 'disk_space,' else '' end)+\r\n\t\t\t\t\t(case when cli.file_io_stats__latency_minutes > @_latency_minutes_threshold*3 then 'file_io_stats,' else '' end)+\r\n\t\t\t\t\t(case when cli.wait_stats__latency_minutes > @_latency_minutes_threshold*2 then 'wait_stats,' else '' end)+\r\n\t\t\t\t\t(case when cli.BlitzIndex__latency_days > @_latency_days_threshold then 'BlitzIndex,' else '' end)+\r\n\t\t\t\t\t(case when cli.BlitzIndex_Mode0__latency_days > @_latency_days_threshold*4 then 'BlitzIndex_Mode0,' else '' end)+\r\n\t\t\t\t\t(case when cli.BlitzIndex_Mode1__latency_days > @_latency_days_threshold*4 then 'BlitzIndex_Mode1,' else '' end)+\r\n\t\t\t\t\t(case when cli.BlitzIndex_Mode4__latency_days > @_latency_days_threshold*4 then 'BlitzIndex_Mode4,' else '' end)\r\n\t\t--,cli.host_name ,si.major_version_number ,si.product_version ,si.edition, vi.os_cpu, vi.sql_cpu\r\nfrom dbo.all_server_collection_latency_info cli\r\njoin dbo.all_server_stable_info si on si.srv_name = cli.srv_name\r\njoin dbo.all_server_volatile_info vi on vi.srv_name = cli.srv_name\r\nwhere 1=1\r\nand (\tcli.performance_counters__latency_minutes > @_latency_minutes_threshold\r\n\t\tor (cli.resource_consumption__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20 and si.major_version_number >= 11)\r\n\t\tor (cli.WhoIsActive__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20)\r\n\t\tor cli.os_task_list__latency_minutes > @_latency_minutes_threshold\r\n\t\tor cli.disk_space__latency_minutes > @_latency_minutes_threshold*3\r\n\t\tor cli.file_io_stats__latency_minutes > @_latency_minutes_threshold*3\r\n\t\tor cli.wait_stats__latency_minutes > @_latency_minutes_threshold*2\r\n\t\tor cli.BlitzIndex__latency_days > @_latency_days_threshold\r\n\t\tor cli.BlitzIndex_Mode0__latency_days > @_latency_days_threshold*4\r\n\t\t--or cli.BlitzIndex_Mode1__latency_days > @_latency_days_threshold*4\r\n\t\t--or cli.BlitzIndex_Mode4__latency_days > @_latency_days_threshold*4\r\n\t)\r\nand cli.srv_name not in (select e.srv_name from @t_servers_exception e)\r\n\r\n",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
+            }
+          ],
+          "title": "Servers with Data Collection Issues",
+          "type": "table"
+        }
+      ],
+      "title": "Servers with Data Collection Issues",
+      "type": "row"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 2
       },
       "id": 846,
       "panels": [],
@@ -290,7 +670,7 @@
         "h": 5,
         "w": 24,
         "x": 0,
-        "y": 2
+        "y": 3
       },
       "id": 844,
       "options": {
@@ -303,7 +683,7 @@
         },
         "showHeader": true
       },
-      "pluginVersion": "9.2.5",
+      "pluginVersion": "9.1.4",
       "targets": [
         {
           "alias": "",
@@ -329,7 +709,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 8
       },
       "id": 245,
       "panels": [],
@@ -857,7 +1237,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 8
+        "y": 9
       },
       "id": 842,
       "options": {
@@ -871,7 +1251,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "9.2.5",
+      "pluginVersion": "9.1.4",
       "targets": [
         {
           "alias": "",
@@ -916,7 +1296,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 19
       },
       "id": 121,
       "panels": [
@@ -970,8 +1350,8 @@
       {
         "current": {
           "selected": false,
-          "text": "SqlMonitor",
-          "value": "SqlMonitor"
+          "text": "SqlServer",
+          "value": "SqlServer"
         },
         "description": "Inventory Server Name",
         "hide": 2,
@@ -1042,8 +1422,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1670866861341",
-          "value": "1670866861341"
+          "text": "1673624980469",
+          "value": "1673624980469"
         },
         "datasource": {
           "type": "mssql",
@@ -1081,6 +1461,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - All Servers",
   "uid": "distributed_live_dashboard_all_servers",
-  "version": 132,
+  "version": 5,
   "weekStart": ""
 }
