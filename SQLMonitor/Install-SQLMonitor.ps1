@@ -281,9 +281,10 @@ $releaseDiscussionURL = "https://ajaydwivedi.com/sqlmonitor/common-errors"
 #>
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Working on server [$SqlInstanceToBaseline]." | Write-Host -ForegroundColor Yellow
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Deplying SQLMonitor v$sqlmonitorVersion.." | Write-Host -ForegroundColor Yellow
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "Deploying SQLMonitor v$sqlmonitorVersion.." | Write-Host -ForegroundColor Yellow
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "For issues with this version, kindly visit $releaseDiscussionURL" | Write-Host -ForegroundColor Yellow
-"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "For help, kindly reach out to 'Ajay Dwivedi <ajay.dwivedi2007@gmail.com>'`n" | Write-Host -ForegroundColor Yellow
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "For general support, join #sqlmonitor channel on 'sqlcommunity.slack.com <https://ajaydwivedi.com/go/slack>' workspace.`n" | Write-Host -ForegroundColor Yellow
+"$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'START:', "For paid support, kindly reach out to 'Ajay Dwivedi <ajay.dwivedi2007@gmail.com>'`n" | Write-Host -ForegroundColor Yellow
 
 # All Steps
 $AllSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
