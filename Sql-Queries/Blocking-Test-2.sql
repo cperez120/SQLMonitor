@@ -31,7 +31,7 @@ CREATE UNIQUE CLUSTERED INDEX IDX_Orders_OrderId
 ON dbo.Orders(OrderId);
 go
 
-/*	Session 01
+/*	Blocking Scenario: Session 01
 begin tran
 	delete from dbo.Orders
 	where OrderId = 50;
@@ -41,9 +41,35 @@ rollback tran
 
 */
 
-/*	Session 02
+/*	Blocking Scenario: Session 02
 select OrderId, Amount
 from dbo.Orders with (readcommittedlock)
 where OrderNum = 100
 
+*/
+
+/*	Deadlock Scenario: Session 01
+begin tran
+	-- 1
+	update dbo.Orders set OrderStatus = 1
+		where OrderId = 10;
+
+	-- 3
+	select count(*) as [Cnt]
+		from dbo.Orders with (readcommittedlock)
+		where CustomerId = 42;
+commit
+*/
+
+/*	Deadlock Scenario: Session 02
+begin tran
+	-- 2
+	update dbo.Orders set OrderStatus = 1
+		where OrderId = 250;
+
+	-- 4
+	select count(*) as [Cnt]
+		from dbo.Orders with (readcommittedlock)
+		where CustomerId = 18;
+commit
 */

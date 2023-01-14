@@ -1,3 +1,10 @@
+/*
+	Version -> v1.3.1
+	-----------------
+
+	2022-03-31 - Enhancement#227 - Add CollectionTime of Each Table Data
+*/
+
 IF APP_NAME() = 'Microsoft SQL Server Management Studio - Query'
 BEGIN
 	SET QUOTED_IDENTIFIER OFF;
@@ -24,12 +31,20 @@ if not exists (select * from sys.database_files where name = 'MemoryOptimized')
 	ALTER DATABASE CURRENT ADD FILE (name='MemoryOptimized', filename='E:\Data\MemoryOptimized.ndf') TO FILEGROUP MemoryOptimized
 go
 
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[all_server_volatile_info_history]') AND type in (N'U'))
+	DROP TABLE [dbo].[all_server_volatile_info_history]
+GO
+
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[all_server_stable_info]') AND type in (N'U'))
 	DROP TABLE [dbo].[all_server_stable_info]
 GO
 
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[all_server_volatile_info]') AND type in (N'U'))
 	DROP TABLE [dbo].[all_server_volatile_info]
+GO
+
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[all_server_collection_latency_info]') AND type in (N'U'))
+	DROP TABLE [dbo].[all_server_collection_latency_info]
 GO
 
 CREATE TABLE [dbo].[all_server_stable_info]
@@ -77,6 +92,80 @@ CREATE TABLE [dbo].[all_server_volatile_info]
 )
 WITH (MEMORY_OPTIMIZED = ON, DURABILITY = SCHEMA_AND_DATA);
 GO
+
+CREATE TABLE [dbo].[all_server_collection_latency_info]
+(
+	[srv_name] [varchar](125) NOT NULL,
+	[host_name] [varchar](125) NULL,
+	[performance_counters__latency_minutes] int null,
+	[resource_consumption__latency_minutes] int null,
+	[WhoIsActive__latency_minutes] int null,
+	[os_task_list__latency_minutes] int null,
+	[disk_space__latency_minutes] int null,
+	[file_io_stats__latency_minutes] int null,
+	[wait_stats__latency_minutes] int null,
+	[BlitzIndex__latency_days] int null,
+	[BlitzIndex_Mode0__latency_days] int null,
+	[BlitzIndex_Mode1__latency_days] int null,
+	[BlitzIndex_Mode4__latency_days] int null,
+	[collection_time] [datetime2] NULL default sysdatetime(),
+	INDEX ci_all_server_collection_latency_info unique nonclustered ([srv_name],[host_name])
+)
+GO
+
+CREATE TABLE [dbo].[all_server_volatile_info_history]
+(
+	[collection_time] [datetime2] NULL default sysdatetime(),
+	[srv_name] [varchar](125) NOT NULL,
+	[os_cpu] [decimal](20, 2) NULL,
+	[sql_cpu] [decimal](20, 2) NULL,
+	[pcnt_kernel_mode] [decimal](20, 2) NULL,
+	[page_faults_kb] [decimal](20, 2) NULL,
+	[blocked_counts] [int] NULL DEFAULT 0,
+	[blocked_duration_max_seconds] [bigint] NULL DEFAULT 0,
+	[available_physical_memory_kb] [bigint] NULL,
+	[system_high_memory_signal_state] [varchar](20) NULL,
+	[physical_memory_in_use_kb] [decimal](20, 2) NULL,
+	[memory_grants_pending] [int] NULL,
+	[connection_count] [int] NULL DEFAULT 0,
+	[active_requests_count] [int] NULL DEFAULT 0,
+	[waits_per_core_per_minute] [decimal](20, 2) NULL DEFAULT 0,	
+	INDEX ci_all_server_volatile_info_history clustered ([collection_time],[srv_name])
+)
+GO
+
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.all_server_volatile_info_history')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.all_server_volatile_info_history', 
+			date_key = 'collection_time', 
+			retention_days = 1, 
+			purge_row_size = 1000,
+			reference = 'SQLMonitor Data Collection'
+end
+go
+
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'usp_populate__all_server_volatile_info_history')
+    EXEC ('CREATE PROC dbo.usp_populate__all_server_volatile_info_history AS SELECT ''stub version, to be replaced''')
+GO
+
+ALTER PROCEDURE dbo.usp_populate__all_server_volatile_info_history
+AS
+BEGIN
+	SET NOCOUNT ON;
+	INSERT dbo.all_server_volatile_info_history
+	(	[collection_time], [srv_name], [os_cpu], [sql_cpu], [pcnt_kernel_mode], [page_faults_kb], [blocked_counts], 
+		[blocked_duration_max_seconds], [available_physical_memory_kb], [system_high_memory_signal_state], 
+		[physical_memory_in_use_kb], [memory_grants_pending], [connection_count], [active_requests_count], 
+		[waits_per_core_per_minute] )
+	select [collection_time], [srv_name], [os_cpu], [sql_cpu], [pcnt_kernel_mode], [page_faults_kb], [blocked_counts], 
+		[blocked_duration_max_seconds], [available_physical_memory_kb], [system_high_memory_signal_state], 
+		[physical_memory_in_use_kb], [memory_grants_pending], [connection_count], [active_requests_count], 
+		[waits_per_core_per_minute]
+	from dbo.all_server_volatile_info vi
+END
+go
 
 if OBJECT_ID('dbo.vw_all_server_info') is null
 	exec ('create view dbo.vw_all_server_info as select 1 as dummy;');

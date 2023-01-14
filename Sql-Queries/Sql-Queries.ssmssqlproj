@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="(local):LAB\adwivedi">
+        <ConnectionNode Name="(local):21L-LTPABL-1187\Ajay">
           <Created>2022-10-11T15:39:50.2848444+05:30</Created>
           <Type>SQL</Type>
           <Server>(local)</Server>
@@ -15,7 +15,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="(local)\SQL2014:LAB\adwivedi">
+        <ConnectionNode Name="(local)\SQL2014:21L-LTPABL-1187\Ajay">
           <Created>2022-07-06T20:24:56.7104104+05:30</Created>
           <Type>SQL</Type>
           <Server>(local)\SQL2014</Server>
@@ -115,6 +115,18 @@
           <Created>2022-05-24T15:34:47.95479+05:30</Created>
           <Type>SQL</Type>
           <Server>172.31.25.79</Server>
+          <UserName>E84947</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="196.1.115.132:E84947">
+          <Created>2023-01-03T09:34:27.5932669+05:30</Created>
+          <Type>SQL</Type>
+          <Server>196.1.115.132</Server>
           <UserName>E84947</UserName>
           <Authentication>SQL</Authentication>
           <InitialDB />
@@ -231,7 +243,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="Demo\SQL2019:LAB\adwivedi">
+        <ConnectionNode Name="Demo\SQL2019:21L-LTPABL-1187\Ajay">
           <Created>2022-05-25T21:03:07.4495467+05:30</Created>
           <Type>SQL</Type>
           <Server>Demo\SQL2019</Server>
@@ -267,7 +279,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="Localhost:LAB\adwivedi">
+        <ConnectionNode Name="Localhost:21L-LTPABL-1187\Ajay">
           <Created>2022-04-22T22:49:27.0461072+05:30</Created>
           <Type>SQL</Type>
           <Server>Localhost</Server>
@@ -279,7 +291,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="SqlMonitor:LAB\adwivedi">
+        <ConnectionNode Name="SqlMonitor:21L-LTPABL-1187\Ajay">
           <Created>2022-05-19T09:35:03.9545125+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlMonitor</Server>
@@ -291,7 +303,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="SqlPractice:LAB\adwivedi">
+        <ConnectionNode Name="SqlPractice:21L-LTPABL-1187\Ajay">
           <Created>2022-07-07T20:00:25.5159543+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlPractice</Server>
@@ -303,7 +315,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="SqlProd1:LAB\adwivedi">
+        <ConnectionNode Name="SqlProd1:21L-LTPABL-1187\Ajay">
           <Created>2022-10-11T06:04:42.6526645+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlProd1</Server>
@@ -315,7 +327,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="WORKSTATION:LAB\adwivedi">
+        <ConnectionNode Name="WORKSTATION:21L-LTPABL-1187\Ajay">
           <Created>2022-05-19T08:46:41.5053748+05:30</Created>
           <Type>SQL</Type>
           <Server>WORKSTATION</Server>
@@ -327,7 +339,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="Workstation\SQL2014:LAB\adwivedi">
+        <ConnectionNode Name="Workstation\SQL2014:21L-LTPABL-1187\Ajay">
           <Created>2022-07-10T09:54:14.6355193+05:30</Created>
           <Type>SQL</Type>
           <Server>Workstation\SQL2014</Server>
@@ -356,8 +368,8 @@
           <FullPath>Blocking-Test.sql</FullPath>
         </FileNode>
         <FileNode Name="Blocking-Test-2.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Localhost:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Localhost</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>Blocking-Test-2.sql</FullPath>
         </FileNode>
@@ -427,6 +439,12 @@
           <AssociatedConnUserName />
           <FullPath>QRY-Get-Partitions-Record-Count-Metrics.sql</FullPath>
         </FileNode>
+        <FileNode Name="QRY-Grafana-AllServer-Latency.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:172.31.25.106:False:E84947</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>172.31.25.106</AssociatedConnSrvName>
+          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <FullPath>QRY-Grafana-AllServer-Latency.sql</FullPath>
+        </FileNode>
         <FileNode Name="QRY-Grafana-BlitzIndex-Queries.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.196:False:E84947</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>196.1.115.196</AssociatedConnSrvName>
@@ -456,6 +474,18 @@
           <AssociatedConnSrvName>196.1.115.196</AssociatedConnSrvName>
           <AssociatedConnUserName>E84947</AssociatedConnUserName>
           <FullPath>QRY-Grafana-FileIOStats.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-INDEXING-DEATH-Method-DeepDive.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>QRY-INDEXING-DEATH-Method-DeepDive.sql</FullPath>
+        </FileNode>
+        <FileNode Name="QRY-INDEXING-DEATH-Method-Extract-HighPriority.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>QRY-INDEXING-DEATH-Method-Extract-HighPriority.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-RC-Workload-Delta-By-CPU.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
@@ -518,9 +548,9 @@
           <FullPath>QRY-WhoIsActive-Grafana-WhatWasRunning.sql</FullPath>
         </FileNode>
         <FileNode Name="QRY-WhoIsActive-Infra.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:172.31.15.250:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>172.31.15.250</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName />
           <FullPath>QRY-WhoIsActive-Infra.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Alter-vw_performance_counters.sql">
@@ -540,12 +570,6 @@
           <AssociatedConnSrvName>172.31.25.106</AssociatedConnSrvName>
           <AssociatedConnUserName>E84947</AssociatedConnUserName>
           <FullPath>SQLMonitor-Upgrade.sql</FullPath>
-        </FileNode>
-        <FileNode Name="SQLQuery1.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlPractice:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>SqlPractice</AssociatedConnSrvName>
-          <AssociatedConnUserName />
-          <FullPath>SQLQuery1.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>
