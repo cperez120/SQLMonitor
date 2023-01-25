@@ -2,7 +2,7 @@
   "__inputs": [
     {
       "name": "DS_SQLMONITOR",
-      "label": "SqlMonitor",
+      "label": "SQLMonitor",
       "description": "",
       "type": "datasource",
       "pluginId": "mssql",
@@ -15,7 +15,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "9.2.5"
+      "version": "9.3.2"
     },
     {
       "type": "datasource",
@@ -512,7 +512,7 @@
               }
             ]
           },
-          "pluginVersion": "9.2.5",
+          "pluginVersion": "9.3.2",
           "targets": [
             {
               "alias": "",
@@ -1008,7 +1008,7 @@
               }
             ]
           },
-          "pluginVersion": "9.2.5",
+          "pluginVersion": "9.3.2",
           "targets": [
             {
               "alias": "",
@@ -1477,7 +1477,7 @@
               }
             ]
           },
-          "pluginVersion": "9.2.5",
+          "pluginVersion": "9.3.2",
           "targets": [
             {
               "alias": "",
@@ -2270,7 +2270,7 @@
             "showHeader": true,
             "sortBy": []
           },
-          "pluginVersion": "9.2.5",
+          "pluginVersion": "9.3.2",
           "targets": [
             {
               "alias": "",
@@ -2628,7 +2628,7 @@
             "showHeader": true,
             "sortBy": []
           },
-          "pluginVersion": "9.2.5",
+          "pluginVersion": "9.3.2",
           "targets": [
             {
               "alias": "",
@@ -2976,7 +2976,7 @@
             "showHeader": true,
             "sortBy": []
           },
-          "pluginVersion": "9.2.5",
+          "pluginVersion": "9.3.2",
           "targets": [
             {
               "alias": "",
@@ -3334,7 +3334,7 @@
             "showHeader": true,
             "sortBy": []
           },
-          "pluginVersion": "9.2.5",
+          "pluginVersion": "9.3.2",
           "targets": [
             {
               "alias": "",
@@ -3692,7 +3692,7 @@
             "showHeader": true,
             "sortBy": []
           },
-          "pluginVersion": "9.2.5",
+          "pluginVersion": "9.3.2",
           "targets": [
             {
               "alias": "",
@@ -4036,7 +4036,7 @@
             "showHeader": true,
             "sortBy": []
           },
-          "pluginVersion": "9.2.5",
+          "pluginVersion": "9.3.2",
           "targets": [
             {
               "alias": "",
@@ -4090,15 +4090,15 @@
       {
         "current": {
           "selected": false,
-          "text": "SqlMonitor",
-          "value": "SqlMonitor"
+          "text": "SQLMonitor",
+          "value": "SQLMonitor"
         },
         "description": "Inventory Server Name",
         "hide": 2,
         "includeAll": false,
         "label": "Data Source",
         "multi": false,
-        "name": "datasource",
+        "name": "sqlmonitor_datasource",
         "options": [],
         "query": "mssql",
         "refresh": 1,
@@ -4172,14 +4172,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "declare @sql nvarchar(max);\ndeclare @sql_instance varchar(255);\nset @sql_instance = '$server';\n\nset quoted_identifier off;\nset @sql = \"select [database] from dbo.instance_details id\nwhere id.sql_instance = @sql_instance\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql, N'@sql_instance varchar(255)', @sql_instance;",
+        "definition": "declare @sql nvarchar(max);\ndeclare @sql_instance varchar(255);\nset @sql_instance = '$server';\n\nset quoted_identifier off;\nset @sql = \"select top 1 [database] from dbo.instance_details id\nwhere id.sql_instance = @sql_instance\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql, N'@sql_instance varchar(255)', @sql_instance;",
         "hide": 2,
         "includeAll": false,
         "label": "DBA Database",
         "multi": false,
         "name": "dba_db",
         "options": [],
-        "query": "declare @sql nvarchar(max);\ndeclare @sql_instance varchar(255);\nset @sql_instance = '$server';\n\nset quoted_identifier off;\nset @sql = \"select [database] from dbo.instance_details id\nwhere id.sql_instance = @sql_instance\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql, N'@sql_instance varchar(255)', @sql_instance;",
+        "query": "declare @sql nvarchar(max);\ndeclare @sql_instance varchar(255);\nset @sql_instance = '$server';\n\nset quoted_identifier off;\nset @sql = \"select top 1 [database] from dbo.instance_details id\nwhere id.sql_instance = @sql_instance\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql, N'@sql_instance varchar(255)', @sql_instance;",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -4347,6 +4347,6 @@
   "timezone": "",
   "title": "t___Database File IO Stats",
   "uid": "database_file_io_stats",
-  "version": 86,
+  "version": 3,
   "weekStart": ""
 }

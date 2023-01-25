@@ -3,8 +3,8 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="(local):21L-LTPABL-1187\Ajay">
-          <Created>2022-09-13T12:36:47.2472846+05:30</Created>
+        <ConnectionNode Name="(local):LAB\adwivedi">
+          <Created>2022-09-13T00:06:47.2472846-07:00</Created>
           <Type>SQL</Type>
           <Server>(local)</Server>
           <UserName />
@@ -15,8 +15,8 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="(local)\SQL2014:21L-LTPABL-1187\Ajay">
-          <Created>2022-06-01T03:49:36.5223563+05:30</Created>
+        <ConnectionNode Name="(local)\SQL2014:LAB\adwivedi">
+          <Created>2022-05-31T15:19:36.5223563-07:00</Created>
           <Type>SQL</Type>
           <Server>(local)\SQL2014</Server>
           <UserName />
@@ -27,92 +27,8 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="172.31.15.250:E84947">
-          <Created>2022-12-16T14:30:17.2080355+05:30</Created>
-          <Type>SQL</Type>
-          <Server>172.31.15.250</Server>
-          <UserName>E84947</UserName>
-          <Authentication>SQL</Authentication>
-          <InitialDB />
-          <LoginTimeout>30</LoginTimeout>
-          <ExecutionTimeout>0</ExecutionTimeout>
-          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
-        </ConnectionNode>
-        <ConnectionNode Name="172.31.16.119:E84947">
-          <Created>2022-11-15T10:39:33.5719668+05:30</Created>
-          <Type>SQL</Type>
-          <Server>172.31.16.119</Server>
-          <UserName>E84947</UserName>
-          <Authentication>SQL</Authentication>
-          <InitialDB />
-          <LoginTimeout>30</LoginTimeout>
-          <ExecutionTimeout>0</ExecutionTimeout>
-          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
-        </ConnectionNode>
-        <ConnectionNode Name="172.31.16.57:E84947">
-          <Created>2022-09-07T11:11:25.6097816+05:30</Created>
-          <Type>SQL</Type>
-          <Server>172.31.16.57</Server>
-          <UserName>E84947</UserName>
-          <Authentication>SQL</Authentication>
-          <InitialDB />
-          <LoginTimeout>30</LoginTimeout>
-          <ExecutionTimeout>0</ExecutionTimeout>
-          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
-        </ConnectionNode>
-        <ConnectionNode Name="172.31.25.106:E84947">
-          <Created>2022-06-20T09:41:12.8303761+05:30</Created>
-          <Type>SQL</Type>
-          <Server>172.31.25.106</Server>
-          <UserName>E84947</UserName>
-          <Authentication>SQL</Authentication>
-          <InitialDB />
-          <LoginTimeout>30</LoginTimeout>
-          <ExecutionTimeout>0</ExecutionTimeout>
-          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
-        </ConnectionNode>
-        <ConnectionNode Name="196.1.115.182:E84947">
-          <Created>2022-12-08T09:44:37.5935142+05:30</Created>
-          <Type>SQL</Type>
-          <Server>196.1.115.182</Server>
-          <UserName>E84947</UserName>
-          <Authentication>SQL</Authentication>
-          <InitialDB />
-          <LoginTimeout>30</LoginTimeout>
-          <ExecutionTimeout>0</ExecutionTimeout>
-          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
-        </ConnectionNode>
-        <ConnectionNode Name="196.1.115.196:E84947">
-          <Created>2022-09-12T11:46:48.737697+05:30</Created>
-          <Type>SQL</Type>
-          <Server>196.1.115.196</Server>
-          <UserName>E84947</UserName>
-          <Authentication>SQL</Authentication>
-          <InitialDB />
-          <LoginTimeout>30</LoginTimeout>
-          <ExecutionTimeout>0</ExecutionTimeout>
-          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
-        </ConnectionNode>
-        <ConnectionNode Name="196.1.115.207:E84947">
-          <Created>2022-08-12T14:30:33.5333889+05:30</Created>
-          <Type>SQL</Type>
-          <Server>196.1.115.207</Server>
-          <UserName>E84947</UserName>
-          <Authentication>SQL</Authentication>
-          <InitialDB />
-          <LoginTimeout>30</LoginTimeout>
-          <ExecutionTimeout>0</ExecutionTimeout>
-          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
-        </ConnectionNode>
-        <ConnectionNode Name="LOCALHOST:21L-LTPABL-1187\Ajay">
-          <Created>2020-10-18T21:11:28.7072242+05:30</Created>
+        <ConnectionNode Name="LOCALHOST:LAB\adwivedi">
+          <Created>2020-10-18T08:41:28.7072242-07:00</Created>
           <Type>SQL</Type>
           <Server>LOCALHOST</Server>
           <UserName />
@@ -123,8 +39,8 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="SqlMonitor:21L-LTPABL-1187\Ajay">
-          <Created>2022-06-27T15:53:15.6091394+05:30</Created>
+        <ConnectionNode Name="SqlMonitor:LAB\adwivedi">
+          <Created>2022-06-27T03:23:15.6091394-07:00</Created>
           <Type>SQL</Type>
           <Server>SqlMonitor</Server>
           <UserName />
@@ -135,8 +51,8 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="SqlPractice:21L-LTPABL-1187\Ajay">
-          <Created>2022-09-12T08:01:17.4774233+05:30</Created>
+        <ConnectionNode Name="SqlPractice:LAB\adwivedi">
+          <Created>2022-09-11T19:31:17.4774233-07:00</Created>
           <Type>SQL</Type>
           <Server>SqlPractice</Server>
           <UserName />
@@ -147,8 +63,8 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="SqlProd1:21L-LTPABL-1187\Ajay">
-          <Created>2022-10-10T21:50:29.743399+05:30</Created>
+        <ConnectionNode Name="SqlProd1:LAB\adwivedi">
+          <Created>2022-10-10T09:20:29.743399-07:00</Created>
           <Type>SQL</Type>
           <Server>SqlProd1</Server>
           <UserName />
@@ -159,8 +75,8 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="Workstation\SQL2014:21L-LTPABL-1187\Ajay">
-          <Created>2022-07-15T22:00:49.6425554+05:30</Created>
+        <ConnectionNode Name="Workstation\SQL2014:LAB\adwivedi">
+          <Created>2022-07-15T09:30:49.6425554-07:00</Created>
           <Type>SQL</Type>
           <Server>Workstation\SQL2014</Server>
           <UserName />
@@ -171,8 +87,8 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="WORKSTATION\SQLEXPRESS:21L-LTPABL-1187\Ajay">
-          <Created>2022-07-15T22:01:02.7284228+05:30</Created>
+        <ConnectionNode Name="WORKSTATION\SQLEXPRESS:LAB\adwivedi">
+          <Created>2022-07-15T09:31:02.7284228-07:00</Created>
           <Type>SQL</Type>
           <Server>WORKSTATION\SQLEXPRESS</Server>
           <UserName />
@@ -212,15 +128,15 @@
           <FullPath>SCH-BlitzIndex-Partitioning.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Create-All-Objects.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:172.31.25.106:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>172.31.25.106</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>SCH-Create-All-Objects.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Create-Inventory-Specific-Objects.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:172.31.25.106:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>172.31.25.106</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>SCH-Create-Inventory-Specific-Objects.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Create-XEvents.sql">
@@ -230,9 +146,9 @@
           <FullPath>SCH-Create-XEvents.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-fn_get_hash_for_string.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:172.31.15.250:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>172.31.15.250</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>SCH-fn_get_hash_for_string.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Check-InstanceAvailability].sql">
@@ -356,9 +272,9 @@
           <FullPath>SCH-usp_active_requests_count.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-usp_check_job_status.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.196:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>196.1.115.196</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>SCH-usp_check_job_status.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-usp_collect_file_io_stats.sql">
@@ -380,9 +296,9 @@
           <FullPath>SCH-usp_collect_xevents_resource_consumption.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-usp_collect_xevents_resource_consumption_hashed.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.196:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>196.1.115.196</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>SCH-usp_collect_xevents_resource_consumption_hashed.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-usp_enable_page_compression.sql">
@@ -392,15 +308,15 @@
           <FullPath>SCH-usp_enable_page_compression.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-usp_GetAllServerInfo.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:172.31.25.106:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>172.31.25.106</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>SCH-usp_GetAllServerInfo.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-usp_partition_maintenance.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:196.1.115.196:False:E84947</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>196.1.115.196</AssociatedConnSrvName>
-          <AssociatedConnUserName>E84947</AssociatedConnUserName>
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
           <FullPath>SCH-usp_partition_maintenance.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-usp_purge_tables.sql">
@@ -432,6 +348,12 @@
           <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-WhoIsActive-Partitioning.sql</FullPath>
+        </FileNode>
+        <FileNode Name="SQLQuery1.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>SQLQuery1.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>

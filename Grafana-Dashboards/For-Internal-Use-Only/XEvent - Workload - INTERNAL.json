@@ -25,7 +25,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 24,
+  "id": 7,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -45,7 +45,7 @@
     {
       "datasource": {
         "type": "mssql",
-        "uid": "${datasource}"
+        "uid": "${sqlmonitor_datasource}"
       },
       "description": "",
       "fieldConfig": {
@@ -296,13 +296,13 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "9.2.5",
+      "pluginVersion": "9.3.2",
       "targets": [
         {
           "alias": "",
           "datasource": {
             "type": "mssql",
-            "uid": "${datasource}"
+            "uid": "${sqlmonitor_datasource}"
           },
           "editorMode": "code",
           "format": "table",
@@ -348,16 +348,16 @@
         {
           "description": "",
           "gridPos": {
-            "h": 7,
+            "h": 20,
             "w": 24,
             "x": 0,
-            "y": 18
+            "y": 2
           },
           "id": 119,
           "links": [],
           "options": {
             "folderId": 1,
-            "maxItems": 10,
+            "maxItems": 50,
             "query": "",
             "showHeadings": false,
             "showRecentlyViewed": false,
@@ -365,7 +365,7 @@
             "showStarred": false,
             "tags": []
           },
-          "pluginVersion": "9.2.5",
+          "pluginVersion": "9.3.2",
           "title": "Other Dashboards",
           "type": "dashlist"
         }
@@ -396,12 +396,32 @@
       {
         "current": {
           "selected": false,
+          "text": "SQLMonitor",
+          "value": "SQLMonitor"
+        },
+        "description": "Inventory Server Name",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Data Source",
+        "multi": false,
+        "name": "sqlmonitor_datasource",
+        "options": [],
+        "query": "mssql",
+        "queryValue": "",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "selected": false,
           "text": "SqlPractice",
           "value": "SqlPractice"
         },
         "datasource": {
           "type": "mssql",
-          "uid": "${datasource}"
+          "uid": "${sqlmonitor_datasource}"
         },
         "definition": "select distinct srvname = sql_instance from dbo.instance_details with (nolock)\nwhere is_available = 1",
         "hide": 0,
@@ -415,6 +435,30 @@
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "__All__",
+          "value": "__All__"
+        },
+        "datasource": {
+          "type": "mssql",
+          "uid": "${sqlmonitor_datasource}"
+        },
+        "definition": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @params = N'@perfmon_host_name varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"select name from sys.databases d where d.state_desc = 'ONLINE' union all select '__All__' as name order by name;\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name;",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Database",
+        "multi": false,
+        "name": "database",
+        "options": [],
+        "query": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @params = N'@perfmon_host_name varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"select name from sys.databases d where d.state_desc = 'ONLINE' union all select '__All__' as name order by name;\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 5,
         "type": "query"
       },
       {
@@ -440,56 +484,12 @@
       {
         "current": {
           "selected": false,
-          "text": "__All__",
-          "value": "__All__"
-        },
-        "datasource": {
-          "type": "mssql",
-          "uid": "${datasource}"
-        },
-        "definition": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @params = N'@perfmon_host_name varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"select name from sys.databases d where d.state_desc = 'ONLINE' union all select '__All__' as name order by name;\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name;",
-        "hide": 0,
-        "includeAll": false,
-        "label": "Database",
-        "multi": false,
-        "name": "database",
-        "options": [],
-        "query": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\n\nset @sql_instance = '$server';\n--set @perfmon_host_name = '$perfmon_host_name';\nset @params = N'@perfmon_host_name varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"select name from sys.databases d where d.state_desc = 'ONLINE' union all select '__All__' as name order by name;\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name;",
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 5,
-        "type": "query"
-      },
-      {
-        "current": {
-          "selected": false,
-          "text": "SqlMonitor",
-          "value": "SqlMonitor"
-        },
-        "description": "Inventory Server Name",
-        "hide": 2,
-        "includeAll": false,
-        "label": "Data Source",
-        "multi": false,
-        "name": "datasource",
-        "options": [],
-        "query": "mssql",
-        "queryValue": "",
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "type": "datasource"
-      },
-      {
-        "current": {
-          "selected": false,
           "text": "DBA",
           "value": "DBA"
         },
         "datasource": {
           "type": "mssql",
-          "uid": "${datasource}"
+          "uid": "${sqlmonitor_datasource}"
         },
         "definition": "SELECT DB_NAME() as [db_name]",
         "hide": 2,
@@ -513,7 +513,7 @@
         },
         "datasource": {
           "type": "mssql",
-          "uid": "${datasource}"
+          "uid": "${sqlmonitor_datasource}"
         },
         "definition": "declare @sql_instance varchar(255); \nset @sql_instance = '$server';\nselect is_local = case when ( (CONVERT(varchar,SERVERPROPERTY('MachineName')) = @sql_instance ) \n\t\t\tor (CONVERT(varchar,SERVERPROPERTY('ServerName')) = @sql_instance )\n\t\t\t)  then 1 else 0 end",
         "hide": 2,
@@ -631,12 +631,12 @@
       {
         "current": {
           "selected": false,
-          "text": "192.168.29.22",
-          "value": "192.168.29.22"
+          "text": "192.168.100.12",
+          "value": "192.168.100.12"
         },
         "datasource": {
           "type": "mssql",
-          "uid": "${datasource}"
+          "uid": "${sqlmonitor_datasource}"
         },
         "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,  CONNECTIONPROPERTY('local_net_address') ) as [ip]\n\"\nSET QUOTED_IDENTIFIER ON\n\n--IF ('$server' = SERVERPROPERTY('ServerName'))\nif ($is_local = 1)\n  EXEC (@sql);\nELSE\n  EXEC (@sql) AT [$server];",
         "description": "IP Address of Sql Instance",
@@ -661,7 +661,7 @@
         },
         "datasource": {
           "type": "mssql",
-          "uid": "${datasource}"
+          "uid": "${sqlmonitor_datasource}"
         },
         "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect CONVERT(varchar,SERVERPROPERTY('ComputerNamePhysicalNetBIOS')) as [host_name]\n\"\nSET QUOTED_IDENTIFIER ON\n\n--IF ('$server' = SERVERPROPERTY('ServerName'))\nif ($is_local = 1)\n  EXEC (@sql);\nELSE\n  EXEC (@sql) AT [$server];",
         "hide": 2,
@@ -680,12 +680,12 @@
       {
         "current": {
           "selected": false,
-          "text": "SqlPractice.Lab.com",
-          "value": "SqlPractice.Lab.com"
+          "text": "SQLPRACTICE.Lab.com",
+          "value": "SQLPRACTICE.Lab.com"
         },
         "datasource": {
           "type": "mssql",
-          "uid": "${datasource}"
+          "uid": "${sqlmonitor_datasource}"
         },
         "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\n\ndeclare @fqdn nvarchar(100);\nexec usp_extended_results @fqdn = @fqdn output;\n\nselect case when default_domain() = 'WORKGROUP' then 'WORKGROUP' ELSE @fqdn END\n\"\nSET QUOTED_IDENTIFIER ON\n\n--IF ('$server' = SERVERPROPERTY('ServerName'))\nif ($is_local = 1)\n  EXEC (@sql);\nELSE\n  EXEC (@sql) AT [$server];",
         "hide": 2,
@@ -785,21 +785,21 @@
       {
         "current": {
           "selected": false,
-          "text": "DBA",
-          "value": "DBA"
+          "text": "Admin",
+          "value": "Admin"
         },
         "datasource": {
           "type": "mssql",
-          "uid": "${datasource}"
+          "uid": "${sqlmonitor_datasource}"
         },
-        "definition": "declare @sql nvarchar(max);\ndeclare @sql_instance varchar(255);\nset @sql_instance = '$server';\n\nset quoted_identifier off;\nset @sql = \"select [database] from dbo.instance_details id\nwhere id.sql_instance = @sql_instance\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql, N'@sql_instance varchar(255)', @sql_instance;",
+        "definition": "declare @sql nvarchar(max);\ndeclare @sql_instance varchar(255);\nset @sql_instance = '$server';\n\nset quoted_identifier off;\nset @sql = \"select top 1 [database] from dbo.instance_details id\nwhere id.sql_instance = @sql_instance\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql, N'@sql_instance varchar(255)', @sql_instance;",
         "hide": 2,
         "includeAll": false,
         "label": "DBA Database",
         "multi": false,
         "name": "dba_db",
         "options": [],
-        "query": "declare @sql nvarchar(max);\ndeclare @sql_instance varchar(255);\nset @sql_instance = '$server';\n\nset quoted_identifier off;\nset @sql = \"select [database] from dbo.instance_details id\nwhere id.sql_instance = @sql_instance\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql, N'@sql_instance varchar(255)', @sql_instance;",
+        "query": "declare @sql nvarchar(max);\ndeclare @sql_instance varchar(255);\nset @sql_instance = '$server';\n\nset quoted_identifier off;\nset @sql = \"select top 1 [database] from dbo.instance_details id\nwhere id.sql_instance = @sql_instance\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql, N'@sql_instance varchar(255)', @sql_instance;",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -894,12 +894,12 @@
       {
         "current": {
           "selected": false,
-          "text": "1671701412478",
-          "value": "1671701412478"
+          "text": "1674618114453",
+          "value": "1674618114453"
         },
         "datasource": {
           "type": "mssql",
-          "uid": "${datasource}"
+          "uid": "${sqlmonitor_datasource}"
         },
         "definition": "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSET QUOTED_IDENTIFIER OFF\nDECLARE @sql varchar(max) = \"\nselect top 1 DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), event_time )\nfrom $xevent_table_name\norder by event_time desc\n\"\nSET QUOTED_IDENTIFIER ON\n\n--IF ('$server' = SERVERPROPERTY('ServerName'))\nif ($is_local = 1)\n  EXEC (@sql);\nELSE\n  EXEC (@sql) AT [$server];",
         "hide": 2,
@@ -1153,6 +1153,6 @@
   "timezone": "browser",
   "title": "XEvent - Workload",
   "uid": "XEvents",
-  "version": 51,
+  "version": 7,
   "weekStart": ""
 }

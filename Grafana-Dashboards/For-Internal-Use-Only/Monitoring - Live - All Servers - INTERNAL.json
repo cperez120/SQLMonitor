@@ -25,7 +25,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 21,
+  "id": 2,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -46,7 +46,7 @@
         {
           "datasource": {
             "type": "mssql",
-            "uid": "${datasource}"
+            "uid": "${sqlmonitor_datasource}"
           },
           "fieldConfig": {
             "defaults": {
@@ -64,7 +64,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   }
                 ]
               }
@@ -196,7 +197,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 12
+            "y": 1
           },
           "id": 219,
           "options": {
@@ -209,13 +210,13 @@
             },
             "showHeader": true
           },
-          "pluginVersion": "9.1.4",
+          "pluginVersion": "9.3.2",
           "targets": [
             {
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "${datasource}"
+                "uid": "${sqlmonitor_datasource}"
               },
               "format": "table",
               "rawSql": "declare @sql nvarchar(max);\nset quoted_identifier off;\nset @sql = \"\n/* $__dashboard */\n;with t_cte as (\n\tselect\tsrv_name, domain, host_name, product_version, major_version_number, minor_version_number, cpu_count, \n\t        scheduler_count, total_physical_memory_kb, os_start_time_utc, sqlserver_start_time_utc\n\t\t\t,Concat\n\t\t\t(\n\t\t\t\tRIGHT('000'+CAST(ISNULL((datediff(second,os_start_time_utc,GETUTCDATE()) / 3600 / 24), 0) AS VARCHAR(3)),3)\n\t\t\t\t,' '\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,os_start_time_utc,GETUTCDATE()) / 3600  % 24, 0) AS VARCHAR(2)),2)\n\t\t\t\t,':'\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,os_start_time_utc,GETUTCDATE()) / 60 % 60, 0) AS VARCHAR(2)),2)\n\t\t\t\t,':'\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,os_start_time_utc,GETUTCDATE()) % 3600 % 60, 0) AS VARCHAR(2)),2)\n\t\t\t) as [os_uptime]\n\t\t\t,Concat\n\t\t\t(\n\t\t\t\tRIGHT('000'+CAST(ISNULL((datediff(second,sqlserver_start_time_utc,GETUTCDATE()) / 3600 / 24), 0) AS VARCHAR(3)),3)\n\t\t\t\t,' '\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time_utc,GETUTCDATE()) / 3600  % 24, 0) AS VARCHAR(2)),2)\n\t\t\t\t,':'\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time_utc,GETUTCDATE()) / 60 % 60, 0) AS VARCHAR(2)),2)\n\t\t\t\t,':'\n\t\t\t\t,RIGHT('00'+CAST(ISNULL(datediff(second,sqlserver_start_time_utc,GETUTCDATE()) % 3600 % 60, 0) AS VARCHAR(2)),2)\n\t\t\t) as [sqlserver_uptime]\n\t\t\t,datediff(day,os_start_time_utc,GETUTCDATE()) as [os_uptime_days]\n\tfrom dbo.vw_all_server_info\n)\nselect  srv_name, domain, host_name, product_version, major_version_number, minor_version_number\n        ,[CPU (OS / SQL)] = convert(varchar,cpu_count)+' / '+convert(varchar,scheduler_count)\n        ,total_physical_memory_kb ,cpu_count, scheduler_count, [os_uptime_days], os_start_time_utc, sqlserver_start_time_utc, [os_uptime], [sqlserver_uptime]\n\t\t    ,[Is MS Supported] = case when c.MainstreamSupportEndDate < getdate() then convert(bit,0) else convert(bit,1) end\nfrom t_cte cte\nouter apply (\n\tselect\ttop 1 [MajorVersionNumber]\n\t\t\t\t--,[@server_minor_version_number] = @server_minor_version_number\n\t\t\t\t,[MinorVersionNumber]\n\t\t\t\t,[Branch]\n\t\t\t\t,[Url]\n\t\t\t\t,[ReleaseDate]\n\t\t\t\t,[MainstreamSupportEndDate]\n\t\t\t\t,[ExtendedSupportEndDate]\n\t\t\t\t,[MajorVersionName]\n\t\t\t\t,[MinorVersionName]\t  \n\t\tfrom [master].[dbo].[SqlServerVersions] as c\n\t\twhere [MajorVersionNumber] = cte.major_version_number\n\t\tand [MinorVersionNumber] <= cte.minor_version_number\n\t\torder by [MinorVersionNumber] desc\n) as c\nouter apply (\n\tselect\ttop 1 [MajorVersionNumber]\n\t\t\t--,[@server_minor_version_number] = @server_minor_version_number\n\t\t\t,[MinorVersionNumber]\n\t\t\t,[Branch]\n\t\t\t,[Url]\n\t\t\t,[ReleaseDate]\n\t\t\t,[MainstreamSupportEndDate]\n\t\t\t,[ExtendedSupportEndDate]\n\t\t\t,[MajorVersionName]\n\t\t\t,[MinorVersionName]\t  \n\tfrom [master].[dbo].[SqlServerVersions] as c\n\twhere [MajorVersionNumber] = cte.major_version_number\n\torder by [MinorVersionNumber] desc\n) as l;\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql;",
@@ -251,7 +252,7 @@
         {
           "datasource": {
             "type": "mssql",
-            "uid": "${datasource}"
+            "uid": "${sqlmonitor_datasource}"
           },
           "fieldConfig": {
             "defaults": {
@@ -268,7 +269,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   }
                 ]
               },
@@ -303,7 +305,8 @@
                       "mode": "absolute",
                       "steps": [
                         {
-                          "color": "green"
+                          "color": "green",
+                          "value": null
                         },
                         {
                           "color": "#EAB839",
@@ -338,7 +341,8 @@
                       "mode": "absolute",
                       "steps": [
                         {
-                          "color": "green"
+                          "color": "green",
+                          "value": null
                         },
                         {
                           "color": "#EAB839",
@@ -377,7 +381,8 @@
                       "mode": "absolute",
                       "steps": [
                         {
-                          "color": "blue"
+                          "color": "blue",
+                          "value": null
                         }
                       ]
                     }
@@ -458,7 +463,8 @@
                       "mode": "absolute",
                       "steps": [
                         {
-                          "color": "green"
+                          "color": "green",
+                          "value": null
                         },
                         {
                           "color": "#EAB839",
@@ -560,7 +566,7 @@
             ]
           },
           "gridPos": {
-            "h": 19,
+            "h": 9,
             "w": 24,
             "x": 0,
             "y": 2
@@ -578,19 +584,19 @@
             "showHeader": true,
             "sortBy": []
           },
-          "pluginVersion": "9.1.4",
+          "pluginVersion": "9.3.2",
           "targets": [
             {
               "alias": "",
               "datasource": {
                 "type": "mssql",
-                "uid": "${datasource}"
+                "uid": "${sqlmonitor_datasource}"
               },
               "editorMode": "code",
               "format": "table",
               "hide": false,
               "rawQuery": true,
-              "rawSql": "declare @_latency_minutes_threshold int = 20;\r\ndeclare @_latency_days_threshold int = 3;\r\ndeclare @t_servers_exception table (srv_name varchar(125));\r\n\r\ninsert @t_servers_exception -- list of servers that have permanent issues\r\nvalues ('MyNotExistingServerHavingIssue01'),('MyNotExistingServerHavingIssue02');\r\n\r\nselect\tcli.srv_name, \r\n\t\tcli.performance_counters__latency_minutes,\r\n\t\tresource_consumption__latency_minutes = case when (cli.resource_consumption__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20 and si.major_version_number >= 11) then cli.resource_consumption__latency_minutes \r\n\t\t\t\t\t\t\t\t\t\t\t\t\twhen cli.resource_consumption__latency_minutes > @_latency_minutes_threshold then @_latency_minutes_threshold-1\r\n\t\t\t\t\t\t\t\t\t\t\t\t\telse cli.resource_consumption__latency_minutes end,\r\n\t\tWhoIsActive__latency_minutes = case when cli.WhoIsActive__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20 then cli.WhoIsActive__latency_minutes \r\n\t\t\t\t\t\t\t\t\t\t\t\t\twhen cli.WhoIsActive__latency_minutes > @_latency_minutes_threshold then @_latency_minutes_threshold-1\r\n\t\t\t\t\t\t\t\t\t\t\t\t\telse cli.WhoIsActive__latency_minutes end,\r\n\t\tcli.os_task_list__latency_minutes,\r\n\t\tcli.disk_space__latency_minutes, \r\n\t\tcli.file_io_stats__latency_minutes,\r\n\t\tcli.wait_stats__latency_minutes,\r\n\t\tcli.BlitzIndex__latency_days,\r\n\t\tcli.BlitzIndex_Mode0__latency_days,\r\n\t\t--cli.BlitzIndex_Mode1__latency_days,\r\n\t\t--cli.BlitzIndex_Mode4__latency_days,\r\n\t\t--collection_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), cli.collection_time)\r\n\t\t[Issues] = (case when cli.performance_counters__latency_minutes > @_latency_minutes_threshold then 'performance_counters,' else '' end)+\r\n\t\t\t\t\t(case when cli.resource_consumption__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20 and si.major_version_number >= 11 then 'resource_consumption' else '' end)+\r\n\t\t\t\t\t(case when cli.WhoIsActive__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20 then 'WhoIsActive,' else '' end)+\r\n\t\t\t\t\t(case when cli.os_task_list__latency_minutes > @_latency_minutes_threshold then 'os_task_list,' else '' end)+\r\n\t\t\t\t\t(case when cli.disk_space__latency_minutes > @_latency_minutes_threshold*3 then 'disk_space,' else '' end)+\r\n\t\t\t\t\t(case when cli.file_io_stats__latency_minutes > @_latency_minutes_threshold*3 then 'file_io_stats,' else '' end)+\r\n\t\t\t\t\t(case when cli.wait_stats__latency_minutes > @_latency_minutes_threshold*2 then 'wait_stats,' else '' end)+\r\n\t\t\t\t\t(case when cli.BlitzIndex__latency_days > @_latency_days_threshold then 'BlitzIndex,' else '' end)+\r\n\t\t\t\t\t(case when cli.BlitzIndex_Mode0__latency_days > @_latency_days_threshold*4 then 'BlitzIndex_Mode0,' else '' end)+\r\n\t\t\t\t\t(case when cli.BlitzIndex_Mode1__latency_days > @_latency_days_threshold*4 then 'BlitzIndex_Mode1,' else '' end)+\r\n\t\t\t\t\t(case when cli.BlitzIndex_Mode4__latency_days > @_latency_days_threshold*4 then 'BlitzIndex_Mode4,' else '' end)\r\n\t\t--,cli.host_name ,si.major_version_number ,si.product_version ,si.edition, vi.os_cpu, vi.sql_cpu\r\nfrom dbo.all_server_collection_latency_info cli\r\njoin dbo.all_server_stable_info si on si.srv_name = cli.srv_name\r\njoin dbo.all_server_volatile_info vi on vi.srv_name = cli.srv_name\r\nwhere 1=1\r\nand (\tcli.performance_counters__latency_minutes > @_latency_minutes_threshold\r\n\t\tor (cli.resource_consumption__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20 and si.major_version_number >= 11)\r\n\t\tor (cli.WhoIsActive__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20)\r\n\t\tor cli.os_task_list__latency_minutes > @_latency_minutes_threshold\r\n\t\tor cli.disk_space__latency_minutes > @_latency_minutes_threshold*3\r\n\t\tor cli.file_io_stats__latency_minutes > @_latency_minutes_threshold*3\r\n\t\tor cli.wait_stats__latency_minutes > @_latency_minutes_threshold*2\r\n\t\tor cli.BlitzIndex__latency_days > @_latency_days_threshold\r\n\t\tor cli.BlitzIndex_Mode0__latency_days > @_latency_days_threshold*4\r\n\t\t--or cli.BlitzIndex_Mode1__latency_days > @_latency_days_threshold*4\r\n\t\t--or cli.BlitzIndex_Mode4__latency_days > @_latency_days_threshold*4\r\n\t)\r\nand cli.srv_name not in (select e.srv_name from @t_servers_exception e)\r\n\r\n",
+              "rawSql": "declare @_latency_minutes_threshold int = 20;\r\ndeclare @_latency_days_threshold int = 3;\r\ndeclare @t_servers_exception table (srv_name varchar(125));\r\n\r\ninsert @t_servers_exception -- list of servers that have permanent issues\r\nvalues ('MyNotExistingServerHavingIssue01'),('MyNotExistingServerHavingIssue02');\r\n\r\nselect\tcli.srv_name, id.jobs_server,\r\n\t\tcli.performance_counters__latency_minutes,\r\n\t\tresource_consumption__latency_minutes = case when (cli.resource_consumption__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20 and si.major_version_number >= 11) then cli.resource_consumption__latency_minutes \r\n\t\t\t\t\t\t\t\t\t\t\t\t\twhen cli.resource_consumption__latency_minutes > @_latency_minutes_threshold then @_latency_minutes_threshold-1\r\n\t\t\t\t\t\t\t\t\t\t\t\t\telse cli.resource_consumption__latency_minutes end,\r\n\t\tWhoIsActive__latency_minutes = case when cli.WhoIsActive__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20 then cli.WhoIsActive__latency_minutes \r\n\t\t\t\t\t\t\t\t\t\t\t\t\twhen cli.WhoIsActive__latency_minutes > @_latency_minutes_threshold then @_latency_minutes_threshold-1\r\n\t\t\t\t\t\t\t\t\t\t\t\t\telse cli.WhoIsActive__latency_minutes end,\r\n\t\tcli.os_task_list__latency_minutes,\r\n\t\tcli.disk_space__latency_minutes, \r\n\t\tcli.file_io_stats__latency_minutes,\r\n\t\tcli.wait_stats__latency_minutes,\r\n\t\tcli.BlitzIndex__latency_days,\r\n\t\tcli.BlitzIndex_Mode0__latency_days,\r\n\t\t--cli.BlitzIndex_Mode1__latency_days,\r\n\t\t--cli.BlitzIndex_Mode4__latency_days,\r\n\t\t--collection_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), cli.collection_time)\r\n\t\t[Issues] = (case when cli.performance_counters__latency_minutes > @_latency_minutes_threshold then 'performance_counters,' else '' end)+\r\n\t\t\t\t\t(case when cli.resource_consumption__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20 and si.major_version_number >= 11 then 'resource_consumption' else '' end)+\r\n\t\t\t\t\t(case when cli.WhoIsActive__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20 then 'WhoIsActive,' else '' end)+\r\n\t\t\t\t\t(case when cli.os_task_list__latency_minutes > @_latency_minutes_threshold then 'os_task_list,' else '' end)+\r\n\t\t\t\t\t(case when cli.disk_space__latency_minutes > @_latency_minutes_threshold*3 then 'disk_space,' else '' end)+\r\n\t\t\t\t\t(case when cli.file_io_stats__latency_minutes > @_latency_minutes_threshold*3 then 'file_io_stats,' else '' end)+\r\n\t\t\t\t\t(case when cli.wait_stats__latency_minutes > @_latency_minutes_threshold*2 then 'wait_stats,' else '' end)+\r\n\t\t\t\t\t(case when cli.BlitzIndex__latency_days > @_latency_days_threshold then 'BlitzIndex,' else '' end)+\r\n\t\t\t\t\t(case when cli.BlitzIndex_Mode0__latency_days > @_latency_days_threshold*4 then 'BlitzIndex_Mode0,' else '' end)+\r\n\t\t\t\t\t(case when cli.BlitzIndex_Mode1__latency_days > @_latency_days_threshold*4 then 'BlitzIndex_Mode1,' else '' end)+\r\n\t\t\t\t\t(case when cli.BlitzIndex_Mode4__latency_days > @_latency_days_threshold*4 then 'BlitzIndex_Mode4,' else '' end)\r\n\t\t--,cli.host_name ,si.major_version_number ,si.product_version ,si.edition, vi.os_cpu, vi.sql_cpu\r\nfrom dbo.all_server_collection_latency_info cli\r\njoin dbo.all_server_stable_info si on si.srv_name = cli.srv_name\r\njoin dbo.all_server_volatile_info vi on vi.srv_name = cli.srv_name\r\nouter apply (select STUFF((select ', '+id.collector_powershell_jobs_server from (select distinct id.collector_powershell_jobs_server from dbo.instance_details id where id.sql_instance = cli.srv_name and id.host_name = cli.host_name) id for xml path('')), 1, 1, '') as jobs_server ) id\r\nwhere 1=1\r\nand (\tcli.performance_counters__latency_minutes > @_latency_minutes_threshold\r\n\t\tor (cli.resource_consumption__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20 and si.major_version_number >= 11)\r\n\t\tor (cli.WhoIsActive__latency_minutes > @_latency_minutes_threshold*2 and vi.sql_cpu > 20)\r\n\t\tor cli.os_task_list__latency_minutes > @_latency_minutes_threshold\r\n\t\tor cli.disk_space__latency_minutes > @_latency_minutes_threshold*3\r\n\t\tor cli.file_io_stats__latency_minutes > @_latency_minutes_threshold*3\r\n\t\tor cli.wait_stats__latency_minutes > @_latency_minutes_threshold*2\r\n\t\tor cli.BlitzIndex__latency_days > @_latency_days_threshold\r\n\t\tor cli.BlitzIndex_Mode0__latency_days > @_latency_days_threshold*4\r\n\t\t--or cli.BlitzIndex_Mode1__latency_days > @_latency_days_threshold*4\r\n\t\t--or cli.BlitzIndex_Mode4__latency_days > @_latency_days_threshold*4\r\n\t)\r\nand cli.srv_name not in (select e.srv_name from @t_servers_exception e)\r\n\r\n",
               "refId": "A",
               "sql": {
                 "columns": [
@@ -636,7 +642,7 @@
     {
       "datasource": {
         "type": "mssql",
-        "uid": "${datasource}"
+        "uid": "${sqlmonitor_datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -683,13 +689,13 @@
         },
         "showHeader": true
       },
-      "pluginVersion": "9.1.4",
+      "pluginVersion": "9.3.2",
       "targets": [
         {
           "alias": "",
           "datasource": {
             "type": "mssql",
-            "uid": "${datasource}"
+            "uid": "${sqlmonitor_datasource}"
           },
           "format": "table",
           "rawSql": "declare @sql nvarchar(max);\nset quoted_identifier off;\nset @sql = \"\n/* $__dashboard */\nselect sql_instance, [host_name], [tsql jobs server] = collector_tsql_jobs_server, \n\t\t[powershell jobs server] = collector_powershell_jobs_server, [perfmon data server] = data_destination_sql_instance, \n\t\tis_available, last_unavailability_time_utc\nfrom dbo.instance_details id\nwhere is_available = 0\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql;",
@@ -728,7 +734,7 @@
     {
       "datasource": {
         "type": "mssql",
-        "uid": "${datasource}"
+        "uid": "${sqlmonitor_datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -1251,13 +1257,13 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "9.1.4",
+      "pluginVersion": "9.3.2",
       "targets": [
         {
           "alias": "",
           "datasource": {
             "type": "mssql",
-            "uid": "${datasource}"
+            "uid": "${sqlmonitor_datasource}"
           },
           "editorMode": "code",
           "format": "table",
@@ -1350,15 +1356,15 @@
       {
         "current": {
           "selected": false,
-          "text": "SqlServer",
-          "value": "SqlServer"
+          "text": "SQLMonitor",
+          "value": "SQLMonitor"
         },
         "description": "Inventory Server Name",
         "hide": 2,
         "includeAll": false,
         "label": "Data Source",
         "multi": false,
-        "name": "datasource",
+        "name": "sqlmonitor_datasource",
         "options": [],
         "query": "mssql",
         "queryValue": "",
@@ -1379,7 +1385,7 @@
         },
         "datasource": {
           "type": "mssql",
-          "uid": "${datasource}"
+          "uid": "${sqlmonitor_datasource}"
         },
         "definition": "declare @sql nvarchar(max);\nset quoted_identifier off;\nset @sql = \"\nselect distinct srvname = sql_instance from dbo.instance_details\nwhere is_available = 1\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql;",
         "hide": 0,
@@ -1403,7 +1409,7 @@
         },
         "datasource": {
           "type": "mssql",
-          "uid": "${datasource}"
+          "uid": "${sqlmonitor_datasource}"
         },
         "definition": "SELECT DB_NAME() as [db_name]",
         "hide": 2,
@@ -1422,12 +1428,12 @@
       {
         "current": {
           "selected": false,
-          "text": "1673624980469",
-          "value": "1673624980469"
+          "text": "1674577222479",
+          "value": "1674577222479"
         },
         "datasource": {
           "type": "mssql",
-          "uid": "${datasource}"
+          "uid": "${sqlmonitor_datasource}"
         },
         "definition": "select collection_time_utc = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), max(collection_time)) from dbo.all_server_volatile_info",
         "hide": 2,
@@ -1461,6 +1467,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - All Servers",
   "uid": "distributed_live_dashboard_all_servers",
-  "version": 5,
+  "version": 4,
   "weekStart": ""
 }

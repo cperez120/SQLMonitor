@@ -99,42 +99,42 @@ go
 --drop partition scheme ps_dba_datetime2_hourly
 declare @is_partitioned bit = 1;
 if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime2_hourly') and @is_partitioned = 1
-	exec ('create partition scheme ps_dba_datetime2_hourly as partition pf_dba_datetime2_hourly all to ([primary])')
+	exec ('create partition scheme ps_dba_datetime2_hourly as partition pf_dba_datetime2_hourly all to ([PRIMARY])')
 go
 --drop partition scheme ps_dba_datetime2_daily
 declare @is_partitioned bit = 1;
 if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime2_daily') and @is_partitioned = 1
-	exec ('create partition scheme ps_dba_datetime2_daily as partition pf_dba_datetime2_daily all to ([primary])')
+	exec ('create partition scheme ps_dba_datetime2_daily as partition pf_dba_datetime2_daily all to ([PRIMARY])')
 go
 --drop partition scheme ps_dba_datetime2_monthly
 declare @is_partitioned bit = 1;
 if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime2_monthly') and @is_partitioned = 1
-	exec ('create partition scheme ps_dba_datetime2_monthly as partition pf_dba_datetime2_monthly all to ([primary])')
+	exec ('create partition scheme ps_dba_datetime2_monthly as partition pf_dba_datetime2_monthly all to ([PRIMARY])')
 go
 --drop partition scheme ps_dba_datetime2_quarterly
 declare @is_partitioned bit = 1;
 if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime2_quarterly') and @is_partitioned = 1
-	exec ('create partition scheme ps_dba_datetime2_quarterly as partition pf_dba_datetime2_quarterly all to ([primary])')
+	exec ('create partition scheme ps_dba_datetime2_quarterly as partition pf_dba_datetime2_quarterly all to ([PRIMARY])')
 go
 --drop partition scheme ps_dba_datetime_hourly
 declare @is_partitioned bit = 1;
 if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime_hourly') and @is_partitioned = 1
-	exec ('create partition scheme ps_dba_datetime_hourly as partition pf_dba_datetime_hourly all to ([primary])')
+	exec ('create partition scheme ps_dba_datetime_hourly as partition pf_dba_datetime_hourly all to ([PRIMARY])')
 go
 --drop partition scheme ps_dba_datetime_daily
 declare @is_partitioned bit = 1;
 if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime_daily') and @is_partitioned = 1
-	exec ('create partition scheme ps_dba_datetime_daily as partition pf_dba_datetime_daily all to ([primary])')
+	exec ('create partition scheme ps_dba_datetime_daily as partition pf_dba_datetime_daily all to ([PRIMARY])')
 go
 --drop partition scheme ps_dba_datetime_monthly
 declare @is_partitioned bit = 1;
 if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime_monthly') and @is_partitioned = 1
-	exec ('create partition scheme ps_dba_datetime_monthly as partition pf_dba_datetime_monthly all to ([primary])')
+	exec ('create partition scheme ps_dba_datetime_monthly as partition pf_dba_datetime_monthly all to ([PRIMARY])')
 go
 --drop partition scheme ps_dba_datetime_quarterly
 declare @is_partitioned bit = 1;
 if not exists (select * from sys.partition_schemes where name = 'ps_dba_datetime_quarterly') and @is_partitioned = 1
-	exec ('create partition scheme ps_dba_datetime_quarterly as partition pf_dba_datetime_quarterly all to ([primary])')
+	exec ('create partition scheme ps_dba_datetime_quarterly as partition pf_dba_datetime_quarterly all to ([PRIMARY])')
 go
 
 
@@ -939,7 +939,7 @@ begin
 		set @current_boundary_value = DATEADD(hour,1,@current_boundary_value);
 		--print @current_boundary_value
 		begin try
-			alter partition scheme ps_dba_datetime2_hourly next used [primary];
+			alter partition scheme ps_dba_datetime2_hourly next used [PRIMARY];
 			alter partition function pf_dba_datetime2_hourly() split range (@current_boundary_value);	
 		end try
 		begin catch

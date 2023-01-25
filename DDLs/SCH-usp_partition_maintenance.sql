@@ -100,7 +100,7 @@ BEGIN
 
 			if (@current_boundary_value < @target_boundary_value)
 			begin
-				set @sql =	N'alter partition scheme ps_dba next used [primary];'+@crlf+
+				set @sql =	N'alter partition scheme ps_dba next used [PRIMARY];'+@crlf+
 							N'alter partition function pf_dba() split range (@current_boundary_value);';
 				set @params = N'@current_boundary_value datetime2';
 
@@ -170,7 +170,7 @@ BEGIN
 
 			if (@current_boundary_value < @target_boundary_value)
 			begin
-				set @sql =	N'alter partition scheme ps_dba_datetime2_hourly next used [primary];'+@crlf+
+				set @sql =	N'alter partition scheme ps_dba_datetime2_hourly next used [PRIMARY];'+@crlf+
 							N'alter partition function pf_dba_datetime2_hourly() split range (@current_boundary_value);';
 				set @params = N'@current_boundary_value datetime2';
 
@@ -240,7 +240,7 @@ BEGIN
 
 			if (@current_boundary_value < @target_boundary_value)
 			begin
-				set @sql =	N'alter partition scheme ps_dba_datetime2_daily next used [primary];'+@crlf+
+				set @sql =	N'alter partition scheme ps_dba_datetime2_daily next used [PRIMARY];'+@crlf+
 							N'alter partition function pf_dba_datetime2_daily() split range (@current_boundary_value);';
 				set @params = N'@current_boundary_value datetime2';
 
@@ -310,7 +310,7 @@ BEGIN
 
 			if (@current_boundary_value < @target_boundary_value)
 			begin
-				set @sql =	N'alter partition scheme ps_dba_datetime2_monthly next used [primary];'+@crlf+
+				set @sql =	N'alter partition scheme ps_dba_datetime2_monthly next used [PRIMARY];'+@crlf+
 							N'alter partition function pf_dba_datetime2_monthly() split range (@current_boundary_value);';
 				set @params = N'@current_boundary_value datetime2';
 
@@ -379,7 +379,7 @@ BEGIN
 
 			if (@current_boundary_value < @target_boundary_value)
 			begin
-				set @sql =	N'alter partition scheme ps_dba_datetime2_quarterly next used [primary];'+@crlf+
+				set @sql =	N'alter partition scheme ps_dba_datetime2_quarterly next used [PRIMARY];'+@crlf+
 							N'alter partition function pf_dba_datetime2_quarterly() split range (@current_boundary_value);';
 				set @params = N'@current_boundary_value datetime2';
 
@@ -448,7 +448,7 @@ BEGIN
 
 			if (@current_boundary_value < @target_boundary_value)
 			begin
-				set @sql =	N'alter partition scheme ps_dba_datetime next used [primary];'+@crlf+
+				set @sql =	N'alter partition scheme ps_dba_datetime next used [PRIMARY];'+@crlf+
 							N'alter partition function pf_dba_datetime() split range (@current_boundary_value);';
 				set @params = N'@current_boundary_value datetime';
 
@@ -517,7 +517,7 @@ BEGIN
 
 			if (@current_boundary_value < @target_boundary_value)
 			begin
-				set @sql =	N'alter partition scheme ps_dba_datetime_hourly next used [primary];'+@crlf+
+				set @sql =	N'alter partition scheme ps_dba_datetime_hourly next used [PRIMARY];'+@crlf+
 							N'alter partition function pf_dba_datetime_hourly() split range (@current_boundary_value);';
 				set @params = N'@current_boundary_value datetime';
 
@@ -586,7 +586,7 @@ BEGIN
 
 			if (@current_boundary_value < @target_boundary_value)
 			begin
-				set @sql =	N'alter partition scheme ps_dba_datetime_daily next used [primary];'+@crlf+
+				set @sql =	N'alter partition scheme ps_dba_datetime_daily next used [PRIMARY];'+@crlf+
 							N'alter partition function pf_dba_datetime_daily() split range (@current_boundary_value);';
 				set @params = N'@current_boundary_value datetime';
 
@@ -655,7 +655,7 @@ BEGIN
 
 			if (@current_boundary_value < @target_boundary_value)
 			begin
-				set @sql =	N'alter partition scheme ps_dba_datetime_monthly next used [primary];'+@crlf+
+				set @sql =	N'alter partition scheme ps_dba_datetime_monthly next used [PRIMARY];'+@crlf+
 							N'alter partition function pf_dba_datetime_monthly() split range (@current_boundary_value);';
 				set @params = N'@current_boundary_value datetime';
 
@@ -724,7 +724,7 @@ BEGIN
 
 			if (@current_boundary_value < @target_boundary_value)
 			begin
-				set @sql =	N'alter partition scheme ps_dba_datetime_quarterly next used [primary];'+@crlf+
+				set @sql =	N'alter partition scheme ps_dba_datetime_quarterly next used [PRIMARY];'+@crlf+
 							N'alter partition function pf_dba_datetime_quarterly() split range (@current_boundary_value);';
 				set @params = N'@current_boundary_value datetime';
 
