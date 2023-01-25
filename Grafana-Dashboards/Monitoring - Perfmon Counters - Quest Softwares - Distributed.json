@@ -2,7 +2,7 @@
   "__inputs": [
     {
       "name": "DS_SQLMONITOR",
-      "label": "SqlMonitor",
+      "label": "SQLMonitor",
       "description": "",
       "type": "datasource",
       "pluginId": "mssql",
@@ -29,7 +29,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "9.2.5"
+      "version": "9.3.2"
     },
     {
       "type": "datasource",
@@ -189,7 +189,7 @@
               "editorMode": "code",
               "format": "time_series",
               "rawQuery": true,
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nselect pc.collection_time_utc as time, \n\t\tcase when (pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total') then '% Processor Time (os)'\n\t\t\twhen (pc.object = 'process' and pc.counter in ('% Processor Time') and pc.instance like 'sqlservr%') then '% Processor Time (sqlservr)'\n\t\t\telse null\n\t\t\tend as metric,\n\t--object, counter as metric, instance\n\tcase when pc.object = 'processor' then pc.value else pc.value/(select count(*) from sys.dm_os_schedulers dos where status = 'VISIBLE ONLINE') end as value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and\n\t ((pc.object = 'processor' and pc.counter in ('% Processor Time') and pc.instance = '_total')\n\t\tor (pc.object = 'process' and pc.counter in ('% Processor Time') and (pc.instance = 'sqlservr' or pc.instance = 'sqlservr$$instance_name'))\n\t)\n\tand pc.value > 0\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nselect pc.collection_time_utc as time, \n\t\tcase when (pc.object = 'processor' and pc.counter in ('% processor time') and pc.instance = '_total') then '% Processor Time (os)'\n\t\t\twhen (pc.object = 'process' and pc.counter in ('% processor time') and pc.instance like 'sqlservr%') then '% Processor Time (sqlservr)'\n\t\t\telse null\n\t\t\tend as metric,\n\t--object, counter as metric, instance\n\tcase when pc.object = 'processor' then pc.value else pc.value/(select count(*) from sys.dm_os_schedulers dos where status = 'VISIBLE ONLINE') end as value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and\n\t ((pc.object = 'processor' and pc.counter in ('% processor time') and pc.instance = '_total')\n\t\tor (pc.object = 'process' and pc.counter in ('% processor time') and (pc.instance = 'sqlservr' or pc.instance = 'sqlservr$$instance_name'))\n\t)\n\tand pc.value > 0\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
               "refId": "A",
               "sql": {
                 "columns": [
@@ -299,9 +299,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time, \n\tobject + ': '+ counter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = 'system' and pc.counter = 'Processor Queue Length'\nand pc.value <> 0.0\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time, \n\tobject + ': '+ counter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = 'system' and pc.counter = 'processor queue length'\nand pc.value <> 0.0\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "System: Processor Queue Length",
@@ -520,9 +539,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time, counter as metric , pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name\nand\tpc.object = 'memory' and pc.counter in ('Pages Input/Sec','Pages/Sec')\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time, counter as metric , pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name\nand\tpc.object = 'memory' and pc.counter in ('pages input/sec','pages/sec')\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Memory - Pages Input/Sec, Pages/Sec",
@@ -621,9 +659,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time, counter as metric , pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name\nand pc.object = 'Paging File' and pc.counter in ('% Usage','% Usage Peak')\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time, counter as metric , pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name\nand pc.object = 'paging file' and pc.counter in ('% usage','% usage peak')\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Paging File Usage",
@@ -746,9 +803,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':sql statistics') and pc.counter = 'Batch Requests/sec'\nand pc.value <> 0.0\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':sql statistics') \nand pc.counter = 'batch requests/sec'\nand pc.value <> 0.0\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Batch Requests/sec",
@@ -973,9 +1049,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name\nand (\t(pc.object = (@perfmon_object+':Memory Manager')\n\t\tand pc.counter in ('Memory Grants Outstanding','Memory Grants Pending'))\n\t)\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name\nand (\t(pc.object = (@perfmon_object+':memory manager')\n\t\tand pc.counter in ('memory grants outstanding','memory grants pending'))\n\t)\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Memory Grants",
@@ -1068,9 +1163,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand (\t(pc.object = (@perfmon_object+':Memory Manager')\n\t\tand pc.counter in ('Total Server Memory (KB)','Target Server Memory (KB)','Granted Workspace Memory (KB)','Maximum Workspace Memory (KB)'))\n\t)\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time, \n\tcounter as metric\n\t--,instance,\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand (\t(pc.object = (@perfmon_object+':memory manager')\n\t\tand pc.counter in ('total server memory (kb)','target server memory (kb)','granted workspace memory (kb)','maximum workspace memory (kb)'))\n\t)\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SQL Server: Memory Manager",
@@ -1293,9 +1407,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\ndeclare @disk_drive varchar(255) = '$disk_drive';\ndeclare @database varchar(255) = '$database';\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @disk_drive = case when ltrim(rtrim(@disk_drive)) = '__All__' then null else @disk_drive end;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125), @disk_drive varchar(255), @database varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance+' ('+replace(counter,'Avg. Disk ','')+')' as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\n  and pc.host_name = @perfmon_host_name \n  and pc.object = 'logicaldisk' and pc.counter in ('Avg. Disk sec/Read','Avg. Disk sec/Write')\n  and (pc.instance <> '_total' and pc.instance not like 'harddiskvolume%')\n\t\"+(case when @disk_drive is null then '-- ' else '' end)+\"and (pc.instance+'\\') = @disk_drive \norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @disk_drive, @database;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @disk_drive, @database;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\ndeclare @disk_drive varchar(255) = '$disk_drive';\ndeclare @database varchar(255) = '$database';\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @disk_drive = case when ltrim(rtrim(@disk_drive)) = '__All__' then null else @disk_drive end;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125), @disk_drive varchar(255), @database varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance+' ('+replace(counter,'Avg. Disk ','')+')' as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\n  and pc.host_name = @perfmon_host_name \n  and pc.object = 'logicaldisk' and pc.counter in ('avg. disk sec/read','avg. disk sec/write')\n  and (pc.instance <> '_total' and pc.instance not like 'harddiskvolume%')\n\t\"+(case when @disk_drive is null then '-- ' else '' end)+\"and (pc.instance+'\\') = @disk_drive \norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @disk_drive, @database;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @disk_drive, @database;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Logical Disk - Latency",
@@ -1391,9 +1524,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\ndeclare @disk_drive varchar(255) = '$disk_drive';\ndeclare @database varchar(255) = '$database';\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @disk_drive = case when ltrim(rtrim(@disk_drive)) = '__All__' then null else @disk_drive end;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125), @disk_drive varchar(255), @database varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance+' ('+replace(counter,'disk ','')+')' as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = 'logicaldisk' and pc.counter in ('Disk Bytes/sec','Disk Write Bytes/sec','Disk Read Bytes/sec')\nand (pc.instance <> '_total' and pc.instance not like 'harddiskvolume%')\n\"+(case when @disk_drive is null then '-- ' else '' end)+\"and (pc.instance+'\\') = @disk_drive\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @disk_drive, @database;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @disk_drive, @database;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\ndeclare @disk_drive varchar(255) = '$disk_drive';\ndeclare @database varchar(255) = '$database';\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @disk_drive = case when ltrim(rtrim(@disk_drive)) = '__All__' then null else @disk_drive end;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125), @disk_drive varchar(255), @database varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance+' ('+replace(counter,'disk ','')+')' as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = 'logicaldisk' and pc.counter in ('disk bytes/sec','disk write bytes/sec','disk read bytes/sec')\nand (pc.instance <> '_total' and pc.instance not like 'harddiskvolume%')\n\"+(case when @disk_drive is null then '-- ' else '' end)+\"and (pc.instance+'\\') = @disk_drive\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @disk_drive, @database;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @disk_drive, @database;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Logical Disk - Throughput",
@@ -1516,9 +1668,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name\nand pc.object = 'physicaldisk' and pc.counter = 'Avg. Disk Queue Length'\nand pc.instance <> '_total'\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name\nand pc.object = 'physicaldisk' and pc.counter = 'avg. disk queue length'\nand pc.instance <> '_total'\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Physical Disk (Disk Queue Length)",
@@ -1613,9 +1784,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance+' ('+replace(counter,'Avg. Disk ','')+')' as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = 'physicaldisk' and pc.counter in ('Avg. Disk sec/Read','Avg. Disk sec/Write')\nand pc.instance <> '_total'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance+' ('+replace(counter,'Avg. Disk ','')+')' as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = 'physicaldisk' and pc.counter in ('avg. disk sec/read','avg. disk sec/write')\nand pc.instance <> '_total'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Physical Disk - Latency",
@@ -1712,9 +1902,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance+' ('+replace(counter,'disk ','')+')' as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = 'physicaldisk' and pc.counter in ('Disk Bytes/sec','Disk Write Bytes/sec','Disk Read Bytes/sec')\nand pc.instance <> '_total'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance+' ('+replace(counter,'disk ','')+')' as metric\n\t--,object, counter, instance\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = 'physicaldisk' and pc.counter in ('disk bytes/sec','disk write bytes/sec','disk read bytes/sec')\nand pc.instance <> '_total'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Physical Disk - Throughput",
@@ -1837,9 +2046,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = 'Network Interface' and pc.counter = 'Bytes Total/sec'\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\ndeclare @perfmon_object varchar(125);\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @perfmon_object = '$perfmon_object';\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = 'network interface' and pc.counter = 'bytes total/sec'\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Network Interface - Bytes Total/sec",
@@ -1967,7 +2195,7 @@
               "editorMode": "code",
               "format": "time_series",
               "rawQuery": true,
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\ndeclare @disk_drive varchar(255) = '$disk_drive';\ndeclare @database varchar(255) = '$database';\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @disk_drive = case when ltrim(rtrim(@disk_drive)) = '__All__' then null else @disk_drive end;\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125), @disk_drive varchar(255), @database varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance + (case when counter = 'Log File(s) Size (KB)' then ' (total)' else ' (used)' end) as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name\nand pc.object = (@perfmon_object+':Databases') and pc.counter in ('Log File(s) Size (KB)','Log File(s) Used Size (KB)')\";\nif @database is null\n\tset @sql = @sql + @crlf + \"and pc.instance not in ('_Total','master','model','mssqlsystemresource')\";\nelse\n\tset @sql = @sql + @crlf + \"and pc.instance = @database\";\nset @sql = @sql + @crlf + \"order by time\";\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @disk_drive, @database;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @disk_drive, @database;",
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\ndeclare @disk_drive varchar(255) = '$disk_drive';\ndeclare @database varchar(255) = '$database';\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @disk_drive = case when ltrim(rtrim(@disk_drive)) = '__All__' then null else @disk_drive end;\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125), @disk_drive varchar(255), @database varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance + (case when counter = 'log file(s) size (kb)' then ' (total)' else ' (used)' end) as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name\nand pc.object = (@perfmon_object+':databases') and pc.counter in ('log file(s) size (kb)','log file(s) used size (kb)')\";\nif @database is null\n\tset @sql = @sql + @crlf + \"and pc.instance not in ('_total','master','model','mssqlsystemresource')\";\nelse\n\tset @sql = @sql + @crlf + \"and pc.instance = @database\";\nset @sql = @sql + @crlf + \"order by time\";\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @disk_drive, @database;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @disk_drive, @database;",
               "refId": "A",
               "sql": {
                 "columns": [
@@ -2089,9 +2317,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);declare @disk_drive varchar(255) = '$disk_drive';\ndeclare @database varchar(255) = '$database';\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @disk_drive = case when ltrim(rtrim(@disk_drive)) = '__All__' then null else @disk_drive end;\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125), @database varchar(255), @disk_drive varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance + (case when counter = 'Data File(s) Size (KB)' then ' (total)' else ' (used)' end) as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name\nand pc.object = (@perfmon_object+':Databases') and pc.counter in ('Data File(s) Size (KB)','Data File(s) Used Size (KB)')\";\nif @database is null\n\tset @sql = @sql + @crlf + \"and pc.instance not in ('_Total','master','model','mssqlsystemresource')\";\nelse\n\tset @sql = @sql + @crlf + \"and pc.instance = @database\";\nset @sql = @sql + @crlf + \"order by time\";\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @database, @disk_drive;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @database, @disk_drive;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);declare @disk_drive varchar(255) = '$disk_drive';\ndeclare @database varchar(255) = '$database';\n\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\nset @disk_drive = case when ltrim(rtrim(@disk_drive)) = '__All__' then null else @disk_drive end;\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125), @database varchar(255), @disk_drive varchar(255)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance + (case when counter = 'data file(s) size (kb)' then ' (total)' else ' (used)' end) as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name\nand pc.object = (@perfmon_object+':databases') and pc.counter in ('data file(s) size (kb)','data file(s) used size (kb)')\";\nif @database is null\n\tset @sql = @sql + @crlf + \"and pc.instance not in ('_total','master','model','mssqlsystemresource')\";\nelse\n\tset @sql = @sql + @crlf + \"and pc.instance = @database\";\nset @sql = @sql + @crlf + \"order by time\";\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @database, @disk_drive;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @database, @disk_drive;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SQLServer:Databases - Data File Size",
@@ -2223,9 +2470,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @database varchar(255) = '$database';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125), @database varchar(255)';\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric, pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and pc.object = (@perfmon_object+':Databases')\nand pc.counter = 'Log Bytes Flushed/sec'\";\nif @database is null\n\tset @sql = @sql + @crlf + \"and pc.instance not in ('_Total','master','model','mssqlsystemresource')\";\nelse\n\tset @sql = @sql + @crlf + \"and pc.instance = @database\";\nset @sql = @sql + @crlf + \"order by time\";\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @database;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @database;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @database varchar(255) = '$database';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125), @database varchar(255)';\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric, pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and pc.object = (@perfmon_object+':databases')\nand pc.counter = 'log bytes flushed/sec'\";\nif @database is null\n\tset @sql = @sql + @crlf + \"and pc.instance not in ('_total','master','model','mssqlsystemresource')\";\nelse\n\tset @sql = @sql + @crlf + \"and pc.instance = @database\";\nset @sql = @sql + @crlf + \"order by time\";\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @database;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @database;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SqlServer:Databases - Log Bytes Flushed/sec",
@@ -2327,9 +2593,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @database varchar(255) = '$database';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125), @database varchar(255)';\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric, pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and pc.object = (@perfmon_object+':Databases')\nand pc.counter = 'Log Flush Wait Time'\";\nif @database is null\n\tset @sql = @sql + @crlf + \"and pc.instance not in ('_Total','master','model','mssqlsystemresource')\";\nelse\n\tset @sql = @sql + @crlf + \"and pc.instance = @database\";\nset @sql = @sql + @crlf + \"order by time\";\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @database;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @database;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @database varchar(255) = '$database';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125), @database varchar(255)';\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric, pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and pc.object = (@perfmon_object+':databases')\nand pc.counter = 'log flush wait time'\";\nif @database is null\n\tset @sql = @sql + @crlf + \"and pc.instance not in ('_total','master','model','mssqlsystemresource')\";\nelse\n\tset @sql = @sql + @crlf + \"and pc.instance = @database\";\nset @sql = @sql + @crlf + \"order by time\";\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @database;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @database;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SqlServer:Databases -  Log Flush Wait Time",
@@ -2428,9 +2713,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @database varchar(255) = '$database';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125), @database varchar(255)';\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance+' - '+counter as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and pc.object = (@perfmon_object+':Databases')\nand pc.counter in ('Log Flush Waits/sec','Log Flushes/sec','Log Growths','Log Shrinks','Log Truncations','Percent Log Used')\";\nif @database is null\n\tset @sql = @sql + @crlf + \"and pc.instance not in ('_Total','master','model','mssqlsystemresource')\";\nelse\n\tset @sql = @sql + @crlf + \"and pc.instance = @database\";\nset @sql = @sql + @crlf + \"order by time\";\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @database;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @database;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @database varchar(255) = '$database';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125), @database varchar(255)';\nset @database = case when ltrim(rtrim(@database)) = '__All__' then null else @database end;\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance+' - '+counter as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and pc.object = (@perfmon_object+':databases')\nand pc.counter in ('log flush waits/sec','log flushes/sec','log growths','log shrinks','log truncations','percent log used')\";\nif @database is null\n\tset @sql = @sql + @crlf + \"and pc.instance not in ('_total','master','model','mssqlsystemresource')\";\nelse\n\tset @sql = @sql + @crlf + \"and pc.instance = @database\";\nset @sql = @sql + @crlf + \"order by time\";\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @database;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object, @database;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SqlServer:Databases - Others",
@@ -2554,9 +2858,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and pc.object = (@perfmon_object+':SQL Statistics')\nand pc.counter in ('auto-param attempts/sec','failed auto-params/sec','safe auto-params/sec','unsafe auto-params/sec')\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and pc.object = (@perfmon_object+':sql statistics')\nand pc.counter in ('auto-param attempts/sec','failed auto-params/sec','safe auto-params/sec','unsafe auto-params/sec')\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SQLServer:SQL Statistics - Auto Parameterization",
@@ -2679,9 +3002,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and pc.object = (@perfmon_object+':SQL Statistics')\nand pc.counter = 'Batch Requests/sec'\nand pc.value <> 0.0\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and pc.object = (@perfmon_object+':sql statistics')\nand pc.counter = 'batch requests/sec'\nand pc.value <> 0.0\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Batch Requests/sec",
@@ -2777,9 +3119,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and pc.object = (@perfmon_object+':Buffer Manager')\nand pc.counter = 'Page Life Expectancy'\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and pc.object = (@perfmon_object+':buffer manager')\nand pc.counter = 'page life expectancy'\n--order by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Page Life Expectancy",
@@ -2878,9 +3239,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and pc.object = (@perfmon_object+':Buffer Manager')\nand pc.counter in ('Free List Stalls/sec','Lazy Writes/Sec','Page Lookups/sec',\n\t                    'Page Reads/sec','Readahead pages/sec','Checkpoint Pages/sec','Page Writes/sec')\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and pc.object = (@perfmon_object+':buffer manager')\nand pc.counter in ('free list stalls/sec','lazy writes/sec','page lookups/sec',\n\t                    'page reads/sec','readahead pages/sec','checkpoint pages/sec','page writes/sec')\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SQLServer:Buffer Manager",
@@ -3005,9 +3385,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,case when object like '%Buffer Manager' then 'Buffer Manager - '+counter else 'Memory Manager - '+counter end as metric\n\t,case when counter = 'Database Pages' then pc.value*8 else pc.value end as value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name\nand (\t(pc.object = (@perfmon_object+':Buffer Manager') \n\t\t\tand pc.counter = 'Database Pages'\n\t\t)\n\t\tor \n\t\t(pc.object = (@perfmon_object+':Memory Manager') \n\t\t\tand pc.counter in ('Total Server Memory (KB)','Target Server Memory (KB)')\n\t\t)\n\t)\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,case when object like '%buffer manager' then 'buffer manager - '+counter else 'memory manager - '+counter end as metric\n\t,case when counter = 'database pages' then pc.value*8 else pc.value end as value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name\nand (\t(pc.object = (@perfmon_object+':buffer manager') \n\t\t\tand pc.counter = 'database pages'\n\t\t)\n\t\tor \n\t\t(pc.object = (@perfmon_object+':memory manager') \n\t\t\tand pc.counter in ('total server memory (kb)','target server memory (kb)')\n\t\t)\n\t)\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SQLServer:Memory Manager",
@@ -3105,9 +3504,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,case when object like '%Buffer Manager' then 'Buffer Manager - '+counter else 'Memory Manager - '+counter end as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name\nand (\tpc.object = (@perfmon_object+':Memory Manager') \n\t\tand pc.counter in ('Connection Memory (KB)','Lock Memory (KB)','Stolen Server Memory (KB)','SQL Cache Memory (KB)','Free Memory (KB)')\n\t)\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,case when object like '%buffer manager' then 'buffer manager - '+counter else 'memory manager - '+counter end as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name\nand (\tpc.object = (@perfmon_object+':memory manager') \n\t\tand pc.counter in ('connection memory (kb)','lock memory (kb)','stolen server memory (kb)','sql cache memory (kb)','free memory (kb)')\n\t)\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SQLServer:Memory Manager",
@@ -3232,9 +3650,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric, pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and pc.object = (@perfmon_object+':SQL Statistics')\nand pc.counter in ('Batch Requests/sec','SQL Compilations/sec','SQL Re-Compilations/sec')\nand pc.value <> 0.0\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric, pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name and pc.object = (@perfmon_object+':sql statistics')\nand pc.counter in ('batch requests/sec','sql compilations/sec','sql re-compilations/sec')\nand pc.value <> 0.0\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SQLServer:SQL Statistics - CPU Stuff",
@@ -3329,9 +3766,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric, pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand (\n\t ( pc.object = (@perfmon_object+':Cursor Manager by Type') and pc.counter in ('Active Cursors') and instance <> '_total')\n\t or\n\t ( pc.object = (@perfmon_object+':SQL Errors') and pc.counter in ('errors/sec') and instance <> '_total' )\n\t)\nand pc.value <> 0.0\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric, pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand (\n\t ( pc.object = (@perfmon_object+':cursor manager by type') and pc.counter in ('active cursors') and instance <> '_total')\n\t or\n\t ( pc.object = (@perfmon_object+':sql errors') and pc.counter in ('errors/sec') and instance <> '_total' )\n\t)\nand pc.value <> 0.0\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SQLServer:SQL Statistics - Cursors & Errors",
@@ -3427,9 +3883,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,case when counter = 'Number of Deadlocks/sec' then counter else instance end as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand (\n\t     (pc.object = (@perfmon_object+':SQL Errors') and pc.instance <> '_total')\n\t  or (pc.object = (@perfmon_object+':Locks') and pc.counter in ('Number of Deadlocks/sec'))\n\t  )\nand pc.value <> 0.0\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,case when counter = 'number of deadlocks/sec' then counter else instance end as metric\n\t,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand (\n\t     (pc.object = (@perfmon_object+':sql errors') and pc.instance <> '_total')\n\t  or (pc.object = (@perfmon_object+':locks') and pc.counter in ('number of deadlocks/sec'))\n\t  )\nand pc.value <> 0.0\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SQLServer:SQL Errors",
@@ -3447,6 +3922,8 @@
                 "mode": "palette-classic"
               },
               "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
                 "axisLabel": "",
                 "axisPlacement": "auto",
                 "barAlignment": 0,
@@ -3525,9 +4002,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':Deprecated Features')\nand pc.value > 0\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':deprecated features')\nand pc.value > 0\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SQLServer: Deprecated Features",
@@ -3573,6 +4069,8 @@
                 "mode": "palette-classic"
               },
               "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
                 "axisLabel": "",
                 "axisPlacement": "auto",
                 "barAlignment": 0,
@@ -3650,9 +4148,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':Plan Cache') and instance = '_total'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':plan cache') and instance = '_total'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SQLServer: Plan Cache  - Totals",
@@ -3670,6 +4187,8 @@
                 "mode": "palette-classic"
               },
               "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
                 "axisLabel": "",
                 "axisPlacement": "auto",
                 "barAlignment": 0,
@@ -3747,9 +4266,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':Plan Cache') and pc.counter = 'cache object counts' and instance <> '_total'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':plan cache') and pc.counter = 'cache object counts' and instance <> '_total'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SQLServer: Plan Cache - cache object counts",
@@ -3767,6 +4305,8 @@
                 "mode": "palette-classic"
               },
               "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
                 "axisLabel": "",
                 "axisPlacement": "auto",
                 "barAlignment": 0,
@@ -3844,9 +4384,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric ,pc.value*8 as value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':Plan Cache') and pc.counter = 'cache pages' and instance <> '_total'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric ,pc.value*8 as value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':plan cache') and pc.counter = 'cache pages' and instance <> '_total'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SQLServer: Plan Cache - cache pages",
@@ -3864,6 +4423,8 @@
                 "mode": "palette-classic"
               },
               "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
                 "axisLabel": "",
                 "axisPlacement": "auto",
                 "barAlignment": 0,
@@ -3941,9 +4502,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':Plan Cache') and pc.counter = 'cache objects in use' and instance <> '_total'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':plan cache') and pc.counter = 'cache objects in use' and instance <> '_total'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SQLServer: Plan Cache - cache objects in use",
@@ -4062,9 +4642,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':Transactions')\nand pc.counter = 'Longest Transaction Running Time'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':transactions')\nand pc.counter = 'longest transaction running time'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Longest Transaction Running Time",
@@ -4158,9 +4757,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':Transactions')\nand pc.counter = 'free space in tempdb (kb)'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':transactions')\nand pc.counter = 'free space in tempdb (kb)'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Free Space in tempdb (KB)",
@@ -4250,9 +4868,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':Transactions')\nand pc.counter = 'Transactions'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':transactions')\nand pc.counter = 'transactions'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Transactions",
@@ -4342,9 +4979,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':Transactions')\nand pc.counter = 'version store size (kb)'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':transactions')\nand pc.counter = 'version store size (kb)'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Version Store Size (KB)",
@@ -4473,9 +5129,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
+              "rawQuery": true,
               "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time, \n\t\t'winsock rejected connections/sec' as metric,\n\tpc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand object = 'microsoft winsock bsp' and counter = 'rejected connections/sec'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "microsoft winsock bsp -> rejected connections/sec",
@@ -4572,9 +5247,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':General Statistics') \nand pc.counter in ('User Connections','Logins/sec','Logouts/sec','Processes blocked',\n\t                'Temp Tables Creation Rate','Temp Tables For Destruction')\nand (case when pc.value <> 0.0 and pc.counter in ('User Connections','Logins/sec','Logouts/sec','Temp Tables Creation Rate') then 1\n\t        when pc.counter in ('Processes blocked','Temp Tables For Destruction') then 1\n\t        else 0 end) = 1\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':general statistics') \nand pc.counter in ('user connections','logins/sec','logouts/sec','processes blocked',\n\t                'temp tables creation rate','temp tables for destruction')\nand (case when pc.value <> 0.0 and pc.counter in ('user connections','logins/sec','logouts/sec','temp tables creation rate') then 1\n\t        when pc.counter in ('processes blocked','temp tables for destruction') then 1\n\t        else 0 end) = 1\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SQLServer:General Statistics - Login/Logout",
@@ -4699,9 +5393,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':Locks') \nand pc.counter = 'Lock Wait Time (ms)' and pc.instance <> '_total'\nand pc.value <> 0.0\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':locks') \nand pc.counter = 'lock wait time (ms)' and pc.instance <> '_total'\nand pc.value <> 0.0\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SqlServer:Locks - Lock Wait Time (ms)",
@@ -4799,9 +5512,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':Locks') \nand pc.counter = 'Average Wait Time (ms)' and pc.instance <> '_total'\n--and pc.value <> 0.0\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':locks') \nand pc.counter = 'average wait time (ms)' and pc.instance <> '_total'\n--and pc.value <> 0.0\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SqlServer:Locks - Average Wait Time (ms)",
@@ -4899,9 +5631,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':Locks') \nand pc.counter = 'Lock Waits/sec' and pc.instance <> '_total'\n--and pc.value <> 0.0\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,instance as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':locks') \nand pc.counter = 'lock waits/sec' and pc.instance <> '_total'\n--and pc.value <> 0.0\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "SqlServer:Locks - Waits/sec",
@@ -5023,9 +5774,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':Latches') \nand pc.counter = 'Latch Waits/sec'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':latches') \nand pc.counter = 'latch waits/sec'\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Latch Waits/sec",
@@ -5117,9 +5887,28 @@
                 "type": "mssql",
                 "uid": "${DS_SQLMONITOR}"
               },
+              "editorMode": "code",
               "format": "time_series",
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':Latches') \nand pc.counter in ('Total Latch Wait Time (ms)','Average Latch Wait Time (ms)')\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
-              "refId": "A"
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255) = '$server';\ndeclare @perfmon_host_name varchar(255) = '$perfmon_host_name';\ndeclare @start_time_utc datetime2 = $__timeFrom();\ndeclare @end_time_utc datetime2 = $__timeTo();\ndeclare @perfmon_object varchar(125) = '$perfmon_object';\ndeclare @crlf nchar(2) = nchar(13)+nchar(10);\n\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2, @perfmon_object varchar(125)';\n\nset quoted_identifier off;\nset @sql = \"\nset nocount on;\nselect pc.collection_time_utc as time\n\t,counter as metric ,pc.value\nfrom $perfmon_table_name pc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\nand pc.host_name = @perfmon_host_name \nand pc.object = (@perfmon_object+':latches') \nand pc.counter in ('total latch wait time (ms)','average latch wait time (ms)')\norder by time\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc, @perfmon_object;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
             }
           ],
           "title": "Wait Time (ms)",
@@ -5261,6 +6050,8 @@
                 "mode": "palette-classic"
               },
               "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
                 "axisLabel": "",
                 "axisPlacement": "auto",
                 "barAlignment": 0,
@@ -5548,6 +6339,26 @@
   "templating": {
     "list": [
       {
+        "current": {
+          "selected": false,
+          "text": "SQLMonitor",
+          "value": "SQLMonitor"
+        },
+        "description": "Inventory Server Name",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Data Source",
+        "multi": false,
+        "name": "sqlmonitor_datasource",
+        "options": [],
+        "query": "mssql",
+        "queryValue": "",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
         "hide": 2,
         "label": "OS Task List Table",
         "name": "os_task_list_table_name",
@@ -5586,26 +6397,6 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
-      },
-      {
-        "current": {
-          "selected": false,
-          "text": "SqlMonitor",
-          "value": "SqlMonitor"
-        },
-        "description": "Inventory Server Name",
-        "hide": 2,
-        "includeAll": false,
-        "label": "Data Source",
-        "multi": false,
-        "name": "datasource",
-        "options": [],
-        "query": "mssql",
-        "queryValue": "",
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "type": "datasource"
       },
       {
         "current": {},
@@ -5653,14 +6444,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "declare @sql nvarchar(max);\ndeclare @sql_instance varchar(255);\nset @sql_instance = '$server';\n\nset quoted_identifier off;\nset @sql = \"select [database] from dbo.instance_details id\nwhere id.sql_instance = @sql_instance\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql, N'@sql_instance varchar(255)', @sql_instance;",
+        "definition": "declare @sql nvarchar(max);\ndeclare @sql_instance varchar(255);\nset @sql_instance = '$server';\n\nset quoted_identifier off;\nset @sql = \"select top 1 [database] from dbo.instance_details id\nwhere id.sql_instance = @sql_instance\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql, N'@sql_instance varchar(255)', @sql_instance;",
         "hide": 2,
         "includeAll": false,
         "label": "DBA Database",
         "multi": false,
         "name": "dba_db",
         "options": [],
-        "query": "declare @sql nvarchar(max);\ndeclare @sql_instance varchar(255);\nset @sql_instance = '$server';\n\nset quoted_identifier off;\nset @sql = \"select [database] from dbo.instance_details id\nwhere id.sql_instance = @sql_instance\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql, N'@sql_instance varchar(255)', @sql_instance;",
+        "query": "declare @sql nvarchar(max);\ndeclare @sql_instance varchar(255);\nset @sql_instance = '$server';\n\nset quoted_identifier off;\nset @sql = \"select top 1 [database] from dbo.instance_details id\nwhere id.sql_instance = @sql_instance\n\";\nset quoted_identifier off;\n\nexec dbo.sp_executesql @sql, N'@sql_instance varchar(255)', @sql_instance;",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -5874,14 +6665,14 @@
           "type": "mssql",
           "uid": "${DS_SQLMONITOR}"
         },
-        "definition": "select [object_name] = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);",
+        "definition": "select [object_name] = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'sqlserver' else '$perfmon_service_name' end);",
         "hide": 2,
         "includeAll": false,
         "label": "Perfmon Object Filter",
         "multi": false,
         "name": "perfmon_object",
         "options": [],
-        "query": "select [object_name] = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'SQLServer' else '$perfmon_service_name' end);",
+        "query": "select [object_name] = (case when '$perfmon_service_name' = 'MSSQLSERVER' then 'sqlserver' else '$perfmon_service_name' end);",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -5928,6 +6719,6 @@
   "timezone": "",
   "title": "Monitoring - Perfmon Counters - Quest Softwares - Distributed",
   "uid": "distributed_perfmon",
-  "version": 79,
+  "version": 28,
   "weekStart": ""
 }
