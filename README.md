@@ -3,17 +3,18 @@
 If you are a developer, or DBA who manages Microsoft SQL Servers, it becames important to understand current load vs usual load when SQL Server is slow. This repository contains scripts that will help you to setup baseline on individual SQL Server instances, and then visualize the collected data using Grafana through one Inventory server with Linked Server for individual SQL Server instances.
 
 Navigation
- - [Why SQLMonitor?](#why-sqlmonitor)
-   - [Features](#features)
- - Sample Live Grafana Dashboards
-   - [Live Dashboard - Basic Metrics](#live-dashboard---basic-metrics)
-   - [Live Dashboard - Perfmon Counters - Quest Softwares](#live-dashboard---perfmon-counters---quest-softwares)
- - [Portal Credentials](#portal-credentials)
- - [How to Setup](#how-to-setup)
-   - [Jobs for SQLMonitor](#jobs-for-sqlmonitor)
-   - [Download SQLMonitor](#download-sqlmonitor)
-   - [Install SQLMonitor Using Wrapper Script](#execute-wrapper-script)
-   - [Setup Grafana Dashboards](#setup-grafana-dashboards)
+- [SQLMonitor - Baseline SQL Server with PowerShell \& Grafana](#sqlmonitor---baseline-sql-server-with-powershell--grafana)
+  - [Why SQLMonitor?](#why-sqlmonitor)
+    - [Features](#features)
+  - [Live Dashboard - Basic Metrics](#live-dashboard---basic-metrics)
+  - [Live Dashboard - Perfmon Counters - Quest Softwares](#live-dashboard---perfmon-counters---quest-softwares)
+    - [Portal Credentials](#portal-credentials)
+  - [How to Setup](#how-to-setup)
+    - [Jobs for SQLMonitor](#jobs-for-sqlmonitor)
+    - [Download SQLMonitor](#download-sqlmonitor)
+    - [Execute Wrapper Script](#execute-wrapper-script)
+    - [Setup Grafana Dashboards](#setup-grafana-dashboards)
+  - [Remove SQLMonitor](#remove-sqlmonitor)
 
 ## Why SQLMonitor?
 SQLMonitor is designed as opensource tool to replace expensive enterprise monitoring or to simply fill the gap and monitor all environments such as DEV, TEST, QA/UAT & PROD.
@@ -34,20 +35,20 @@ SQLMonitor is designed as opensource tool to replace expensive enterprise monito
 - Utilizing Grafana Unified Alerting gives flexibility to create meaningful alerts.
 
 ## Live Dashboard - Basic Metrics
-You can visit [http://ajaydwivedi.ddns.net:3000](http://ajaydwivedi.ddns.net:3000/d/distributed_live_dashboard/monitoring-live-distributed?orgId=1&refresh=5s) for live dashboard for basic real time monitoring.<br><br>
+You can visit [https://ajaydwivedi.ddns.net:3000](https://ajaydwivedi.ddns.net:3000/d/distributed_live_dashboard/monitoring-live-distributed?orgId=1&refresh=5s) for live dashboard for basic real time monitoring.<br><br>
 
 ![](https://github.com/imajaydwivedi/Images/blob/master/SQLMonitor/Live-Dashboards-All.gif) <br>
 
 
 ## Live Dashboard - Perfmon Counters - Quest Softwares
-Visit [http://ajaydwivedi.ddns.net:3000](http://ajaydwivedi.ddns.net:3000/d/distributed_perfmon/monitoring-perfmon-counters-quest-softwares-distributed?orgId=1&refresh=5m) for live dashboard of all Perfmon counters suggested in [SQL Server Perfmon Counters of Interest - Quest Software](https://drive.google.com/file/d/1LB7Joo6055T1FfPcholXByazOX55e5b8/view?usp=sharing).<br><br>
+Visit [https://ajaydwivedi.ddns.net:3000](https://ajaydwivedi.ddns.net:3000/d/distributed_perfmon/monitoring-perfmon-counters-quest-softwares-distributed?orgId=1&refresh=5m) for live dashboard of all Perfmon counters suggested in [SQL Server Perfmon Counters of Interest - Quest Software](https://drive.google.com/file/d/1LB7Joo6055T1FfPcholXByazOX55e5b8/view?usp=sharing).<br><br>
 
 ![](https://github.com/imajaydwivedi/Images/blob/master/SQLMonitor/Quest-Dashboards-All.gif) <br>
 
 ### Portal Credentials
 Database/Grafana Portal | User Name | Password
 ------------ | --------- | ---------
-[http://ajaydwivedi.ddns.net:3000/](http://ajaydwivedi.ddns.net:3000/dashboards?tag=sqlmonitor) | guest | ajaydwivedi-guest
+[https://ajaydwivedi.ddns.net:3000/](https://ajaydwivedi.ddns.net:3000/dashboards?tag=sqlmonitor) | guest | ajaydwivedi-guest
 Sql Instance -> ajaydwivedi.ddns.net:1433 | grafana | grafana
 
 ## How to Setup
