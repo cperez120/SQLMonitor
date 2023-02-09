@@ -2537,6 +2537,452 @@
     },
     {
       "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 183,
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${sqlmonitor_datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto",
+                "filterable": true,
+                "inspect": true
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "replica_server_name"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Replica"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "is_primary_replica"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Is Primary"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "bool"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "database_name"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Database"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "ag_name"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "AG"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "ag_listener"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Listener"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "is_local"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Is Local"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "bool"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "synchronization_state_desc"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Sync State"
+                  },
+                  {
+                    "id": "mappings",
+                    "value": [
+                      {
+                        "options": {
+                          "INITIALIZING": {
+                            "color": "light-yellow",
+                            "index": 4
+                          },
+                          "NOT SYNCHRONIZING": {
+                            "color": "red",
+                            "index": 1
+                          },
+                          "REVERTING": {
+                            "color": "super-light-yellow",
+                            "index": 3
+                          },
+                          "SYNCHRONIZED": {
+                            "color": "green",
+                            "index": 0
+                          },
+                          "SYNCHRONIZING": {
+                            "color": "super-light-green",
+                            "index": 2
+                          }
+                        },
+                        "type": "value"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "custom.displayMode",
+                    "value": "color-background-solid"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "synchronization_health_desc"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Sync Health"
+                  },
+                  {
+                    "id": "mappings",
+                    "value": [
+                      {
+                        "options": {
+                          "HEALTHY": {
+                            "color": "green",
+                            "index": 0
+                          },
+                          "NOT_HEALTHY": {
+                            "color": "red",
+                            "index": 1
+                          },
+                          "PARTIALLY_HEALTHY": {
+                            "color": "yellow",
+                            "index": 2
+                          }
+                        },
+                        "type": "value"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "custom.displayMode",
+                    "value": "color-background-solid"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "latency_seconds"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Latency"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "s"
+                  },
+                  {
+                    "id": "custom.displayMode",
+                    "value": "color-background"
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green"
+                        },
+                        {
+                          "color": "super-light-yellow",
+                          "value": 120
+                        },
+                        {
+                          "color": "super-light-orange",
+                          "value": 240
+                        },
+                        {
+                          "color": "orange",
+                          "value": 300
+                        },
+                        {
+                          "color": "super-light-red",
+                          "value": 600
+                        },
+                        {
+                          "color": "red",
+                          "value": 1800
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "redo_queue_size"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Redo Queue"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "log_send_queue_size"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Log Send Queue"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "kbytes"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "last_redone_time"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Last Redone"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "dateTimeAsIso"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "log_send_rate"
+                },
+                "properties": [
+                  {
+                    "id": "custom.hidden",
+                    "value": true
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "redo_rate"
+                },
+                "properties": [
+                  {
+                    "id": "custom.hidden",
+                    "value": true
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "estimated_redo_completion_time_min"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Approx Redo Time"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "m"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "last_commit_time"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Last Commit"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "dateTimeAsIso"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "is_suspended"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Is Suspended"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "bool"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "suspend_reason_desc"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Suspend Reason"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "bool"
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 17
+          },
+          "id": 181,
+          "options": {
+            "footer": {
+              "enablePagination": true,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true
+          },
+          "pluginVersion": "9.3.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "mssql",
+                "uid": "${sqlmonitor_datasource}"
+              },
+              "editorMode": "code",
+              "format": "table",
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nif object_id('tempdb..#availability_databases') is not null\n\tdrop table #availability_databases;\n\nselect\tar.replica_server_name,\n\t\tdrs.is_primary_replica,\n\t\tadc.database_name,\n\t\tag.name AS ag_name,\n\t\tdrs.is_local,\n\t\tdrs.synchronization_state_desc,\n\t\tdrs.synchronization_health_desc,\n\t\tdrs.last_redone_time,\n\t\tdrs.log_send_queue_size,\n\t\tdrs.log_send_rate,\n\t\tdrs.redo_queue_size,\n\t\tdrs.redo_rate,\n\t\t(drs.redo_queue_size / drs.redo_rate) / 60.0 AS estimated_redo_completion_time_min,\n\t\tdrs.last_commit_time,\n\t\tdrs.is_suspended,\n\t\tdrs.suspend_reason_desc,\n\t\tag.group_id\ninto #availability_databases\nfrom sys.dm_hadr_database_replica_states as drs\ninner join sys.availability_databases_cluster as adc on drs.group_id = adc.group_id\n\tand drs.group_database_id = adc.group_database_id\ninner join sys.availability_groups as ag on ag.group_id = drs.group_id\ninner join sys.availability_replicas as ar on drs.group_id = ar.group_id\n\tand drs.replica_id = ar.replica_id\n--order by ag.name, ar.replica_server_name, adc.database_name\n\nselect\treplica_server_name,\n\t\tis_primary_replica,\n\t\tdatabase_name,\n\t\tag_name,\n\t\t[ag_listener] = agl.dns_name+' ('+ia.ip_address+')',\n\t\tis_local,\n\t\tsynchronization_state_desc,\n\t\tsynchronization_health_desc,\n\t\tlatency_seconds = case when is_primary_replica = 1 then 0\n\t\t\t\t\t\t\t\telse (\tselect DATEDIFF(second,ag.last_commit_time,p.last_commit_time) \n\t\t\t\t\t\t\t\t\t\tfrom #availability_databases p \n\t\t\t\t\t\t\t\t\t\twhere p.is_primary_replica = 1 and p.database_name = ag.database_name\n\t\t\t\t\t\t\t\t\t)\n\t\t\t\t\t\t\t\tend,\n\t\tredo_queue_size,\n\t\tlog_send_queue_size,\n\t\tlast_redone_time,\n\t\tlog_send_rate,\t\t\n\t\tredo_rate,\n\t\testimated_redo_completion_time_min,\n\t\tlast_commit_time,\n\t\tis_suspended,\n\t\tsuspend_reason_desc\nfrom #availability_databases as ag\nleft join sys.availability_group_listeners agl on agl.group_id = ag.group_id\nleft join sys.availability_group_listener_ip_addresses ia on ia.listener_id = agl.listener_id and ia.state_desc = 'ONLINE'\norder by ag.ag_name, ag.replica_server_name, ag.database_name;\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
+            }
+          ],
+          "title": "AlwaysOn Availability Group Health Metrics",
+          "type": "table"
+        }
+      ],
+      "title": "AlwaysOn Availability Groups - Status",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
       "datasource": {
         "type": "mssql",
         "uid": "5Qr_lHw7z"
@@ -2545,7 +2991,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 17
       },
       "id": 33,
       "panels": [
@@ -2609,7 +3055,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 17
+            "y": 18
           },
           "id": 16,
           "options": {
@@ -2688,7 +3134,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 18
       },
       "id": 113,
       "panels": [
@@ -2842,7 +3288,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 18
+            "y": 34
           },
           "id": 111,
           "options": {
@@ -2921,7 +3367,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 19
       },
       "id": 151,
       "panels": [
@@ -2987,7 +3433,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 19
+            "y": 35
           },
           "id": 149,
           "options": {
@@ -3085,7 +3531,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 30
+            "y": 46
           },
           "id": 152,
           "options": {
@@ -3145,7 +3591,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 20
       },
       "id": 59,
       "panels": [
@@ -3215,7 +3661,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 20
+            "y": 36
           },
           "id": 57,
           "options": {
@@ -3291,7 +3737,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 21
       },
       "id": 179,
       "panels": [
@@ -3472,7 +3918,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 21
+            "y": 37
           },
           "id": 177,
           "options": {
@@ -3535,7 +3981,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 22
       },
       "id": 140,
       "panels": [
@@ -3641,7 +4087,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 22
+            "y": 38
           },
           "id": 138,
           "options": {
@@ -3720,7 +4166,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 23
       },
       "id": 117,
       "panels": [
@@ -3901,7 +4347,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 23
+            "y": 39
           },
           "id": 115,
           "options": {
@@ -3974,7 +4420,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 24
       },
       "id": 29,
       "panels": [
@@ -4040,7 +4486,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 24
+            "y": 40
           },
           "id": 8,
           "options": {
@@ -4118,7 +4564,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 25
       },
       "id": 27,
       "panels": [
@@ -4186,7 +4632,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 25
+            "y": 41
           },
           "id": 18,
           "options": {
@@ -4264,7 +4710,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 26
       },
       "id": 126,
       "panels": [
@@ -4311,7 +4757,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 26
+            "y": 42
           },
           "id": 124,
           "options": {
@@ -4399,7 +4845,7 @@
             "h": 6,
             "w": 8,
             "x": 0,
-            "y": 33
+            "y": 49
           },
           "id": 131,
           "options": {
@@ -4488,7 +4934,7 @@
             "h": 12,
             "w": 8,
             "x": 8,
-            "y": 33
+            "y": 49
           },
           "id": 128,
           "options": {
@@ -4577,7 +5023,7 @@
             "h": 12,
             "w": 8,
             "x": 16,
-            "y": 33
+            "y": 49
           },
           "id": 129,
           "options": {
@@ -4655,7 +5101,7 @@
             "h": 6,
             "w": 8,
             "x": 0,
-            "y": 39
+            "y": 55
           },
           "id": 130,
           "options": {
@@ -4709,7 +5155,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 27
       },
       "id": 79,
       "panels": [
@@ -4784,7 +5230,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 27
+            "y": 43
           },
           "id": 144,
           "options": {
@@ -4913,7 +5359,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 38
+            "y": 54
           },
           "id": 145,
           "options": {
@@ -4992,7 +5438,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 28
       },
       "id": 82,
       "panels": [
@@ -5067,7 +5513,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 28
+            "y": 44
           },
           "id": 146,
           "options": {
@@ -5177,7 +5623,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 38
+            "y": 54
           },
           "id": 147,
           "options": {
@@ -5237,7 +5683,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 29
       },
       "id": 88,
       "panels": [
@@ -5418,7 +5864,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 29
+            "y": 45
           },
           "id": 86,
           "options": {
@@ -5491,7 +5937,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 30
       },
       "id": 175,
       "panels": [
@@ -5658,7 +6104,7 @@
             "h": 16,
             "w": 24,
             "x": 0,
-            "y": 30
+            "y": 46
           },
           "id": 173,
           "options": {
@@ -5710,7 +6156,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 31
       },
       "id": 103,
       "panels": [
@@ -5772,7 +6218,7 @@
             "h": 15,
             "w": 24,
             "x": 0,
-            "y": 31
+            "y": 47
           },
           "id": 133,
           "options": {
@@ -5850,7 +6296,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 32
       },
       "id": 121,
       "panels": [
@@ -5860,7 +6306,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 32
+            "y": 48
           },
           "id": 119,
           "links": [],
@@ -5925,8 +6371,8 @@
       {
         "current": {
           "selected": false,
-          "text": "SqlPractice",
-          "value": "SqlPractice"
+          "text": "SQLMonitor",
+          "value": "SQLMonitor"
         },
         "datasource": {
           "type": "mssql",
@@ -5973,8 +6419,8 @@
       {
         "current": {
           "selected": false,
-          "text": "0",
-          "value": "0"
+          "text": "1",
+          "value": "1"
         },
         "datasource": {
           "type": "mssql",
@@ -5997,8 +6443,8 @@
       {
         "current": {
           "selected": false,
-          "text": "Admin",
-          "value": "Admin"
+          "text": "DBA",
+          "value": "DBA"
         },
         "datasource": {
           "type": "mssql",
@@ -6021,8 +6467,8 @@
       {
         "current": {
           "selected": false,
-          "text": "SQLPRACTICE",
-          "value": "SQLPRACTICE"
+          "text": "SQLMONITOR",
+          "value": "SQLMONITOR"
         },
         "datasource": {
           "type": "mssql",
@@ -6045,8 +6491,8 @@
       {
         "current": {
           "selected": false,
-          "text": "SQLPRACTICE",
-          "value": "SQLPRACTICE"
+          "text": "SQLMONITOR",
+          "value": "SQLMONITOR"
         },
         "datasource": {
           "type": "mssql",
@@ -6160,8 +6606,8 @@
       {
         "current": {
           "selected": false,
-          "text": "192.168.100.12",
-          "value": "192.168.100.12"
+          "text": "fe80::38c9:af52:20ca:1f61%3",
+          "value": "fe80::38c9:af52:20ca:1f61%3"
         },
         "datasource": {
           "type": "mssql",
@@ -6185,8 +6631,8 @@
       {
         "current": {
           "selected": false,
-          "text": "SQLPRACTICE",
-          "value": "SQLPRACTICE"
+          "text": "SQLMONITOR",
+          "value": "SQLMONITOR"
         },
         "datasource": {
           "type": "mssql",
@@ -6233,8 +6679,8 @@
       {
         "current": {
           "selected": false,
-          "text": "SQLPRACTICE.Lab.com",
-          "value": "SQLPRACTICE.Lab.com"
+          "text": "SQLMONITOR.Lab.com",
+          "value": "SQLMONITOR.Lab.com"
         },
         "datasource": {
           "type": "mssql",
@@ -6289,8 +6735,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1674614163298",
-          "value": "1674614163298"
+          "text": "1675929665351",
+          "value": "1675929665351"
         },
         "datasource": {
           "type": "mssql",
@@ -6321,8 +6767,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1674614167142",
-          "value": "1674614167142"
+          "text": "1675929606413",
+          "value": "1675929606413"
         },
         "datasource": {
           "type": "mssql",
@@ -6353,8 +6799,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1674614163513",
-          "value": "1674614163513"
+          "text": "1675929601630",
+          "value": "1675929601630"
         },
         "datasource": {
           "type": "mssql",
@@ -6400,8 +6846,8 @@
       {
         "current": {
           "selected": false,
-          "text": "4",
-          "value": "4"
+          "text": "8",
+          "value": "8"
         },
         "datasource": {
           "type": "mssql",
@@ -6424,8 +6870,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1674570489943",
-          "value": "1674570489943"
+          "text": "1675864147020",
+          "value": "1675864147020"
         },
         "datasource": {
           "type": "mssql",
@@ -6448,8 +6894,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1674614224250",
-          "value": "1674614224250"
+          "text": "1675929637713",
+          "value": "1675929637713"
         },
         "datasource": {
           "type": "mssql",
@@ -6472,8 +6918,8 @@
       {
         "current": {
           "selected": false,
-          "text": "32",
-          "value": "32"
+          "text": "23",
+          "value": "23"
         },
         "datasource": {
           "type": "mssql",
@@ -6496,8 +6942,8 @@
       {
         "current": {
           "selected": false,
-          "text": "18",
-          "value": "18"
+          "text": "1",
+          "value": "1"
         },
         "datasource": {
           "type": "mssql",
@@ -6520,8 +6966,8 @@
       {
         "current": {
           "selected": false,
-          "text": "68",
-          "value": "68"
+          "text": "77",
+          "value": "77"
         },
         "datasource": {
           "type": "mssql",
@@ -6544,8 +6990,8 @@
       {
         "current": {
           "selected": false,
-          "text": "91",
-          "value": "91"
+          "text": "85",
+          "value": "85"
         },
         "datasource": {
           "type": "mssql",
@@ -6568,8 +7014,8 @@
       {
         "current": {
           "selected": false,
-          "text": "8",
-          "value": "8"
+          "text": "14",
+          "value": "14"
         },
         "datasource": {
           "type": "mssql",
@@ -6592,8 +7038,8 @@
       {
         "current": {
           "selected": false,
-          "text": "431160",
-          "value": "431160"
+          "text": "428296",
+          "value": "428296"
         },
         "datasource": {
           "type": "mssql",
@@ -6672,8 +7118,8 @@
       {
         "current": {
           "selected": false,
-          "text": "33553892",
-          "value": "33553892"
+          "text": "16776676",
+          "value": "16776676"
         },
         "datasource": {
           "type": "mssql",
@@ -6696,8 +7142,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1819272",
-          "value": "1819272"
+          "text": "9632972",
+          "value": "9632972"
         },
         "datasource": {
           "type": "mssql",
@@ -6720,8 +7166,8 @@
       {
         "current": {
           "selected": false,
-          "text": "0",
-          "value": "0"
+          "text": "1",
+          "value": "1"
         },
         "datasource": {
           "type": "mssql",
@@ -6744,8 +7190,8 @@
       {
         "current": {
           "selected": false,
-          "text": "28366224",
-          "value": "28366224"
+          "text": "2942336",
+          "value": "2942336"
         },
         "datasource": {
           "type": "mssql",
@@ -6816,8 +7262,8 @@
       {
         "current": {
           "selected": false,
-          "text": "15",
-          "value": "15"
+          "text": "65542",
+          "value": "65542"
         },
         "datasource": {
           "type": "mssql",
@@ -6888,8 +7334,8 @@
       {
         "current": {
           "selected": false,
-          "text": "30",
-          "value": "30"
+          "text": "8",
+          "value": "8"
         },
         "datasource": {
           "type": "mssql",
@@ -6912,8 +7358,8 @@
       {
         "current": {
           "selected": false,
-          "text": "6",
-          "value": "6"
+          "text": "0",
+          "value": "0"
         },
         "datasource": {
           "type": "mssql",
@@ -6936,8 +7382,8 @@
       {
         "current": {
           "selected": false,
-          "text": "345.65",
-          "value": "345.65"
+          "text": "0.56",
+          "value": "0.56"
         },
         "datasource": {
           "type": "mssql",
@@ -6968,8 +7414,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1674613812142",
-          "value": "1674613812142"
+          "text": "1675929607035",
+          "value": "1675929607035"
         },
         "datasource": {
           "type": "mssql",
@@ -7145,6 +7591,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 19,
+  "version": 27,
   "weekStart": ""
 }
