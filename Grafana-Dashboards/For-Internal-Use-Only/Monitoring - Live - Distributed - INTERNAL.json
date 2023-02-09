@@ -2566,7 +2566,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   }
                 ]
               }
@@ -2760,7 +2761,8 @@
                       "mode": "absolute",
                       "steps": [
                         {
-                          "color": "green"
+                          "color": "green",
+                          "value": null
                         },
                         {
                           "color": "super-light-yellow",
@@ -2953,7 +2955,7 @@
               "editorMode": "code",
               "format": "table",
               "rawQuery": true,
-              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nif object_id('tempdb..#availability_databases') is not null\n\tdrop table #availability_databases;\n\nselect\tar.replica_server_name,\n\t\tdrs.is_primary_replica,\n\t\tadc.database_name,\n\t\tag.name AS ag_name,\n\t\tdrs.is_local,\n\t\tdrs.synchronization_state_desc,\n\t\tdrs.synchronization_health_desc,\n\t\tdrs.last_redone_time,\n\t\tdrs.log_send_queue_size,\n\t\tdrs.log_send_rate,\n\t\tdrs.redo_queue_size,\n\t\tdrs.redo_rate,\n\t\t(drs.redo_queue_size / drs.redo_rate) / 60.0 AS estimated_redo_completion_time_min,\n\t\tdrs.last_commit_time,\n\t\tdrs.is_suspended,\n\t\tdrs.suspend_reason_desc,\n\t\tag.group_id\ninto #availability_databases\nfrom sys.dm_hadr_database_replica_states as drs\ninner join sys.availability_databases_cluster as adc on drs.group_id = adc.group_id\n\tand drs.group_database_id = adc.group_database_id\ninner join sys.availability_groups as ag on ag.group_id = drs.group_id\ninner join sys.availability_replicas as ar on drs.group_id = ar.group_id\n\tand drs.replica_id = ar.replica_id\n--order by ag.name, ar.replica_server_name, adc.database_name\n\nselect\treplica_server_name,\n\t\tis_primary_replica,\n\t\tdatabase_name,\n\t\tag_name,\n\t\t[ag_listener] = agl.dns_name+' ('+ia.ip_address+')',\n\t\tis_local,\n\t\tsynchronization_state_desc,\n\t\tsynchronization_health_desc,\n\t\tlatency_seconds = case when is_primary_replica = 1 then 0\n\t\t\t\t\t\t\t\telse (\tselect DATEDIFF(second,ag.last_commit_time,p.last_commit_time) \n\t\t\t\t\t\t\t\t\t\tfrom #availability_databases p \n\t\t\t\t\t\t\t\t\t\twhere p.is_primary_replica = 1 and p.database_name = ag.database_name\n\t\t\t\t\t\t\t\t\t)\n\t\t\t\t\t\t\t\tend,\n\t\tredo_queue_size,\n\t\tlog_send_queue_size,\n\t\tlast_redone_time,\n\t\tlog_send_rate,\t\t\n\t\tredo_rate,\n\t\testimated_redo_completion_time_min,\n\t\tlast_commit_time,\n\t\tis_suspended,\n\t\tsuspend_reason_desc\nfrom #availability_databases as ag\nleft join sys.availability_group_listeners agl on agl.group_id = ag.group_id\nleft join sys.availability_group_listener_ip_addresses ia on ia.listener_id = agl.listener_id and ia.state_desc = 'ONLINE'\norder by ag.ag_name, ag.replica_server_name, ag.database_name;\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nif object_id('tempdb..#availability_databases') is not null\n\tdrop table #availability_databases;\n\nselect\tar.replica_server_name,\n\t\tdrs.is_primary_replica,\n\t\tadc.database_name,\n\t\tag.name AS ag_name,\n\t\tdrs.is_local,\n\t\tdrs.synchronization_state_desc,\n\t\tdrs.synchronization_health_desc,\n\t\tlast_redone_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), drs.last_redone_time),\n\t\tdrs.log_send_queue_size,\n\t\tdrs.log_send_rate,\n\t\tdrs.redo_queue_size,\n\t\tdrs.redo_rate,\n\t\t(drs.redo_queue_size / drs.redo_rate) / 60.0 AS estimated_redo_completion_time_min,\n\t\tlast_commit_time = DATEADD(mi, DATEDIFF(mi, getdate(), getutcdate()), drs.last_commit_time),\n\t\tdrs.is_suspended,\n\t\tdrs.suspend_reason_desc,\n\t\tag.group_id\ninto #availability_databases\nfrom sys.dm_hadr_database_replica_states as drs\ninner join sys.availability_databases_cluster as adc on drs.group_id = adc.group_id\n\tand drs.group_database_id = adc.group_database_id\ninner join sys.availability_groups as ag on ag.group_id = drs.group_id\ninner join sys.availability_replicas as ar on drs.group_id = ar.group_id\n\tand drs.replica_id = ar.replica_id\n--order by ag.name, ar.replica_server_name, adc.database_name\n\nselect\treplica_server_name,\n\t\tis_primary_replica,\n\t\tdatabase_name,\n\t\tag_name,\n\t\t[ag_listener] = agl.dns_name+' ('+ia.ip_address+')',\n\t\tis_local,\n\t\tsynchronization_state_desc,\n\t\tsynchronization_health_desc,\n\t\tlatency_seconds = case when is_primary_replica = 1 then 0\n\t\t\t\t\t\t\t\telse (\tselect DATEDIFF(second,ag.last_commit_time,p.last_commit_time) \n\t\t\t\t\t\t\t\t\t\tfrom #availability_databases p \n\t\t\t\t\t\t\t\t\t\twhere p.is_primary_replica = 1 and p.database_name = ag.database_name\n\t\t\t\t\t\t\t\t\t)\n\t\t\t\t\t\t\t\tend,\n\t\tredo_queue_size,\n\t\tlog_send_queue_size,\n\t\tlast_redone_time,\n\t\tlog_send_rate,\t\t\n\t\tredo_rate,\n\t\testimated_redo_completion_time_min,\n\t\tlast_commit_time,\n\t\tis_suspended,\n\t\tsuspend_reason_desc\nfrom #availability_databases as ag\nleft join sys.availability_group_listeners agl on agl.group_id = ag.group_id\nleft join sys.availability_group_listener_ip_addresses ia on ia.listener_id = agl.listener_id and ia.state_desc = 'ONLINE'\norder by ag.ag_name, ag.replica_server_name, ag.database_name;\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
               "refId": "A",
               "sql": {
                 "columns": [
@@ -6370,9 +6372,9 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "SQLMonitor",
-          "value": "SQLMonitor"
+          "selected": true,
+          "text": "SqlProd1",
+          "value": "SqlProd1"
         },
         "datasource": {
           "type": "mssql",
@@ -6419,8 +6421,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1",
-          "value": "1"
+          "text": "0",
+          "value": "0"
         },
         "datasource": {
           "type": "mssql",
@@ -6467,8 +6469,8 @@
       {
         "current": {
           "selected": false,
-          "text": "SQLMONITOR",
-          "value": "SQLMONITOR"
+          "text": "SQLPROD-A",
+          "value": "SQLPROD-A"
         },
         "datasource": {
           "type": "mssql",
@@ -6491,8 +6493,8 @@
       {
         "current": {
           "selected": false,
-          "text": "SQLMONITOR",
-          "value": "SQLMONITOR"
+          "text": "SQLPROD-A",
+          "value": "SQLPROD-A"
         },
         "datasource": {
           "type": "mssql",
@@ -6515,8 +6517,8 @@
       {
         "current": {
           "selected": false,
-          "text": "MSSQLSERVER",
-          "value": "MSSQLSERVER"
+          "text": "MSSQL$PROD1",
+          "value": "MSSQL$PROD1"
         },
         "datasource": {
           "type": "mssql",
@@ -6606,8 +6608,8 @@
       {
         "current": {
           "selected": false,
-          "text": "fe80::38c9:af52:20ca:1f61%3",
-          "value": "fe80::38c9:af52:20ca:1f61%3"
+          "text": "192.168.100.101",
+          "value": "192.168.100.101"
         },
         "datasource": {
           "type": "mssql",
@@ -6631,8 +6633,8 @@
       {
         "current": {
           "selected": false,
-          "text": "SQLMONITOR",
-          "value": "SQLMONITOR"
+          "text": "SQLPROD1",
+          "value": "SQLPROD1"
         },
         "datasource": {
           "type": "mssql",
@@ -6679,8 +6681,8 @@
       {
         "current": {
           "selected": false,
-          "text": "SQLMONITOR.Lab.com",
-          "value": "SQLMONITOR.Lab.com"
+          "text": "SQLPROD1.Lab.com",
+          "value": "SQLPROD1.Lab.com"
         },
         "datasource": {
           "type": "mssql",
@@ -6703,8 +6705,8 @@
       {
         "current": {
           "selected": false,
-          "text": "MSSQLSERVER",
-          "value": "MSSQLSERVER"
+          "text": "PROD1",
+          "value": "PROD1"
         },
         "datasource": {
           "type": "mssql",
@@ -6735,8 +6737,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1675929665351",
-          "value": "1675929665351"
+          "text": "1675938542707",
+          "value": "1675938542707"
         },
         "datasource": {
           "type": "mssql",
@@ -6767,8 +6769,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1675929606413",
-          "value": "1675929606413"
+          "text": "1675938484441",
+          "value": "1675938484441"
         },
         "datasource": {
           "type": "mssql",
@@ -6799,8 +6801,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1675929601630",
-          "value": "1675929601630"
+          "text": "1675938480910",
+          "value": "1675938480910"
         },
         "datasource": {
           "type": "mssql",
@@ -6846,8 +6848,8 @@
       {
         "current": {
           "selected": false,
-          "text": "8",
-          "value": "8"
+          "text": "4",
+          "value": "4"
         },
         "datasource": {
           "type": "mssql",
@@ -6870,8 +6872,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1675864147020",
-          "value": "1675864147020"
+          "text": "1675917827910",
+          "value": "1675917827910"
         },
         "datasource": {
           "type": "mssql",
@@ -6894,8 +6896,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1675929637713",
-          "value": "1675929637713"
+          "text": "1675938572520",
+          "value": "1675938572520"
         },
         "datasource": {
           "type": "mssql",
@@ -6918,8 +6920,8 @@
       {
         "current": {
           "selected": false,
-          "text": "23",
-          "value": "23"
+          "text": "8",
+          "value": "8"
         },
         "datasource": {
           "type": "mssql",
@@ -6942,8 +6944,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1",
-          "value": "1"
+          "text": "0",
+          "value": "0"
         },
         "datasource": {
           "type": "mssql",
@@ -6966,8 +6968,8 @@
       {
         "current": {
           "selected": false,
-          "text": "77",
-          "value": "77"
+          "text": "92",
+          "value": "92"
         },
         "datasource": {
           "type": "mssql",
@@ -6990,8 +6992,8 @@
       {
         "current": {
           "selected": false,
-          "text": "85",
-          "value": "85"
+          "text": "82",
+          "value": "82"
         },
         "datasource": {
           "type": "mssql",
@@ -7014,8 +7016,8 @@
       {
         "current": {
           "selected": false,
-          "text": "14",
-          "value": "14"
+          "text": "17",
+          "value": "17"
         },
         "datasource": {
           "type": "mssql",
@@ -7038,8 +7040,8 @@
       {
         "current": {
           "selected": false,
-          "text": "428296",
-          "value": "428296"
+          "text": "417888",
+          "value": "417888"
         },
         "datasource": {
           "type": "mssql",
@@ -7118,8 +7120,8 @@
       {
         "current": {
           "selected": false,
-          "text": "16776676",
-          "value": "16776676"
+          "text": "8388068",
+          "value": "8388068"
         },
         "datasource": {
           "type": "mssql",
@@ -7142,8 +7144,8 @@
       {
         "current": {
           "selected": false,
-          "text": "9632972",
-          "value": "9632972"
+          "text": "4997580",
+          "value": "4997580"
         },
         "datasource": {
           "type": "mssql",
@@ -7190,8 +7192,8 @@
       {
         "current": {
           "selected": false,
-          "text": "2942336",
-          "value": "2942336"
+          "text": "1418620",
+          "value": "1418620"
         },
         "datasource": {
           "type": "mssql",
@@ -7262,8 +7264,8 @@
       {
         "current": {
           "selected": false,
-          "text": "65542",
-          "value": "65542"
+          "text": "20762",
+          "value": "20762"
         },
         "datasource": {
           "type": "mssql",
@@ -7334,8 +7336,8 @@
       {
         "current": {
           "selected": false,
-          "text": "8",
-          "value": "8"
+          "text": "29",
+          "value": "29"
         },
         "datasource": {
           "type": "mssql",
@@ -7358,8 +7360,8 @@
       {
         "current": {
           "selected": false,
-          "text": "0",
-          "value": "0"
+          "text": "1",
+          "value": "1"
         },
         "datasource": {
           "type": "mssql",
@@ -7382,8 +7384,8 @@
       {
         "current": {
           "selected": false,
-          "text": "0.56",
-          "value": "0.56"
+          "text": "0.48",
+          "value": "0.48"
         },
         "datasource": {
           "type": "mssql",
@@ -7414,8 +7416,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1675929607035",
-          "value": "1675929607035"
+          "text": "1675936808707",
+          "value": "1675936808707"
         },
         "datasource": {
           "type": "mssql",
@@ -7438,8 +7440,8 @@
       {
         "current": {
           "selected": false,
-          "text": "SQLServer",
-          "value": "SQLServer"
+          "text": "MSSQL$PROD1",
+          "value": "MSSQL$PROD1"
         },
         "datasource": {
           "type": "mssql",
@@ -7462,8 +7464,8 @@
       {
         "current": {
           "selected": false,
-          "text": "0",
-          "value": "0"
+          "text": "1",
+          "value": "1"
         },
         "datasource": {
           "type": "mssql",
@@ -7486,8 +7488,8 @@
       {
         "current": {
           "selected": false,
-          "text": "0",
-          "value": "0"
+          "text": "1",
+          "value": "1"
         },
         "datasource": {
           "type": "mssql",
@@ -7510,8 +7512,8 @@
       {
         "current": {
           "selected": false,
-          "text": "Cluster",
-          "value": "Cluster"
+          "text": "AG",
+          "value": "AG"
         },
         "datasource": {
           "type": "mssql",
@@ -7591,6 +7593,6 @@
   "timezone": "browser",
   "title": "Monitoring - Live - Distributed",
   "uid": "distributed_live_dashboard",
-  "version": 27,
+  "version": 28,
   "weekStart": ""
 }
