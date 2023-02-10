@@ -21,6 +21,13 @@
       "label": "Perfmon Table Name",
       "value": "dbo.vw_performance_counters",
       "description": ""
+    },
+    {
+      "name": "VAR_MEMORY_CLERKS_TABLE_NAME",
+      "type": "constant",
+      "label": "memory_clerks_table_name",
+      "value": "dbo.memory_clerks",
+      "description": ""
     }
   ],
   "__elements": {},
@@ -158,7 +165,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 1
+            "y": 17
           },
           "id": 62,
           "options": {
@@ -276,7 +283,7 @@
             "h": 5,
             "w": 24,
             "x": 0,
-            "y": 8
+            "y": 24
           },
           "id": 64,
           "options": {
@@ -416,7 +423,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 2
+            "y": 18
           },
           "id": 26,
           "options": {
@@ -510,7 +517,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 8
+            "y": 24
           },
           "id": 58,
           "options": {
@@ -629,7 +636,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 19
+            "y": 35
           },
           "id": 60,
           "options": {
@@ -776,7 +783,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 3
+            "y": 19
           },
           "id": 105,
           "options": {
@@ -893,7 +900,7 @@
             "h": 15,
             "w": 24,
             "x": 0,
-            "y": 9
+            "y": 25
           },
           "id": 106,
           "options": {
@@ -1020,7 +1027,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 4
+            "y": 20
           },
           "id": 66,
           "options": {
@@ -1134,7 +1141,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 12
+            "y": 28
           },
           "id": 30,
           "options": {
@@ -1280,7 +1287,7 @@
             "h": 5,
             "w": 24,
             "x": 0,
-            "y": 5
+            "y": 21
           },
           "id": 110,
           "options": {
@@ -1379,7 +1386,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 10
+            "y": 26
           },
           "id": 112,
           "options": {
@@ -1496,7 +1503,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 16
+            "y": 32
           },
           "id": 114,
           "options": {
@@ -1641,7 +1648,7 @@
             "h": 5,
             "w": 24,
             "x": 0,
-            "y": 6
+            "y": 22
           },
           "id": 34,
           "options": {
@@ -1758,7 +1765,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 11
+            "y": 27
           },
           "id": 68,
           "options": {
@@ -1874,7 +1881,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 17
+            "y": 33
           },
           "id": 69,
           "options": {
@@ -2019,7 +2026,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 7
+            "y": 23
           },
           "id": 71,
           "options": {
@@ -2164,7 +2171,7 @@
             "h": 15,
             "w": 24,
             "x": 0,
-            "y": 8
+            "y": 24
           },
           "id": 38,
           "options": {
@@ -2288,7 +2295,7 @@
             "h": 12,
             "w": 24,
             "x": 0,
-            "y": 23
+            "y": 39
           },
           "id": 115,
           "options": {
@@ -2441,7 +2448,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 9
+            "y": 25
           },
           "id": 119,
           "options": {
@@ -2566,7 +2573,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 18
+            "y": 34
           },
           "id": 121,
           "options": {
@@ -2686,7 +2693,7 @@
             "h": 15,
             "w": 24,
             "x": 0,
-            "y": 28
+            "y": 44
           },
           "id": 123,
           "options": {
@@ -2831,7 +2838,7 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 10
+            "y": 26
           },
           "id": 22,
           "options": {
@@ -2975,7 +2982,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 11
+            "y": 27
           },
           "id": 126,
           "options": {
@@ -3091,7 +3098,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 17
+            "y": 33
           },
           "id": 14,
           "options": {
@@ -3209,7 +3216,7 @@
             "h": 17,
             "w": 24,
             "x": 0,
-            "y": 24
+            "y": 40
           },
           "id": 124,
           "options": {
@@ -3282,6 +3289,138 @@
     },
     {
       "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 11
+      },
+      "id": 155,
+      "panels": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "${DS_SQLMONITOR}"
+          },
+          "description": "sys.dm_os_memory_clerks",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "axisSoftMax": 100,
+                "axisSoftMin": 0,
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 5,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "log": 10,
+                  "type": "log"
+                },
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "line+area"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "transparent",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "mbytes"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 13,
+            "w": 24,
+            "x": 0,
+            "y": 12
+          },
+          "id": 153,
+          "options": {
+            "legend": {
+              "calcs": [
+                "last",
+                "mean",
+                "max"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Mean",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "pluginVersion": "8.4.4",
+          "targets": [
+            {
+              "alias": "",
+              "datasource": {
+                "type": "mssql",
+                "uid": "${DS_SQLMONITOR}"
+              },
+              "editorMode": "code",
+              "format": "time_series",
+              "rawQuery": true,
+              "rawSql": "declare @sql nvarchar(max);\ndeclare @params nvarchar(max);\ndeclare @sql_instance varchar(255);\ndeclare @perfmon_host_name varchar(255);\ndeclare @start_time_utc datetime2;\ndeclare @end_time_utc datetime2;\n\nset @sql_instance = '$server';\nset @perfmon_host_name = '$perfmon_host_name';\nset @start_time_utc = $__timeFrom();\nset @end_time_utc = $__timeTo();\nset @params = N'@perfmon_host_name varchar(255), @start_time_utc datetime2, @end_time_utc datetime2';\n\nset quoted_identifier off;\nset @sql = \"\nselect mc.collection_time_utc as time, \n\t\tmetric = case when mc.name in ('Object Plans','Bound Trees','SQL Plans','SOS_Node','Log Pool','SOSMemoryClerk') \n\t\t\t\t\t\tthen mc.name else mc.memory_clerk end, \n\t\tmc.size_mb as value\nfrom $memory_clerks_table_name mc with (nolock)\nwhere collection_time_utc between @start_time_utc and @end_time_utc\n\"\nset quoted_identifier on;\n\n--if (@sql_instance = SERVERPROPERTY('SERVERNAME'))\nif ($is_local = 1)\n  exec dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;\nelse\n  exec [$server].[$dba_db].dbo.sp_executesql @sql , @params, @perfmon_host_name, @start_time_utc, @end_time_utc;",
+              "refId": "A",
+              "sql": {
+                "columns": [
+                  {
+                    "parameters": [],
+                    "type": "function"
+                  }
+                ],
+                "groupBy": [
+                  {
+                    "property": {
+                      "type": "string"
+                    },
+                    "type": "groupBy"
+                  }
+                ],
+                "limit": 50
+              }
+            }
+          ],
+          "title": "Memory Consumers",
+          "type": "timeseries"
+        }
+      ],
+      "title": "Memory Consumers - sys.dm_os_memory_clerks",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
       "datasource": {
         "type": "mssql",
         "uid": "5Qr_lHw7z"
@@ -3290,7 +3429,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 11
+        "y": 12
       },
       "id": 44,
       "panels": [
@@ -3555,7 +3694,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 13
       },
       "id": 48,
       "panels": [
@@ -3622,7 +3761,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 13
+            "y": 29
           },
           "id": 46,
           "options": {
@@ -3740,7 +3879,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 19
+            "y": 35
           },
           "id": 129,
           "options": {
@@ -3856,7 +3995,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 27
+            "y": 43
           },
           "id": 78,
           "options": {
@@ -3973,7 +4112,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 34
+            "y": 50
           },
           "id": 130,
           "options": {
@@ -4053,7 +4192,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 14
       },
       "id": 132,
       "panels": [
@@ -4120,7 +4259,7 @@
             "h": 5,
             "w": 24,
             "x": 0,
-            "y": 14
+            "y": 30
           },
           "id": 134,
           "options": {
@@ -4238,7 +4377,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 19
+            "y": 35
           },
           "id": 137,
           "options": {
@@ -4356,7 +4495,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 25
+            "y": 41
           },
           "id": 135,
           "options": {
@@ -4474,7 +4613,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 31
+            "y": 47
           },
           "id": 136,
           "options": {
@@ -4553,7 +4692,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 15
       },
       "id": 87,
       "panels": [
@@ -4619,7 +4758,7 @@
             "h": 5,
             "w": 11,
             "x": 0,
-            "y": 15
+            "y": 31
           },
           "id": 85,
           "options": {
@@ -4730,7 +4869,7 @@
             "h": 5,
             "w": 13,
             "x": 11,
-            "y": 15
+            "y": 31
           },
           "id": 89,
           "options": {
@@ -4845,7 +4984,7 @@
             "h": 5,
             "w": 11,
             "x": 0,
-            "y": 20
+            "y": 36
           },
           "id": 88,
           "options": {
@@ -4956,7 +5095,7 @@
             "h": 5,
             "w": 13,
             "x": 11,
-            "y": 20
+            "y": 36
           },
           "id": 90,
           "options": {
@@ -5030,7 +5169,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 16
       },
       "id": 92,
       "panels": [
@@ -5101,7 +5240,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 16
+            "y": 32
           },
           "id": 151,
           "options": {
@@ -5218,7 +5357,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 24
+            "y": 40
           },
           "id": 16,
           "options": {
@@ -5298,7 +5437,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 17
       },
       "id": 18,
       "panels": [
@@ -5364,7 +5503,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 17
+            "y": 33
           },
           "id": 80,
           "options": {
@@ -5483,7 +5622,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 25
+            "y": 41
           },
           "id": 79,
           "options": {
@@ -5602,7 +5741,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 33
+            "y": 49
           },
           "id": 82,
           "options": {
@@ -5682,7 +5821,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 18
       },
       "id": 104,
       "panels": [
@@ -5748,7 +5887,7 @@
             "h": 6,
             "w": 24,
             "x": 0,
-            "y": 18
+            "y": 34
           },
           "id": 102,
           "options": {
@@ -5864,7 +6003,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 24
+            "y": 40
           },
           "id": 100,
           "options": {
@@ -5938,7 +6077,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 19
       },
       "id": 139,
       "panels": [
@@ -6005,7 +6144,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 19
+            "y": 35
           },
           "id": 148,
           "options": {
@@ -6101,7 +6240,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 27
+            "y": 43
           },
           "id": 147,
           "options": {
@@ -6159,7 +6298,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 20
       },
       "id": 141,
       "panels": [
@@ -6225,7 +6364,7 @@
             "h": 5,
             "w": 24,
             "x": 0,
-            "y": 20
+            "y": 36
           },
           "id": 149,
           "options": {
@@ -6285,7 +6424,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 21
       },
       "id": 143,
       "panels": [],
@@ -6311,7 +6450,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 22
       },
       "id": 145,
       "panels": [],
@@ -6698,6 +6837,26 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "hide": 2,
+        "label": "memory_clerks_table_name",
+        "name": "memory_clerks_table_name",
+        "query": "${VAR_MEMORY_CLERKS_TABLE_NAME}",
+        "skipUrlSync": false,
+        "type": "constant",
+        "current": {
+          "value": "${VAR_MEMORY_CLERKS_TABLE_NAME}",
+          "text": "${VAR_MEMORY_CLERKS_TABLE_NAME}",
+          "selected": false
+        },
+        "options": [
+          {
+            "value": "${VAR_MEMORY_CLERKS_TABLE_NAME}",
+            "text": "${VAR_MEMORY_CLERKS_TABLE_NAME}",
+            "selected": false
+          }
+        ]
       }
     ]
   },
@@ -6719,6 +6878,6 @@
   "timezone": "",
   "title": "Monitoring - Perfmon Counters - Quest Softwares - Distributed",
   "uid": "distributed_perfmon",
-  "version": 28,
+  "version": 32,
   "weekStart": ""
 }

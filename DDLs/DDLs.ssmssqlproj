@@ -4,7 +4,7 @@
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
         <ConnectionNode Name="(local):LAB\adwivedi">
-          <Created>2022-09-13T00:06:47.2472846-07:00</Created>
+          <Created>2022-09-13T12:36:47.2472846+05:30</Created>
           <Type>SQL</Type>
           <Server>(local)</Server>
           <UserName />
@@ -16,7 +16,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="(local)\SQL2014:LAB\adwivedi">
-          <Created>2022-05-31T15:19:36.5223563-07:00</Created>
+          <Created>2022-06-01T03:49:36.5223563+05:30</Created>
           <Type>SQL</Type>
           <Server>(local)\SQL2014</Server>
           <UserName />
@@ -28,7 +28,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="LOCALHOST:LAB\adwivedi">
-          <Created>2020-10-18T08:41:28.7072242-07:00</Created>
+          <Created>2020-10-18T21:11:28.7072242+05:30</Created>
           <Type>SQL</Type>
           <Server>LOCALHOST</Server>
           <UserName />
@@ -40,7 +40,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="SqlMonitor:LAB\adwivedi">
-          <Created>2022-06-27T03:23:15.6091394-07:00</Created>
+          <Created>2022-06-27T15:53:15.6091394+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlMonitor</Server>
           <UserName />
@@ -52,7 +52,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="SqlPractice:LAB\adwivedi">
-          <Created>2022-09-11T19:31:17.4774233-07:00</Created>
+          <Created>2022-09-12T08:01:17.4774233+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlPractice</Server>
           <UserName />
@@ -64,7 +64,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="SqlProd1:LAB\adwivedi">
-          <Created>2022-10-10T09:20:29.743399-07:00</Created>
+          <Created>2022-10-10T21:50:29.743399+05:30</Created>
           <Type>SQL</Type>
           <Server>SqlProd1</Server>
           <UserName />
@@ -76,7 +76,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="Workstation\SQL2014:LAB\adwivedi">
-          <Created>2022-07-15T09:30:49.6425554-07:00</Created>
+          <Created>2022-07-15T22:00:49.6425554+05:30</Created>
           <Type>SQL</Type>
           <Server>Workstation\SQL2014</Server>
           <UserName />
@@ -88,7 +88,7 @@
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="WORKSTATION\SQLEXPRESS:LAB\adwivedi">
-          <Created>2022-07-15T09:31:02.7284228-07:00</Created>
+          <Created>2022-07-15T22:01:02.7284228+05:30</Created>
           <Type>SQL</Type>
           <Server>WORKSTATION\SQLEXPRESS</Server>
           <UserName />
@@ -128,14 +128,14 @@
           <FullPath>SCH-BlitzIndex-Partitioning.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Create-All-Objects.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Create-All-Objects.sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Create-Inventory-Specific-Objects.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:SqlMonitor:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>SqlMonitor</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Create-Inventory-Specific-Objects.sql</FullPath>
         </FileNode>
@@ -168,6 +168,12 @@
           <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-Job-[(dba) Collect-FileIOStats].sql</FullPath>
+        </FileNode>
+        <FileNode Name="SCH-Job-[(dba) Collect-MemoryClerks].sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-Job-[(dba) Collect-MemoryClerks].sql</FullPath>
         </FileNode>
         <FileNode Name="SCH-Job-[(dba) Collect-OSProcesses].sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
@@ -283,6 +289,12 @@
           <AssociatedConnUserName />
           <FullPath>SCH-usp_collect_file_io_stats.sql</FullPath>
         </FileNode>
+        <FileNode Name="SCH-usp_collect_memory_clerks.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>SCH-usp_collect_memory_clerks.sql</FullPath>
+        </FileNode>
         <FileNode Name="SCH-usp_collect_wait_stats.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LOCALHOST:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
@@ -348,12 +360,6 @@
           <AssociatedConnSrvName>LOCALHOST</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>SCH-WhoIsActive-Partitioning.sql</FullPath>
-        </FileNode>
-        <FileNode Name="SQLQuery1.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>SQLQuery1.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>

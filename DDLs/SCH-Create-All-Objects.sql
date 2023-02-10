@@ -1,5 +1,5 @@
 /*
-	Version -> v1.3.1
+	Version -> v1.3.2
 	-----------------
 
 	*** Self Pre Steps ***
@@ -42,11 +42,11 @@
 	23) Create table [dbo].[disk_space] using Partition scheme
 	24) Create View [dbo].[vw_disk_space] for Multi SqlCluster on same nodes Architecture
 	25) Create view  [dbo].[vw_file_io_stats_deltas]
-	26) Add boundaries to partition. 1 boundary per hour
-	27) Remove boundaries with retention of 3 months
-	28) Validate Partition Data	
-	29) Populate [dbo].[BlitzFirst_WaitStats_Categories]
-
+	26) Create table [dbo].[memory_clerks]
+	27) Add boundaries to partition. 1 boundary per hour
+	28) Remove boundaries with retention of 3 months
+	29) Validate Partition Data	
+	30) Populate [dbo].[BlitzFirst_WaitStats_Categories]
 */
 
 IF DB_NAME() = 'master'
@@ -911,7 +911,42 @@ WHERE [s].[io_stall] >= [sPrior].[io_stall]
 GO
 
 
-/* ***** 26) Add boundaries to partition. 1 boundary per hour ***************** */
+/* ***** 26) Create table [dbo].[memory_clerks] *************** */
+-- drop table [dbo].[memory_clerks]
+if OBJECT_ID('[dbo].[memory_clerks]') is null
+begin
+	CREATE TABLE [dbo].[memory_clerks]
+	(
+		[collection_time_utc] datetime2 not null default sysutcdatetime(),
+		[memory_clerk] [varchar](255) NOT NULL,
+		[name] [varchar](255) NOT NULL,
+		[size_mb] [bigint] NOT NULL,
+		constraint pk_memory_clerks primary key ([collection_time_utc], [memory_clerk]) on ps_dba_datetime2_daily ([collection_time_utc])
+	) on ps_dba_datetime2_daily ([collection_time_utc])
+end
+GO
+
+if not exists (select * from sys.indexes where [object_id] = OBJECT_ID('[dbo].[memory_clerks]') and type_desc = 'CLUSTERED')
+begin
+	alter table [dbo].[memory_clerks] add constraint pk_memory_clerks primary key ([collection_time_utc], [memory_clerk]) on ps_dba_datetime2_daily ([collection_time_utc])
+end
+go
+
+if not exists (select 1 from dbo.purge_table where table_name = 'dbo.memory_clerks')
+begin
+	insert dbo.purge_table
+	(table_name, date_key, retention_days, purge_row_size, reference)
+	select	table_name = 'dbo.memory_clerks', 
+			date_key = 'collection_time_utc', 
+			retention_days = 15, 
+			purge_row_size = 100000,
+			reference = 'SQLMonitor Data Collection'
+end
+go
+
+
+
+/* ***** 27) Add boundaries to partition. 1 boundary per hour ***************** */
 set nocount on;
 declare @is_partitioned bit = 1;
 if @is_partitioned = 1
@@ -950,7 +985,7 @@ end
 go
 
 
-/* ***** 27) Remove boundaries with retention of 3 months ***************** */
+/* ***** 28) Remove boundaries with retention of 3 months ***************** */
 set nocount on;
 declare @is_partitioned bit = 1;
 if @is_partitioned = 1
@@ -983,11 +1018,11 @@ end
 go
 
 
-/* ***** 28) Validate Partition Data ***************** */
+/* ***** 29) Validate Partition Data ***************** */
 -- Check query 'SQL-Queries\check-table-partitions.sql'
 
 
-/* ***** 29) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
+/* ***** 30) Populate [dbo].[BlitzFirst_WaitStats_Categories] ***************** */
 IF OBJECT_ID('[dbo].[BlitzFirst_WaitStats_Categories]') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM [dbo].[BlitzFirst_WaitStats_Categories])
 BEGIN
 	--TRUNCATE TABLE [dbo].[BlitzFirst_WaitStats_Categories];

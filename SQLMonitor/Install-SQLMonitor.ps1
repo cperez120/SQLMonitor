@@ -85,6 +85,9 @@ Param (
     [String]$UspEnablePageCompressionFileName = "SCH-usp_enable_page_compression.sql",
 
     [Parameter(Mandatory=$false)]
+    [String]$UspCollectMemoryClerksFileName = "SCH-usp_collect_memory_clerks.sql",
+
+    [Parameter(Mandatory=$false)]
     [String]$WhoIsActivePartitionFileName = "SCH-WhoIsActive-Partitioning.sql",
 
     [Parameter(Mandatory=$false)]
@@ -148,6 +151,9 @@ Param (
     [String]$RunBlitzIndexWeeklyJobFileName = "SCH-Job-[(dba) Run-BlitzIndex - Weekly].sql",
 
     [Parameter(Mandatory=$false)]
+    [String]$CollectMemoryClerksJobFileName = "SCH-Job-[(dba) Collect-MemoryClerks].sql",
+
+    [Parameter(Mandatory=$false)]
     [String[]]$DbaGroupMailId,
 
     [Parameter(Mandatory=$false)]
@@ -158,10 +164,11 @@ Param (
                 "13__CreateJobCollectOSProcesses", "14__CreateJobCollectPerfmonData", "15__CreateJobCollectWaitStats",
                 "16__CreateJobCollectXEvents", "17__CreateJobCollectFileIOStats", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
-                "22__CreateJobRunBlitzIndex", "23__CreateJobRunBlitzIndexWeekly", "24__CreateJobUpdateSqlServerVersions",
-                "25__CreateJobCheckInstanceAvailability", "26__CreateJobGetAllServerInfo", "27__WhoIsActivePartition",
-                "28__BlitzIndexPartition", "29__EnablePageCompression", "30__GrafanaLogin",
-                "31__LinkedServerOnInventory", "32__LinkedServerForDataDestinationInstance", "33__AlterViewsForDataDestinationInstance")]
+                "22__CreateJobRunBlitzIndex", "23__CreateJobRunBlitzIndexWeekly", "24__CreateJobCollectMemoryClerks",
+                "25__CreateJobUpdateSqlServerVersions", "26__CreateJobCheckInstanceAvailability", "27__CreateJobGetAllServerInfo",
+                "28__WhoIsActivePartition", "29__BlitzIndexPartition", "30__EnablePageCompression",
+                "31__GrafanaLogin", "32__LinkedServerOnInventory", "33__LinkedServerForDataDestinationInstance",
+                "34__AlterViewsForDataDestinationInstance")]
     [String]$StartAtStep = "1__sp_WhoIsActive",
 
     [Parameter(Mandatory=$false)]
@@ -172,10 +179,11 @@ Param (
                 "13__CreateJobCollectOSProcesses", "14__CreateJobCollectPerfmonData", "15__CreateJobCollectWaitStats",
                 "16__CreateJobCollectXEvents", "17__CreateJobCollectFileIOStats", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
-                "22__CreateJobRunBlitzIndex", "23__CreateJobRunBlitzIndexWeekly", "24__CreateJobUpdateSqlServerVersions",
-                "25__CreateJobCheckInstanceAvailability", "26__CreateJobGetAllServerInfo", "27__WhoIsActivePartition",
-                "28__BlitzIndexPartition", "29__EnablePageCompression", "30__GrafanaLogin",
-                "31__LinkedServerOnInventory", "32__LinkedServerForDataDestinationInstance", "33__AlterViewsForDataDestinationInstance")]
+                "22__CreateJobRunBlitzIndex", "23__CreateJobRunBlitzIndexWeekly", "24__CreateJobCollectMemoryClerks",
+                "25__CreateJobUpdateSqlServerVersions", "26__CreateJobCheckInstanceAvailability", "27__CreateJobGetAllServerInfo",
+                "28__WhoIsActivePartition", "29__BlitzIndexPartition", "30__EnablePageCompression",
+                "31__GrafanaLogin", "32__LinkedServerOnInventory", "33__LinkedServerForDataDestinationInstance",
+                "34__AlterViewsForDataDestinationInstance")]
     [String[]]$SkipSteps,
 
     [Parameter(Mandatory=$false)]
@@ -186,10 +194,11 @@ Param (
                 "13__CreateJobCollectOSProcesses", "14__CreateJobCollectPerfmonData", "15__CreateJobCollectWaitStats",
                 "16__CreateJobCollectXEvents", "17__CreateJobCollectFileIOStats", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
-                "22__CreateJobRunBlitzIndex", "23__CreateJobRunBlitzIndexWeekly", "24__CreateJobUpdateSqlServerVersions",
-                "25__CreateJobCheckInstanceAvailability", "26__CreateJobGetAllServerInfo", "27__WhoIsActivePartition",
-                "28__BlitzIndexPartition", "29__EnablePageCompression", "30__GrafanaLogin",
-                "31__LinkedServerOnInventory", "32__LinkedServerForDataDestinationInstance", "33__AlterViewsForDataDestinationInstance")]
+                "22__CreateJobRunBlitzIndex", "23__CreateJobRunBlitzIndexWeekly", "24__CreateJobCollectMemoryClerks",
+                "25__CreateJobUpdateSqlServerVersions", "26__CreateJobCheckInstanceAvailability", "27__CreateJobGetAllServerInfo",
+                "28__WhoIsActivePartition", "29__BlitzIndexPartition", "30__EnablePageCompression",
+                "31__GrafanaLogin", "32__LinkedServerOnInventory", "33__LinkedServerForDataDestinationInstance",
+                "34__AlterViewsForDataDestinationInstance")]
     [String]$StopAtStep,
 
     [Parameter(Mandatory=$false)]
@@ -200,10 +209,11 @@ Param (
                 "13__CreateJobCollectOSProcesses", "14__CreateJobCollectPerfmonData", "15__CreateJobCollectWaitStats",
                 "16__CreateJobCollectXEvents", "17__CreateJobCollectFileIOStats", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
-                "22__CreateJobRunBlitzIndex", "23__CreateJobRunBlitzIndexWeekly", "24__CreateJobUpdateSqlServerVersions",
-                "25__CreateJobCheckInstanceAvailability", "26__CreateJobGetAllServerInfo", "27__WhoIsActivePartition",
-                "28__BlitzIndexPartition", "29__EnablePageCompression", "30__GrafanaLogin",
-                "31__LinkedServerOnInventory", "32__LinkedServerForDataDestinationInstance", "33__AlterViewsForDataDestinationInstance")]
+                "22__CreateJobRunBlitzIndex", "23__CreateJobRunBlitzIndexWeekly", "24__CreateJobCollectMemoryClerks",
+                "25__CreateJobUpdateSqlServerVersions", "26__CreateJobCheckInstanceAvailability", "27__CreateJobGetAllServerInfo",
+                "28__WhoIsActivePartition", "29__BlitzIndexPartition", "30__EnablePageCompression",
+                "31__GrafanaLogin", "32__LinkedServerOnInventory", "33__LinkedServerForDataDestinationInstance",
+                "34__AlterViewsForDataDestinationInstance")]
     [String[]]$OnlySteps,
 
     [Parameter(Mandatory=$false)]
@@ -260,9 +270,11 @@ Param (
 
 $startTime = Get-Date
 $ErrorActionPreference = "Stop"
-$sqlmonitorVersion = '1.3.1'
+$sqlmonitorVersion = '1.3.2'
 $releaseDiscussionURL = "https://ajaydwivedi.com/sqlmonitor/common-errors"
 <#
+    v1.3.2 - 2023-Feb-09
+        -> Issue#210 - Collect Memory Clerks
     v1.3.1 - 2022-Mar-31
         -> Issue#232 - Remove Step 6__OlaHallengrenSolutionObjects
         -> Issue#231 - Alert Based on Central Dashboard using a history Table dbo.all_server_volatile_info_history
@@ -294,21 +306,23 @@ $AllSteps = @(  "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession"
                 "13__CreateJobCollectOSProcesses", "14__CreateJobCollectPerfmonData", "15__CreateJobCollectWaitStats",
                 "16__CreateJobCollectXEvents", "17__CreateJobCollectFileIOStats", "18__CreateJobPartitionsMaintenance",
                 "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
-                "22__CreateJobRunBlitzIndex", "23__CreateJobRunBlitzIndexWeekly", "24__CreateJobUpdateSqlServerVersions",
-                "25__CreateJobCheckInstanceAvailability", "26__CreateJobGetAllServerInfo", "27__WhoIsActivePartition",
-                "28__BlitzIndexPartition", "29__EnablePageCompression", "30__GrafanaLogin",
-                "31__LinkedServerOnInventory", "32__LinkedServerForDataDestinationInstance", "33__AlterViewsForDataDestinationInstance")
+                "22__CreateJobRunBlitzIndex", "23__CreateJobRunBlitzIndexWeekly", "24__CreateJobCollectMemoryClerks",
+                "25__CreateJobUpdateSqlServerVersions", "26__CreateJobCheckInstanceAvailability", "27__CreateJobGetAllServerInfo",
+                "28__WhoIsActivePartition", "29__BlitzIndexPartition", "30__EnablePageCompression",
+                "31__GrafanaLogin", "32__LinkedServerOnInventory", "33__LinkedServerForDataDestinationInstance",
+                "34__AlterViewsForDataDestinationInstance")
 
 # TSQL Jobs
 $TsqlJobSteps = @(
                 "15__CreateJobCollectWaitStats", "16__CreateJobCollectXEvents", "17__CreateJobCollectFileIOStats",
                 "18__CreateJobPartitionsMaintenance", "19__CreateJobPurgeTables", "21__CreateJobRunWhoIsActive",
-                "20__CreateJobRemoveXEventFiles", "22__CreateJobRunBlitzIndex", "23__CreateJobRunBlitzIndexWeekly")
+                "20__CreateJobRemoveXEventFiles", "22__CreateJobRunBlitzIndex", "23__CreateJobRunBlitzIndexWeekly",
+                "24__CreateJobCollectMemoryClerks")
 
 # PowerShell Jobs
 $PowerShellJobSteps = @(
                 "12__CreateJobCollectDiskSpace", "13__CreateJobCollectOSProcesses", "14__CreateJobCollectPerfmonData",
-                "24__CreateJobUpdateSqlServerVersions", "25__CreateJobCheckInstanceAvailability")
+                "25__CreateJobUpdateSqlServerVersions", "26__CreateJobCheckInstanceAvailability")
 
 # RDPSessionSteps
 $RDPSessionSteps = @("8__CopyDbaToolsModule2Host", "9__CopyPerfmonFolder2Host", "10__SetupPerfmonDataCollector")
@@ -347,8 +361,8 @@ if($SkipTsqlJobs) {
 }
 
 # Skip Compression
-if($SkipPageCompression -and ('29__EnablePageCompression' -notin $SkipSteps)) {
-    $SkipSteps += @('29__EnablePageCompression')
+if($SkipPageCompression -and ('30__EnablePageCompression' -notin $SkipSteps)) {
+    $SkipSteps += @('30__EnablePageCompression')
 }
 
 # For backward compatability
@@ -414,6 +428,7 @@ $UspRunWhoIsActiveFilePath = "$ddlPath\$UspRunWhoIsActiveFileName"
 $UspActiveRequestsCountFilePath = "$ddlPath\$UspActiveRequestsCountFileName"
 $UspWaitsPerCorePerMinuteFilePath = "$ddlPath\$UspWaitsPerCorePerMinuteFileName"
 $UspEnablePageCompressionFilePath = "$ddlPath\$UspEnablePageCompressionFileName"
+$UspCollectMemoryClerksFilePath = "$ddlPath\$UspCollectMemoryClerksFileName"
 $WhoIsActivePartitionFilePath = "$ddlPath\$WhoIsActivePartitionFileName"
 $BlitzIndexPartitionFilePath = "$ddlPath\$BlitzIndexPartitionFileName"
 $GrafanaLoginFilePath = "$ddlPath\$GrafanaLoginFileName"
@@ -431,6 +446,7 @@ $RemoveXEventFilesJobFilePath = "$ddlPath\$RemoveXEventFilesJobFileName"
 $RunWhoIsActiveJobFilePath = "$ddlPath\$RunWhoIsActiveJobFileName"
 $RunBlitzIndexJobFilePath = "$ddlPath\$RunBlitzIndexJobFileName"
 $RunBlitzIndexWeeklyJobFilePath = "$ddlPath\$RunBlitzIndexWeeklyJobFileName"
+$CollectMemoryClerksJobFilePath = "$ddlPath\$CollectMemoryClerksJobFileName"
 $UpdateSqlServerVersionsJobFilePath = "$ddlPath\$UpdateSqlServerVersionsJobFileName"
 $LinkedServerOnInventoryFilePath = "$ddlPath\$LinkedServerOnInventoryFileName"
 $TestWindowsAdminAccessJobFilePath = "$ddlPath\$TestWindowsAdminAccessJobFileName"
@@ -1241,6 +1257,8 @@ if($stepName -in $Steps2Execute)
         Remove-Item -Path $tempAllDatabaseObjectsFilePath | Out-Null
     }
 
+    Write-Debug "Update Inventory Objects inside step 2"
+
     # Update InventoryServer Objects
     if($InventoryServer -eq $SqlInstanceToBaseline)
     {
@@ -1279,6 +1297,9 @@ if($stepName -in $Steps2Execute)
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspCollectFileIOStatsFilePath = '$UspCollectFileIOStatsFilePath'"
     Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspCollectFileIOStatsFilePath -SqlCredential $SqlCredential -EnableException
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspCollectMemoryClerksFilePath = '$UspCollectMemoryClerksFilePath'"
+    Invoke-DbaQuery -SqlInstance $SqlInstanceToBaseline -Database $DbaDatabase -File $UspCollectMemoryClerksFilePath -SqlCredential $SqlCredential -EnableException
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Adding entry into [$SqlInstanceToBaseline].[$DbaDatabase].[dbo].[instance_hosts].."
     $sqlAddInstanceHost = @"
@@ -1617,8 +1638,6 @@ if($stepName -in $Steps2Execute)
     $jobName = '(dba) Collect-DiskSpace'
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectDiskSpaceJobFilePath = '$CollectDiskSpaceJobFilePath'"
-    
-    Write-Debug "Debug $stepName"
 
     # Append HostName if Job Server is different    
     $jobNameNew = $jobName
@@ -1994,8 +2013,35 @@ if($stepName -in $Steps2Execute)
 }
 
 
-# 24__CreateJobUpdateSqlServerVersions
-$stepName = '24__CreateJobUpdateSqlServerVersions'
+# 24__CreateJobCollectMemoryClerks
+$stepName = '24__CreateJobCollectMemoryClerks'
+if($stepName -in $Steps2Execute) 
+{
+    $jobName = '(dba) Collect-MemoryClerks'
+    "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$CollectMemoryClerksJobFilePath = '$CollectMemoryClerksJobFilePath'"
+
+    # Append HostName if Job Server is different    
+    $jobNameNew = $jobName
+    if($SqlInstanceToBaseline -ne $SqlInstanceForTsqlJobs) {
+        $jobNameNew = "$jobName - $SqlInstanceToBaseline"
+    }
+
+    "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Creating job [$jobNameNew] on [$SqlInstanceForTsqlJobs].."
+    $sqlCreateJobCollectMemoryClerks = [System.IO.File]::ReadAllText($CollectMemoryClerksJobFilePath)
+    $sqlCreateJobCollectMemoryClerks = $sqlCreateJobCollectMemoryClerks.Replace('-S localhost', "-S `"$SqlInstanceToBaseline`"")
+    $sqlCreateJobCollectMemoryClerks = $sqlCreateJobCollectMemoryClerks.Replace('-d DBA', "-d `"$DbaDatabase`"")
+    $sqlCreateJobCollectMemoryClerks = $sqlCreateJobCollectMemoryClerks.Replace("''some_dba_mail_id@gmail.com''", "''$($DbaGroupMailId -join ';')'';" )
+    if($jobNameNew -ne $jobName) {
+        $sqlCreateJobCollectMemoryClerks = $sqlCreateJobCollectMemoryClerks.Replace($jobName, $jobNameNew)
+    }
+
+    Invoke-DbaQuery -SqlInstance $SqlInstanceForTsqlJobs -Database msdb -Query $sqlCreateJobCollectMemoryClerks -SqlCredential $SqlCredential -EnableException
+}
+
+
+# 25__CreateJobUpdateSqlServerVersions
+$stepName = '25__CreateJobUpdateSqlServerVersions'
 if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer) 
 {
     $jobName = '(dba) Update-SqlServerVersions'
@@ -2024,8 +2070,8 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
 
 
 # CheckInstanceAvailabilityFilePath
-# 25__CreateJobCheckInstanceAvailability
-$stepName = '25__CreateJobCheckInstanceAvailability'
+# 26__CreateJobCheckInstanceAvailability
+$stepName = '26__CreateJobCheckInstanceAvailability'
 if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer) 
 {
     $jobName = '(dba) Check-InstanceAvailability'
@@ -2055,8 +2101,8 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
 }
 
 
-# 26__CreateJobGetAllServerInfo
-$stepName = '26__CreateJobGetAllServerInfo'
+# 27__CreateJobGetAllServerInfo
+$stepName = '27__CreateJobGetAllServerInfo'
 if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer) 
 {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
@@ -2069,8 +2115,8 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -eq $InventoryServer
 }
 
 
-# 27__WhoIsActivePartition
-$stepName = '27__WhoIsActivePartition'
+# 28__WhoIsActivePartition
+$stepName = '28__WhoIsActivePartition'
 if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$WhoIsActivePartitionFilePath = '$WhoIsActivePartitionFilePath'"
@@ -2107,8 +2153,8 @@ if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) {
 }
 
 
-# 28__BlitzIndexPartition
-$stepName = '28__BlitzIndexPartition'
+# 29__BlitzIndexPartition
+$stepName = '29__BlitzIndexPartition'
 if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$BlitzIndexPartitionFilePath = '$BlitzIndexPartitionFilePath'"
@@ -2137,8 +2183,8 @@ if($stepName -in $Steps2Execute -and $IsNonPartitioned -eq $false) {
 }
 
 
-# 29__EnablePageCompression
-$stepName = '29__EnablePageCompression'
+# 30__EnablePageCompression
+$stepName = '30__EnablePageCompression'
 if( ($stepName -in $Steps2Execute) -and ($SkipPageCompression -eq $false) -and $IsCompressionSupported) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
 
@@ -2148,8 +2194,8 @@ if( ($stepName -in $Steps2Execute) -and ($SkipPageCompression -eq $false) -and $
 }
 
 
-# 30__GrafanaLogin
-$stepName = '30__GrafanaLogin'
+# 31__GrafanaLogin
+$stepName = '31__GrafanaLogin'
 if($stepName -in $Steps2Execute) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$GrafanaLoginFilePath = '$GrafanaLoginFilePath'"
@@ -2160,8 +2206,8 @@ if($stepName -in $Steps2Execute) {
 }
 
 
-# 31__LinkedServerOnInventory
-$stepName = '31__LinkedServerOnInventory'
+# 32__LinkedServerOnInventory
+$stepName = '32__LinkedServerOnInventory'
 if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -ne $InventoryServer) {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$LinkedServerOnInventoryFilePath = '$LinkedServerOnInventoryFilePath'"
@@ -2179,8 +2225,8 @@ if($stepName -in $Steps2Execute -and $SqlInstanceToBaseline -ne $InventoryServer
 }
 
 
-# 32__LinkedServerForDataDestinationInstance
-$stepName = '32__LinkedServerForDataDestinationInstance'
+# 33__LinkedServerForDataDestinationInstance
+$stepName = '33__LinkedServerForDataDestinationInstance'
 if( ($stepName -in $Steps2Execute) -and ($SqlInstanceToBaseline -ne $SqlInstanceAsDataDestination) )
 {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
@@ -2204,8 +2250,8 @@ if( ($stepName -in $Steps2Execute) -and ($SqlInstanceToBaseline -ne $SqlInstance
 }
 
 
-# 33__AlterViewsForDataDestinationInstance
-$stepName = '33__AlterViewsForDataDestinationInstance'
+# 34__AlterViewsForDataDestinationInstance
+$stepName = '34__AlterViewsForDataDestinationInstance'
 if( ($stepName -in $Steps2Execute) -and ($SqlInstanceToBaseline -ne $SqlInstanceAsDataDestination) )
 {
     "`n$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "*****Working on step '$stepName'.."
@@ -2349,6 +2395,8 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     Script file containing tsql that compiles [usp_GetAllServerInfo] in [DbaDatabase] on [InventoryServer]. This stored procedure provides basic health metrics for all/specific servers.
     .PARAMETER UspCollectWaitStatsFileName
     Script file containing tsql that compiles [usp_collect_wait_stats] in [DbaDatabase] on [SqlInstanceToBaseline].
+    .PARAMETER UspCollectMemoryClerksFileName
+    Script file containing tsql that compiles [usp_collect_memory_clerks] in [DbaDatabase] on [SqlInstanceToBaseline].
     .PARAMETER UspCollectFileIOStatsFileName
     Script file containing tsql that compiles [usp_collect_file_io_stats] in [DbaDatabase] on [SqlInstanceToBaseline].
     .PARAMETER UspCollectXeventsResourceConsumptionFileName
@@ -2381,6 +2429,8 @@ $timeTaken = New-TimeSpan -Start $startTime -End $(Get-Date)
     Script file containing tsql that creates sql agent job [(dba) Collect-PerfmonData] on server [SqlInstanceForPowerShellJobs] which calls powershell scripts for collecting collecting Perfmon data from server [SqlInstanceToBaseline].
     .PARAMETER CollectWaitStatsFileName
     Script file containing tsql that creates sql agent job [(dba) Collect-WaitStats] on server [SqlInstanceForTsqlJobs] which captures cumulative waits.
+    .PARAMETER CollectMemoryClerksFileName
+    Script file containing tsql that creates sql agent job [(dba) Collect-MemoryClerks] on server [SqlInstanceForTsqlJobs] which captures realtime memory consumption.
     .PARAMETER CollectXEventsJobFileName
     Script file containing tsql that creates sql agent job [(dba) Collect-XEvents] on server [SqlInstanceForTsqlJobs] which reads data from XEvent session [resource_consumption] & pushes it to SQL tables.
     .PARAMETER PartitionsMaintenanceFileName
@@ -2452,7 +2502,7 @@ $params = @{
     #SqlCredential = $saAdmin
     #WindowsCredential = $LabCredential
     #SkipSteps = @("10__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
-    #StartAtStep = '30__GrafanaLogin'
+    #StartAtStep = '31__GrafanaLogin'
     #StopAtStep = '21__WhoIsActivePartition'
     #DropCreatePowerShellJobs = $true
     #DryRun = $false
@@ -2479,7 +2529,7 @@ $params = @{
     SqlCredential = $saAdmin
     WindowsCredential = $LabCredential
     #SkipSteps = @("10__SetupPerfmonDataCollector", "12__CreateJobCollectOSProcesses","13__CreateJobCollectPerfmonData")
-    #StartAtStep = '30__GrafanaLogin'
+    #StartAtStep = '31__GrafanaLogin'
     #StopAtStep = '21__WhoIsActivePartition'
     #DropCreatePowerShellJobs = $true
     #DryRun = $false
@@ -2497,6 +2547,7 @@ Owner Ajay Kumar Dwivedi (ajay.dwivedi2007@gmail.com)
     https://ajaydwivedi.com/youtube/sqlmonitor
     https://ajaydwivedi.com/blog/sqlmonitor    
 #>
+
 
 
 
