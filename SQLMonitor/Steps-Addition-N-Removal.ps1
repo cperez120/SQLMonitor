@@ -2,24 +2,23 @@
 Param (
     [Parameter(Mandatory=$false)]
     [ValidateSet("AddStep", "RemoveStep")]
-    [String]$Action = "RemoveStep",
+    [String]$Action = "AddStep",
 
     [Parameter(Mandatory=$false)]
-    [String]$StepName = "6__OlaHallengrenSolutionObjects",
+    [String]$StepName = "24__CreateJobCollectMemoryClerks",
     
     [Parameter(Mandatory=$false)]
     [String[]]$AllSteps = @( "1__sp_WhoIsActive", "2__AllDatabaseObjects", "3__XEventSession",
-                "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__OlaHallengrenSolutionObjects",
-                "7__sp_WhatIsRunning", "8__usp_GetAllServerInfo", "9__CopyDbaToolsModule2Host",
-                "10__CopyPerfmonFolder2Host", "11__SetupPerfmonDataCollector", "12__CreateCredentialProxy",
-                "13__CreateJobCollectDiskSpace", "14__CreateJobCollectOSProcesses", "15__CreateJobCollectPerfmonData",
-                "16__CreateJobCollectWaitStats", "17__CreateJobCollectXEvents", "18__CreateJobCollectFileIOStats",
-                "19__CreateJobPartitionsMaintenance", "20__CreateJobPurgeTables", "21__CreateJobRemoveXEventFiles",
-                "22__CreateJobRunWhoIsActive", "23__CreateJobRunBlitzIndex", "24__CreateJobRunBlitzIndexWeekly",
-                "25__CreateJobUpdateSqlServerVersions", "26__CreateJobCheckInstanceAvailability", "27__CreateJobGetAllServerInfo",
-                "28__WhoIsActivePartition", "29__BlitzIndexPartition", "30__EnablePageCompression",
-                "31__GrafanaLogin", "32__LinkedServerOnInventory", "33__LinkedServerForDataDestinationInstance",
-                "34__AlterViewsForDataDestinationInstance"
+                "4__FirstResponderKitObjects", "5__DarlingDataObjects", "6__sp_WhatIsRunning",
+                "7__usp_GetAllServerInfo", "8__CopyDbaToolsModule2Host", "9__CopyPerfmonFolder2Host",
+                "10__SetupPerfmonDataCollector", "11__CreateCredentialProxy", "12__CreateJobCollectDiskSpace",
+                "13__CreateJobCollectOSProcesses", "14__CreateJobCollectPerfmonData", "15__CreateJobCollectWaitStats",
+                "16__CreateJobCollectXEvents", "17__CreateJobCollectFileIOStats", "18__CreateJobPartitionsMaintenance",
+                "19__CreateJobPurgeTables", "20__CreateJobRemoveXEventFiles", "21__CreateJobRunWhoIsActive",
+                "22__CreateJobRunBlitzIndex", "23__CreateJobRunBlitzIndexWeekly", "24__CreateJobUpdateSqlServerVersions",
+                "25__CreateJobCheckInstanceAvailability", "26__CreateJobGetAllServerInfo", "27__WhoIsActivePartition",
+                "28__BlitzIndexPartition", "29__EnablePageCompression", "30__GrafanaLogin",
+                "31__LinkedServerOnInventory", "32__LinkedServerForDataDestinationInstance", "33__AlterViewsForDataDestinationInstance"
                 ),
 
     [Parameter(Mandatory=$false)]
@@ -28,7 +27,7 @@ Param (
     [Parameter(Mandatory=$false)]
     [String]$ScriptFile = #'F:\GitHub\SQLMonitor\SQLMonitor\Remove-SQLMonitor.ps1'
                           #'F:\GitHub\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1'
-                          'D:\GitHub-Personal\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1'
+                          'D:\Github\SQLMonitor\SQLMonitor\Install-SQLMonitor.ps1'
 )
 
 cls
