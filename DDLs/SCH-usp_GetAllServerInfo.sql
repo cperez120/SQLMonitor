@@ -179,10 +179,10 @@ BEGIN
 	END
 
 	DECLARE cur_servers CURSOR LOCAL FORWARD_ONLY FOR
-		select distinct srvname = sql_instance 
+		select distinct [srvname] = (case when is_alias = 0 then sql_instance else source_sql_instance end)
 		from dbo.instance_details
 		where is_available = 1
-		and (@servers is null or sql_instance in (select srv_name from @_tbl_servers));
+		and (@servers is null or sql_instance in (select srv_name from @_tbl_servers) or source_sql_instance in (select srv_name from @_tbl_servers));
 
 	OPEN cur_servers;
 	FETCH NEXT FROM cur_servers INTO @_srv_name;
