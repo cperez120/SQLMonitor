@@ -22,7 +22,7 @@ $ErrorActionPreference = 'Stop'
 $currentTime = Get-Date
 
 "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Get all SQLInstances in SQLMonitor server [$InventoryServer].[dbo].[instance_details].."
-$sqlSupportedInstances = "select distinct [sql_instance], [database] from dbo.instance_details" 
+$sqlSupportedInstances = "select distinct [sql_instance], [database] from dbo.instance_details where is_alias = 0" 
 $supportedInstances = @()
 $supportedInstances += Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $sqlSupportedInstances -EnableException
 
@@ -112,7 +112,8 @@ if($jobsResult.Count -gt 0) {
     $onlineSqlInstancesCSV = (($jobsResult.sql_instance | % {"'$_'"}) -join ',')
     $sqlSetOnlineFlag = @"
 update dbo.instance_details set is_available = 1
-where is_available = 0 and sql_instance in ($onlineSqlInstancesCSV)
+where is_available = 0 
+    and ( sql_instance in ($onlineSqlInstancesCSV) or source_sql_instance in ($onlineSqlInstancesCSV) )
 "@
     Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $sqlSetOnlineFlag -EnableException
 }
@@ -122,7 +123,8 @@ if($jobs_exception.Count -gt 0) {
     $offlineSqlInstancesCSV = (($jobs_exception.Name | % {"'$_'"}) -join ',')
     $sqlSetOfflineFlag = @"
 update dbo.instance_details set is_available = 0, last_unavailability_time_utc = SYSUTCDATETIME()
-where is_available = 1 and sql_instance in ($offlineSqlInstancesCSV)
+where is_available = 1 
+    and ( sql_instance in ($offlineSqlInstancesCSV) or source_sql_instance in ($offlineSqlInstancesCSV) )
 "@
     Invoke-DbaQuery -SqlInstance $InventoryServer -Database $InventoryDatabase -Query $sqlSetOfflineFlag -EnableException
 }

@@ -241,6 +241,8 @@ begin
 	create table dbo.instance_details
 	(
 		[sql_instance] varchar(255) not null,
+		[is_alias] bit default 0 not null,
+		[source_sql_instance] varchar(255) null,
 		[host_name] varchar(255) not null,
 		[database] varchar(255) not null,
 		[collector_tsql_jobs_server] varchar(255) null default convert(varchar,serverproperty('MachineName')),
@@ -248,7 +250,7 @@ begin
 		[data_destination_sql_instance] varchar(255) null default convert(varchar,serverproperty('MachineName')),
 		[dba_group_mail_id] varchar(2000) not null default 'some_dba_mail_id@gmail.com',
 		[sqlmonitor_script_path] varchar(2000) not null default 'C:\SQLMonitor',
-		[sqlmonitor_version] varchar(20) not null default '1.1.0',
+		[sqlmonitor_version] varchar(20) not null default '1.1.0',		
 
 		constraint pk_instance_details primary key clustered ([sql_instance], [host_name]), 
 		constraint fk_host_name foreign key ([host_name]) references dbo.instance_hosts ([host_name])
